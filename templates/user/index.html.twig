@@ -1,0 +1,316 @@
+{# templates/user/index.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Пользователи CRM{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .user-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .status-active {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-inactive {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .status-locked {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .role-badge {
+            font-size: 0.75rem;
+            padding: 3px 8px;
+            margin: 2px;
+        }
+        .role-admin {
+            background-color: #dc3545;
+            color: white;
+        }
+        .role-manager {
+            background-color: #fd7e14;
+            color: white;
+        }
+        .role-user {
+            background-color: #6c757d;
+            color: white;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-users me-2"></i>Управление пользователями
+        </h1>
+        <a href="{{ path('app_user_new') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Добавить пользователя
+        </a>
+    </div>
+
+    <!-- Статистика -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Всего пользователей
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ statistics.total }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Активные
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ statistics.active }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Администраторы
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ statistics.admins }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-crown fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Менеджеры
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ statistics.managers }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-tie fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Таблица пользователей -->
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="usersTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Пользователь</th>
+                            <th>Контакт</th>
+                            <th>Роли</th>
+                            <th>Статус</th>
+                            <th>Дата регистрации</th>
+                            <th>Последний вход</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.id }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <img src="{{ user.avatarUrl }}" 
+                                         alt="{{ user.fullName }}" 
+                                         class="user-avatar me-3">
+                                    <div>
+                                        <strong>{{ user.fullName }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ user.username }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    <small class="text-muted d-block">
+                                        <i class="fas fa-envelope me-1"></i>
+                                        {{ user.email }}
+                                    </small>
+                                    {% if user.phone %}
+                                    <small class="text-muted d-block mt-1">
+                                        <i class="fas fa-phone me-1"></i>
+                                        {{ user.phone }}
+                                    </small>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                {% for role in user.roles %}
+                                    {% if role == 'ROLE_ADMIN' %}
+                                        <span class="badge role-badge role-admin">Админ</span>
+                                    {% elseif role == 'ROLE_MANAGER' %}
+                                        <span class="badge role-badge role-manager">Менеджер</span>
+                                    {% elseif role == 'ROLE_USER' %}
+                                        <span class="badge role-badge role-user">Пользователь</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </td>
+                            <td>
+                                {% if user.isLocked %}
+                                    <span class="user-status status-locked">Заблокирован</span>
+                                {% elseif user.isActive %}
+                                    <span class="user-status status-active">Активен</span>
+                                {% else %}
+                                    <span class="user-status status-inactive">Неактивен</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small class="text-muted">
+                                    {{ user.createdAt|date('d.m.Y') }}
+                                </small>
+                            </td>
+                            <td>
+                                {% if user.lastLoginAt %}
+                                    <small class="text-muted">
+                                        {{ user.lastLoginAt|date('d.m.Y H:i') }}
+                                    </small>
+                                {% else %}
+                                    <small class="text-muted">Никогда</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ path('app_user_show', {'id': user.id}) }}" 
+                                       class="btn btn-outline-info" 
+                                       title="Просмотр">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ path('app_user_edit', {'id': user.id}) }}" 
+                                       class="btn btn-outline-warning" 
+                                       title="Редактировать">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    
+                                    {% if user.isLocked %}
+                                        <form action="{{ path('app_user_unlock', {'id': user.id}) }}" 
+                                              method="post" 
+                                              class="d-inline">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('unlock' ~ user.id) }}">
+                                            <button type="submit" 
+                                                    class="btn btn-outline-success" 
+                                                    title="Разблокировать">
+                                                <i class="fas fa-unlock"></i>
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <form action="{{ path('app_user_toggle_active', {'id': user.id}) }}" 
+                                              method="post" 
+                                              class="d-inline">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('toggle-active' ~ user.id) }}">
+                                            <button type="submit" 
+                                                    class="btn {{ user.isActive ? 'btn-outline-warning' : 'btn-outline-success' }}" 
+                                                    title="{{ user.isActive ? 'Деактивировать' : 'Активировать' }}">
+                                                <i class="fas {{ user.isActive ? 'fa-user-slash' : 'fa-user-check' }}"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                    
+                                    {% if user.username != 'admin' %}
+                                        <button type="button" 
+                                                class="btn btn-outline-danger" 
+                                                title="Удалить"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#deleteModal{{ user.id }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Модальное окно удаления -->
+                                {% if user.username != 'admin' %}
+                                <div class="modal fade" id="deleteModal{{ user.id }}" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Подтверждение удаления</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                Вы уверены, что хотите удалить пользователя {{ user.fullName }}?
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                                                <form action="{{ path('app_user_delete', {'id': user.id}) }}" method="post">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
+                                                    <button type="submit" class="btn btn-danger">Удалить</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4">
+                                <i class="fas fa-users fa-2x text-muted mb-3"></i>
+                                <p class="text-muted">Пользователи не найдены</p>
+                                <a href="{{ path('app_user_new') }}" class="btn btn-primary">
+                                    Добавить первого пользователя
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
