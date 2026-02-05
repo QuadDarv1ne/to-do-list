@@ -1,92 +1,57 @@
 # config/packages/security.yaml
 
 security:
-    # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
     password_hashers:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: "auto"
         App\Entity\User:
             algorithm: auto
             cost: 12
 
-    # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
-        # used to reload user from session & other features (e.g. switch_user)
         app_user_provider:
             entity:
                 class: App\Entity\User
-                property: email # Измените на email или оставьте username
-
-        # Альтернативный провайдер для администраторов
-        admin_user_provider:
-            entity:
-                class: App\Entity\Admin
-                property: email
+                property: email # Используем email
 
     firewalls:
         dev:
-            pattern: ^/(_(profiler|wdt)|css|images|js)/
-            security: false
-
-        login:
-            pattern: ^/login$
+            pattern: ^/(_(profiler|wdt|error)|css|images|js)/
             security: false
 
         main:
             lazy: true
             provider: app_user_provider
             custom_authenticator: App\Security\LoginAuthenticator
-            entry_point: App\Security\LoginAuthenticator
 
-            # Настройка формы входа
-            form_login:
-                login_path: app_login
-                check_path: app_login
-                enable_csrf: true
-                default_target_path: app_dashboard
-                target_path_parameter: _target_path
-                failure_path_parameter: _failure_path
-                failure_forward: false
-                failure_path: app_login
+            # УДАЛИТЕ ВСЁ, что относится к form_login, если используете custom_authenticator
+            # form_login:  ← Удалить или закомментировать весь блок
 
             remember_me:
                 secret: "%kernel.secret%"
-                lifetime: 604800 # 1 неделя в секундах
+                lifetime: 604800
                 path: /
                 always_remember_me: false
-                remember_me_parameter: "_remember_me"
 
             logout:
                 path: app_logout
                 target: app_login
                 invalidate_session: true
-                delete_cookies:
-                    REMEMBERME: { path: null, domain: null }
 
-            # Защита от брутфорса
             login_throttling:
                 max_attempts: 5
                 interval: "15 minutes"
 
-    # Easy way to control access for large sections of your site
-    # Note: Only the *first* access control that matches will be used
     access_control:
-        # Страницы, доступные без авторизации
         - { path: ^/login$, roles: PUBLIC_ACCESS }
         - { path: ^/register$, roles: PUBLIC_ACCESS }
         - { path: ^/reset-password, roles: PUBLIC_ACCESS }
         - { path: ^/public, roles: PUBLIC_ACCESS }
-
-        # Административная зона
         - { path: ^/admin, roles: ROLE_ADMIN }
-
-        # Зона менеджеров
         - { path: ^/manager, roles: ROLE_MANAGER }
-
-        # Все остальные пути требуют аутентификации
         - { path: ^/, roles: ROLE_USER }
 
-    # Настройка ролей
     role_hierarchy:
+        ROLE_SUPER_ADMIN: [ROLE_ADMIN, ROLE_ALLOWED_TO_SWITCH]
         ROLE_ADMIN: [ROLE_MANAGER, ROLE_USER]
         ROLE_MANAGER: [ROLE_USER]
         ROLE_USER: []
@@ -94,12 +59,8 @@ security:
 when@test:
     security:
         password_hashers:
-            # By default, password hashers are resource intensive and take time. This is
-            # important to generate secure password hashes. In tests however, secure hashes
-            # are not important, waste resources and increase test times. The following
-            # reduces the work factor to the lowest possible values.
             Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
                 algorithm: auto
-                cost: 4 # Lowest possible value for bcrypt
-                time_cost: 3 # Lowest possible value for argon
-                memory_cost: 10 # Lowest possible value for argon
+                cost: 4
+                time_cost: 3
+                memory_cost: 10
