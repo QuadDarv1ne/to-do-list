@@ -1,4 +1,4 @@
-// src/Security/LoginAuthenticator.php
+<?php
 
 namespace App\Security;
 
@@ -89,13 +89,6 @@ class LoginAuthenticator extends AbstractAuthenticator
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
     {
         $request->getSession()->set(Security::AUTHENTICATION_ERROR, $exception);
-        
-        // Логирование неудачной попытки входа (можно добавить в базу данных)
-        $email = $request->request->get('email', '');
-        $ip = $request->getClientIp();
-        
-        // Можно добавить логирование в отдельную таблицу
-        // $this->logFailedAttempt($email, $ip, $exception->getMessage());
         
         return new RedirectResponse($this->urlGenerator->generate(self::LOGIN_ROUTE));
     }
