@@ -229,6 +229,98 @@
             const saveQuickTaskBtn = document.getElementById('save-quick-task');
             const quickTaskForm = document.getElementById('quick-task-form');
             
+            // Function to populate dropdowns when modal is shown
+            const quickTaskModal = document.getElementById('quickTaskModal');
+            quickTaskModal.addEventListener('shown.bs.modal', function() {
+                // Populate categories dropdown
+                fetch('{{ path('app_task_category_index') }}')
+                    .then(response => response.text())
+                    .then(html => {
+                        // Parse the response to extract categories (this is a simplified approach)
+                        // In a real scenario, we'd want to create an API endpoint to return JSON
+                        const categorySelect = document.getElementById('quick-task-category');
+                        // Clear existing options except the first one
+                        while (categorySelect.options.length > 1) {
+                            categorySelect.remove(1);
+                        }
+                        
+                        // We'll make a separate API call for this purpose
+                        fetch('{{ path('app_api_categories') }}') // This would be a new API endpoint
+                            .then(resp => resp.json())
+                            .then(categories => {
+                                categories.forEach(category => {
+                                    const option = document.createElement('option');
+                                    option.value = category.id;
+                                    option.textContent = category.name;
+                                    categorySelect.appendChild(option);
+                                });
+                            })
+                            .catch(() => {
+                                // Fallback: reload page to get categories
+                                window.location.href = '{{ path('app_task_new') }}';
+                            });
+                    })
+                    .catch(() => {
+                        // If we can't load via AJAX, we'll need to fallback to page reload
+                        // Or we can create a proper API endpoint
+                    });
+                
+                // Populate users dropdown
+                fetch('{{ path('app_user_index') }}')
+                    .then(response => response.text())
+                    .then(html => {
+                        const userSelect = document.getElementById('quick-task-assigned-user');
+                        // Clear existing options except the first two (empty and current user)
+                        while (userSelect.options.length > 2) {
+                            userSelect.remove(2);
+                        }
+                        
+                        // We'll make a separate API call for this purpose
+                        fetch('{{ path('app_api_users') }}') // This would be a new API endpoint
+                            .then(resp => resp.json())
+                            .then(users => {
+                                users.forEach(user => {
+                                    const option = document.createElement('option');
+                                    option.value = user.id;
+                                    option.textContent = user.fullName;
+                                    userSelect.appendChild(option);
+                                });
+                            })
+                            .catch(() => {
+                                // Fallback: reload page to get users
+                                window.location.href = '{{ path('app_task_new') }}';
+                            });
+                    });
+                
+                // Populate tags dropdown
+                fetch('{{ path('app_tag_index') }}')
+                    .then(response => response.text())
+                    .then(html => {
+                        const tagSelect = document.getElementById('quick-task-tags');
+                        // Clear all options
+                        tagSelect.innerHTML = '';
+                        
+                        // We'll make a separate API call for this purpose
+                        fetch('{{ path('app_api_tags') }}') // This would be a new API endpoint
+                            .then(resp => resp.json())
+                            .then(tags => {
+                                tags.forEach(tag => {
+                                    const option = document.createElement('option');
+                                    option.value = tag.id;
+                                    option.textContent = tag.name;
+                                    tagSelect.appendChild(option);
+                                });
+                            })
+                            .catch(() => {
+                                // Fallback: reload page to get tags
+                                window.location.href = '{{ path('app_task_new') }}';
+                            });
+                    });
+            });
+            
+            // Alternative approach: Create API endpoints and populate from them
+            // For now, let's create a simpler solution that loads the data when modal opens
+            
             saveQuickTaskBtn.addEventListener('click', function() {
                 const title = document.getElementById('quick-task-title').value.trim();
                 
