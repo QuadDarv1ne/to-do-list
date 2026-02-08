@@ -312,7 +312,7 @@
                     <span id="selected-count">Выбрано: 0</span>
                 </div>
                 <div class="btn-group" role="group">
-                    <select name="action" class="form-select me-2" style="width: auto;">
+                    <select name="action" class="form-select me-2" style="width: auto;" id="bulk-action-select">
                         <option value="">Действие с выбранными</option>
                         <option value="mark_completed">Отметить как выполненные</option>
                         <option value="mark_in_progress">Отметить как в процессе</option>
@@ -320,8 +320,16 @@
                         <option value="set_priority_high">Установить высокий приоритет</option>
                         <option value="set_priority_medium">Установить средний приоритет</option>
                         <option value="set_priority_low">Установить низкий приоритет</option>
+                        <option value="assign_tag">Назначить теги</option>
                         <option value="delete">Удалить</option>
                     </select>
+                    <div id="tag-selection-container" class="me-2" style="display: none;">
+                        <select name="tag_ids[]" multiple class="form-select" size="3">
+                            {% for tag in tags %}
+                                <option value="{{ tag.id }}">{{ tag.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                     <button type="submit" class="btn btn-primary btn-sm" id="execute-bulk-action">
                         <i class="fas fa-play me-1"></i>
                         Выполнить
