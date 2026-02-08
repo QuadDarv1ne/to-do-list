@@ -81,7 +81,7 @@ class TaskController extends AbstractController
                     $task->getUpdatedAt()->format('d.m.Y H:i'),
                     $task->getDeadline() ? $task->getDeadline()->format('d.m.Y') : '',
                     $task->getPriority(),
-                    $task->getAssignedTo() ? $task->getAssignedTo()->getFullName() : '',
+                    $task->getAssignedUser() ? $task->getAssignedUser()->getFullName() : '',
                     $task->getCreatedBy() ? $task->getCreatedBy()->getFullName() : ''
                 ], ';');
             }
@@ -113,7 +113,7 @@ class TaskController extends AbstractController
             $entityManager->flush();
 
             // Notify the assigned user if different from creator
-            if ($task->getAssignedTo() && $task->getAssignedTo() !== $this->getUser()) {
+            if ($task->getAssignedUser() && $task->getAssignedUser() !== $this->getUser()) {
                 $this->notificationService->notifyTaskAssignment($task, $this->getUser());
             }
 
@@ -147,7 +147,7 @@ class TaskController extends AbstractController
             throw $this->createAccessDeniedException('У вас нет прав для редактирования этой задачи.');
         }
         
-        $originalAssignedTo = $task->getAssignedTo(); // Store original assignee
+        $originalAssignedTo = $task->getAssignedUser(); // Store original assignee
         
         $form = $this->createForm(TaskType::class, $task);
         $form->handleRequest($request);
@@ -156,7 +156,7 @@ class TaskController extends AbstractController
             $entityManager->flush();
 
             // Notify the newly assigned user if different from original
-            if ($task->getAssignedTo() && $task->getAssignedTo() !== $originalAssignedTo && $task->getAssignedTo() !== $this->getUser()) {
+            if ($task->getAssignedUser() && $task->getAssignedUser() !== $originalAssignedTo && $task->getAssignedUser() !== $this->getUser()) {
                 $this->notificationService->notifyTaskReassignment($task, $this->getUser());
             }
 
@@ -193,7 +193,7 @@ class TaskController extends AbstractController
             throw $this->createAccessDeniedException('У вас нет прав для изменения статуса этой задачи.');
         }
         
-        $task->setStatus($task->isDone() ? 'in_progress' : 'done');
+        $task->setIsDone(!$task->isDone());
         $entityManager->flush();
 
         return $this->redirectToRoute('app_task_index');

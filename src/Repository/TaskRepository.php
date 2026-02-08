@@ -77,4 +77,19 @@ class TaskRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+    
+    /**
+     * Find tasks assigned to user or created by user
+     */
+    public function findByAssignedToOrCreatedBy(User $user): array
+    {
+        return $this->createQueryBuilder('t')
+            ->leftJoin('t.assignedUser', 'au')
+            ->leftJoin('t.createdBy', 'cu')
+            ->andWhere('au = :user OR cu = :user')
+            ->setParameter('user', $user)
+            ->orderBy('t.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }

@@ -38,6 +38,10 @@ class Task
         #[ORM\ManyToOne(inversedBy: 'tasks')]
         #[ORM\JoinColumn(nullable: true)]
         private ?User $assignedUser = null;
+            
+        #[ORM\ManyToOne(inversedBy: 'createdTasks')]
+        #[ORM\JoinColumn(nullable: false)]
+        private ?User $createdBy = null;
 
     public function getId(): ?int
     {
@@ -114,6 +118,18 @@ class Task
         $this->assignedUser = $assignedUser;
 
         return $this;    
+    }
+    
+    public function getCreatedBy(): ?User
+    {
+        return $this->createdBy;
+    }
+
+    public function setCreatedBy(?User $createdBy): static
+    {
+        $this->createdBy = $createdBy;
+
+        return $this;
     }
     
     public function getDeadline(): ?\DateTimeImmutable

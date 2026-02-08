@@ -111,6 +111,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Task::class, mappedBy: 'assignedUser', orphanRemoval: true)]
     private Collection $tasks;
 
+    #[ORM\OneToMany(targetEntity: Task::class, mappedBy: 'createdBy', orphanRemoval: true)]
+    private Collection $createdTasks;
+
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Notification::class, cascade: ['persist', 'remove'])]
     #[ORM\OrderBy(['createdAt' => 'DESC'])]
     private Collection $notifications;
@@ -120,6 +123,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->createdAt = new \DateTime();
         $this->roles = ['ROLE_USER'];
         $this->tasks = new \Doctrine\Common\Collections\ArrayCollection();
+        $this->createdTasks = new \Doctrine\Common\Collections\ArrayCollection();
         $this->notifications = new \Doctrine\Common\Collections\ArrayCollection();
     }
 
@@ -513,6 +517,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getTasks(): Collection
     {
         return $this->tasks;
+    }
+
+    /**
+     * @return Collection<int, Task>
+     */
+    public function getCreatedTasks(): Collection
+    {
+        return $this->createdTasks;
     }
 
     /**
