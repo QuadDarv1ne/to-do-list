@@ -4,6 +4,7 @@ namespace App\Command;
 
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -11,20 +12,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
+#[AsCommand(
+    name: 'app:create-admin',
+    description: 'Создает администратора CRM системы'
+)]
 class CreateAdminCommand extends Command
 {
-    protected static $defaultName = 'app:create-admin';
-    protected static $defaultDescription = 'Создает администратора CRM системы';
-
-    public static function getDefaultName(): ?string
-    {
-        return 'app:create-admin';
-    }
-
-    public static function getDefaultDescription(): ?string
-    {
-        return 'Создает администратора CRM системы';
-    }
 
     private EntityManagerInterface $entityManager;
     private UserPasswordHasherInterface $passwordHasher;
