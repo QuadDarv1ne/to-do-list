@@ -28,4 +28,14 @@ class TaskRecurrenceRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+    
+    /**
+     * Find all recurrences
+     */
+    public function findAllRecurrences()
+    {
+        return $this->createQueryBuilder('tr')
+            ->getQuery()
+            ->getResult();
+    }
 }

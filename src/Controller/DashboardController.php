@@ -106,7 +106,7 @@ class DashboardController extends AbstractController
         // Get upcoming recurring tasks
         $upcomingRecurringTasks = [];
         if ($this->isGranted('ROLE_ADMIN')) {
-            $upcomingRecurringTasks = $taskRecurrenceRepository->findAll();
+            $upcomingRecurringTasks = $taskRecurrenceRepository->findAllRecurrences();
         } else {
             $upcomingRecurringTasks = $taskRecurrenceRepository->findByUser($user);
         }

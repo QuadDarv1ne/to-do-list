@@ -16,5 +16,31 @@ class TaskNotificationRepository extends ServiceEntityRepository
         parent::__construct($registry, TaskNotification::class);
     }
 
-    // Add methods as needed
+    /**
+     * Find notifications by recipient
+     */
+    public function findByRecipient($recipient)
+    {
+        return $this->createQueryBuilder('tn')
+            ->andWhere('tn.recipient = :recipient')
+            ->setParameter('recipient', $recipient)
+            ->orderBy('tn.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+    
+    /**
+     * Count unread notifications for a recipient
+     */
+    public function countUnreadByRecipient($recipient)
+    {
+        return $this->createQueryBuilder('tn')
+            ->select('COUNT(tn.id)')
+            ->andWhere('tn.recipient = :recipient')
+            ->andWhere('tn.isRead = :isRead')
+            ->setParameter('recipient', $recipient)
+            ->setParameter('isRead', false)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }
