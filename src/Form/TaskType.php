@@ -1,18 +1,16 @@
 <?php
-// src/Form/TaskType.php
 
 namespace App\Form;
 
-use App\Entity\Task;
-use App\Entity\User;
 use App\Entity\TaskCategory;
-use App\Repository\UserRepository;
+use App\Entity\User;
 use App\Repository\TaskCategoryRepository;
+use App\Repository\UserRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\DateType;
+use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -30,10 +28,8 @@ class TaskType extends AbstractType
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $today = new \DateTime();
-        
         $builder
-            ->add('name', TextType::class, [
+            ->add('title', TextType::class, [
                 'label' => 'Название задачи',
                 'attr' => [
                     'class' => 'form-control',
@@ -42,118 +38,99 @@ class TaskType extends AbstractType
                     'maxlength' => 100
                 ],
                 'constraints' => [
-                    new NotBlank(message: 'Пожалуйста, введите название задачи'),
-                    new Length(
-                        max: 100,
-                        maxMessage: 'Название не должно превышать {{ limit }} символов'
-                    ),
+                    new NotBlank(),
+                    new Length([
+                        'max' => 100,
+                        'maxMessage' => 'Название не должно превышать {{ limit }} символов'
+                    ]),
                 ],
-                'help' => 'Максимальная длина: 100 символов'
             ])
             ->add('description', TextareaType::class, [
                 'label' => 'Описание задачи',
                 'required' => false,
                 'attr' => [
                     'class' => 'form-control',
-                    'rows' => 5,
-                    'placeholder' => 'Опишите детали задачи...',
-                    'maxlength' => 1000
+                    'rows' => 4,
+                    'placeholder' => 'Опишите задачу подробнее...'
                 ],
-                'constraints' => [
-                    new Length(
-                        max: 1000,
-                        maxMessage: 'Описание не должно превышать {{ limit }} символов'
-                    ),
-                ],
-                'help' => 'Максимальная длина: 1000 символов'
             ])
-            ->add('deadline', DateType::class, [
-                'label' => 'Срок выполнения',
-                'widget' => 'single_text',
-                'required' => false,
-                'attr' => [
-                    'class' => 'form-control',
-                    'min' => $today->format('Y-m-d')
-                ],
-                'html5' => true,
-                'constraints' => [
-                    new GreaterThanOrEqual(
-                        value: $today,
-                        message: 'Дата не может быть в прошлом'
-                    ),
-                ],
-                'help' => 'Укажите дату окончания задачи'
-            ])
-            ->add('priority', ChoiceType::class, [
-                'label' => 'Приоритет задачи',
+            ->add('status', ChoiceType::class, [
+                'label' => 'Статус',
                 'choices' => [
-                    'Низкий' => 'low',
-                    'Обычный' => 'normal',
-                    'Высокий' => 'high',
-                    'Срочный' => 'urgent',
+                    'В ожидании' => 'pending',
+                    'В процессе' => 'in_progress',
+                    'Завершено' => 'completed',
                 ],
                 'attr' => [
                     'class' => 'form-select',
-                    'data-controller' => 'priority-selector'
+                ],
+                'placeholder' => 'Выберите статус',
+                'expanded' => false,
+                'multiple' => false,
+                'constraints' => [
+                    new NotBlank()
+                ]
+            ])
+            ->add('priority', ChoiceType::class, [
+                'label' => 'Приоритет',
+                'choices' => [
+                    'Низкий' => 'low',
+                    'Средний' => 'medium',
+                    'Высокий' => 'high',
+                ],
+                'attr' => [
+                    'class' => 'form-select',
                 ],
                 'placeholder' => 'Выберите приоритет',
                 'expanded' => false,
                 'multiple' => false,
                 'constraints' => [
-                    new NotBlank(message: 'Пожалуйста, выберите приоритет')
+                    new NotBlank()
                 ]
             ])
-            ->add('isDone', CheckboxType::class, [
-                'label' => 'Отметка о выполнении',
+            ->add('dueDate', DateTimeType::class, [
+                'label' => 'Срок выполнения',
                 'required' => false,
-                'label_attr' => ['class' => 'form-check-label'],
+                'widget' => 'single_text',
                 'attr' => [
-                    'class' => 'form-check-input',
-                    'data-action' => 'change->task#toggleStatus'
+                    'class' => 'form-control',
                 ],
-                'help' => 'Отметьте, если задача выполнена'
+                'constraints' => [
+                    new GreaterThanOrEqual([
+                        'value' => 'today',
+                        'message' => 'Срок не может быть в прошлом'
+                    ])
+                ]
+            ])
+            ->add('category', EntityType::class, [
+                'label' => 'Категория',
+                'class' => TaskCategory::class,
+                'choice_label' => 'name',
+                'required' => false,
+                'attr' => [
+                    'class' => 'form-select',
+                ],
+                'placeholder' => 'Выберите категорию',
+                'query_builder' => function(TaskCategoryRepository $er) use ($options) {
+                    return $er->createQueryBuilder('c')
+                        ->where('c.user = :user')
+                        ->setParameter('user', $options['user'])
+                        ->orderBy('c.name', 'ASC');
+                }
             ])
             ->add('assignedUser', EntityType::class, [
-                'label' => 'Ответственный исполнитель',
+                'label' => 'Назначить пользователю',
                 'class' => User::class,
-                'choice_label' => function(User $user) {
-                    return sprintf('%s (%s)', $user->getFullName(), $user->getEmail());
-                },
-                'query_builder' => function(UserRepository $repository) {
-                    return $repository->createQueryBuilder('u')
-                        ->where('u.isActive = :active')
-                        ->setParameter('active', true)
-                        ->orderBy('u.fullName', 'ASC');
-                },
+                'choice_label' => 'fullName',
+                'required' => false,
                 'attr' => [
                     'class' => 'form-select',
                     'data-controller' => 'user-select'
                 ],
                 'placeholder' => 'Выберите исполнителя',
                 'constraints' => [
-                    new NotBlank(message: 'Пожалуйста, выберите исполнителя')
+                    new NotBlank()
                 ]
-            ])
-            ->add('categories', EntityType::class, [
-                'label' => 'Категории задачи',
-                'class' => TaskCategory::class,
-                'choice_label' => 'name',
-                'multiple' => true,
-                'expanded' => false,
-                'by_reference' => false,
-                'query_builder' => function(TaskCategoryRepository $repository) {
-                    return $repository->createQueryBuilder('c')
-                        ->where('c.isActive = :active')
-                        ->setParameter('active', true)
-                        ->orderBy('c.name', 'ASC');
-                },
-                'attr' => [
-                    'class' => 'form-select',
-                    'data-controller' => 'select2',
-                    'data-placeholder' => 'Выберите категории'
-                ],
-                'required' => false,
-                'help' => 'Удерживайте Ctrl для выбора нескольких категорий'
             ])
         ;
     }
@@ -161,11 +138,7 @@ class TaskType extends AbstractType
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'data_class' => Task::class,
-            'csrf_protection' => true,
-            'csrf_field_name' => '_token',
-            'csrf_token_id'   => 'task_item',
-            'validation_groups' => ['Default', 'creation'],
+            'user' => null,
         ]);
     }
 }

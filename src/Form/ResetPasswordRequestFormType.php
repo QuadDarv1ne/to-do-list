@@ -20,7 +20,7 @@ class ResetPasswordRequestFormType extends AbstractType
                     'placeholder' => 'Введите ваш email'
                 ],
                 'constraints' => [
-                    new NotBlank(message: 'Пожалуйста, введите ваш email'),
+                    new NotBlank(),
                 ],
             ])
         ;

@@ -3,24 +3,32 @@
 {% block title %}Регистрация{% endblock %}
 
 {% block body %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-6">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="card-title text-center mb-0">Регистрация нового пользователя</h3>
+<div class="container-fluid vh-100 d-flex align-items-center">
+    <div class="row justify-content-center w-100">
+        <div class="col-md-8 col-lg-6 col-xl-5">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <div class="mb-3">
+                        <i class="fas fa-user-plus fa-2x"></i>
+                    </div>
+                    <h3 class="card-title mb-0">Регистрация нового пользователя</h3>
+                    <p class="mb-0 mt-2 text-white-50">Создайте аккаунт для начала работы</p>
                 </div>
                 <div class="card-body p-4">
                     {# Общие ошибки формы #}
                     {% if registration_form.vars.errors|length > 0 %}
-                        <div class="alert alert-danger">
+                        <div class="alert alert-danger alert-dismissible fade show">
                             {{ form_errors(registration_form) }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
                     {% endif %}
                     
                     {# Flash-сообщения #}
                     {% for flash_error in app.flashes('verify_email_error') %}
-                        <div class="alert alert-danger">{{ flash_error }}</div>
+                        <div class="alert alert-danger alert-dismissible fade show">
+                            {{ flash_error }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
                     {% endfor %}
                     
                     {{ form_start(registration_form, {'attr': {'novalidate': 'novalidate'}}) }}
@@ -54,12 +62,21 @@
                         }) }}
                     </div>
                     
-                    <div class="mb-3">
-                        {{ form_row(registration_form.plainPassword, {
-                            'attr': {'class': 'form-control'},
-                            'row_attr': {'class': 'form-group'},
-                            'label': 'Пароль'
-                        }) }}
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form_row(registration_form.plainPassword.first, {
+                                'attr': {'class': 'form-control'},
+                                'row_attr': {'class': 'form-group'},
+                                'label': 'Пароль'
+                            }) }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form_row(registration_form.plainPassword.second, {
+                                'attr': {'class': 'form-control'},
+                                'row_attr': {'class': 'form-group'},
+                                'label': 'Подтверждение пароля'
+                            }) }}
+                        </div>
                     </div>
                     
                     <div class="mb-3">
@@ -69,48 +86,42 @@
                         }) }}
                     </div>
                     
-                    <div class="mb-3">
-                        {{ form_row(registration_form.position, {
-                            'attr': {'class': 'form-control'},
-                            'row_attr': {'class': 'form-group'}
-                        }) }}
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form_row(registration_form.position, {
+                                'attr': {'class': 'form-control'},
+                                'row_attr': {'class': 'form-group'}
+                            }) }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form_row(registration_form.department, {
+                                'attr': {'class': 'form-control'},
+                                'row_attr': {'class': 'form-group'}
+                            }) }}
+                        </div>
                     </div>
                     
-                    <div class="mb-3">
-                        {{ form_row(registration_form.department, {
-                            'attr': {'class': 'form-control'},
-                            'row_attr': {'class': 'form-group'}
-                        }) }}
-                    </div>
-                    
-                    {# Согласие на обработку данных (рекомендуется добавить) #}
-                    {#
-                    <div class="mb-3 form-check">
-                        {{ form_widget(registration_form.agreeTerms, {
-                            'attr': {'class': 'form-check-input'}
-                        }) }}
-                        {{ form_label(registration_form.agreeTerms, null, {
-                            'label_attr': {'class': 'form-check-label'}
-                        }) }}
-                        {{ form_errors(registration_form.agreeTerms) }}
-                    </div>
-                    #}
-                    
-                    <div class="d-grid gap-2">
+                    <div class="d-grid gap-2 mb-4">
                         <button type="submit" class="btn btn-primary btn-lg">
-                            Зарегистрироваться
+                            <i class="fas fa-user-plus me-2"></i>Зарегистрироваться
                         </button>
                     </div>
                     
                     {{ form_end(registration_form) }}
                     
-                    <div class="text-center mt-4">
-                        <p class="mb-2">Уже есть аккаунт?</p>
+                    <div class="text-center">
+                        <p class="mb-2 text-muted">Уже есть аккаунт?</p>
                         <a href="{{ path('app_login') }}" class="btn btn-outline-primary">
-                            Войти в систему
+                            <i class="fas fa-sign-in-alt me-2"></i>Войти в систему
                         </a>
                     </div>
                 </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="{{ path('app_dashboard') }}" class="text-muted">
+                    <i class="fas fa-home me-1"></i>Вернуться на главную
+                </a>
             </div>
         </div>
     </div>

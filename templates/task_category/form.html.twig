@@ -1,37 +1,36 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{% if category.id %}Редактировать категорию{% else %}Создать категорию{% endif %}{% endblock %}
+{% block title %}{{ title }}{% endblock %}
 
 {% block body %}
-<div class="container mt-4">
+<div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
                     <h3 class="card-title mb-0">
-                        <i class="fas fa-tag me-2"></i>
-                        {% if category.id %}
-                            Редактировать категорию "{{ category.name }}"
-                        {% else %}
-                            Создать новую категорию
-                        {% endif %}
+                        <i class="fas fa-tag me-2 text-primary"></i>
+                        {{ title }}
                     </h3>
                 </div>
                 <div class="card-body">
                     {{ form_start(form) }}
                     <div class="row">
-                        <div class="col-md-12">
+                        <div class="col-md-12 mb-3">
                             {{ form_row(form.name) }}
                         </div>
-                        <div class="col-md-12">
+                        <div class="col-md-12 mb-3">
                             {{ form_row(form.description) }}
                         </div>
                     </div>
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <a href="{{ path('app_task_category_index') }}" class="btn btn-secondary me-md-2">
+                        <a href="{{ path('app_task_category_index') }}" class="btn btn-outline-secondary me-md-2">
                             <i class="fas fa-arrow-left me-2"></i>Назад к списку
                         </a>
-                        {{ form_row(form.save, {'attr': {'class': 'btn btn-primary'}}) }}
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>
+                            {% if task_category.id %}Обновить{% else %}Создать{% endif %}
+                        </button>
                     </div>
                     {{ form_end(form) }}
                 </div>

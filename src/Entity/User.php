@@ -3,20 +3,20 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use App\Entity\Task;
-use App\Entity\Notification;
-use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-#[ORM\Table(name: 'users')]
+#[ORM\Table(name: '`users`')]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_USERNAME', fields: ['username'])]
-#[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
-#[ORM\HasLifecycleCallbacks]
+#[UniqueEntity(fields: ['username'], message: 'Пользователь с таким логином уже существует')]
+#[UniqueEntity(fields: ['email'], message: 'Пользователь с таким email уже существует')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -24,19 +24,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 180)]
-    #[Assert\NotBlank(message: 'Логин не может быть пустым')]
-    #[Assert\Length(
-        min: 3,
-        max: 180,
-        minMessage: 'Логин должен содержать минимум {{ limit }} символа',
-        maxMessage: 'Логин не может быть длиннее {{ limit }} символов'
-    )]
+    #[ORM\Column(length: 180, unique: true)]
+    #[Assert\NotBlank]
+    #[Assert\Length(min: 3, max: 180)]
     private ?string $username = null;
 
     #[ORM\Column(length: 180, unique: true)]
-    #[Assert\NotBlank(message: 'Email не может быть пустым')]
-    #[Assert\Email(message: 'Некорректный email адрес')]
+    #[Assert\NotBlank]
+    #[Assert\Email]
     private ?string $email = null;
 
     /**
@@ -52,11 +47,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(length: 100, nullable: true)]
-    #[Assert\Length(max: 100, maxMessage: 'Имя не может быть длиннее {{ limit }} символов')]
+    #[Assert\Length(max: 100)]
     private ?string $firstName = null;
 
     #[ORM\Column(length: 100, nullable: true)]
-    #[Assert\Length(max: 100, maxMessage: 'Фамилия не может быть длиннее {{ limit }} символов')]
+    #[Assert\Length(max: 100)]
     private ?string $lastName = null;
 
     #[ORM\Column(length: 20, nullable: true)]
@@ -72,14 +67,35 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $department = null;
 
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => true])]
+    private bool $isActive = true;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $lastLoginAt = null;
+
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $notes = null;
 
-    #[ORM\Column(options: ['default' => true])]
-    private bool $isActive = true;
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Task::class, orphanRemoval: true)]
+    private Collection $tasks;
 
-    #[ORM\Column(options: ['default' => false])]
-    private bool $isVerified = false;
+    #[ORM\OneToMany(mappedBy: 'assignedUser', targetEntity: Task::class)]
+    private Collection $assignedTasks;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: TaskCategory::class, orphanRemoval: true)]
+    private Collection $taskCategories;
+
+    #[ORM\OneToMany(mappedBy: 'author', targetEntity: Comment::class, orphanRemoval: true)]
+    private Collection $comments;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: ActivityLog::class, orphanRemoval: true)]
+    private Collection $activityLogs;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: TaskRecurrence::class, orphanRemoval: true)]
+    private Collection $taskRecurrences;
+
+    #[ORM\OneToMany(mappedBy: 'recipient', targetEntity: TaskNotification::class, orphanRemoval: true)]
+    private Collection $notifications;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $createdAt = null;
@@ -88,83 +104,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?\DateTimeInterface $updatedAt = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?\DateTimeInterface $lastLoginAt = null;
-
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $passwordChangedAt = null;
-
-    #[ORM\Column(length: 100, nullable: true)]
-    private ?string $timezone = 'Europe/Moscow';
-
-    #[ORM\Column(length: 10, nullable: true)]
-    private ?string $locale = 'ru';
-
-    #[ORM\Column(type: Types::SMALLINT, options: ['default' => 0])]
-    private int $failedLoginAttempts = 0;
-    
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $resetPasswordToken = null;
-    
-    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    private ?\DateTimeImmutable $resetPasswordRequestedAt = null;
-    
-    private ?string $plainPassword = null;
-
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?\DateTimeInterface $lockedUntil = null;
-
-    #[ORM\Column(length: 64, nullable: true)]
-    private ?string $avatar = null;
-
-    #[ORM\OneToMany(targetEntity: Task::class, mappedBy: 'assignedUser', orphanRemoval: true)]
-    private Collection $tasks;
-
-    #[ORM\OneToMany(targetEntity: Task::class, mappedBy: 'createdBy', orphanRemoval: true)]
-    private Collection $createdTasks;
-
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Notification::class, cascade: ['persist', 'remove'])]
-    #[ORM\OrderBy(['createdAt' => 'DESC'])]
-    private Collection $notifications;
-
-    #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'author', orphanRemoval: true)]
-    private Collection $comments;
-
-    #[ORM\OneToMany(targetEntity: ActivityLog::class, mappedBy: 'user', orphanRemoval: true)]
-    private Collection $activityLogs;
-    
-    #[ORM\OneToMany(targetEntity: TaskTimeTracking::class, mappedBy: 'user', orphanRemoval: true)]
-    private Collection $timeTrackings;
-    
-    #[ORM\OneToMany(targetEntity: TaskCategory::class, mappedBy: 'owner', orphanRemoval: true)]
-    private Collection $categories;
-    
-    #[ORM\OneToMany(mappedBy: 'recipient', targetEntity: TaskNotification::class, cascade: ['persist'], orphanRemoval: true)]
-    private Collection $taskNotifications;
 
     public function __construct()
     {
+        $this->tasks = new ArrayCollection();
+        $this->assignedTasks = new ArrayCollection();
+        $this->taskCategories = new ArrayCollection();
+        $this->comments = new ArrayCollection();
+        $this->activityLogs = new ArrayCollection();
+        $this->taskRecurrences = new ArrayCollection();
+        $this->notifications = new ArrayCollection();
         $this->createdAt = new \DateTime();
         $this->roles = ['ROLE_USER'];
-        $this->tasks = new \Doctrine\Common\Collections\ArrayCollection();
-        $this->createdTasks = new \Doctrine\Common\Collections\ArrayCollection();
-        $this->comments = new \Doctrine\Common\Collections\ArrayCollection();
-        $this->activityLogs = new \Doctrine\Common\Collections\ArrayCollection();
-        $this->timeTrackings = new \Doctrine\Common\Collections\ArrayCollection();
-        $this->categories = new \Doctrine\Common\Collections\ArrayCollection();
-        $this->notifications = new \Doctrine\Common\Collections\ArrayCollection();
-        $this->taskNotifications = new \Doctrine\Common\Collections\ArrayCollection();
-    }
-
-    #[ORM\PrePersist]
-    public function onPrePersist(): void
-    {
-        $this->createdAt = new \DateTime();
-    }
-
-    #[ORM\PreUpdate]
-    public function onPreUpdate(): void
-    {
-        $this->updatedAt = new \DateTime();
     }
 
     public function getId(): ?int
@@ -180,6 +132,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setUsername(string $username): static
     {
         $this->username = $username;
+
         return $this;
     }
 
@@ -191,6 +144,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setEmail(string $email): static
     {
         $this->email = $email;
+
         return $this;
     }
 
@@ -201,26 +155,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getUserIdentifier(): string
     {
-        return (string) $this->email;
+        return (string) $this->username;
     }
 
     /**
      * @see UserInterface
+     *
+     * @return list<string>
      */
     public function getRoles(): array
     {
         $roles = $this->roles;
         // guarantee every user at least has ROLE_USER
-        if (!in_array('ROLE_USER', $roles)) {
-            $roles[] = 'ROLE_USER';
-        }
+        $roles[] = 'ROLE_USER';
 
         return array_unique($roles);
-    }
-
-    public function hasRole(string $role): bool
-    {
-        return in_array($role, $this->getRoles(), true);
     }
 
     /**
@@ -229,30 +178,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setRoles(array $roles): static
     {
         $this->roles = $roles;
-        return $this;
-    }
 
-    public function addRole(string $role): static
-    {
-        if (!in_array($role, $this->roles, true)) {
-            $this->roles[] = $role;
-        }
-        return $this;
-    }
-
-    public function removeRole(string $role): static
-    {
-        $key = array_search($role, $this->roles, true);
-        if ($key !== false) {
-            unset($this->roles[$key]);
-        }
         return $this;
     }
 
     /**
      * @see PasswordAuthenticatedUserInterface
      */
-    public function getPassword(): string
+    public function getPassword(): ?string
     {
         return $this->password;
     }
@@ -260,274 +193,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPassword(string $password): static
     {
         $this->password = $password;
-        $this->passwordChangedAt = new \DateTime();
-        return $this;
-    }
-
-    public function getFirstName(): ?string
-    {
-        return $this->firstName;
-    }
-
-    public function setFirstName(?string $firstName): static
-    {
-        $this->firstName = $firstName;
-        return $this;
-    }
-
-    public function getLastName(): ?string
-    {
-        return $this->lastName;
-    }
-
-    public function setLastName(?string $lastName): static
-    {
-        $this->lastName = $lastName;
-        return $this;
-    }
-
-    public function getFullName(): string
-    {
-        return trim($this->firstName . ' ' . $this->lastName) ?: $this->username;
-    }
-
-    public function getInitials(): string
-    {
-        $initials = '';
-        if ($this->firstName) {
-            $initials .= mb_substr($this->firstName, 0, 1);
-        }
-        if ($this->lastName) {
-            $initials .= mb_substr($this->lastName, 0, 1);
-        }
-        return $initials ?: mb_substr($this->username, 0, 2);
-    }
-
-    public function getPhone(): ?string
-    {
-        return $this->phone;
-    }
-
-    public function setPhone(?string $phone): static
-    {
-        $this->phone = $phone;
-        return $this;
-    }
-
-    public function getPosition(): ?string
-    {
-        return $this->position;
-    }
-
-    public function setPosition(?string $position): static
-    {
-        $this->position = $position;
-        return $this;
-    }
-
-    public function getDepartment(): ?string
-    {
-        return $this->department;
-    }
-
-    public function setDepartment(?string $department): static
-    {
-        $this->department = $department;
-        return $this;
-    }
-
-    public function getNotes(): ?string
-    {
-        return $this->notes;
-    }
-
-    public function setNotes(?string $notes): static
-    {
-        $this->notes = $notes;
-        return $this;
-    }
-
-    public function isActive(): bool
-    {
-        return $this->isActive;
-    }
-
-    public function setIsActive(bool $isActive): static
-    {
-        $this->isActive = $isActive;
-        return $this;
-    }
-
-    public function isVerified(): bool
-    {
-        return $this->isVerified;
-    }
-
-    public function setIsVerified(bool $isVerified): static
-    {
-        $this->isVerified = $isVerified;
-        return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeInterface
-    {
-        return $this->createdAt;
-    }
-
-    public function getUpdatedAt(): ?\DateTimeInterface
-    {
-        return $this->updatedAt;
-    }
-
-    public function getLastLoginAt(): ?\DateTimeInterface
-    {
-        return $this->lastLoginAt;
-    }
-
-    public function setLastLoginAt(?\DateTimeInterface $lastLoginAt): static
-    {
-        $this->lastLoginAt = $lastLoginAt;
-        return $this;
-    }
-
-    public function getPasswordChangedAt(): ?\DateTimeInterface
-    {
-        return $this->passwordChangedAt;
-    }
-
-    public function setPasswordChangedAt(?\DateTimeInterface $passwordChangedAt): static
-    {
-        $this->passwordChangedAt = $passwordChangedAt;
-        return $this;
-    }
-
-    public function getTimezone(): ?string
-    {
-        return $this->timezone;
-    }
-
-    public function setTimezone(?string $timezone): static
-    {
-        $this->timezone = $timezone;
-        return $this;
-    }
-
-    public function getLocale(): ?string
-    {
-        return $this->locale;
-    }
-
-    public function setLocale(?string $locale): static
-    {
-        $this->locale = $locale;
-        return $this;
-    }
-
-    public function getFailedLoginAttempts(): int
-    {
-        return $this->failedLoginAttempts;
-    }
-
-    public function setFailedLoginAttempts(int $failedLoginAttempts): static
-    {
-        $this->failedLoginAttempts = $failedLoginAttempts;
-        return $this;
-    }
-
-    public function incrementFailedLoginAttempts(): static
-    {
-        $this->failedLoginAttempts++;
-        return $this;
-    }
-
-    public function resetFailedLoginAttempts(): static
-    {
-        $this->failedLoginAttempts = 0;
-        return $this;
-    }
-
-    public function getLockedUntil(): ?\DateTimeInterface
-    {
-        return $this->lockedUntil;
-    }
-
-    public function setLockedUntil(?\DateTimeInterface $lockedUntil): static
-    {
-        $this->lockedUntil = $lockedUntil;
-        return $this;
-    }
-
-    public function isLocked(): bool
-    {
-        if (!$this->lockedUntil) {
-            return false;
-        }
-        return $this->lockedUntil > new \DateTime();
-    }
-
-    public function getAvatar(): ?string
-    {
-        return $this->avatar;
-    }
-
-    public function setAvatar(?string $avatar): static
-    {
-        $this->avatar = $avatar;
-        return $this;
-    }
-
-    public function getResetPasswordToken(): ?string
-    {
-        return $this->resetPasswordToken;
-    }
-
-    public function setResetPasswordToken(?string $resetPasswordToken): static
-    {
-        $this->resetPasswordToken = $resetPasswordToken;
 
         return $this;
-    }
-
-    public function getResetPasswordRequestedAt(): ?\DateTimeImmutable
-    {
-        return $this->resetPasswordRequestedAt;
-    }
-
-    public function setResetPasswordRequestedAt(\DateTimeImmutable $resetPasswordRequestedAt): static
-    {
-        $this->resetPasswordRequestedAt = $resetPasswordRequestedAt;
-
-        return $this;
-    }
-    
-    public function getPlainPassword(): ?string
-    {
-        return $this->plainPassword;
-    }
-
-    public function setPlainPassword(?string $plainPassword): static
-    {
-        $this->plainPassword = $plainPassword;
-
-        return $this;
-    }
-    
-    public function getAvatarUrl(): ?string
-    {
-        if ($this->avatar) {
-            return '/uploads/avatars/' . $this->avatar;
-        }
-        
-        // Генерация аватара по умолчанию
-        $initials = $this->getInitials();
-        $colors = ['FF6B6B', '4ECDC4', '45B7D1', '96CEB4', 'FFEAA7'];
-        $color = $colors[abs(crc32($this->email) % count($colors))];
-        
-        return sprintf(
-            'https://ui-avatars.com/api/?name=%s&background=%s&color=fff&size=128',
-            urlencode($initials),
-            $color
-        );
     }
 
     /**
@@ -539,40 +206,106 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         // $this->plainPassword = null;
     }
 
-    public function __serialize(): array
+    public function getFirstName(): ?string
     {
-        return [
-            'id' => $this->id,
-            'username' => $this->username,
-            'email' => $this->email,
-            'roles' => $this->roles,
-            'password' => hash('crc32c', $this->password ?? ''),
-        ];
+        return $this->firstName;
     }
 
-    public function __unserialize(array $data): void
+    public function setFirstName(?string $firstName): static
     {
-        $this->id = $data['id'] ?? null;
-        $this->username = $data['username'] ?? null;
-        $this->email = $data['email'] ?? null;
-        $this->roles = $data['roles'] ?? [];
-        // Password не восстанавливаем из сериализованных данных
+        $this->firstName = $firstName;
+
+        return $this;
     }
 
-    public function toArray(): array
+    public function getLastName(): ?string
     {
-        return [
-            'id' => $this->id,
-            'username' => $this->username,
-            'email' => $this->email,
-            'fullName' => $this->getFullName(),
-            'roles' => $this->getRoles(),
-            'isActive' => $this->isActive,
-            'isVerified' => $this->isVerified,
-            'createdAt' => $this->createdAt?->format('Y-m-d H:i:s'),
-            'lastLoginAt' => $this->lastLoginAt?->format('Y-m-d H:i:s'),
-            'avatarUrl' => $this->getAvatarUrl(),
-        ];
+        return $this->lastName;
+    }
+
+    public function setLastName(?string $lastName): static
+    {
+        $this->lastName = $lastName;
+
+        return $this;
+    }
+
+    public function getFullName(): string
+    {
+        $fullName = trim($this->firstName . ' ' . $this->lastName);
+        return $fullName ?: $this->username;
+    }
+
+    public function getPhone(): ?string
+    {
+        return $this->phone;
+    }
+
+    public function setPhone(?string $phone): static
+    {
+        $this->phone = $phone;
+
+        return $this;
+    }
+
+    public function getPosition(): ?string
+    {
+        return $this->position;
+    }
+
+    public function setPosition(?string $position): static
+    {
+        $this->position = $position;
+
+        return $this;
+    }
+
+    public function getDepartment(): ?string
+    {
+        return $this->department;
+    }
+
+    public function setDepartment(?string $department): static
+    {
+        $this->department = $department;
+
+        return $this;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->isActive;
+    }
+
+    public function setIsActive(bool $isActive): static
+    {
+        $this->isActive = $isActive;
+
+        return $this;
+    }
+
+    public function getLastLoginAt(): ?\DateTimeInterface
+    {
+        return $this->lastLoginAt;
+    }
+
+    public function setLastLoginAt(?\DateTimeInterface $lastLoginAt): static
+    {
+        $this->lastLoginAt = $lastLoginAt;
+
+        return $this;
+    }
+
+    public function getNotes(): ?string
+    {
+        return $this->notes;
+    }
+
+    public function setNotes(?string $notes): static
+    {
+        $this->notes = $notes;
+
+        return $this;
     }
 
     /**
@@ -583,12 +316,86 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->tasks;
     }
 
+    public function addTask(Task $task): static
+    {
+        if (!$this->tasks->contains($task)) {
+            $this->tasks->add($task);
+            $task->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTask(Task $task): static
+    {
+        if ($this->tasks->removeElement($task)) {
+            // set the owning side to null (unless already changed)
+            if ($task->getUser() === $this) {
+                $task->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, Task>
      */
-    public function getCreatedTasks(): Collection
+    public function getAssignedTasks(): Collection
     {
-        return $this->createdTasks;
+        return $this->assignedTasks;
+    }
+
+    public function addAssignedTask(Task $assignedTask): static
+    {
+        if (!$this->assignedTasks->contains($assignedTask)) {
+            $this->assignedTasks->add($assignedTask);
+            $assignedTask->setAssignedUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAssignedTask(Task $assignedTask): static
+    {
+        if ($this->assignedTasks->removeElement($assignedTask)) {
+            // set the owning side to null (unless already changed)
+            if ($assignedTask->getAssignedUser() === $this) {
+                $assignedTask->setAssignedUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TaskCategory>
+     */
+    public function getTaskCategories(): Collection
+    {
+        return $this->taskCategories;
+    }
+
+    public function addTaskCategory(TaskCategory $taskCategory): static
+    {
+        if (!$this->taskCategories->contains($taskCategory)) {
+            $this->taskCategories->add($taskCategory);
+            $taskCategory->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTaskCategory(TaskCategory $taskCategory): static
+    {
+        if ($this->taskCategories->removeElement($taskCategory)) {
+            // set the owning side to null (unless already changed)
+            if ($taskCategory->getUser() === $this) {
+                $taskCategory->setUser(null);
+            }
+        }
+
+        return $this;
     }
 
     /**
@@ -599,6 +406,28 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->comments;
     }
 
+    public function addComment(Comment $comment): static
+    {
+        if (!$this->comments->contains($comment)) {
+            $this->comments->add($comment);
+            $comment->setAuthor($this);
+        }
+
+        return $this;
+    }
+
+    public function removeComment(Comment $comment): static
+    {
+        if ($this->comments->removeElement($comment)) {
+            // set the owning side to null (unless already changed)
+            if ($comment->getAuthor() === $this) {
+                $comment->setAuthor(null);
+            }
+        }
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, ActivityLog>
      */
@@ -607,35 +436,126 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->activityLogs;
     }
 
-    /**
-     * @return Collection<int, TaskTimeTracking>
-     */
-    public function getTimeTrackings(): Collection
+    public function addActivityLog(ActivityLog $activityLog): static
     {
-        return $this->timeTrackings;
+        if (!$this->activityLogs->contains($activityLog)) {
+            $this->activityLogs->add($activityLog);
+            $activityLog->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeActivityLog(ActivityLog $activityLog): static
+    {
+        if ($this->activityLogs->removeElement($activityLog)) {
+            // set the owning side to null (unless already changed)
+            if ($activityLog->getUser() === $this) {
+                $activityLog->setUser(null);
+            }
+        }
+
+        return $this;
     }
 
     /**
-     * @return Collection<int, TaskCategory>
+     * @return Collection<int, TaskRecurrence>
      */
-    public function getCategories(): Collection
+    public function getTaskRecurrences(): Collection
     {
-        return $this->categories;
+        return $this->taskRecurrences;
+    }
+
+    public function addTaskRecurrence(TaskRecurrence $taskRecurrence): static
+    {
+        if (!$this->taskRecurrences->contains($taskRecurrence)) {
+            $this->taskRecurrences->add($taskRecurrence);
+            $taskRecurrence->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTaskRecurrence(TaskRecurrence $taskRecurrence): static
+    {
+        if ($this->taskRecurrences->removeElement($taskRecurrence)) {
+            // set the owning side to null (unless already changed)
+            if ($taskRecurrence->getUser() === $this) {
+                $taskRecurrence->setUser(null);
+            }
+        }
+
+        return $this;
     }
 
     /**
-     * @return Collection<int, Notification>
+     * @return Collection<int, TaskNotification>
      */
     public function getNotifications(): Collection
     {
         return $this->notifications;
     }
-    
-    /**
-     * @return Collection<int, TaskNotification>
-     */
-    public function getTaskNotifications(): Collection
+
+    public function addNotification(TaskNotification $notification): static
     {
-        return $this->taskNotifications;
+        if (!$this->notifications->contains($notification)) {
+            $this->notifications->add($notification);
+            $notification->setRecipient($this);
+        }
+
+        return $this;
+    }
+
+    public function removeNotification(TaskNotification $notification): static
+    {
+        if ($this->notifications->removeElement($notification)) {
+            // set the owning side to null (unless already changed)
+            if ($notification->getRecipient() === $this) {
+                $notification->setRecipient(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeInterface $createdAt): static
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeInterface
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(?\DateTimeInterface $updatedAt): static
+    {
+        $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
+    public function getPasswordChangedAt(): ?\DateTimeInterface
+    {
+        return $this->passwordChangedAt;
+    }
+
+    public function setPasswordChangedAt(?\DateTimeInterface $passwordChangedAt): static
+    {
+        $this->passwordChangedAt = $passwordChangedAt;
+
+        return $this;
+    }
+
+    public function hasRole(string $role): bool
+    {
+        return in_array($role, $this->getRoles());
     }
 }
