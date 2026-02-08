@@ -14,7 +14,7 @@ use App\Repository\TaskCategoryRepository;
 use App\Repository\TagRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/dashboard')]
@@ -167,7 +167,7 @@ class DashboardController extends AbstractController
         if ($user->hasRole('ROLE_ADMIN')) {
             // For admin, get trends for all tasks
             $trends = $qb
-                ->select('DATE(t.createdAt) as date, COUNT(t.id) as total, SUM(CASE WHEN t.isDone = true THEN 1 ELSE 0 END) as completed')
+                ->select('DATE(t.createdAt) as date, COUNT(t.id) as total, SUM(CASE WHEN t.status = \'completed\' THEN 1 ELSE 0 END) as completed')
                 ->groupBy('DATE(t.createdAt)')
                 ->orderBy('date', 'DESC')
                 ->setMaxResults(30) // Last 30 days
@@ -176,7 +176,7 @@ class DashboardController extends AbstractController
         } else {
             // For regular user, get trends for their tasks
             $trends = $qb
-                ->select('DATE(t.createdAt) as date, COUNT(t.id) as total, SUM(CASE WHEN t.isDone = true THEN 1 ELSE 0 END) as completed')
+                ->select('DATE(t.createdAt) as date, COUNT(t.id) as total, SUM(CASE WHEN t.status = \'completed\' THEN 1 ELSE 0 END) as completed')
                 ->andWhere('t.assignedUser = :user OR t.createdBy = :user')
                 ->setParameter('user', $user)
                 ->groupBy('DATE(t.createdAt)')
@@ -214,5 +214,15 @@ class DashboardController extends AbstractController
                 ],
             ],
         ];
+    }
+    
+    #[Route('/api/completion-stats-by-priority', name: 'app_dashboard_completion_stats_by_priority', methods: ['GET'])]
+    public function getCompletionStatsByPriority(TaskRepository $taskRepository): Response
+    {
+        $user = $this->getUser();
+        
+        $stats = $taskRepository->getCompletionStatsByPriority();
+        
+        return $this->json($stats);
     }
 }

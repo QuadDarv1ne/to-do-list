@@ -63,6 +63,9 @@ class Task
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $dueDate = null;
 
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $completedAt = null;
+
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'tasks')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
@@ -297,6 +300,14 @@ class Task
     public function isPending(): bool
     {
         return $this->status === 'pending';
+    }
+
+    /**
+     * @deprecated Use isCompleted() instead
+     */
+    public function isDone(): bool
+    {
+        return $this->isCompleted();
     }
 
     /**

@@ -36,7 +36,7 @@ class SendDeadlineNotificationsCommand extends Command
         $count = 0;
         foreach ($upcomingDeadlineTasks as $task) {
             // Skip if task is already completed
-            if ($task->isDone()) {
+            if ($task->isCompleted()) {
                 continue;
             }
 

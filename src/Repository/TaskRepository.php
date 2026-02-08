@@ -308,4 +308,28 @@ class TaskRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+    
+    /**
+     * Get task completion statistics by priority
+     */
+    public function getCompletionStatsByPriority(): array
+    {
+        $result = $this->createQueryBuilder('t')
+            ->select('t.priority, COUNT(t.id) as total, SUM(CASE WHEN t.status = \'completed\' THEN 1 ELSE 0 END) as completed')
+            ->groupBy('t.priority')
+            ->orderBy('t.priority')
+            ->getQuery()
+            ->getResult();
+
+        $stats = [];
+        foreach ($result as $item) {
+            $stats[$item['priority']] = [
+                'total' => (int)$item['total'],
+                'completed' => (int)$item['completed'],
+                'percentage' => $item['total'] > 0 ? round(($item['completed'] / $item['total']) * 100, 2) : 0
+            ];
+        }
+        
+        return $stats;
+    }
 }

@@ -99,7 +99,7 @@ class NotificationService
     {
         $assignedUser = $task->getAssignedUser();
         
-        if (!$assignedUser || $task->isDone()) {
+        if (!$assignedUser || $task->isCompleted()) {
             return;
         }
 
