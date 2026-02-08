@@ -34,7 +34,7 @@ class LoginAuthenticator extends AbstractAuthenticator implements Authentication
     ) {
     }
 
-    public function start(Request $request, AuthenticationException $authException = null): Response
+    public function start(Request $request, ?AuthenticationException $authException = null): Response
     {
         // Перенаправляем на страницу входа
         return new RedirectResponse($this->urlGenerator->generate(self::LOGIN_ROUTE));
