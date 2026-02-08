@@ -118,12 +118,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OrderBy(['createdAt' => 'DESC'])]
     private Collection $notifications;
 
+    #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'author', orphanRemoval: true)]
+    private Collection $comments;
+
     public function __construct()
     {
         $this->createdAt = new \DateTime();
         $this->roles = ['ROLE_USER'];
         $this->tasks = new \Doctrine\Common\Collections\ArrayCollection();
         $this->createdTasks = new \Doctrine\Common\Collections\ArrayCollection();
+        $this->comments = new \Doctrine\Common\Collections\ArrayCollection();
         $this->notifications = new \Doctrine\Common\Collections\ArrayCollection();
     }
 
