@@ -1,263 +1,263 @@
-# To-Do List Application
+# Приложение To-Do List
 
-A comprehensive task management system built with Symfony 8.0, featuring user authentication, role-based access control, and advanced task management capabilities.
+Комплексная система управления задачами, созданная с использованием Symfony 8.0, с функциями аутентификации пользователей, ролевым управлением доступом и расширенными возможностями управления задачами.
 
-## 🚀 Features
+## 🚀 Возможности
 
-### User Management
-- User registration and authentication
-- Role-based access control (User, Manager, Admin)
-- Profile management with avatar support
-- Password reset via email
-- Account activation/deactivation by administrators
+### Управление пользователями
+- Регистрация и аутентификация пользователей
+- Ролевое управление доступом (Пользователь, Менеджер, Администратор)
+- Управление профилем с поддержкой аватаров
+- Сброс пароля по электронной почте
+- Активация/деактивация аккаунтов администраторами
 
-### Task Management
-- Create, read, update, and delete tasks (CRUD operations)
-- Assign tasks to users
-- Set task priorities (Low, Normal, High, Urgent)
-- Set deadlines with automatic overdue detection
-- Toggle task completion status
-- Filter tasks by status, date, priority, and assigned user
-- Export tasks to CSV format
+### Управление задачами
+- Создание, чтение, обновление и удаление задач (CRUD операции)
+- Назначение задач пользователям
+- Установка приоритетов задач (Низкий, Обычный, Высокий, Срочный)
+- Установка сроков выполнения с автоматическим определением просроченных задач
+- Переключение статуса выполнения задачи
+- Фильтрация задач по статусу, дате, приоритету и назначенным пользователям
+- Экспорт задач в формат CSV
 
-### Notifications
-- Real-time notifications for task assignments
-- Email notifications for important events
-- Deadline reminder notifications
-- Unread notification counter
-- Notification history
+### Уведомления
+- Уведомления в реальном времени о назначении задач
+- Email-уведомления о важных событиях
+- Уведомления о приближающихся сроках выполнения
+- Счетчик непрочитанных уведомлений
+- История уведомлений
 
-### Administration
-- User management (create, edit, activate/deactivate users)
-- Role assignment and management
-- System statistics dashboard
-- Bulk operations support
+### Администрирование
+- Управление пользователями (создание, редактирование, активация/деактивация пользователей)
+- Назначение ролей
+- Панель статистики системы
+- Поддержка массовых операций
 
-### Priority & Deadline Management
-- Four priority levels: Low, Normal, High, Urgent
-- Deadline tracking with visual indicators
-- Automatic overdue task detection
-- Deadline reminder system
+### Управление приоритетами и сроками
+- Четыре уровня приоритета: Низкий, Обычный, Высокий, Срочный
+- Отслеживание сроков выполнения с визуальными индикаторами
+- Автоматическое определение просроченных задач
+- Система напоминаний о сроках выполнения
 
-## 🛠️ Tech Stack
+## 🛠️ Технологии
 
-- **Backend**: Symfony 8.0
-- **Database**: Doctrine ORM with SQLite/MySQL support
-- **Frontend**: Bootstrap 5, Font Awesome, JavaScript
-- **Security**: Symfony Security Component
-- **Forms**: Symfony Form Component
-- **Email**: Symfony Mailer Component
-- **Password Reset**: SymfonyCasts Reset Password Bundle
-- **Email Verification**: SymfonyCasts Verify Email Bundle
+- **Бэкенд**: Symfony 8.0
+- **База данных**: Doctrine ORM с поддержкой SQLite/MySQL
+- **Фронтенд**: Bootstrap 5, Font Awesome, JavaScript
+- **Безопасность**: Компонент безопасности Symfony
+- **Формы**: Компонент форм Symfony
+- **Электронная почта**: Компонент почты Symfony
+- **Сброс пароля**: SymfonyCasts Reset Password Bundle
+- **Проверка электронной почты**: SymfonyCasts Verify Email Bundle
 
-## 📋 Requirements
+## 📋 Требования
 
-### Server Requirements
-- PHP 8.1 or higher
+### Системные требования
+- PHP 8.1 или выше
 - Composer
-- SQLite3 or MySQL database
-- Web server (Apache/Nginx) or PHP built-in server
+- SQLite3 или MySQL база данных
+- Веб-сервер (Apache/Nginx) или встроенный PHP сервер
 
-### PHP Extensions
-- `pdo_sqlite` or `pdo_mysql`
+### Необходимые расширения PHP
+- `pdo_sqlite` или `pdo_mysql`
 - `json`, `ctype`, `iconv`, `mbstring`
 - `xml`, `zip`, `openssl`
 - `tokenizer`, `xmlwriter`, `intl`
 
-## 🚀 Installation
+## 🚀 Установка
 
-### 1. Clone the repository
+### 1. Клонируйте репозиторий
 ```bash
 git clone https://github.com/your-username/to-do-list.git
 cd to-do-list
 ```
 
-### 2. Install dependencies
+### 2. Установите зависимости
 ```bash
 composer install
 ```
 
-### 3. Configure environment
-Copy `.env` file and adjust database settings:
+### 3. Настройте окружение
+Скопируйте файл `.env` и настройте параметры базы данных:
 ```bash
 cp .env .env.local
-# Edit .env.local to configure your database
+# Отредактируйте .env.local чтобы настроить вашу базу данных
 ```
 
-### 4. Set up the database
+### 4. Настройте базу данных
 ```bash
-# Create database (if using SQLite, this creates the file)
-# For MySQL, ensure database exists
+# Создайте базу данных (если используете SQLite, это создаст файл)
+# Для MySQL убедитесь, что база данных существует
 
-# Run migrations
+# Выполните миграции
 php bin/console doctrine:migrations:migrate
 
-# Create admin user (optional)
+# Создайте администратора (опционально)
 php bin/console app:create_admin
 ```
 
-### 5. Install assets
+### 5. Установите ассеты
 ```bash
-# Install JavaScript dependencies
+# Установите JavaScript зависимости
 npm install
 npm run build
 ```
 
-### 6. Start the server
+### 6. Запустите сервер
 ```bash
 php -S localhost:8000 -t public/
-# Or use Symfony server if installed
+# Или используйте Symfony сервер если установлен
 symfony serve
 ```
 
-## 📄 Available Pages
+## 📄 Доступные страницы
 
-### Public Pages (No Authentication Required)
-- `/register` - User registration page
-- `/login` - Login page
-- `/forgot-password` - Password reset request page
+### Публичные страницы (без аутентификации)
+- `/register` - Страница регистрации пользователя
+- `/login` - Страница входа
+- `/forgot-password` - Страница запроса сброса пароля
 
-### Protected Pages (Authentication Required)
+### Защищенные страницы (требуется аутентификация)
 
-#### Main Pages
-- `/` - Homepage (redirects to dashboard)
-- `/dashboard` - Main dashboard with statistics and recent activity
-- `/tasks` - Task list with filtering and sorting options
-- `/tasks/new` - Create new task
-- `/profile` - View user profile
-- `/profile/edit` - Edit user profile
-- `/profile/change-password` - Change user password
+#### Основные страницы
+- `/` - Главная страница (перенаправляет на панель управления)
+- `/dashboard` - Главная панель управления со статистикой и последней активностью
+- `/tasks` - Список задач с фильтрацией и сортировкой
+- `/tasks/new` - Создание новой задачи
+- `/profile` - Просмотр профиля пользователя
+- `/profile/edit` - Редактирование профиля
+- `/profile/change-password` - Смена пароля пользователя
 
-#### Administrative Pages (Admin Role Required)
-- `/users` - User management dashboard
-- `/users/new` - Create new user
-- `/users/{id}` - View user details
-- `/users/{id}/edit` - Edit user
-- `/users/{id}/toggle-active` - Activate/deactivate user
-- `/users/{id}/unlock` - Unlock user account
+#### Страницы администрирования (требуется роль Администратора)
+- `/users` - Панель управления пользователями
+- `/users/new` - Создание нового пользователя
+- `/users/{id}` - Просмотр деталей пользователя
+- `/users/{id}/edit` - Редактирование пользователя
+- `/users/{id}/toggle-active` - Активация/деактивация пользователя
+- `/users/{id}/unlock` - Разблокировка аккаунта пользователя
 
-#### Notification Pages
-- `/notifications` - View all notifications
-- `/notifications/mark-as-read/{id}` - Mark notification as read (POST)
-- `/notifications/mark-all-as-read` - Mark all notifications as read (POST)
-- `/notifications/unread-count` - Get unread notifications count (AJAX)
+#### Страницы уведомлений
+- `/notifications` - Просмотр всех уведомлений
+- `/notifications/mark-as-read/{id}` - Отметить уведомление как прочитанное (POST)
+- `/notifications/mark-all-as-read` - Отметить все уведомления как прочитанные (POST)
+- `/notifications/unread-count` - Получить количество непрочитанных уведомлений (AJAX)
 
-## 🔐 Authentication System
+## 🔐 Система аутентификации
 
-### Registration Process
-1. Visit `/register` to create a new account
-2. Fill in required information (email, password)
-3. Submit the form to create your account
-4. You will be redirected to the login page
+### Процесс регистрации
+1. Посетите `/register` чтобы создать новый аккаунт
+2. Заполните необходимую информацию (email, пароль)
+3. Отправьте форму чтобы создать свой аккаунт
+4. Вас перенаправят на страницу входа
 
-### Login Process
-1. Visit `/login` to access the login page
-2. Enter your credentials
-3. Click "Remember me" if you want to stay logged in
-4. Click "Sign in" to access the application
+### Процесс входа
+1. Посетите `/login` чтобы получить доступ к странице входа
+2. Введите свои учетные данные
+3. Нажмите "Запомнить меня" если хотите оставаться в системе
+4. Нажмите "Войти в кабинет" чтобы получить доступ к приложению
 
-### Password Reset Process
-1. Visit `/forgot-password` to initiate password reset
-2. Enter your email address
-3. Check your email for a password reset link
-4. Click the link in the email to reset your password
-5. Enter your new password twice for confirmation
-6. Submit the form to update your password
+### Процесс сброса пароля
+1. Посетите `/forgot-password` чтобы инициировать сброс пароля
+2. Введите свой адрес электронной почты
+3. Проверьте свою электронную почту для получения ссылки сброса пароля
+4. Нажмите на ссылку в письме чтобы сбросить пароль
+5. Введите новый пароль дважды для подтверждения
+6. Отправьте форму чтобы обновить свой пароль
 
-## 👥 Roles and Permissions
+## 👥 Роли и разрешения
 
-### ROLE_USER
-- Access to dashboard and personal tasks
-- Create and edit own tasks
-- View assigned tasks
-- Update profile information
+### ROLE_USER (Обычный пользователь)
+- Доступ к панели управления и личным задачам
+- Создание и редактирование собственных задач
+- Просмотр назначенных задач
+- Обновление информации профиля
 
-### ROLE_MANAGER
-- All USER permissions
-- Manage tasks assigned to subordinates
-- View team statistics
+### ROLE_MANAGER (Менеджер)
+- Все права пользователя
+- Управление задачами, назначенными подчиненным
+- Просмотр статистики команды
 
-### ROLE_ADMIN
-- All MANAGER permissions
-- Full system access
-- User management (create, edit, delete users)
-- Role assignment
-- System-wide task access
+### ROLE_ADMIN (Администратор)
+- Все права менеджера
+- Полный доступ к системе
+- Управление пользователями (создание, редактирование, удаление пользователей)
+- Назначение ролей
+- Доступ ко всем задачам в системе
 
-## ⚙️ Configuration
+## ⚙️ Конфигурация
 
-### Email Settings
-Configure email settings in `.env`:
+### Настройки электронной почты
+Настройте параметры электронной почты в файле `.env`:
 ```env
 MAILER_DSN=smtp://localhost:1025
 ```
 
-### Security Settings
-Adjust security settings in `config/packages/security.yaml`:
-- Password hashing algorithm
-- Login throttling
-- Session timeout
+### Настройки безопасности
+Отрегулируйте настройки безопасности в `config/packages/security.yaml`:
+- Алгоритм хеширования паролей
+- Ограничение количества попыток входа
+- Время жизни сессии
 
-## 🔧 Maintenance
+## 🔧 Обслуживание
 
-### Clear cache
+### Очистка кеша
 ```bash
 php bin/console cache:clear
 ```
 
-### Run database migrations
+### Выполнение миграций базы данных
 ```bash
 php bin/console doctrine:migrations:migrate
 ```
 
-### Generate new migration
+### Генерация новой миграции
 ```bash
 php bin/console make:migration
 ```
 
-### Send deadline notifications (cron job)
-Add to crontab:
+### Отправка уведомлений о сроках выполнения (cron задание)
+Добавьте в crontab:
 ```bash
-# Send deadline reminders daily at 9 AM
+# Отправлять напоминания о сроках выполнения ежедневно в 9 утра
 0 9 * * * cd /path/to/project && php bin/console app:send-deadline-notifications
 ```
 
-## 🧪 Testing
+## 🧪 Тестирование
 
-Run unit tests:
+Запустите модульные тесты:
 ```bash
 php bin/phpunit
 ```
 
-## 📈 Development
+## 📈 Разработка
 
-### Generate entities
+### Генерация сущностей
 ```bash
 php bin/console make:entity
 ```
 
-### Generate controllers
+### Генерация контроллеров
 ```bash
 php bin/console make:controller
 ```
 
-### Generate forms
+### Генерация форм
 ```bash
 php bin/console make:form
 ```
 
-## 🤝 Contributing
+## 🤝 Вклад в развитие
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+1. Форкните репозиторий
+2. Создайте ветку для новой функции (`git checkout -b feature/awesome-feature`)
+3. Зафиксируйте изменения (`git commit -m 'Add awesome feature'`)
+4. Загрузите изменения в ветку (`git push origin feature/awesome-feature`)
+5. Откройте Pull Request
 
-## 📄 License
+## 📄 Лицензия
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Этот проект лицензирован под лицензией MIT - см. файл [LICENSE](LICENSE) для подробностей.
 
-## 🆘 Support
+## 🆘 Поддержка
 
-For support, please open an issue in the GitHub repository.
+Для поддержки, пожалуйста, откройте вопрос в репозитории GitHub.

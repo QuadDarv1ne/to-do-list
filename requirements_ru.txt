@@ -1,0 +1,67 @@
+# Требования к приложению
+
+## Программное обеспечение
+- PHP 8.1 или выше
+- Composer (менеджер зависимостей PHP)
+- SQLite3 или MySQL база данных
+- Веб-сервер (Apache/Nginx) или встроенный PHP сервер
+
+## Необходимые расширения PHP
+- pdo_sqlite (для поддержки SQLite)
+- pdo_mysql (для поддержки MySQL)
+- json
+- ctype
+- iconv
+- mbstring
+- xml
+- zip
+- openssl
+- tokenizer
+- xmlwriter
+- intl
+
+## Зависимости пакетов PHP (управляются через Composer)
+- symfony/framework-bundle
+- symfony/security-bundle
+- symfony/doctrine-bridge
+- symfony/form
+- symfony/validator
+- symfony/twig-bundle
+- symfony/translation
+- symfony/mailer
+- symfony/reset-password-bundle
+- symfonycasts/verify-email-bundle
+- doctrine/doctrine-bundle
+- doctrine/doctrine-migrations-bundle
+- doctrine/orm
+- twig/extra-bundle
+- symfony/asset
+- symfony/console
+- symfony/dotenv
+- symfony/http-foundation
+- symfony/runtime
+- symfony/yaml
+- symfony/serializer
+- symfony/property-access
+- symfony/property-info
+- symfony/mime
+- symfony/notifier
+- symfony/rate-limiter
+- symfony/string
+- symfony/polyfill-intl-grapheme
+- symfony/polyfill-intl-normalizer
+- symfony/var-dumper
+- symfony/monolog-bundle
+- symfony/stimulus-bundle
+- symfony/ux-turbo
+- symfony/webpack-encore-bundle
+
+## Требования к frontend
+- Bootstrap 5.x
+- Font Awesome 6.x
+- Совместимый с JavaScript ES6+ браузер
+
+## Системные требования
+- Минимум 2 ГБ ОЗУ (рекомендуется 4 ГБ)
+- 100 МБ свободного места на диске (для файлов приложения)
+- Подключение к Интернету (для первоначальной настройки и загрузки пакетов)
