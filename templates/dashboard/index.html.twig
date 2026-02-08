@@ -4,6 +4,9 @@
 
 {% block body %}
 <div class="container-fluid">
+
+{% block body %}
+<div class="container-fluid">
     <div class="row">
         <div class="col-12">
             <h1 class="h3 mb-4">
@@ -81,6 +84,46 @@
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if task_stats.completion_rate is defined %}
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Завершено
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ task_stats.completion_rate }}%</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-percentage fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if task_stats.comments is defined %}
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-secondary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">
+                                Комментариев
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ task_stats.comments }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-comments fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
@@ -172,8 +215,41 @@
             </div>
         </div>
 
-        <!-- User Info -->
+        <!-- Recent Activity -->
         <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-history me-2"></i>Недавняя активность
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if recent_activity %}
+                    <div class="timeline">
+                        {% for activity in recent_activity[:5] %}
+                        <div class="timeline-item mb-3 p-3 border-start border-primary border-3 rounded">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="mb-1">{{ activity.action }}</h6>
+                                    <small class="text-muted">
+                                        <i class="fas fa-user me-1"></i>{{ activity.user.fullName }} • 
+                                        <i class="fas fa-clock me-1"></i>{{ activity.createdAt|date('d.m.Y H:i') }}
+                                    </small>
+                                    {% if activity.description %}
+                                    <div class="mt-2 text-muted small">{{ activity.description }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted">Нет недавней активности.</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- User Info -->
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">
@@ -237,6 +313,58 @@
             </div>
             {% endif %}
         </div>
+        
+        <!-- Task Completion Trends Chart -->
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-line me-2"></i>Тренды выполнения задач
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="trendsChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<!-- Trends Chart Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const trendsCtx = document.getElementById('trendsChart').getContext('2d');
+        
+        {% if completion_trends %}
+        const trendsData = {
+            labels: {{ completion_trends.labels|json_encode|raw }},
+            datasets: {{ completion_trends.datasets|json_encode|raw }}
+        };
+        
+        const trendsConfig = {
+            type: 'line',
+            data: trendsData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Тренды выполнения задач за последние 30 дней'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        };
+        
+        new Chart(trendsCtx, trendsConfig);
+        {% endif %}
+    });
+</script>
 {% endblock %}

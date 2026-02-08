@@ -146,4 +146,21 @@ class TaskRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+    
+    /**
+     * Find tasks by user and status within date range
+     */
+    public function findByUserAndStatus(User $user, bool $isDone, \DateTime $fromDate, \DateTime $toDate): array
+    {
+        return $this->createQueryBuilder('t')
+            ->andWhere('(t.assignedUser = :user OR t.createdBy = :user)')
+            ->andWhere('t.isDone = :isDone')
+            ->andWhere('t.createdAt BETWEEN :fromDate AND :toDate')
+            ->setParameter('user', $user)
+            ->setParameter('isDone', $isDone)
+            ->setParameter('fromDate', $fromDate)
+            ->setParameter('toDate', $toDate)
+            ->getQuery()
+            ->getResult();
+    }
 }
