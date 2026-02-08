@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use App\Entity\Task;
+use App\Entity\Notification;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -110,11 +111,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Task::class, mappedBy: 'assignedUser', orphanRemoval: true)]
     private Collection $tasks;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Notification::class, cascade: ['persist', 'remove'])]
+    #[ORM\OrderBy(['createdAt' => 'DESC'])]
+    private Collection $notifications;
+
     public function __construct()
     {
         $this->createdAt = new \DateTime();
         $this->roles = ['ROLE_USER'];
         $this->tasks = new \Doctrine\Common\Collections\ArrayCollection();
+        $this->notifications = new \Doctrine\Common\Collections\ArrayCollection();
     }
 
     #[ORM\PrePersist]
@@ -507,5 +513,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getTasks(): Collection
     {
         return $this->tasks;
+    }
+
+    /**
+     * @return Collection<int, Notification>
+     */
+    public function getNotifications(): Collection
+    {
+        return $this->notifications;
     }
 }

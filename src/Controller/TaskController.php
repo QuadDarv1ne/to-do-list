@@ -6,6 +6,8 @@ namespace App\Controller;
 use App\Entity\Task;
 use App\Form\TaskType;
 use App\Repository\TaskRepository;
+use App\Entity\User;
+use App\Entity\Notification;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,15 +24,73 @@ class TaskController extends AbstractController
     {
         $user = $this->getUser();
         
-        // Показываем только задачи пользователя или все задачи для администратора
+        // Получаем параметры фильтрации
+        $status = $request->query->get('status');
+        $assignedUser = $request->query->get('assignedUser');
+        $dateFrom = $request->query->get('dateFrom');
+        $dateTo = $request->query->get('dateTo');
+        
+        // Формируем критерии поиска
+        $criteria = [];
+        
         if ($this->isGranted('ROLE_ADMIN')) {
-            $tasks = $taskRepository->findBy([], ['createdAt' => 'DESC']);
+            // Администратор видит все задачи, может фильтровать по пользователю
+            if ($assignedUser && $assignedUser !== 'all') {
+                $criteria['assignedUser'] = $assignedUser;
+            }
         } else {
-            $tasks = $taskRepository->findBy(['assignedUser' => $user], ['createdAt' => 'DESC']);
+            // Обычный пользователь видит только свои задачи
+            $criteria['assignedUser'] = $user;
         }
-
+        
+        // Фильтр по статусу
+        if ($status !== null && $status !== 'all') {
+            $criteria['isDone'] = $status === 'done';
+        }
+        
+        // Получаем задачи
+        $queryBuilder = $taskRepository->createQueryBuilder('t')
+            ->where('1=1'); // Начинаем с всегда истинного условия
+        
+        // Применяем критерии
+        foreach ($criteria as $field => $value) {
+            $queryBuilder->andWhere("t.$field = :$field")
+                ->setParameter($field, $value);
+        }
+        
+        // Фильтр по дате
+        if ($dateFrom) {
+            $queryBuilder->andWhere('t.createdAt >= :dateFrom')
+                ->setParameter('dateFrom', new \DateTime($dateFrom));
+        }
+        
+        if ($dateTo) {
+            $dateToObj = new \DateTime($dateTo);
+            $dateToObj->modify('+1 day'); // Включаем весь день
+            $queryBuilder->andWhere('t.createdAt < :dateTo')
+                ->setParameter('dateTo', $dateToObj);
+        }
+        
+        // Сортировка
+        $queryBuilder->orderBy('t.createdAt', 'DESC');
+        
+        $tasks = $queryBuilder->getQuery()->getResult();
+        
+        // Для администратора получаем список пользователей для фильтра
+        $usersList = [];
+        if ($this->isGranted('ROLE_ADMIN')) {
+            $usersList = $taskRepository->getEntityManager()
+                ->getRepository(User::class)
+                ->findBy([], ['lastName' => 'ASC']);
+        }
+        
         return $this->render('task/index.html.twig', [
             'tasks' => $tasks,
+            'statusFilter' => $status,
+            'assignedUserFilter' => $assignedUser,
+            'dateFromFilter' => $dateFrom,
+            'dateToFilter' => $dateTo,
+            'usersList' => $usersList,
         ]);
     }
 
@@ -139,5 +199,102 @@ class TaskController extends AbstractController
         }
 
         return $this->redirectToRoute('app_task_index', [], Response::HTTP_SEE_OTHER);
+    }
+    
+    #[Route('/export', name: 'app_task_export', methods: ['GET'])]
+    public function export(TaskRepository $taskRepository, Request $request): Response
+    {
+        $user = $this->getUser();
+        
+        // Получаем параметры фильтрации (те же, что и в index)
+        $status = $request->query->get('status');
+        $assignedUser = $request->query->get('assignedUser');
+        $dateFrom = $request->query->get('dateFrom');
+        $dateTo = $request->query->get('dateTo');
+        
+        // Формируем критерии поиска
+        $criteria = [];
+        
+        if ($this->isGranted('ROLE_ADMIN')) {
+            // Администратор видит все задачи, может фильтровать по пользователю
+            if ($assignedUser && $assignedUser !== 'all') {
+                $criteria['assignedUser'] = $assignedUser;
+            }
+        } else {
+            // Обычный пользователь видит только свои задачи
+            $criteria['assignedUser'] = $user;
+        }
+        
+        // Фильтр по статусу
+        if ($status !== null && $status !== 'all') {
+            $criteria['isDone'] = $status === 'done';
+        }
+        
+        // Получаем задачи
+        $queryBuilder = $taskRepository->createQueryBuilder('t')
+            ->where('1=1'); // Начинаем с всегда истинного условия
+        
+        // Применяем критерии
+        foreach ($criteria as $field => $value) {
+            $queryBuilder->andWhere("t.$field = :$field")
+                ->setParameter($field, $value);
+        }
+        
+        // Фильтр по дате
+        if ($dateFrom) {
+            $queryBuilder->andWhere('t.createdAt >= :dateFrom')
+                ->setParameter('dateFrom', new \DateTime($dateFrom));
+        }
+        
+        if ($dateTo) {
+            $dateToObj = new \DateTime($dateTo);
+            $dateToObj->modify('+1 day'); // Включаем весь день
+            $queryBuilder->andWhere('t.createdAt < :dateTo')
+                ->setParameter('dateTo', $dateToObj);
+        }
+        
+        // Сортировка
+        $queryBuilder->orderBy('t.createdAt', 'DESC');
+        
+        $tasks = $queryBuilder->getQuery()->getResult();
+        
+        // Подготавливаем CSV
+        $response = new Response();
+        $response->headers->set('Content-Type', 'text/csv; charset=utf-8');
+        $response->headers->set('Content-Disposition', 'attachment; filename="tasks_export.csv"');
+        
+        $handle = fopen('php://memory', 'r+');
+        
+        // Заголовки CSV
+        fputcsv($handle, [
+            'ID',
+            'Название',
+            'Описание',
+            'Статус',
+            'Назначена',
+            'Дата создания',
+            'Дата обновления'
+        ], ';');
+        
+        // Данные
+        foreach ($tasks as $task) {
+            fputcsv($handle, [
+                $task->getId(),
+                $task->getName(),
+                $task->getDescription(),
+                $task->isDone() ? 'Выполнена' : 'В работе',
+                $task->getAssignedUser() ? $task->getAssignedUser()->getFullName() : 'Не назначена',
+                $task->getCreatedAt()->format('d.m.Y H:i'),
+                $task->getUpdateAt()->format('d.m.Y H:i')
+            ], ';');
+        }
+        
+        rewind($handle);
+        $content = stream_get_contents($handle);
+        fclose($handle);
+        
+        $response->setContent($content);
+        
+        return $response;
     }
 }
