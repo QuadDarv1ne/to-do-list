@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ссылка для сброса пароля отправлена{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title text-center">Проверьте вашу почту</h3>
+                </div>
+                <div class="card-body text-center">
+                    <p>Если учетная запись с указанным email существует, вы получите письмо со ссылкой для сброса пароля.</p>
+                    <p>Ссылка будет действительна в течение {{ tokenLifetime|date('i') }} минут.</p>
+                    
+                    <div class="alert alert-info">
+                        Если вы не получили письмо, проверьте папку "Спам".
+                    </div>
+                    
+                    <div class="mt-3">
+                        <a href="{{ path('app_login') }}" class="btn btn-primary">Вернуться ко входу</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

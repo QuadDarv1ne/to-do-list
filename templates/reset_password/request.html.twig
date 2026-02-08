@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Забыли пароль?{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title text-center">Забыли пароль?</h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-center">Введите ваш email, и мы вышлем вам ссылку для сброса пароля.</p>
+                    
+                    {{ form_start(requestForm) }}
+                        {{ form_row(requestForm.email) }}
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Отправить ссылку</button>
+                        </div>
+                    {{ form_end(requestForm) }}
+                    
+                    <div class="text-center mt-3">
+                        <a href="{{ path('app_login') }}">Вернуться ко входу</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

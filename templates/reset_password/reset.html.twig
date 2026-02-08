@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Сбросить пароль{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title text-center">Сбросить пароль</h3>
+                </div>
+                <div class="card-body">
+                    {% for flashError in app.flashes('reset_password_error') %}
+                        <div class="alert alert-danger" role="alert">{{ flashError }}</div>
+                    {% endfor %}
+                    
+                    {{ form_start(resetForm) }}
+                        {{ form_row(resetForm.plainPassword) }}
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Сохранить новый пароль</button>
+                        </div>
+                    {{ form_end(resetForm) }}
+                    
+                    <div class="text-center mt-3">
+                        <a href="{{ path('app_login') }}">Вернуться ко входу</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
