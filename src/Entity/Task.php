@@ -6,6 +6,8 @@ use App\Repository\TaskRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\{PrePersist, PreUpdate};
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
 
 #[ORM\Entity(repositoryClass: TaskRepository::class)]
 #[ORM\HasLifecycleCallbacks]
@@ -44,6 +46,9 @@ class Task
         #[ORM\ManyToOne(inversedBy: 'createdTasks')]
         #[ORM\JoinColumn(nullable: false)]
         private ?User $createdBy = null;
+            
+        #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'task', orphanRemoval: true)]
+        private Collection $comments;
 
     public function getId(): ?int
     {
@@ -198,5 +203,10 @@ class Task
     public function onPreUpdate(): void
     {
         $this->updateAt = new \DateTimeImmutable();
+    }
+    
+    public function __construct()
+    {
+        $this->comments = new ArrayCollection();
     }
 }
