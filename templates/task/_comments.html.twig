@@ -1,0 +1,66 @@
+{# templates/task/_comments.html.twig #}
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-comments me-2"></i>
+            Комментарии ({{ comments|length }})
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if comments is empty %}
+            <p class="text-muted fst-italic">К этой задаче пока нет комментариев.</p>
+        {% else %}
+            <div class="comments-list">
+                {% for comment in comments %}
+                    <div class="comment-item mb-3 p-3 border-start border-primary border-3 bg-light">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">
+                                    <i class="fas fa-user-circle me-1"></i>
+                                    {{ comment.author.fullName }}
+                                </h6>
+                                <small class="text-muted">
+                                    <i class="far fa-clock me-1"></i>
+                                    {{ comment.createdAt|date('d.m.Y H:i') }}
+                                </small>
+                            </div>
+                            {% if app.user == comment.author or app.user.hasRole('ROLE_ADMIN') %}
+                                <form method="post" action="{{ path('app_comment_delete', {'id': comment.id}) }}" 
+                                      onsubmit="return confirm('Вы уверены, что хотите удалить этот комментарий?')" 
+                                      class="d-inline">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ comment.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                        <div class="mt-2">
+                            <p class="mb-0">{{ comment.content|nl2br }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        {# Comment form #}
+        <div class="mt-4">
+            <h6 class="mb-3">
+                <i class="fas fa-comment-dots me-2"></i>
+                Добавить комментарий
+            </h6>
+            {{ form_start(comment_form) }}
+                <div class="mb-3">
+                    {{ form_widget(comment_form.content, {'attr': {'class': 'form-control', 'rows': 3}}) }}
+                    {{ form_errors(comment_form.content) }}
+                </div>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane me-2"></i>
+                        Отправить комментарий
+                    </button>
+                </div>
+            {{ form_end(comment_form) }}
+        </div>
+    </div>
+</div>

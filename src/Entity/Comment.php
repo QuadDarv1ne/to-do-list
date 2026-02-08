@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping\PrePersist;
 use Doctrine\ORM\Mapping\PreUpdate;
 
 #[ORM\Entity(repositoryClass: CommentRepository::class)]
+#[ORM\Table(name: 'task_comments')]
 #[ORM\HasLifecycleCallbacks]
 class Comment
 {

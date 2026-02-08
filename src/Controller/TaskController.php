@@ -4,8 +4,11 @@ namespace App\Controller;
 
 use App\Entity\Task;
 use App\Entity\User;
+use App\Entity\Comment;
 use App\Form\TaskType;
+use App\Form\CommentType;
 use App\Repository\TaskRepository;
+use App\Repository\CommentRepository;
 use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -126,15 +129,25 @@ class TaskController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_task_show', methods: ['GET'])]
-    public function show(Task $task): Response
+    public function show(Task $task, CommentRepository $commentRepository): Response
     {
         // Check if user can access this task
         if (!$this->isGranted('TASK_VIEW', $task)) {
             throw $this->createAccessDeniedException('У вас нет прав для просмотра этой задачи.');
         }
         
+        // Create comment form
+        $comment = new Comment();
+        $comment->setTask($task);
+        $comment->setAuthor($this->getUser());
+        $commentForm = $this->createForm(CommentType::class, $comment);
+        
+        $comments = $commentRepository->findByTask($task);
+        
         return $this->render('task/show.html.twig', [
             'task' => $task,
+            'comments' => $comments,
+            'comment_form' => $commentForm,
         ]);
     }
 
@@ -196,5 +209,21 @@ class TaskController extends AbstractController
         $entityManager->flush();
 
         return $this->redirectToRoute('app_task_index');
+    }
+
+    #[Route('/{id}/comments', name: 'app_task_comments', methods: ['GET'])]
+    public function comments(Task $task, CommentRepository $commentRepository): Response
+    {
+        // Check if user can view this task
+        if (!$this->isGranted('TASK_VIEW', $task)) {
+            throw $this->createAccessDeniedException('У вас нет прав для просмотра этой задачи.');
+        }
+        
+        $comments = $commentRepository->findByTask($task);
+        
+        return $this->render('task/comments.html.twig', [
+            'task' => $task,
+            'comments' => $comments,
+        ]);
     }
 }
