@@ -273,6 +273,60 @@ class TaskController extends AbstractController
         return $this->redirectToRoute('app_task_show', ['id' => $clonedTask->getId()]);
     }
         
+    #[Route('/api/categories', name: 'app_api_categories', methods: ['GET'])]
+    public function apiCategories(TaskCategoryRepository $categoryRepository): Response
+    {
+        $user = $this->getUser();
+        $categories = $categoryRepository->findByUser($user);
+            
+        $data = [];
+        foreach ($categories as $category) {
+            $data[] = [
+                'id' => $category->getId(),
+                'name' => $category->getName()
+            ];
+        }
+            
+        return $this->json($data);
+    }
+        
+    #[Route('/api/tags', name: 'app_api_tags', methods: ['GET'])]
+    public function apiTags(TagRepository $tagRepository): Response
+    {
+        $tags = $tagRepository->findAll();
+            
+        $data = [];
+        foreach ($tags as $tag) {
+            $data[] = [
+                'id' => $tag->getId(),
+                'name' => $tag->getName()
+            ];
+        }
+            
+        return $this->json($data);
+    }
+        
+    #[Route('/api/users', name: 'app_api_users', methods: ['GET'])]
+    public function apiUsers(UserRepository $userRepository): Response
+    {
+        $user = $this->getUser();
+        // Get all users except the current user (for assignment purposes)
+        $users = $userRepository->findAll();
+            
+        $data = [];
+        foreach ($users as $u) {
+            // Only include active users
+            if ($u->isActive()) {
+                $data[] = [
+                    'id' => $u->getId(),
+                    'fullName' => $u->getFullName()
+                ];
+            }
+        }
+            
+        return $this->json($data);
+    }
+        
     #[Route('/{id}', name: 'app_task_delete', methods: ['POST'])]
     public function delete(Request $request, Task $task, EntityManagerInterface $entityManager): Response
     {
