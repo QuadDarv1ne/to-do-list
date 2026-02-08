@@ -16,7 +16,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class CommentController extends AbstractController
 {
     #[Route('/task/{taskId}', name: 'app_comment_create', methods: ['POST'])]
-    public function create(int $taskId, Request $request, EntityManagerInterface $entityManager, CommentRepository $commentRepository): Response
+    public function create(int $taskId, Request $request, EntityManagerInterface $entityManager): Response
     {
         $task = $entityManager->getRepository(Task::class)->find($taskId);
         
