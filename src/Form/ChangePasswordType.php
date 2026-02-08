@@ -24,9 +24,9 @@ class ChangePasswordType extends AbstractType
                 ],
                 'first_options' => [
                     'constraints' => [
-                        new NotBlank([
-                            'message' => 'Введите пароль',
-                        ]),
+                        new NotBlank(
+                            message: 'Введите пароль'
+                        ),
                         new Length(
                             min: 6,
                             max: 4096,

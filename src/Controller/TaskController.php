@@ -8,6 +8,7 @@ use App\Form\TaskType;
 use App\Repository\TaskRepository;
 use App\Repository\TaskCategoryRepository;
 use App\Repository\TagRepository;
+use App\Repository\UserRepository;
 use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

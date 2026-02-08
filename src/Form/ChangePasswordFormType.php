@@ -30,19 +30,19 @@ class ChangePasswordFormType extends AbstractType
                         'data-password-field' => 'true',
                     ],
                     'constraints' => [
-                        new NotBlank([
-                            'message' => 'Пожалуйста, введите пароль',
-                        ]),
+                        new NotBlank(
+                            message: 'Пожалуйста, введите пароль'
+                        ),
                         new Length(
                             min: 8,
                             max: 4096,
                             minMessage: 'Пароль должен содержать минимум {{ limit }} символов',
                             maxMessage: 'Пароль слишком длинный'
                         ),
-                        new Regex([
-                            'pattern' => '/^(?=.*[A-Za-z])(?=.*\d).+$/',
-                            'message' => 'Пароль должен содержать хотя бы одну букву и одну цифру',
-                        ]),
+                        new Regex(
+                            pattern: '/^(?=.*[A-Za-z])(?=.*\d).+$/',
+                            message: 'Пароль должен содержать хотя бы одну букву и одну цифру'
+                        ),
                     ],
                     'help' => 'Минимум 8 символов, буквы и цифры',
                     'help_attr' => ['class' => 'form-text text-muted small'],

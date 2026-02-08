@@ -97,10 +97,10 @@ class TaskType extends AbstractType
                     'class' => 'form-control',
                 ],
                 'constraints' => [
-                    new GreaterThanOrEqual([
-                        'value' => 'today',
-                        'message' => 'Срок не может быть в прошлом'
-                    ])
+                    new GreaterThanOrEqual(
+                        value: 'today',
+                        message: 'Срок не может быть в прошлом'
+                    )
                 ]
             ])
             ->add('category', EntityType::class, [
