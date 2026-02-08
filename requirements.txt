@@ -1,0 +1,67 @@
+# Application Requirements
+
+## Software Requirements
+- PHP 8.1 or higher
+- Composer (PHP dependency manager)
+- SQLite3 or MySQL database
+- Web server (Apache/Nginx) or built-in PHP server
+
+## PHP Extensions Required
+- pdo_sqlite (for SQLite support)
+- pdo_mysql (for MySQL support)
+- json
+- ctype
+- iconv
+- mbstring
+- xml
+- zip
+- openssl
+- tokenizer
+- xmlwriter
+- intl
+
+## PHP Packages Dependencies (managed by Composer)
+- symfony/framework-bundle
+- symfony/security-bundle
+- symfony/doctrine-bridge
+- symfony/form
+- symfony/validator
+- symfony/twig-bundle
+- symfony/translation
+- symfony/mailer
+- symfony/reset-password-bundle
+- symfonycasts/verify-email-bundle
+- doctrine/doctrine-bundle
+- doctrine/doctrine-migrations-bundle
+- doctrine/orm
+- twig/extra-bundle
+- symfony/asset
+- symfony/console
+- symfony/dotenv
+- symfony/http-foundation
+- symfony/runtime
+- symfony/yaml
+- symfony/serializer
+- symfony/property-access
+- symfony/property-info
+- symfony/mime
+- symfony/notifier
+- symfony/rate-limiter
+- symfony/string
+- symfony/polyfill-intl-grapheme
+- symfony/polyfill-intl-normalizer
+- symfony/var-dumper
+- symfony/monolog-bundle
+- symfony/stimulus-bundle
+- symfony/ux-turbo
+- symfony/webpack-encore-bundle
+
+## Frontend Requirements
+- Bootstrap 5.x
+- Font Awesome 6.x
+- JavaScript ES6+ compatible browser
+
+## System Requirements
+- Minimum 2GB RAM (4GB recommended)
+- 100MB free disk space (for application files)
+- Internet connection (for initial setup and package downloads)
