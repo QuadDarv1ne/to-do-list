@@ -22,9 +22,7 @@ class CommentType extends AbstractType
                     'placeholder' => 'Введите ваш комментарий...'
                 ],
                 'constraints' => [
-                    new NotBlank([
-                        'message' => 'Пожалуйста, введите текст комментария'
-                    ])
+                    new NotBlank(message: 'Пожалуйста, введите текст комментария')
                 ]
             ])
         ;

@@ -24,15 +24,13 @@ class ChangePasswordFormType extends AbstractType
                         'placeholder' => 'Введите новый пароль'
                     ],
                     'constraints' => [
-                        new NotBlank([
-                            'message' => 'Пожалуйста, введите пароль',
-                        ]),
-                        new Length([
-                            'min' => 6,
-                            'minMessage' => 'Пароль должен содержать минимум {{ limit }} символов',
+                        new NotBlank(message: 'Пожалуйста, введите пароль'),
+                        new Length(
+                            min: 6,
+                            minMessage: 'Пароль должен содержать минимум {{ limit }} символов',
                             // max length allowed by Symfony for security reasons
-                            'max' => 4096,
-                        ]),
+                            max: 4096,
+                        ),
                     ],
                     'label' => 'Новый пароль',
                 ],

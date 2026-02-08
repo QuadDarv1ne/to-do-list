@@ -27,13 +27,13 @@ class UserType extends AbstractType
                     'class' => 'form-control',
                 ],
                 'constraints' => [
-                    new NotBlank(['message' => 'Логин не может быть пустым']),
-                    new Length([
-                        'min' => 3,
-                        'max' => 180,
-                        'minMessage' => 'Логин должен содержать минимум {{ limit }} символа',
-                        'maxMessage' => 'Логин не может быть длиннее {{ limit }} символов',
-                    ]),
+                    new NotBlank(message: 'Логин не может быть пустым'),
+                    new Length(
+                        min: 3,
+                        max: 180,
+                        minMessage: 'Логин должен содержать минимум {{ limit }} символа',
+                        maxMessage: 'Логин не может быть длиннее {{ limit }} символов',
+                    ),
                 ],
             ])
             ->add('email', EmailType::class, [
@@ -43,7 +43,7 @@ class UserType extends AbstractType
                     'class' => 'form-control',
                 ],
                 'constraints' => [
-                    new NotBlank(['message' => 'Email не может быть пустым']),
+                    new NotBlank(message: 'Email не может быть пустым'),
                 ],
             ])
             ->add('firstName', TextType::class, [
@@ -123,12 +123,12 @@ class UserType extends AbstractType
                     'class' => 'form-control',
                 ],
                 'constraints' => [
-                    new NotBlank(['message' => 'Пароль не может быть пустым']),
-                    new Length([
-                        'min' => 6,
-                        'minMessage' => 'Пароль должен содержать минимум {{ limit }} символов',
-                        'max' => 4096,
-                    ]),
+                    new NotBlank(message: 'Пароль не может быть пустым'),
+                    new Length(
+                        min: 6,
+                        minMessage: 'Пароль должен содержать минимум {{ limit }} символов',
+                        max: 4096,
+                    ),
                 ],
             ]);
         }

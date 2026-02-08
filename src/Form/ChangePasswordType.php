@@ -47,14 +47,12 @@ class ChangePasswordType extends AbstractType
                     ]
                 ],
                 'constraints' => [
-                    new NotBlank([
-                        'message' => 'Пожалуйста, введите пароль',
-                    ]),
-                    new Length([
-                        'min' => 6,
-                        'minMessage' => 'Пароль должен содержать минимум {{ limit }} символов',
-                        'max' => 4096,
-                    ]),
+                    new NotBlank(message: 'Пожалуйста, введите пароль'),
+                    new Length(
+                        min: 6,
+                        minMessage: 'Пароль должен содержать минимум {{ limit }} символов',
+                        max: 4096,
+                    ),
                 ],
             ]);
     }
