@@ -1,4 +1,4 @@
-// src/Command/CreateAdminCommand.php
+<?php
 
 namespace App\Command;
 
