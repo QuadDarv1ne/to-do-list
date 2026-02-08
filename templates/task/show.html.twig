@@ -58,6 +58,19 @@
                         </div>
                     </div>
                     
+                    {% if task.categories|length > 0 %}
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <p><strong>Категории:</strong></p>
+                            <div class="d-flex flex-wrap gap-2">
+                                {% for category in task.categories %}
+                                    <span class="badge bg-secondary">{{ category.name }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
                     <div class="mb-3">
                         <p><strong>Описание:</strong></p>
                         <div class="border p-3 bg-light">

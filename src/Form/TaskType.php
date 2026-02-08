@@ -5,6 +5,7 @@ namespace App\Form;
 
 use App\Entity\Task;
 use App\Entity\User;
+use App\Entity\TaskCategory;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
@@ -69,6 +70,17 @@ class TaskType extends AbstractType
                 'label' => 'Назначена пользователю',
                 'class' => User::class,
                 'choice_label' => 'fullName',
+                'attr' => [
+                    'class' => 'form-select'
+                ]
+            ])
+            ->add('categories', EntityType::class, [
+                'label' => 'Категории',
+                'class' => TaskCategory::class,
+                'choice_label' => 'name',
+                'multiple' => true,
+                'expanded' => false,
+                'by_reference' => false,
                 'attr' => [
                     'class' => 'form-select'
                 ]

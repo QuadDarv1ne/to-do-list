@@ -55,6 +55,10 @@ class Task
             
         #[ORM\OneToMany(targetEntity: TaskTimeTracking::class, mappedBy: 'task', orphanRemoval: true)]
         private Collection $timeTrackings;
+        
+        #[ORM\ManyToMany(targetEntity: TaskCategory::class, inversedBy: 'tasks')]
+        #[ORM\JoinTable(name: 'task_category_task')]
+        private Collection $categories;
 
     public function getId(): ?int
     {
@@ -216,6 +220,7 @@ class Task
         $this->comments = new ArrayCollection();
         $this->activityLogs = new ArrayCollection();
         $this->timeTrackings = new ArrayCollection();
+        $this->categories = new ArrayCollection();
     }
     
     /**
@@ -232,5 +237,29 @@ class Task
     public function getTimeTrackings(): Collection
     {
         return $this->timeTrackings;
+    }
+    
+    /**
+     * @return Collection<int, TaskCategory>
+     */
+    public function getCategories(): Collection
+    {
+        return $this->categories;
+    }
+    
+    public function addCategory(TaskCategory $category): static
+    {
+        if (!$this->categories->contains($category)) {
+            $this->categories->add($category);
+        }
+        
+        return $this;
+    }
+    
+    public function removeCategory(TaskCategory $category): static
+    {
+        $this->categories->removeElement($category);
+        
+        return $this;
     }
 }
