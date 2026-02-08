@@ -260,23 +260,29 @@
                     userSelect.remove(1);
                 }
                 
-                // Add current user option
+                // Add current user option (if user is authenticated)
+                {% if app.user %}
                 const currentUserOption = document.createElement('option');
                 currentUserOption.value = '{{ app.user.id }}';
                 currentUserOption.textContent = '{{ app.user.fullName }}';
                 userSelect.appendChild(currentUserOption);
+                {% endif %}
                 
                 fetch('{{ path('app_api_users') }}')
                     .then(resp => resp.json())
                     .then(users => {
                         users.forEach(user => {
-                            // Don't add the current user again
+                            // Don't add the current user again (only applicable when user is logged in)
+                            {% if app.user %}
                             if (user.id != '{{ app.user.id }}') {
+                            {% endif %}
                                 const option = document.createElement('option');
                                 option.value = user.id;
                                 option.textContent = user.fullName;
                                 userSelect.appendChild(option);
+                            {% if app.user %}
                             }
+                            {% endif %}
                         });
                     })
                     .catch(error => {
