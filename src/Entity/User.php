@@ -107,6 +107,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $resetPasswordRequestedAt = null;
+    
+    private ?string $plainPassword = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $lockedUntil = null;
@@ -494,6 +496,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setResetPasswordRequestedAt(\DateTimeImmutable $resetPasswordRequestedAt): static
     {
         $this->resetPasswordRequestedAt = $resetPasswordRequestedAt;
+
+        return $this;
+    }
+    
+    public function getPlainPassword(): ?string
+    {
+        return $this->plainPassword;
+    }
+
+    public function setPlainPassword(?string $plainPassword): static
+    {
+        $this->plainPassword = $plainPassword;
 
         return $this;
     }
