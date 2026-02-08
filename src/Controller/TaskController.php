@@ -437,6 +437,93 @@ class TaskController extends AbstractController
         return $response;
     }
     
+    #[Route('/export-with-tags', name: 'app_task_export_with_tags', methods: ['GET'])]
+    public function exportWithTags(
+        Request $request,
+        TaskRepository $taskRepository
+    ): Response {
+        $user = $this->getUser();
+        
+        // Get filter parameters
+        $status = $request->query->get('status');
+        $priority = $request->query->get('priority');
+        $categoryId = $request->query->get('category');
+        $startDate = $request->query->get('start_date');
+        $endDate = $request->query->get('end_date');
+        
+        // Build query with eager loading of tags
+        $qb = $taskRepository->createQueryBuilder('t')
+            ->select('t, tg') // Select tasks and tags
+            ->leftJoin('t.user', 'u')
+            ->leftJoin('t.assignedUser', 'au')
+            ->leftJoin('t.category', 'c')
+            ->leftJoin('t.tags', 'tg') // Left join to include tags
+            ->andWhere('t.user = :user OR t.assignedUser = :user')
+            ->setParameter('user', $user)
+            ->orderBy('t.createdAt', 'DESC');
+        
+        // Apply filters
+        if ($status) {
+            $qb->andWhere('t.status = :status')
+               ->setParameter('status', $status);
+        }
+        
+        if ($priority) {
+            $qb->andWhere('t.priority = :priority')
+               ->setParameter('priority', $priority);
+        }
+        
+        if ($categoryId) {
+            $qb->andWhere('t.category = :category')
+               ->setParameter('category', $categoryId);
+        }
+        
+        if ($startDate) {
+            $qb->andWhere('t.createdAt >= :startDate')
+               ->setParameter('startDate', new \DateTime($startDate));
+        }
+        
+        if ($endDate) {
+            $qb->andWhere('t.createdAt <= :endDate')
+               ->setParameter('endDate', new \DateTime($endDate));
+        }
+        
+        $tasks = $qb->getQuery()->getResult();
+        
+        // Create CSV content
+        $csvContent = "ID,Название,Описание,Статус,Приоритет,Дата создания,Срок выполнения,Категория,Назначен пользователю,Теги\n";
+        
+        foreach ($tasks as $task) {
+            // Collect tag names
+            $tagNames = [];
+            foreach ($task->getTags() as $tag) {
+                $tagNames[] = $tag->getName();
+            }
+            $tagsString = implode(', ', $tagNames);
+            
+            $csvContent .= sprintf(
+                '"%s","%s","%s","%s","%s","%s","%s","%s","%s","%s"' . "\n",
+                $task->getId(),
+                str_replace('"', '""', $task->getTitle()),
+                str_replace('"', '""', strip_tags($task->getDescription() ?? '')),
+                $task->getStatus(),
+                $task->getPriority(),
+                $task->getCreatedAt()->format('d.m.Y H:i'),
+                $task->getDueDate() ? $task->getDueDate()->format('d.m.Y') : '',
+                $task->getCategory() ? $task->getCategory()->getName() : '',
+                $task->getAssignedUser() ? $task->getAssignedUser()->getFullName() : '',
+                str_replace('"', '""', $tagsString)
+            );
+        }
+        
+        // Return CSV response
+        $response = new Response($csvContent);
+        $response->headers->set('Content-Type', 'text/csv; charset=utf-8');
+        $response->headers->set('Content-Disposition', 'attachment; filename="tasks_with_tags_export_' . date('Y-m-d_H-i-s') . '.csv"');
+        
+        return $response;
+    }
+    
     #[Route('/bulk-action', name: 'app_task_bulk_action', methods: ['POST'])]
     public function bulkAction(
         Request $request,
