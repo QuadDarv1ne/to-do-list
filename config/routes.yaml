@@ -90,3 +90,20 @@ app_task_delete:
 app_task_toggle:
     path: /tasks/{id}/toggle
     controller: App\Controller\TaskController::toggle
+
+# Forgot password routes
+app_forgot_password_request:
+    path: /forgot-password
+    controller: Symfony\Casts\Bundle\ResetPassword\Controller\ResetPasswordController::request
+
+app_forgot_password_send_email:
+    path: /forgot-password/send-email
+    controller: Symfony\Casts\Bundle\ResetPassword\Controller\ResetPasswordController::sendEmail
+
+app_reset_password_check_email:
+    path: /reset-password/check-email
+    controller: Symfony\Casts\Bundle\ResetPassword\Controller\ResetPasswordController::checkEmail
+
+app_reset_password_reset:
+    path: /reset-password/reset/{token}
+    controller: Symfony\Casts\Bundle\ResetPassword\Controller\ResetPasswordController::reset
