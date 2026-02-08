@@ -532,6 +532,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
+     * @return Collection<int, Comment>
+     */
+    public function getComments(): Collection
+    {
+        return $this->comments;
+    }
+
+    /**
      * @return Collection<int, Notification>
      */
     public function getNotifications(): Collection
