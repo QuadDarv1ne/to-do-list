@@ -101,6 +101,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: Types::SMALLINT, options: ['default' => 0])]
     private int $failedLoginAttempts = 0;
+    
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $resetPasswordToken = null;
+    
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $resetPasswordRequestedAt = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $lockedUntil = null;
@@ -468,6 +474,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function getResetPasswordToken(): ?string
+    {
+        return $this->resetPasswordToken;
+    }
+
+    public function setResetPasswordToken(?string $resetPasswordToken): static
+    {
+        $this->resetPasswordToken = $resetPasswordToken;
+
+        return $this;
+    }
+
+    public function getResetPasswordRequestedAt(): ?\DateTimeImmutable
+    {
+        return $this->resetPasswordRequestedAt;
+    }
+
+    public function setResetPasswordRequestedAt(\DateTimeImmutable $resetPasswordRequestedAt): static
+    {
+        $this->resetPasswordRequestedAt = $resetPasswordRequestedAt;
+
+        return $this;
+    }
+    
     public function getAvatarUrl(): ?string
     {
         if ($this->avatar) {

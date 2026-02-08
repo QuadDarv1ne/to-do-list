@@ -314,7 +314,45 @@
                     </div>
                 </div>
             </div>
-
+            
+            <!-- Notifications -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-bell me-2"></i>Уведомления
+                    </h6>
+                    <a href="{{ path('app_task_notification_index') }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-list me-1"></i>Все
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center mb-3">
+                        <div class="col-6 border-end">
+                            <div class="text-danger">{{ unread_notifications_count }}</div>
+                            <small class="text-muted">Непрочитанных</small>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-info">{{ recent_notifications|length }}</div>
+                            <small class="text-muted">Последних</small>
+                        </div>
+                    </div>
+                    
+                    {% if recent_notifications %}
+                    <div class="small">
+                        <p class="mb-1 fw-bold">Последние:</p>
+                        {% for notification in recent_notifications[:3] %}
+                        <div class="d-flex justify-content-between mb-1">
+                            <div class="text-truncate" style="max-width: 150px;" title="{{ notification.subject }}">
+                                <a href="{{ path('app_task_notification_show', {'id': notification.id}) }}">{{ notification.subject }}</a>
+                            </div>
+                            <small class="text-muted">{{ notification.createdAt|date('d.m') }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
             {% if user_stats %}
             <!-- User Stats for Admins -->
             <div class="card shadow mb-4">
