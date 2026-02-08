@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping\PrePersist;
 use Doctrine\ORM\Mapping\PreUpdate;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: TaskRepository::class)]
 #[ORM\HasLifecycleCallbacks]
@@ -20,15 +21,32 @@ class Task
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Assert\NotBlank(message: 'Заголовок задачи не может быть пустым')]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: 'Заголовок задачи не может быть длиннее {{ limit }} символов'
+    )]
     #[ORM\Column(length: 255)]
     private ?string $title = null;
 
+    #[Assert\Length(
+        max: 10000,
+        maxMessage: 'Описание задачи не может быть длиннее {{ limit }} символов'
+    )]
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
+    #[Assert\Choice(
+        choices: ['pending', 'in_progress', 'completed'],
+        message: 'Статус задачи должен быть одним из: pending, in_progress, completed'
+    )]
     #[ORM\Column(length: 20, options: ['default' => 'pending'])]
     private string $status = 'pending';
 
+    #[Assert\Choice(
+        choices: ['low', 'medium', 'high'],
+        message: 'Приоритет задачи должен быть одним из: low, medium, high'
+    )]
     #[ORM\Column(length: 20, options: ['default' => 'medium'])]
     private string $priority = 'medium';
 
@@ -38,6 +56,10 @@ class Task
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $updatedAt = null;
 
+    #[Assert\GreaterThanOrEqual(
+        propertyPath: 'createdAt',
+        message: 'Срок выполнения не может быть раньше даты создания задачи'
+    )]
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $dueDate = null;
 

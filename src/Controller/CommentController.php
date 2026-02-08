@@ -6,17 +6,18 @@ use App\Entity\Comment;
 use App\Entity\Task;
 use App\Form\CommentType;
 use App\Repository\CommentRepository;
+use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/comment')]
 class CommentController extends AbstractController
 {
     #[Route('/task/{taskId}', name: 'app_comment_create', methods: ['POST'])]
-    public function create(int $taskId, Request $request, EntityManagerInterface $entityManager): Response
+    public function create(int $taskId, Request $request, EntityManagerInterface $entityManager, NotificationService $notificationService): Response
     {
         $task = $entityManager->getRepository(Task::class)->find($taskId);
         
@@ -40,6 +41,9 @@ class CommentController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($comment);
             $entityManager->flush();
+
+            // Send notification about new comment
+            $notificationService->notifyTaskComment($task, $this->getUser(), $comment->getContent());
 
             $this->addFlash('success', 'Комментарий успешно добавлен.');
 

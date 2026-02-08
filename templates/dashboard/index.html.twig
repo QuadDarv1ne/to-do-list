@@ -80,7 +80,7 @@
                             </div>
                         </div>
                         <div class="flex-grow-1 ms-3">
-                            <h3 class="stat-number mb-0 text-info">{{ task_stats.pending }}</h3>
+                            <h3 class="stat-number mb-0 text-info">{{ task_stats.in_progress }}</h3>
                             <p class="stat-label mb-0">В процессе</p>
                         </div>
                     </div>
@@ -102,6 +102,39 @@
                             <p class="stat-label mb-0">Завершено</p>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row mb-4">
+        <!-- Task Status Distribution Chart -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie me-2 text-primary"></i>
+                        Распределение задач по статусу
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="statusChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Task Priority Distribution Chart -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2 text-warning"></i>
+                        Распределение задач по приоритету
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="priorityChart" width="400" height="200"></canvas>
                 </div>
             </div>
         </div>
@@ -272,6 +305,102 @@
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Task Status Distribution Chart
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    const statusChart = new Chart(statusCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Завершено', 'В процессе', 'В ожидании'],
+            datasets: [{
+                data: [
+                    {{ task_stats.completed }},
+                    {{ task_stats.in_progress }},
+                    {{ task_stats.pending }}
+                ],
+                backgroundColor: [
+                    'rgba(40, 167, 69, 0.8)', // green for completed
+                    'rgba(23, 162, 184, 0.8)', // teal for in progress
+                    'rgba(255, 193, 7, 0.8)'   // yellow for pending
+                ],
+                borderColor: [
+                    'rgba(40, 167, 69, 1)',
+                    'rgba(23, 162, 184, 1)',
+                    'rgba(255, 193, 7, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.raw || 0;
+                            const total = context.chart.getDatasetMeta(0).total;
+                            const percentage = Math.round((value / total) * 100);
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Task Priority Distribution Chart
+    const priorityCtx = document.getElementById('priorityChart').getContext('2d');
+    const priorityChart = new Chart(priorityCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Низкий', 'Средний', 'Высокий'],
+            datasets: [{
+                label: 'Количество задач',
+                data: [
+                    {{ task_stats.low_priority|default(0) }},
+                    {{ task_stats.medium_priority|default(0) }},
+                    {{ task_stats.high_priority|default(0) }}
+                ],
+                backgroundColor: [
+                    'rgba(40, 167, 69, 0.8)',  // green for low
+                    'rgba(255, 193, 7, 0.8)',  // yellow for medium
+                    'rgba(220, 53, 69, 0.8)'   // red for high
+                ],
+                borderColor: [
+                    'rgba(40, 167, 69, 1)',
+                    'rgba(255, 193, 7, 1)',
+                    'rgba(220, 53, 69, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+});
+</script>
 
 <style>
 .bg-gradient-primary {

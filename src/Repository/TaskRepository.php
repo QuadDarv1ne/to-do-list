@@ -20,7 +20,7 @@ class TaskRepository extends ServiceEntityRepository
     /**
      * Count tasks by status and optionally by user
      */
-    public function countByStatus(?User $user = null, ?bool $isDone = null): int
+    public function countByStatus(?User $user = null, ?bool $isDone = null, ?string $status = null): int
     {
         $qb = $this->createQueryBuilder('t');
         
@@ -32,6 +32,11 @@ class TaskRepository extends ServiceEntityRepository
         if ($isDone !== null) {
             $qb->andWhere('t.isDone = :isDone')
                ->setParameter('isDone', $isDone);
+        }
+        
+        if ($status !== null) {
+            $qb->andWhere('t.status = :status')
+               ->setParameter('status', $status);
         }
         
         return $qb->select('COUNT(t.id)')
@@ -162,5 +167,98 @@ class TaskRepository extends ServiceEntityRepository
             ->setParameter('toDate', $toDate)
             ->getQuery()
             ->getResult();
+    }
+    
+    /**
+     * Search tasks by various criteria
+     */
+    public function searchTasks(array $criteria = []): array
+    {
+        $qb = $this->createQueryBuilder('t')
+            ->leftJoin('t.user', 'u')
+            ->leftJoin('t.assignedUser', 'au')
+            ->leftJoin('t.category', 'c');
+
+        if (!empty($criteria['search'])) {
+            $qb->andWhere('LOWER(t.title) LIKE :search OR 
+                          LOWER(t.description) LIKE :search OR 
+                          LOWER(u.username) LIKE :search OR 
+                          LOWER(au.username) LIKE :search OR 
+                          LOWER(c.name) LIKE :search')
+               ->setParameter('search', '%' . strtolower($criteria['search']) . '%');
+        }
+
+        if (!empty($criteria['status'])) {
+            $qb->andWhere('t.status = :status')
+               ->setParameter('status', $criteria['status']);
+        }
+
+        if (!empty($criteria['priority'])) {
+            $qb->andWhere('t.priority = :priority')
+               ->setParameter('priority', $criteria['priority']);
+        }
+
+        if (!empty($criteria['category'])) {
+            $qb->andWhere('t.category = :category')
+               ->setParameter('category', $criteria['category']);
+        }
+
+        if (!empty($criteria['user'])) {
+            $qb->andWhere('t.user = :user OR t.assignedUser = :user')
+               ->setParameter('user', $criteria['user']);
+        }
+
+        if (!empty($criteria['startDate'])) {
+            $qb->andWhere('t.dueDate >= :startDate')
+               ->setParameter('startDate', $criteria['startDate']);
+        }
+
+        if (!empty($criteria['endDate'])) {
+            $qb->andWhere('t.dueDate <= :endDate')
+               ->setParameter('endDate', $criteria['endDate']);
+        }
+        
+        // Advanced filtering options
+        if (!empty($criteria['createdAfter'])) {
+            $qb->andWhere('t.createdAt >= :createdAfter')
+               ->setParameter('createdAfter', $criteria['createdAfter']);
+        }
+        
+        if (!empty($criteria['createdBefore'])) {
+            $qb->andWhere('t.createdAt <= :createdBefore')
+               ->setParameter('createdBefore', $criteria['createdBefore']);
+        }
+        
+        if (!empty($criteria['assignedToMe']) && $criteria['assignedToMe']) {
+            $qb->andWhere('t.assignedUser = :currentUser')
+               ->setParameter('currentUser', $criteria['assignedToMe']);
+        }
+        
+        if (!empty($criteria['createdByMe']) && $criteria['createdByMe']) {
+            $qb->andWhere('t.user = :currentUser')
+               ->setParameter('currentUser', $criteria['createdByMe']);
+        }
+        
+        if (!empty($criteria['overdue']) && $criteria['overdue']) {
+            $qb->andWhere('t.dueDate < :now AND t.status != :completed')
+               ->setParameter('now', new \DateTime())
+               ->setParameter('completed', 'completed');
+        }
+        
+        if (!empty($criteria['sortBy'])) {
+            $allowedSortFields = ['title', 'createdAt', 'dueDate', 'priority', 'status'];
+            $direction = (!empty($criteria['sortDirection']) && strtoupper($criteria['sortDirection']) === 'ASC') ? 'ASC' : 'DESC';
+            
+            if (in_array($criteria['sortBy'], $allowedSortFields)) {
+                $qb->orderBy('t.' . $criteria['sortBy'], $direction);
+            } else {
+                $qb->orderBy('t.createdAt', 'DESC');
+            }
+        } else {
+            $qb->orderBy('t.createdAt', 'DESC');
+        }
+
+        return $qb->getQuery()
+                  ->getResult();
     }
 }

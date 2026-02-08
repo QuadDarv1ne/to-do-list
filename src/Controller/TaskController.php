@@ -12,7 +12,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/task')]
@@ -160,6 +160,9 @@ class TaskController extends AbstractController
         $this->denyAccessUnlessGranted('TASK_EDIT', $task);
         
         $originalAssignedUser = $task->getAssignedUser();
+        $originalStatus = $task->getStatus();
+        $originalPriority = $task->getPriority();
+        $originalDueDate = $task->getDueDate();
         
         $form = $this->createForm(TaskType::class, $task);
         $form->handleRequest($request);
@@ -169,7 +172,22 @@ class TaskController extends AbstractController
             if ($originalAssignedUser !== $task->getAssignedUser() && 
                 $task->getAssignedUser() && 
                 $task->getAssignedUser() !== $this->getUser()) {
-                $notificationService->sendTaskAssignedNotification($task);
+                $notificationService->notifyTaskReassignment($task, $this->getUser());
+            }
+            
+            // Send notification if status changed
+            if ($originalStatus !== $task->getStatus()) {
+                $notificationService->notifyTaskStatusChange($task, $this->getUser());
+            }
+            
+            // Send notification if priority changed
+            if ($originalPriority !== $task->getPriority()) {
+                $notificationService->notifyTaskPriorityChange($task, $this->getUser());
+            }
+            
+            // Send notification if due date changed
+            if (($originalDueDate?->format('Y-m-d') ?? null) !== ($task->getDueDate()?->format('Y-m-d') ?? null)) {
+                $notificationService->notifyTaskDueDateChange($task, $this->getUser());
             }
             
             $entityManager->flush();
@@ -201,5 +219,277 @@ class TaskController extends AbstractController
         }
 
         return $this->redirectToRoute('app_task_index', [], Response::HTTP_SEE_OTHER);
+    }
+    
+    #[Route('/search', name: 'app_task_search', methods: ['GET'])]
+    public function search(
+        Request $request, 
+        TaskRepository $taskRepository, 
+        TaskCategoryRepository $categoryRepository
+    ): Response {
+        $user = $this->getUser();
+        
+        // Get search parameters
+        $search = $request->query->get('q');
+        $status = $request->query->get('status');
+        $priority = $request->query->get('priority');
+        $categoryId = $request->query->get('category');
+        $startDate = $request->query->get('start_date');
+        $endDate = $request->query->get('end_date');
+        $createdAfter = $request->query->get('created_after');
+        $createdBefore = $request->query->get('created_before');
+        $assignedToMe = $request->query->get('assigned_to_me');
+        $createdByMe = $request->query->get('created_by_me');
+        $overdue = $request->query->get('overdue');
+        $sortBy = $request->query->get('sort_by');
+        $sortDirection = $request->query->get('sort_direction');
+        
+        // Prepare criteria for search
+        $criteria = [];
+        if ($search) {
+            $criteria['search'] = $search;
+        }
+        if ($status) {
+            $criteria['status'] = $status;
+        }
+        if ($priority) {
+            $criteria['priority'] = $priority;
+        }
+        if ($categoryId) {
+            $criteria['category'] = $categoryId;
+        }
+        if ($startDate) {
+            $criteria['startDate'] = new \DateTime($startDate);
+        }
+        if ($endDate) {
+            $criteria['endDate'] = new \DateTime($endDate);
+        }
+        if ($createdAfter) {
+            $criteria['createdAfter'] = new \DateTime($createdAfter);
+        }
+        if ($createdBefore) {
+            $criteria['createdBefore'] = new \DateTime($createdBefore);
+        }
+        if ($assignedToMe) {
+            $criteria['assignedToMe'] = $user;
+        }
+        if ($createdByMe) {
+            $criteria['createdByMe'] = $user;
+        }
+        if ($overdue) {
+            $criteria['overdue'] = true;
+        }
+        if ($sortBy) {
+            $criteria['sortBy'] = $sortBy;
+        }
+        if ($sortDirection) {
+            $criteria['sortDirection'] = $sortDirection;
+        }
+        $criteria['user'] = $user;
+        
+        // Perform search
+        $tasks = $taskRepository->searchTasks($criteria);
+        
+        // Get user's categories for filter dropdown
+        $categories = $categoryRepository->findByUser($user);
+        
+        return $this->render('task/index.html.twig', [
+            'tasks' => $tasks,
+            'categories' => $categories,
+            'searchQuery' => $search,
+            'currentFilters' => [
+                'status' => $status,
+                'priority' => $priority,
+                'category' => $categoryId,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'created_after' => $createdAfter,
+                'created_before' => $createdBefore,
+                'assigned_to_me' => $assignedToMe,
+                'created_by_me' => $createdByMe,
+                'overdue' => $overdue,
+                'sort_by' => $sortBy,
+                'sort_direction' => $sortDirection
+            ]
+        ]);
+    }
+    
+    #[Route('/export', name: 'app_task_export', methods: ['GET'])]
+    public function export(
+        Request $request,
+        TaskRepository $taskRepository
+    ): Response {
+        $user = $this->getUser();
+        
+        // Get filter parameters
+        $status = $request->query->get('status');
+        $priority = $request->query->get('priority');
+        $categoryId = $request->query->get('category');
+        $startDate = $request->query->get('start_date');
+        $endDate = $request->query->get('end_date');
+        
+        // Build query
+        $qb = $taskRepository->createQueryBuilder('t')
+            ->andWhere('t.user = :user OR t.assignedUser = :user')
+            ->setParameter('user', $user)
+            ->orderBy('t.createdAt', 'DESC');
+        
+        // Apply filters
+        if ($status) {
+            $qb->andWhere('t.status = :status')
+               ->setParameter('status', $status);
+        }
+        
+        if ($priority) {
+            $qb->andWhere('t.priority = :priority')
+               ->setParameter('priority', $priority);
+        }
+        
+        if ($categoryId) {
+            $qb->andWhere('t.category = :category')
+               ->setParameter('category', $categoryId);
+        }
+        
+        if ($startDate) {
+            $qb->andWhere('t.createdAt >= :startDate')
+               ->setParameter('startDate', new \DateTime($startDate));
+        }
+        
+        if ($endDate) {
+            $qb->andWhere('t.createdAt <= :endDate')
+               ->setParameter('endDate', new \DateTime($endDate));
+        }
+        
+        $tasks = $qb->getQuery()->getResult();
+        
+        // Create CSV content
+        $csvContent = "ID,Название,Описание,Статус,Приоритет,Дата создания,Срок выполнения,Категория,Назначен пользователю\n";
+        
+        foreach ($tasks as $task) {
+            $csvContent .= sprintf(
+                '"%s","%s","%s","%s","%s","%s","%s","%s","%s"' . "\n",
+                $task->getId(),
+                str_replace('"', '""', $task->getTitle()),
+                str_replace('"', '""', strip_tags($task->getDescription() ?? '')),
+                $task->getStatus(),
+                $task->getPriority(),
+                $task->getCreatedAt()->format('d.m.Y H:i'),
+                $task->getDueDate() ? $task->getDueDate()->format('d.m.Y') : '',
+                $task->getCategory() ? $task->getCategory()->getName() : '',
+                $task->getAssignedUser() ? $task->getAssignedUser()->getFullName() : ''
+            );
+        }
+        
+        // Return CSV response
+        $response = new Response($csvContent);
+        $response->headers->set('Content-Type', 'text/csv; charset=utf-8');
+        $response->headers->set('Content-Disposition', 'attachment; filename="tasks_export_' . date('Y-m-d_H-i-s') . '.csv"');
+        
+        return $response;
+    }
+    
+    #[Route('/bulk-action', name: 'app_task_bulk_action', methods: ['POST'])]
+    public function bulkAction(
+        Request $request,
+        TaskRepository $taskRepository,
+        EntityManagerInterface $entityManager,
+        NotificationService $notificationService
+    ): Response {
+        $action = $request->request->get('action');
+        $taskIds = $request->request->get('task_ids', []);
+        
+        if (empty($taskIds) || !is_array($taskIds)) {
+            $this->addFlash('error', 'Не выбраны задачи для выполнения операции.');
+            return $this->redirectToRoute('app_task_index');
+        }
+        
+        $tasks = $taskRepository->findBy(['id' => $taskIds]);
+        $currentUser = $this->getUser();
+        $successfulOperations = 0;
+        
+        foreach ($tasks as $task) {
+            // Check permissions for each task
+            if (!$this->isGranted('TASK_EDIT', $task)) {
+                continue; // Skip unauthorized tasks
+            }
+            
+            switch ($action) {
+                case 'delete':
+                    // Check delete permission
+                    if ($this->isGranted('TASK_DELETE', $task)) {
+                        $entityManager->remove($task);
+                        $successfulOperations++;
+                    }
+                    break;
+                    
+                case 'mark_completed':
+                    $task->setStatus('completed');
+                    $notificationService->notifyTaskStatusChange($task, $currentUser);
+                    $successfulOperations++;
+                    break;
+                    
+                case 'mark_in_progress':
+                    $task->setStatus('in_progress');
+                    $notificationService->notifyTaskStatusChange($task, $currentUser);
+                    $successfulOperations++;
+                    break;
+                    
+                case 'mark_pending':
+                    $task->setStatus('pending');
+                    $notificationService->notifyTaskStatusChange($task, $currentUser);
+                    $successfulOperations++;
+                    break;
+                    
+                case 'set_priority_high':
+                    $task->setPriority('high');
+                    $notificationService->notifyTaskPriorityChange($task, $currentUser);
+                    $successfulOperations++;
+                    break;
+                    
+                case 'set_priority_medium':
+                    $task->setPriority('medium');
+                    $notificationService->notifyTaskPriorityChange($task, $currentUser);
+                    $successfulOperations++;
+                    break;
+                    
+                case 'set_priority_low':
+                    $task->setPriority('low');
+                    $notificationService->notifyTaskPriorityChange($task, $currentUser);
+                    $successfulOperations++;
+                    break;
+            }
+        }
+        
+        if ($successfulOperations > 0) {
+            $entityManager->flush();
+            
+            switch ($action) {
+                case 'delete':
+                    $this->addFlash('success', "Успешно удалено {$successfulOperations} задач(и).");
+                    break;
+                case 'mark_completed':
+                    $this->addFlash('success', "{$successfulOperations} задач(и) отмечены как выполненные.");
+                    break;
+                case 'mark_in_progress':
+                    $this->addFlash('success', "{$successfulOperations} задач(и) отмечены как в процессе выполнения.");
+                    break;
+                case 'mark_pending':
+                    $this->addFlash('success', "{$successfulOperations} задач(и) отмечены как ожидающие.");
+                    break;
+                case 'set_priority_high':
+                    $this->addFlash('success', "{$successfulOperations} задач(и) получили высокий приоритет.");
+                    break;
+                case 'set_priority_medium':
+                    $this->addFlash('success', "{$successfulOperations} задач(и) получили средний приоритет.");
+                    break;
+                case 'set_priority_low':
+                    $this->addFlash('success', "{$successfulOperations} задач(и) получили низкий приоритет.");
+                    break;
+            }
+        } else {
+            $this->addFlash('warning', 'Не удалось выполнить операцию ни для одной задачи (возможно, нет прав).');
+        }
+        
+        return $this->redirectToRoute('app_task_index');
     }
 }

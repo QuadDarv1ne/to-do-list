@@ -29,13 +29,19 @@ class DashboardController extends AbstractController
         if ($this->isGranted('ROLE_ADMIN')) {
             // Администратор видит общую статистику
             $totalTasks = $taskRepository->count([]);
-            $completedTasks = $taskRepository->count(['isDone' => true]);
-            $pendingTasks = $taskRepository->count(['isDone' => false]);
+            $completedTasks = $taskRepository->count(['status' => 'completed']);
+            $inProgressTasks = $taskRepository->count(['status' => 'in_progress']);
+            $pendingTasks = $taskRepository->count(['status' => 'pending']);
             
             // Дополнительная статистика для администратора
             $totalUsers = $userRepository->count([]);
             $activeUsers = $userRepository->count(['isActive' => true]);
             $totalComments = $commentRepository->count([]);
+            
+            // Статистика по приоритетам
+            $lowPriorityTasks = $taskRepository->count(['priority' => 'low']);
+            $mediumPriorityTasks = $taskRepository->count(['priority' => 'medium']);
+            $highPriorityTasks = $taskRepository->count(['priority' => 'high']);
             
             // Статистика по пользователям
             $userStats = $userRepository->getStatistics();
@@ -53,7 +59,11 @@ class DashboardController extends AbstractController
             $taskStats = [
                 'total' => $totalTasks,
                 'completed' => $completedTasks,
+                'in_progress' => $inProgressTasks,
                 'pending' => $pendingTasks,
+                'low_priority' => $lowPriorityTasks,
+                'medium_priority' => $mediumPriorityTasks,
+                'high_priority' => $highPriorityTasks,
                 'users' => $totalUsers,
                 'active_users' => $activeUsers,
                 'comments' => $totalComments,
@@ -63,6 +73,7 @@ class DashboardController extends AbstractController
             // Обычный пользователь видит только свою статистику
             $totalTasks = $taskRepository->countByStatus($user);
             $completedTasks = $taskRepository->countByStatus($user, true);
+            $inProgressTasks = $taskRepository->countByStatus($user, null, 'in_progress');
             $pendingTasks = $taskRepository->countByStatus($user, false);
             
             // Дополнительная статистика для пользователя
@@ -81,6 +92,7 @@ class DashboardController extends AbstractController
             $taskStats = [
                 'total' => $totalTasks,
                 'completed' => $completedTasks,
+                'in_progress' => $inProgressTasks,
                 'pending' => $pendingTasks,
                 'completion_rate' => $userCompletionRate,
                 'recent_comments' => $recentComments,

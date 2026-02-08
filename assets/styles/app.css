@@ -201,6 +201,122 @@ main {
     .stat-number {
         font-size: 2rem;
     }
+    
+    /* Adjust form controls on small screens */
+    .form-control, .form-select {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
+    }
+    
+    /* Make buttons stack vertically on small screens */
+    .btn-group {
+        flex-direction: column;
+    }
+    
+    .btn-group > .btn {
+        margin-bottom: 0.25rem;
+    }
+    
+    .btn-group > .btn:last-child {
+        margin-bottom: 0;
+    }
+    
+    /* Task item layout adjustments */
+    .task-item {
+        padding: 1rem;
+    }
+    
+    .task-title {
+        font-size: 1rem;
+    }
+    
+    /* Adjust grid columns for smaller screens */
+    .col-md-3, .col-md-4, .col-md-6, .col-md-8, .col-md-9, .col-md-12 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    
+    /* Adjust button sizes on mobile */
+    .btn {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.875rem;
+    }
+    
+    /* Better table display on mobile */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* Extra small devices (phones, 576px and below) */
+@media (max-width: 575.98px) {
+    .container-fluid {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .navbar-brand {
+        font-size: 1.1rem;
+    }
+    
+    .h1, h1 {
+        font-size: 1.5rem;
+    }
+    
+    .h2, h2 {
+        font-size: 1.3rem;
+    }
+    
+    .h3, h3 {
+        font-size: 1.2rem;
+    }
+    
+    .h4, h4 {
+        font-size: 1.1rem;
+    }
+    
+    .h5, h5 {
+        font-size: 1rem;
+    }
+    
+    .h6, h6 {
+        font-size: 0.9rem;
+    }
+    
+    .stat-number {
+        font-size: 1.75rem;
+    }
+    
+    .task-title {
+        font-size: 0.95rem;
+    }
+    
+    .task-meta {
+        font-size: 0.8rem;
+    }
+    
+    .btn {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.85rem;
+    }
+}
+
+/* Landscape mobile devices */
+@media (min-width: 576px) and (max-width: 767.98px) {
+    .row {
+        margin-right: -0.75rem;
+        margin-left: -0.75rem;
+    }
+    
+    [class*="col-"] {
+        padding-right: 0.75rem;
+        padding-left: 0.75rem;
+    }
 }
 
 /* Loading spinner */

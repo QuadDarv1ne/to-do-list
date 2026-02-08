@@ -35,7 +35,7 @@
                             <i class="fas fa-search"></i>
                         </span>
                         <input type="text" class="form-control" id="search" name="search" 
-                               value="{{ app.request.query.get('search') }}" 
+                               value="{{ app.request.query.get('search') ?: searchQuery }}" 
                                placeholder="Поиск по названию или описанию">
                     </div>
                 </div>
@@ -93,9 +93,109 @@
                         <a href="{{ path('app_task_index') }}" class="btn btn-outline-secondary">
                             <i class="fas fa-times"></i>
                         </a>
+                        <a href="{{ path('app_task_export', app.request.query.all) }}" class="btn btn-success">
+                            <i class="fas fa-download me-1"></i>
+                            Экспорт
+                        </a>
                     </div>
                 </div>
             </form>
+        </div>
+    </div>
+    
+    <!-- Advanced Filters -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">
+                <i class="fas fa-sliders-h me-2 text-secondary"></i>
+                Расширенные фильтры
+                <button class="btn btn-sm btn-link float-end" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </h5>
+        </div>
+        <div class="collapse" id="advancedFilters">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <!-- Preserve existing filters -->
+                    <input type="hidden" name="search" value="{{ app.request.query.get('search') ?: searchQuery }}">
+                    <input type="hidden" name="status" value="{{ app.request.query.get('status') }}">
+                    <input type="hidden" name="priority" value="{{ app.request.query.get('priority') }}">
+                    <input type="hidden" name="category" value="{{ app.request.query.get('category') }}">
+                    <input type="hidden" name="start_date" value="{{ app.request.query.get('start_date') }}">
+                    <input type="hidden" name="end_date" value="{{ app.request.query.get('end_date') }}">
+                    
+                    <div class="col-md-3">
+                        <label for="created_after" class="form-label">Создано после</label>
+                        <input type="date" class="form-control" id="created_after" name="created_after" 
+                               value="{{ app.request.query.get('created_after') }}">
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label for="created_before" class="form-label">Создано до</label>
+                        <input type="date" class="form-control" id="created_before" name="created_before" 
+                               value="{{ app.request.query.get('created_before') }}">
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <label for="sort_by" class="form-label">Сортировать по</label>
+                        <select class="form-select" id="sort_by" name="sort_by">
+                            <option value="" {{ app.request.query.get('sort_by') == '' ? 'selected' : '' }}>По умолчанию</option>
+                            <option value="title" {{ app.request.query.get('sort_by') == 'title' ? 'selected' : '' }}>Название</option>
+                            <option value="createdAt" {{ app.request.query.get('sort_by') == 'createdAt' ? 'selected' : '' }}>Дата создания</option>
+                            <option value="dueDate" {{ app.request.query.get('sort_by') == 'dueDate' ? 'selected' : '' }}>Срок выполнения</option>
+                            <option value="priority" {{ app.request.query.get('sort_by') == 'priority' ? 'selected' : '' }}>Приоритет</option>
+                            <option value="status" {{ app.request.query.get('sort_by') == 'status' ? 'selected' : '' }}>Статус</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <label for="sort_direction" class="form-label">Направление</label>
+                        <select class="form-select" id="sort_direction" name="sort_direction">
+                            <option value="DESC" {{ app.request.query.get('sort_direction') == 'DESC' ? 'selected' : '' }}>По убыванию</option>
+                            <option value="ASC" {{ app.request.query.get('sort_direction') == 'ASC' ? 'selected' : '' }}>По возрастанию</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="assigned_to_me" name="assigned_to_me" 
+                                   value="1" {{ app.request.query.get('assigned_to_me') == '1' ? 'checked' : '' }}>
+                            <label class="form-check-label" for="assigned_to_me">
+                                Назначено мне
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="created_by_me" name="created_by_me" 
+                                   value="1" {{ app.request.query.get('created_by_me') == '1' ? 'checked' : '' }}>
+                            <label class="form-check-label" for="created_by_me">
+                                Создано мной
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="overdue" name="overdue" 
+                                   value="1" {{ app.request.query.get('overdue') == '1' ? 'checked' : '' }}>
+                            <label class="form-check-label" for="overdue">
+                                Просрочено
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-12">
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-filter me-1"></i>
+                                Применить фильтры
+                            </button>
+                            <a href="{{ path('app_task_index') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i>
+                                Сбросить все фильтры
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -157,13 +257,20 @@
     </div>
 
     <!-- Tasks List -->
+    <form method="post" action="{{ path('app_task_bulk_action') }}" id="bulk-actions-form">
     <div class="card border-0 shadow-sm">
         <div class="card-header bg-white">
             <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="fas fa-list me-2 text-secondary"></i>
-                    Список задач
-                </h5>
+                <div class="d-flex align-items-center">
+                    <div class="form-check me-3">
+                        <input type="checkbox" class="form-check-input" id="select-all-tasks">
+                        <label class="form-check-label" for="select-all-tasks"></label>
+                    </div>
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2 text-secondary"></i>
+                        Список задач
+                    </h5>
+                </div>
                 <div class="btn-group" role="group">
                     <a href="{{ path('app_task_index', app.request.query.all|merge({'sort': 'createdAt', 'direction': app.request.query.get('direction') == 'ASC' ? 'DESC' : 'ASC'})) }}" 
                        class="btn btn-outline-secondary btn-sm">
@@ -179,12 +286,45 @@
             </div>
         </div>
         
+        <!-- Bulk Action Controls -->
+        <div id="bulk-actions-container" class="card-header bg-light d-none">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span id="selected-count">Выбрано: 0</span>
+                </div>
+                <div class="btn-group" role="group">
+                    <select name="action" class="form-select me-2" style="width: auto;">
+                        <option value="">Действие с выбранными</option>
+                        <option value="mark_completed">Отметить как выполненные</option>
+                        <option value="mark_in_progress">Отметить как в процессе</option>
+                        <option value="mark_pending">Отметить как ожидаемые</option>
+                        <option value="set_priority_high">Установить высокий приоритет</option>
+                        <option value="set_priority_medium">Установить средний приоритет</option>
+                        <option value="set_priority_low">Установить низкий приоритет</option>
+                        <option value="delete">Удалить</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary btn-sm" id="execute-bulk-action">
+                        <i class="fas fa-play me-1"></i>
+                        Выполнить
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="cancel-bulk-selection">
+                        <i class="fas fa-times me-1"></i>
+                        Отмена
+                    </button>
+                </div>
+            </div>
+        </div>
+        
         <div class="card-body p-0">
             {% if tasks is not empty %}
                 <div class="list-group list-group-flush">
                     {% for task in tasks %}
                         <div class="list-group-item task-item border-0 px-4 py-3 priority-{{ task.priority }}">
                             <div class="d-flex justify-content-between align-items-start">
+                                <div class="form-check me-3">
+                                    <input type="checkbox" class="form-check-input task-checkbox" name="task_ids[]" value="{{ task.id }}" id="task-{{ task.id }}">
+                                    <label class="form-check-label" for="task-{{ task.id }}"></label>
+                                </div>
                                 <div class="flex-grow-1">
                                     <div class="d-flex align-items-center mb-2">
                                         <h5 class="task-title mb-0 me-3">
@@ -324,5 +464,82 @@
             {% endif %}
         </div>
     </div>
+</form>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAllCheckbox = document.getElementById('select-all-tasks');
+    const taskCheckboxes = document.querySelectorAll('.task-checkbox');
+    const bulkActionsContainer = document.getElementById('bulk-actions-container');
+    const selectedCountSpan = document.getElementById('selected-count');
+    const cancelBulkSelectionBtn = document.getElementById('cancel-bulk-selection');
+    
+    // Select/deselect all tasks
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            taskCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateBulkActionsVisibility();
+        });
+    }
+    
+    // Handle individual task checkbox changes
+    taskCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateBulkActionsVisibility();
+        });
+    });
+    
+    // Show/hide bulk actions container and update count
+    function updateBulkActionsVisibility() {
+        const checkedCount = document.querySelectorAll('.task-checkbox:checked').length;
+        
+        if (checkedCount > 0) {
+            bulkActionsContainer.classList.remove('d-none');
+            selectedCountSpan.textContent = `Выбрано: ${checkedCount}`;
+        } else {
+            bulkActionsContainer.classList.add('d-none');
+        }
+        
+        // Update select all checkbox state
+        if (selectAllCheckbox) {
+            const allChecked = taskCheckboxes.length > 0 && 
+                              [...taskCheckboxes].every(cb => cb.checked);
+            selectAllCheckbox.checked = allChecked;
+        }
+    }
+    
+    // Cancel bulk selection
+    if (cancelBulkSelectionBtn) {
+        cancelBulkSelectionBtn.addEventListener('click', function() {
+            taskCheckboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = false;
+            }
+            bulkActionsContainer.classList.add('d-none');
+        });
+    }
+    
+    // Confirmation for delete action
+    const bulkActionForm = document.getElementById('bulk-actions-form');
+    if (bulkActionForm) {
+        bulkActionForm.addEventListener('submit', function(e) {
+            const action = bulkActionForm.querySelector('select[name="action"]').value;
+            if (action === 'delete') {
+                const checkedCount = document.querySelectorAll('.task-checkbox:checked').length;
+                if (!confirm(`Вы уверены, что хотите удалить ${checkedCount} задач(и)?`)) {
+                    e.preventDefault();
+                }
+            }
+        });
+    }
+});
+</script>
 {% endblock %}
