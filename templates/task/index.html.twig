@@ -83,8 +83,13 @@
                     </thead>
                     <tbody>
                         {% for task in tasks %}
-                        <tr>
-                            <td>{{ task.name }}</td>
+                        <tr {% if task.isOverdue %}class="table-danger"{% endif %}>
+                            <td>
+                                {{ task.name }}
+                                {% if task.isOverdue %}
+                                    <i class="fas fa-exclamation-triangle text-danger ms-1" title="Просрочено"></i>
+                                {% endif %}
+                            </td>
                             <td>{{ task.description|truncate(50) }}</td>
                             <td>
                                 {% if task.isDone %}

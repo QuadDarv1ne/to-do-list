@@ -122,10 +122,13 @@
                                 </thead>
                                 <tbody>
                                     {% for task in recent_tasks %}
-                                    <tr>
+                                    <tr {% if task.isOverdue %}class="table-danger"{% endif %}>
                                         <td>
                                             <a href="{{ path('app_task_show', {'id': task.id}) }}" class="text-decoration-none">
                                                 {{ task.name }}
+                                                {% if task.isOverdue %}
+                                                    <i class="fas fa-exclamation-triangle text-danger ms-1" title="Просрочено"></i>
+                                                {% endif %}
                                             </a>
                                         </td>
                                         <td>

@@ -1,5 +1,4 @@
 <?php
-// src/Controller/TaskController.php
 
 namespace App\Controller;
 
@@ -7,7 +6,7 @@ use App\Entity\Task;
 use App\Form\TaskType;
 use App\Repository\TaskRepository;
 use App\Entity\User;
-use App\Entity\Notification;
+use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -95,7 +94,7 @@ class TaskController extends AbstractController
     }
 
     #[Route('/new', name: 'app_task_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, NotificationService $notificationService): Response
     {
         $task = new Task();
         $form = $this->createForm(TaskType::class, $task);
@@ -115,18 +114,7 @@ class TaskController extends AbstractController
 
             // Создаем уведомление для назначенного пользователя
             if ($task->getAssignedUser() && $task->getAssignedUser() !== $this->getUser()) {
-                $notification = new Notification();
-                $notification->setTitle('Новая задача назначена')
-                    ->setMessage(sprintf(
-                        'Вам назначена новая задача "%s" пользователем %s', 
-                        $task->getName(),
-                        $this->getUser()->getFullName()
-                    ))
-                    ->setUser($task->getAssignedUser())
-                    ->setTask($task);
-                
-                $entityManager->persist($notification);
-                $entityManager->flush();
+                $notificationService->notifyTaskAssignment($task, $this->getUser());
             }
 
             $this->addFlash('success', 'Задача успешно создана');
@@ -154,7 +142,7 @@ class TaskController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_task_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Task $task, EntityManagerInterface $entityManager): Response
+    public function edit(Request $request, Task $task, EntityManagerInterface $entityManager, NotificationService $notificationService): Response
     {
         // Проверяем права доступа к задаче
         if (!$this->isGranted('ROLE_ADMIN') && $task->getAssignedUser() !== $this->getUser()) {
@@ -175,18 +163,7 @@ class TaskController extends AbstractController
 
             // Создаем уведомление для нового назначенного пользователя
             if ($newAssignedUser && $newAssignedUser != $originalAssignedUser) {
-                $notification = new Notification();
-                $notification->setTitle('Задача переназначена')
-                    ->setMessage(sprintf(
-                        'Вам переназначена задача "%s" пользователем %s', 
-                        $task->getName(),
-                        $this->getUser()->getFullName()
-                    ))
-                    ->setUser($task->getAssignedUser())
-                    ->setTask($task);
-                
-                $entityManager->persist($notification);
-                $entityManager->flush();
+                $notificationService->notifyTaskReassignment($task, $this->getUser());
             }
 
             $this->addFlash('success', 'Задача успешно обновлена');
@@ -308,6 +285,8 @@ class TaskController extends AbstractController
             'Название',
             'Описание',
             'Статус',
+            'Приоритет',
+            'Срок выполнения',
             'Назначена',
             'Дата создания',
             'Дата обновления'
@@ -320,6 +299,8 @@ class TaskController extends AbstractController
                 $task->getName(),
                 $task->getDescription(),
                 $task->isDone() ? 'Выполнена' : 'В работе',
+                $task->getPriorityLabel(),
+                $task->getDeadline() ? $task->getDeadline()->format('d.m.Y') : '',
                 $task->getAssignedUser() ? $task->getAssignedUser()->getFullName() : 'Не назначена',
                 $task->getCreatedAt()->format('d.m.Y H:i'),
                 $task->getUpdateAt()->format('d.m.Y H:i')

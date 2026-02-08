@@ -62,4 +62,19 @@ class TaskRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+    
+    /**
+     * Find tasks with deadlines approaching
+     */
+    public function findUpcomingDeadlines(\DateTimeImmutable $beforeDate): array
+    {
+        return $this->createQueryBuilder('t')
+            ->andWhere('t.deadline IS NOT NULL')
+            ->andWhere('t.deadline <= :beforeDate')
+            ->andWhere('t.isDone = :isDone')
+            ->setParameter('beforeDate', $beforeDate)
+            ->setParameter('isDone', false)
+            ->getQuery()
+            ->getResult();
+    }
 }

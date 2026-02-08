@@ -42,7 +42,7 @@ class NotificationService
 
         // Send email notification
         $email = (new Email())
-            ->from($_ENV['MAILER_DSN'] ?? 'noreply@todo-list.local')
+            ->from('noreply@todo-list.local')
             ->to($assignedUser->getEmail())
             ->subject(sprintf('Новая задача: %s', $task->getName()))
             ->html($this->buildEmailContent($task, $assigner));
@@ -80,7 +80,7 @@ class NotificationService
 
         // Send email notification
         $email = (new Email())
-            ->from($_ENV['MAILER_DSN'] ?? 'noreply@todo-list.local')
+            ->from('noreply@todo-list.local')
             ->to($assignedUser->getEmail())
             ->subject(sprintf('Задача переназначена: %s', $task->getName()))
             ->html($this->buildEmailContent($task, $changer, 'переназначена'));
@@ -118,7 +118,7 @@ class NotificationService
 
         // Send email notification
         $email = (new Email())
-            ->from($_ENV['MAILER_DSN'] ?? 'noreply@todo-list.local')
+            ->from('noreply@todo-list.local')
             ->to($assignedUser->getEmail())
             ->subject(sprintf('Напоминание: срок задачи %s', $task->getName()))
             ->html($this->buildDeadlineEmailContent($task));
@@ -137,21 +137,23 @@ class NotificationService
     {
         $taskUrl = $this->urlGenerator->generate('app_task_show', ['id' => $task->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
         
-        return "
+        $html = "
             <h2>Новая задача {$action}</h2>
             <p>Здравствуйте, {$task->getAssignedUser()->getFullName()}!</p>
             <p>Вам {$action} задача: <strong>{$task->getName()}</strong></p>
             <p><strong>Описание:</strong> {$task->getDescription()}</p>
             <p><strong>Приоритет:</strong> {$task->getPriorityLabel()}</p>
-            ";
-            if ($task->getDeadline()) {
-                $html .= "<p><strong>Срок выполнения:</strong> {$task->getDeadline()->format('d.m.Y')}</p>";
-            }
-            $html .= "
+        ";
+        if ($task->getDeadline()) {
+            $html .= "<p><strong>Срок выполнения:</strong> {$task->getDeadline()->format('d.m.Y')}</p>";
+        }
+        $html .= "
             <p><strong>Назначил(а):</strong> {$assigner->getFullName()}</p>
             <p><a href=\"{$taskUrl}\" style=\"background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;\">Перейти к задаче</a></p>
             <p>С уважением,<br>Система управления задачами</p>
         ";
+        
+        return $html;
     }
 
     private function buildDeadlineEmailContent(Task $task): string
