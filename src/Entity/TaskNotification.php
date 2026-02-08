@@ -19,7 +19,7 @@ class TaskNotification
     #[ORM\JoinColumn(nullable: false)]
     private ?Task $task = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(inversedBy: 'notifications')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $recipient = null;
 

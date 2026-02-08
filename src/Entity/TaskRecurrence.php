@@ -20,6 +20,10 @@ class TaskRecurrence
     #[ORM\JoinColumn(nullable: false)]
     private ?Task $task = null;
 
+    #[ORM\ManyToOne(inversedBy: 'taskRecurrences')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $user = null;
+
     #[ORM\Column(length: 20)]
     private ?string $frequency = null; // daily, weekly, monthly, yearly
 
@@ -60,6 +64,18 @@ class TaskRecurrence
     public function setTask(Task $task): static
     {
         $this->task = $task;
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
 
         return $this;
     }

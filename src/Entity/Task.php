@@ -45,8 +45,8 @@ class Task
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\ManyToOne(inversedBy: 'assignedTasks')]
+    #[ORM\JoinColumn(nullable: false)]
     private ?User $assignedUser = null;
 
     #[ORM\ManyToOne(targetEntity: TaskCategory::class, inversedBy: 'tasks')]
@@ -59,7 +59,7 @@ class Task
     #[ORM\OneToMany(mappedBy: 'task', targetEntity: ActivityLog::class, orphanRemoval: true)]
     private Collection $activityLogs;
 
-    #[ORM\OneToMany(mappedBy: 'task', targetEntity: TaskNotification::class, inversedBy: 'notifications')]
+    #[ORM\OneToMany(mappedBy: 'task', targetEntity: TaskNotification::class)]
     private Collection $notifications;
 
     #[ORM\OneToOne(mappedBy: 'task', targetEntity: TaskRecurrence::class, cascade: ['persist', 'remove'])]

@@ -25,7 +25,7 @@ class Notification
     #[ORM\Column(type: 'boolean')]
     private bool $isRead = false;
 
-    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'notifications')]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'systemNotifications')]
     #[ORM\JoinColumn(nullable: false)]
     private User $user;
 

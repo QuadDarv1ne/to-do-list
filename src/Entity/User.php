@@ -97,6 +97,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'recipient', targetEntity: TaskNotification::class)]
     private Collection $notifications;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Notification::class)]
+    private Collection $systemNotifications;
+
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: TaskTimeTracking::class)]
     private Collection $timeTrackings;
 
@@ -113,13 +116,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->tasks = new ArrayCollection();
         $this->assignedTasks = new ArrayCollection();
-        $this->taskCategories = new ArrayCollection();
-        $this->comments = new ArrayCollection();
-        $this->activityLogs = new ArrayCollection();
         $this->taskRecurrences = new ArrayCollection();
         $this->notifications = new ArrayCollection();
+        $this->systemNotifications = new ArrayCollection();
+        $this->timeTrackings = new ArrayCollection();
         $this->createdAt = new \DateTime();
-        $this->roles = ['ROLE_USER'];
     }
 
     public function getId(): ?int
@@ -372,101 +373,41 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * @return Collection<int, TaskCategory>
-     */
-    public function getTaskCategories(): Collection
-    {
-        return $this->taskCategories;
-    }
-
-    public function addTaskCategory(TaskCategory $taskCategory): static
-    {
-        if (!$this->taskCategories->contains($taskCategory)) {
-            $this->taskCategories->add($taskCategory);
-            $taskCategory->setUser($this);
-        }
-
-        return $this;
-    }
-
-    public function removeTaskCategory(TaskCategory $taskCategory): static
-    {
-        if ($this->taskCategories->removeElement($taskCategory)) {
-            // set the owning side to null (unless already changed)
-            if ($taskCategory->getUser() === $this) {
-                $taskCategory->setUser(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Comment>
-     */
-    public function getComments(): Collection
-    {
-        return $this->comments;
-    }
-
-    public function addComment(Comment $comment): static
-    {
-        if (!$this->comments->contains($comment)) {
-            $this->comments->add($comment);
-            $comment->setAuthor($this);
-        }
-
-        return $this;
-    }
-
-    public function removeComment(Comment $comment): static
-    {
-        if ($this->comments->removeElement($comment)) {
-            // set the owning side to null (unless already changed)
-            if ($comment->getAuthor() === $this) {
-                $comment->setAuthor(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, ActivityLog>
-     */
-    public function getActivityLogs(): Collection
-    {
-        return $this->activityLogs;
-    }
-
-    public function addActivityLog(ActivityLog $activityLog): static
-    {
-        if (!$this->activityLogs->contains($activityLog)) {
-            $this->activityLogs->add($activityLog);
-            $activityLog->setUser($this);
-        }
-
-        return $this;
-    }
-
-    public function removeActivityLog(ActivityLog $activityLog): static
-    {
-        if ($this->activityLogs->removeElement($activityLog)) {
-            // set the owning side to null (unless already changed)
-            if ($activityLog->getUser() === $this) {
-                $activityLog->setUser(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
      * @return Collection<int, TaskRecurrence>
      */
     public function getTaskRecurrences(): Collection
     {
         return $this->taskRecurrences;
+    }
+
+    /**
+     * @return Collection<int, Notification>
+     */
+    public function getSystemNotifications(): Collection
+    {
+        return $this->systemNotifications;
+    }
+
+    public function addSystemNotification(Notification $notification): static
+    {
+        if (!$this->systemNotifications->contains($notification)) {
+            $this->systemNotifications->add($notification);
+            $notification->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSystemNotification(Notification $notification): static
+    {
+        if ($this->systemNotifications->removeElement($notification)) {
+            // set the owning side to null (unless already changed)
+            if ($notification->getUser() === $this) {
+                $notification->setUser(null);
+            }
+        }
+
+        return $this;
     }
 
     public function addTaskRecurrence(TaskRecurrence $taskRecurrence): static
