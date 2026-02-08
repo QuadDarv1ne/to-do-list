@@ -18,6 +18,32 @@
                 </div>
             </div>
             
+            {# Search Form #}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-8">
+                            <input 
+                                type="text" 
+                                name="search" 
+                                value="{{ searchQuery }}" 
+                                class="form-control" 
+                                placeholder="Поиск задач по названию, описанию, приоритету, исполнителю...">
+                        </div>
+                        <div class="col-md-4 d-flex">
+                            <button type="submit" class="btn btn-outline-primary flex-fill me-2">
+                                <i class="fas fa-search me-1"></i>Поиск
+                            </button>
+                            {% if searchQuery %}
+                                <a href="{{ path('app_task_index') }}" class="btn btn-outline-secondary flex-fill">
+                                    Сбросить
+                                </a>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
             <!-- Filter Form -->
             <div class="card mb-4">
                 <div class="card-header bg-light">

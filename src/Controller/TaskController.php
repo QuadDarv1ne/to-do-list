@@ -27,18 +27,30 @@ class TaskController extends AbstractController
     }
 
     #[Route('/', name: 'app_task_index', methods: ['GET'])]
-    public function index(TaskRepository $taskRepository): Response
+    public function index(TaskRepository $taskRepository, Request $request): Response
     {
         $user = $this->getUser();
         
+        // Get search query from request
+        $searchQuery = $request->query->get('search', '');
+        
         if ($user->hasRole('ROLE_ADMIN')) {
-            $tasks = $taskRepository->findAll();
+            if ($searchQuery) {
+                $tasks = $taskRepository->findBySearchQuery($searchQuery);
+            } else {
+                $tasks = $taskRepository->findAll();
+            }
         } else {
-            $tasks = $taskRepository->findByAssignedToOrCreatedBy($user);
+            if ($searchQuery) {
+                $tasks = $taskRepository->findBySearchQueryAndUser($searchQuery, $user);
+            } else {
+                $tasks = $taskRepository->findByAssignedToOrCreatedBy($user);
+            }
         }
 
         return $this->render('task/index.html.twig', [
             'tasks' => $tasks,
+            'searchQuery' => $searchQuery,
         ]);
     }
 
