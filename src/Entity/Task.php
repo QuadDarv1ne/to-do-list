@@ -28,6 +28,10 @@ class Task
 
     #[ORM\Column]
     private ?\DateTimeImmutable $updateAt = null;
+    
+        #[ORM\ManyToOne(inversedBy: 'tasks')]
+        #[ORM\JoinColumn(nullable: false)]
+        private ?User $assignedUser = null;
 
     public function getId(): ?int
     {
@@ -92,5 +96,17 @@ class Task
         $this->updateAt = $updateAt;
 
         return $this;
+    }
+
+    public function getAssignedUser(): ?User
+    {
+        return $this->assignedUser;
+    }
+
+    public function setAssignedUser(?User $assignedUser): static
+    {
+        $this->assignedUser = $assignedUser;
+
+        return $this;    
     }
 }

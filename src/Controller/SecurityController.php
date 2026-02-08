@@ -1,4 +1,4 @@
-// src/Controller/SecurityController.php
+<?php
 
 namespace App\Controller;
 

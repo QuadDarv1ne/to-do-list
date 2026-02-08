@@ -7,6 +7,8 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use App\Entity\Task;
+use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
@@ -105,10 +107,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 64, nullable: true)]
     private ?string $avatar = null;
 
+    #[ORM\OneToMany(targetEntity: Task::class, mappedBy: 'assignedUser', orphanRemoval: true)]
+    private Collection $tasks;
+
     public function __construct()
     {
         $this->createdAt = new \DateTime();
         $this->roles = ['ROLE_USER'];
+        $this->tasks = new \Doctrine\Common\Collections\ArrayCollection();
     }
 
     #[ORM\PrePersist]
@@ -493,5 +499,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             'lastLoginAt' => $this->lastLoginAt?->format('Y-m-d H:i:s'),
             'avatarUrl' => $this->getAvatarUrl(),
         ];
+    }
+
+    /**
+     * @return Collection<int, Task>
+     */
+    public function getTasks(): Collection
+    {
+        return $this->tasks;
     }
 }

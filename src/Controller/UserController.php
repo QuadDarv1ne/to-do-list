@@ -1,4 +1,4 @@
-// src/Controller/UserController.php
+<?php
 
 namespace App\Controller;
 
