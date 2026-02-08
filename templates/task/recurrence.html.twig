@@ -1,0 +1,167 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Повторение задачи - {{ task.name }}{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_dashboard') }}">Панель управления</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('app_task_index') }}">Задачи</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('app_task_show', {'id': task.id}) }}">{{ task.name }}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Повторение задачи</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <h2 class="h3 mb-4">
+                <i class="fas fa-sync-alt me-2"></i>Настройка повторения задачи - {{ task.name }}
+            </h2>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Recurrence Settings Form -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-cog me-2"></i>Настройки повторения</h5>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form) }}
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form_row(form.frequency) }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form_row(form.interval) }}
+                        </div>
+                        <div class="col-md-12">
+                            {{ form_row(form.endDate) }}
+                        </div>
+                        <div class="col-md-12">
+                            {{ form_row(form.save) }}
+                        </div>
+                    </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+
+            <!-- Recurrence Info -->
+            {% if recurrence %}
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-info-circle me-2"></i>Текущие настройки</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Частота:</strong> 
+                                {% if recurrence.frequency == 'daily' %}Ежедневно
+                                {% elseif recurrence.frequency == 'weekly' %}Еженедельно
+                                {% elseif recurrence.frequency == 'monthly' %}Ежемесячно
+                                {% elseif recurrence.frequency == 'yearly' %}Ежегодно
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Интервал:</strong> Каждые {{ recurrence.interval }} {{ recurrence.frequency == 'daily' or recurrence.frequency == 'weekly' ? (recurrence.interval > 1 ? 'дня/дней' : 'день') : (recurrence.interval > 1 ? 'раза/раз' : 'раз') }}</p>
+                        </div>
+                        {% if recurrence.endDate %}
+                        <div class="col-md-12">
+                            <p><strong>Дата окончания:</strong> {{ recurrence.endDate|date('d.m.Y') }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Task Summary -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-info-circle me-2"></i>Информация о задаче</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Название:</label>
+                        <p class="mb-0">{{ task.name }}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Статус:</label>
+                        <p class="mb-0">
+                            {% if task.isDone %}
+                                <span class="badge bg-success">Выполнена</span>
+                            {% else %}
+                                {% if task.isOverdue %}
+                                    <span class="badge bg-danger">Просрочена</span>
+                                {% else %}
+                                    <span class="badge bg-warning">В работе</span>
+                                {% endif %}
+                            {% endif %}
+                        </p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Приоритет:</label>
+                        <p class="mb-0">
+                            <span class="{{ task.priorityClass }}">{{ task.priorityLabel }}</span>
+                        </p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Срок:</label>
+                        <p class="mb-0">
+                            {% if task.deadline %}
+                                {% if task.isOverdue %}
+                                    <span class="text-danger fw-bold">{{ task.deadline|date('d.m.Y') }}</span>
+                                {% else %}
+                                    {{ task.deadline|date('d.m.Y') }}
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">Не указан</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Назначена:</label>
+                        <p class="mb-0">
+                            {% if task.assignedUser %}
+                                {{ task.assignedUser.fullName }}
+                            {% else %}
+                                <span class="text-muted">Не назначена</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-bolt me-2"></i>Быстрые действия</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ path('app_task_show', {'id': task.id}) }}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left me-2"></i>Назад к задаче
+                        </a>
+                        <a href="{{ path('app_task_edit', {'id': task.id}) }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-edit me-2"></i>Редактировать задачу
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

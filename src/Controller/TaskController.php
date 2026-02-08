@@ -18,6 +18,8 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use App\Entity\TaskTimeTracking;
+use App\Entity\TaskRecurrence;
+use App\Form\TaskRecurrenceType;
 use Symfony\Component\Form\Extension\Core\Type\TimeType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -211,6 +213,40 @@ class TaskController extends AbstractController
         }
 
         return $this->redirectToRoute('app_task_index', [], Response::HTTP_SEE_OTHER);
+    }
+    
+    #[Route('/{id}/recurrence', name: 'app_task_recurrence', methods: ['GET', 'POST'])]
+    public function recurrence(Task $task, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        // Check if user can edit this task
+        if (!$this->isGranted('TASK_EDIT', $task)) {
+            throw $this->createAccessDeniedException('У вас нет прав для настройки повторения этой задачи.');
+        }
+        
+        $recurrence = $task->getRecurrence();
+        
+        if (!$recurrence) {
+            $recurrence = new TaskRecurrence();
+            $recurrence->setTask($task);
+        }
+        
+        $form = $this->createForm(TaskRecurrenceType::class, $recurrence);
+        $form->handleRequest($request);
+        
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($recurrence);
+            $entityManager->flush();
+            
+            $this->addFlash('success', 'Настройки повторения успешно сохранены!');
+            
+            return $this->redirectToRoute('app_task_recurrence', ['id' => $task->getId()]);
+        }
+        
+        return $this->render('task/recurrence.html.twig', [
+            'task' => $task,
+            'form' => $form->createView(),
+            'recurrence' => $recurrence,
+        ]);
     }
 
     #[Route('/{id}/toggle', name: 'app_task_toggle', methods: ['POST'])]

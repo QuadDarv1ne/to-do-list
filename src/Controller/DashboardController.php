@@ -8,6 +8,7 @@ use App\Repository\TaskRepository;
 use App\Repository\UserRepository;
 use App\Repository\CommentRepository;
 use App\Repository\ActivityLogRepository;
+use App\Repository\TaskRecurrenceRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -18,7 +19,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class DashboardController extends AbstractController
 {
     #[Route('/', name: 'app_dashboard', methods: ['GET'])]
-    public function index(TaskRepository $taskRepository, UserRepository $userRepository, CommentRepository $commentRepository, ActivityLogRepository $activityLogRepository): Response
+    public function index(TaskRepository $taskRepository, UserRepository $userRepository, CommentRepository $commentRepository, ActivityLogRepository $activityLogRepository, TaskRecurrenceRepository $taskRecurrenceRepository): Response
     {
         $user = $this->getUser();
         
@@ -87,6 +88,17 @@ class DashboardController extends AbstractController
         // Get task completion trends
         $completionTrends = $this->getTaskCompletionTrends($taskRepository, $user);
         
+        // Get upcoming recurring tasks
+        $upcomingRecurringTasks = [];
+        if ($this->isGranted('ROLE_ADMIN')) {
+            $upcomingRecurringTasks = $taskRecurrenceRepository->findAll();
+        } else {
+            $upcomingRecurringTasks = $taskRecurrenceRepository->findByUser($user);
+        }
+        
+        // Limit to first 5 upcoming recurring tasks
+        $upcomingRecurringTasks = array_slice($upcomingRecurringTasks, 0, 5);
+        
         return $this->render('dashboard/index.html.twig', [
             'user' => $user,
             'task_stats' => $taskStats,
@@ -94,6 +106,7 @@ class DashboardController extends AbstractController
             'user_stats' => $userStats,
             'recent_activity' => $recentActivity,
             'completion_trends' => $completionTrends,
+            'upcoming_recurring_tasks' => $upcomingRecurringTasks,
         ]);
     }
     

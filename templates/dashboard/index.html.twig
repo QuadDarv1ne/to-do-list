@@ -4,9 +4,6 @@
 
 {% block body %}
 <div class="container-fluid">
-
-{% block body %}
-<div class="container-fluid">
     <div class="row">
         <div class="col-12">
             <h1 class="h3 mb-4">
@@ -214,6 +211,44 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Upcoming Recurring Tasks -->
+        {% if upcoming_recurring_tasks|length > 0 %}
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-sync-alt me-2"></i>Повторяющиеся задачи
+                    </h6>
+                    <a href="{{ path('app_task_index') }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-tasks me-1"></i>Все задачи
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        {% for recurrence in upcoming_recurring_tasks[:5] %}
+                        <div class="timeline-item mb-3 p-3 border-start border-warning border-3 rounded">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="mb-1">{{ recurrence.task.name }}</h6>
+                                    <small class="text-muted">
+                                        <i class="fas fa-sync me-1"></i>
+                                        {% if recurrence.frequency == 'daily' %}Ежедневно
+                                        {% elseif recurrence.frequency == 'weekly' %}Еженедельно
+                                        {% elseif recurrence.frequency == 'monthly' %}Ежемесячно
+                                        {% elseif recurrence.frequency == 'yearly' %}Ежегодно
+                                        {% endif %}
+                                        {% if recurrence.interval > 1 %}(каждые {{ recurrence.interval }}){% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
 
         <!-- Recent Activity -->
         <div class="col-xl-4 col-lg-5">

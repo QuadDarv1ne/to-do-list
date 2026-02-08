@@ -16,5 +16,16 @@ class TaskRecurrenceRepository extends ServiceEntityRepository
         parent::__construct($registry, TaskRecurrence::class);
     }
 
-    // Add methods as needed
+    /**
+     * Find all recurrences for a specific user
+     */
+    public function findByUser($user)
+    {
+        return $this->createQueryBuilder('tr')
+            ->join('tr.task', 't')
+            ->andWhere('t.createdBy = :user')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getResult();
+    }
 }
