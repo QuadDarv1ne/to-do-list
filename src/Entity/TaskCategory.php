@@ -7,7 +7,6 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use App\Entity\User;
 
 #[ORM\Entity(repositoryClass: TaskCategoryRepository::class)]
 #[ORM\Table(name: 'task_categories')]
@@ -24,24 +23,23 @@ class TaskCategory
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
-    #[ORM\ManyToOne(inversedBy: 'categories')]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'taskCategories')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?User $owner = null;
+    private ?User $user = null;
 
-    #[ORM\ManyToMany(targetEntity: Task::class, mappedBy: 'categories')]
+    #[ORM\OneToMany(mappedBy: 'category', targetEntity: Task::class)]
     private Collection $tasks;
 
-    #[ORM\Column]
-    private ?\DateTimeImmutable $createdAt = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    private ?\DateTimeInterface $createdAt = null;
 
-    #[ORM\Column]
-    private ?\DateTimeImmutable $updatedAt = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $updatedAt = null;
 
     public function __construct()
     {
         $this->tasks = new ArrayCollection();
-        $this->createdAt = new \DateTimeImmutable();
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->createdAt = new \DateTime();
     }
 
     public function getId(): ?int
@@ -57,7 +55,6 @@ class TaskCategory
     public function setName(string $name): static
     {
         $this->name = $name;
-
         return $this;
     }
 
@@ -69,19 +66,17 @@ class TaskCategory
     public function setDescription(?string $description): static
     {
         $this->description = $description;
-
         return $this;
     }
 
-    public function getOwner(): ?User
+    public function getUser(): ?User
     {
-        return $this->owner;
+        return $this->user;
     }
 
-    public function setOwner(?User $owner): static
+    public function setUser(?User $user): static
     {
-        $this->owner = $owner;
-
+        $this->user = $user;
         return $this;
     }
 
@@ -97,7 +92,7 @@ class TaskCategory
     {
         if (!$this->tasks->contains($task)) {
             $this->tasks->add($task);
-            $task->addCategory($this);
+            $task->setCategory($this);
         }
 
         return $this;
@@ -106,26 +101,34 @@ class TaskCategory
     public function removeTask(Task $task): static
     {
         if ($this->tasks->removeElement($task)) {
-            $task->removeCategory($this);
+            // set the owning side to null (unless already changed)
+            if ($task->getCategory() === $this) {
+                $task->setCategory(null);
+            }
         }
 
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): ?\DateTimeInterface
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
+    public function setCreatedAt(\DateTimeInterface $createdAt): static
+    {
+        $this->createdAt = $createdAt;
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeInterface
     {
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(): static
+    public function setUpdatedAt(?\DateTimeInterface $updatedAt): static
     {
-        $this->updatedAt = new \DateTimeImmutable();
-
+        $this->updatedAt = $updatedAt;
         return $this;
     }
 }
