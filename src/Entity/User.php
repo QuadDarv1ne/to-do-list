@@ -129,6 +129,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     
     #[ORM\OneToMany(targetEntity: TaskCategory::class, mappedBy: 'owner', orphanRemoval: true)]
     private Collection $categories;
+    
+    #[ORM\OneToMany(mappedBy: 'recipient', targetEntity: TaskNotification::class, cascade: ['persist'], orphanRemoval: true)]
+    private Collection $taskNotifications;
 
     public function __construct()
     {
@@ -141,6 +144,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->timeTrackings = new \Doctrine\Common\Collections\ArrayCollection();
         $this->categories = new \Doctrine\Common\Collections\ArrayCollection();
         $this->notifications = new \Doctrine\Common\Collections\ArrayCollection();
+        $this->taskNotifications = new \Doctrine\Common\Collections\ArrayCollection();
     }
 
     #[ORM\PrePersist]
@@ -581,5 +585,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getNotifications(): Collection
     {
         return $this->notifications;
+    }
+    
+    /**
+     * @return Collection<int, TaskNotification>
+     */
+    public function getTaskNotifications(): Collection
+    {
+        return $this->taskNotifications;
     }
 }
