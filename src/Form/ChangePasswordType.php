@@ -27,11 +27,11 @@ class ChangePasswordType extends AbstractType
                         new NotBlank([
                             'message' => 'Введите пароль',
                         ]),
-                        new Length([
-                            'min' => 6,
-                            'minMessage' => 'Ваш пароль должен содержать минимум {{ limit }} символов',
-                            'max' => 4096,
-                        ]),
+                        new Length(
+                            min: 6,
+                            max: 4096,
+                            minMessage: 'Ваш пароль должен содержать минимум {{ limit }} символов'
+                        ),
                     ],
                     'label' => 'Новый пароль',
                 ],

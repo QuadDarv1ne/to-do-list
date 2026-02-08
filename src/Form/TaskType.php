@@ -39,10 +39,10 @@ class TaskType extends AbstractType
                 ],
                 'constraints' => [
                     new NotBlank(),
-                    new Length([
-                        'max' => 100,
-                        'maxMessage' => 'Название не должно превышать {{ limit }} символов'
-                    ]),
+                    new Length(
+                        max: 100,
+                        maxMessage: 'Название не должно превышать {{ limit }} символов'
+                    ),
                 ],
             ])
             ->add('description', TextareaType::class, [

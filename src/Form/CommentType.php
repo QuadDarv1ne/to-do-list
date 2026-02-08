@@ -27,12 +27,12 @@ class CommentType extends AbstractType
                 ],
                 'constraints' => [
                     new NotBlank(),
-                    new Length([
-                        'min' => 2,
-                        'minMessage' => 'Комментарий должен содержать минимум {{ limit }} символа',
-                        'max' => 1000,
-                        'maxMessage' => 'Комментарий не должен превышать {{ limit }} символов',
-                    ]),
+                    new Length(
+                        min: 2,
+                        max: 1000,
+                        minMessage: 'Комментарий должен содержать минимум {{ limit }} символа',
+                        maxMessage: 'Комментарий не должен превышать {{ limit }} символов',
+                    ),
                 ],
                 'help' => 'Минимум 2 символа, максимум 1000',
                 'help_attr' => ['id' => 'commentHelp', 'class' => 'form-text text-muted small'],

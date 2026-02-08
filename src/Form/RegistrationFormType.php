@@ -28,12 +28,12 @@ class RegistrationFormType extends AbstractType
                 ],
                 'constraints' => [
                     new NotBlank(),
-                    new Length([
-                        'min' => 2,
-                        'max' => 50,
-                        'minMessage' => 'Имя должно содержать минимум {{ limit }} символа',
-                        'maxMessage' => 'Имя должно содержать максимум {{ limit }} символов',
-                    ]),
+                    new Length(
+                        min: 2,
+                        max: 50,
+                        minMessage: 'Имя должно содержать минимум {{ limit }} символа',
+                        maxMessage: 'Имя должно содержать максимум {{ limit }} символов',
+                    ),
                     new Regex([
                         'pattern' => '/^[a-zA-Zа-яА-ЯёЁ\s\-]+$/u',
                         'message' => 'Имя может содержать только буквы, пробелы и дефисы',
@@ -48,12 +48,12 @@ class RegistrationFormType extends AbstractType
                 ],
                 'constraints' => [
                     new NotBlank(),
-                    new Length([
-                        'min' => 2,
-                        'max' => 50,
-                        'minMessage' => 'Фамилия должна содержать минимум {{ limit }} символа',
-                        'maxMessage' => 'Фамилия должна содержать максимум {{ limit }} символов',
-                    ]),
+                    new Length(
+                        min: 2,
+                        max: 50,
+                        minMessage: 'Фамилия должна содержать минимум {{ limit }} символа',
+                        maxMessage: 'Фамилия должна содержать максимум {{ limit }} символов',
+                    ),
                     new Regex([
                         'pattern' => '/^[a-zA-Zа-яА-ЯёЁ\s\-]+$/u',
                         'message' => 'Фамилия может содержать только буквы, пробелы и дефисы',
@@ -68,12 +68,12 @@ class RegistrationFormType extends AbstractType
                 ],
                 'constraints' => [
                     new NotBlank(),
-                    new Length([
-                        'min' => 3,
-                        'max' => 50,
-                        'minMessage' => 'Логин должен содержать минимум {{ limit }} символа',
-                        'maxMessage' => 'Логин должен содержать максимум {{ limit }} символов',
-                    ]),
+                    new Length(
+                        min: 3,
+                        max: 50,
+                        minMessage: 'Логин должен содержать минимум {{ limit }} символа',
+                        maxMessage: 'Логин должен содержать максимум {{ limit }} символов',
+                    ),
                     new Regex([
                         'pattern' => '/^[a-zA-Z0-9_\-\.]+$/',
                         'message' => 'Логин может содержать только латинские буквы, цифры, точки, дефисы и подчеркивания',
@@ -91,10 +91,10 @@ class RegistrationFormType extends AbstractType
                     new Email([
                         'message' => 'Пожалуйста, введите корректный email',
                     ]),
-                    new Length([
-                        'max' => 180,
-                        'maxMessage' => 'Email должен содержать максимум {{ limit }} символов',
-                    ]),
+                    new Length(
+                        max: 180,
+                        maxMessage: 'Email должен содержать максимум {{ limit }} символов',
+                    ),
                 ],
             ])
             ->add('plainPassword', RepeatedType::class, [
@@ -110,12 +110,12 @@ class RegistrationFormType extends AbstractType
                     'attr' => ['placeholder' => 'Введите пароль'],
                     'constraints' => [
                         new NotBlank(),
-                        new Length([
-                            'min' => 6,
-                            'max' => 4096,
-                            'minMessage' => 'Пароль должен содержать минимум {{ limit }} символов',
-                            'maxMessage' => 'Пароль должен содержать максимум {{ limit }} символов',
-                        ]),
+                        new Length(
+                            min: 6,
+                            max: 4096,
+                            minMessage: 'Пароль должен содержать минимум {{ limit }} символов',
+                            maxMessage: 'Пароль должен содержать максимум {{ limit }} символов',
+                        ),
                         new Regex([
                             'pattern' => '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/',
                             'message' => 'Пароль должен содержать хотя бы одну заглавную букву, одну строчную букву и одну цифру',
@@ -141,10 +141,10 @@ class RegistrationFormType extends AbstractType
                         'pattern' => '/^(\+7|8)[\s\-]?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}$/',
                         'message' => 'Введите корректный российский номер телефона',
                     ]),
-                    new Length([
-                        'max' => 20,
-                        'maxMessage' => 'Телефон должен содержать максимум {{ limit }} символов',
-                    ]),
+                    new Length(
+                        max: 20,
+                        maxMessage: 'Телефон должен содержать максимум {{ limit }} символов',
+                    ),
                 ],
             ])
             ->add('position', TextType::class, [
@@ -155,10 +155,10 @@ class RegistrationFormType extends AbstractType
                     'placeholder' => 'Введите должность'
                 ],
                 'constraints' => [
-                    new Length([
-                        'max' => 100,
-                        'maxMessage' => 'Должность должна содержать максимум {{ limit }} символов',
-                    ]),
+                    new Length(
+                        max: 100,
+                        maxMessage: 'Должность должна содержать максимум {{ limit }} символов',
+                    ),
                 ],
             ])
             ->add('department', TextType::class, [
@@ -169,10 +169,10 @@ class RegistrationFormType extends AbstractType
                     'placeholder' => 'Введите отдел'
                 ],
                 'constraints' => [
-                    new Length([
-                        'max' => 100,
-                        'maxMessage' => 'Отдел должен содержать максимум {{ limit }} символов',
-                    ]),
+                    new Length(
+                        max: 100,
+                        maxMessage: 'Отдел должен содержать максимум {{ limit }} символов',
+                    ),
                 ],
             ])
         ;

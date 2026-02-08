@@ -33,12 +33,12 @@ class ChangePasswordFormType extends AbstractType
                         new NotBlank([
                             'message' => 'Пожалуйста, введите пароль',
                         ]),
-                        new Length([
-                            'min' => 8,
-                            'minMessage' => 'Пароль должен содержать минимум {{ limit }} символов',
-                            'max' => 4096,
-                            'maxMessage' => 'Пароль слишком длинный',
-                        ]),
+                        new Length(
+                            min: 8,
+                            max: 4096,
+                            minMessage: 'Пароль должен содержать минимум {{ limit }} символов',
+                            maxMessage: 'Пароль слишком длинный'
+                        ),
                         new Regex([
                             'pattern' => '/^(?=.*[A-Za-z])(?=.*\d).+$/',
                             'message' => 'Пароль должен содержать хотя бы одну букву и одну цифру',

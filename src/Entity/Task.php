@@ -97,6 +97,14 @@ class Task
         return $this->title;
     }
 
+    /**
+     * Alias for getTitle() for backward compatibility
+     */
+    public function getName(): ?string
+    {
+        return $this->title;
+    }
+
     public function setTitle(string $title): static
     {
         $this->title = $title;
@@ -128,6 +136,20 @@ class Task
     public function getPriority(): string
     {
         return $this->priority;
+    }
+
+    /**
+     * Returns the localized priority label
+     */
+    public function getPriorityLabel(): string
+    {
+        $labels = [
+            'low' => 'Низкий',
+            'medium' => 'Средний',
+            'high' => 'Высокий'
+        ];
+        
+        return $labels[$this->priority] ?? $this->priority;
     }
 
     public function setPriority(string $priority): static
@@ -163,6 +185,14 @@ class Task
         return $this->dueDate;
     }
 
+    /**
+     * Alias for getDueDate() for backward compatibility
+     */
+    public function getDeadline(): ?\DateTimeInterface
+    {
+        return $this->dueDate;
+    }
+
     public function setDueDate(?\DateTimeInterface $dueDate): static
     {
         $this->dueDate = $dueDate;
@@ -174,7 +204,24 @@ class Task
         return $this->user;
     }
 
+    /**
+     * Alias for getUser() for backward compatibility
+     */
+    public function getCreatedBy(): ?User
+    {
+        return $this->user;
+    }
+
     public function setUser(?User $user): static
+    {
+        $this->user = $user;
+        return $this;
+    }
+
+    /**
+     * Alias for setUser() for backward compatibility
+     */
+    public function setCreatedBy(?User $user): static
     {
         $this->user = $user;
         return $this;

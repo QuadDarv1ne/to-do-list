@@ -28,12 +28,12 @@ class UserType extends AbstractType
                 ],
                 'constraints' => [
                     new NotBlank(),
-                    new Length([
-                        'min' => 3,
-                        'max' => 180,
-                        'minMessage' => 'Логин должен содержать минимум {{ limit }} символа',
-                        'maxMessage' => 'Логин не может быть длиннее {{ limit }} символов',
-                    ]),
+                    new Length(
+                        min: 3,
+                        max: 180,
+                        minMessage: 'Логин должен содержать минимум {{ limit }} символа',
+                        maxMessage: 'Логин не может быть длиннее {{ limit }} символов',
+                    ),
                 ],
             ])
             ->add('email', EmailType::class, [
@@ -124,11 +124,11 @@ class UserType extends AbstractType
                 ],
                 'constraints' => [
                     new NotBlank(),
-                    new Length([
-                        'min' => 6,
-                        'max' => 4096,
-                        'minMessage' => 'Пароль должен содержать минимум {{ limit }} символов',
-                    ]),
+                    new Length(
+                        min: 6,
+                        max: 4096,
+                        minMessage: 'Пароль должен содержать минимум {{ limit }} символов',
+                    ),
                 ],
             ]);
         }
