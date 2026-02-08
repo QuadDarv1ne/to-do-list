@@ -1,0 +1,84 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Мой профиль{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-user me-2"></i>Мой профиль
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 text-center">
+                            <img src="{{ user.avatarUrl }}" alt="Avatar" class="rounded-circle mb-3" width="120" height="120">
+                        </div>
+                        <div class="col-md-9">
+                            <h4>{{ user.fullName }}</h4>
+                            <hr>
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Email:</strong></div>
+                                <div class="col-sm-8">{{ user.email }}</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Логин:</strong></div>
+                                <div class="col-sm-8">{{ user.username }}</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Имя:</strong></div>
+                                <div class="col-sm-8">{{ user.firstName ?? 'Не указано' }}</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Фамилия:</strong></div>
+                                <div class="col-sm-8">{{ user.lastName ?? 'Не указана' }}</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Телефон:</strong></div>
+                                <div class="col-sm-8">{{ user.phone ?? 'Не указан' }}</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Должность:</strong></div>
+                                <div class="col-sm-8">{{ user.position ?? 'Не указана' }}</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Отдел:</strong></div>
+                                <div class="col-sm-8">{{ user.department ?? 'Не указан' }}</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Дата создания:</strong></div>
+                                <div class="col-sm-8">{{ user.createdAt ? user.createdAt|date('d.m.Y H:i') : 'N/A' }}</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Последний вход:</strong></div>
+                                <div class="col-sm-8">{{ user.lastLoginAt ? user.lastLoginAt|date('d.m.Y H:i') : 'Еще не входил' }}</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Статус:</strong></div>
+                                <div class="col-sm-8">
+                                    {% if user.isActive %}
+                                        <span class="badge bg-success">Активен</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Деактивирован</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-end">
+                    <a href="{{ path('app_profile_edit') }}" class="btn btn-primary me-2">
+                        <i class="fas fa-edit me-1"></i>Редактировать
+                    </a>
+                    <a href="{{ path('app_profile_change_password') }}" class="btn btn-warning">
+                        <i class="fas fa-key me-1"></i>Сменить пароль
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
