@@ -85,4 +85,55 @@ class TagController extends AbstractController
 
         return $this->redirectToRoute('app_tag_index', [], Response::HTTP_SEE_OTHER);
     }
+    
+    #[Route('/create-ajax', name: 'app_tag_create_ajax', methods: ['POST'])]
+    public function createAjax(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $data = json_decode($request->getContent(), true);
+        $tagName = trim($data['name'] ?? '');
+        $tagColor = $data['color'] ?? '#007bff';
+        $tagDescription = $data['description'] ?? '';
+
+        if (empty($tagName)) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Имя тега не может быть пустым'
+            ], 400);
+        }
+
+        // Check if tag already exists
+        $existingTag = $entityManager->getRepository(Tag::class)
+            ->findOneBy(['name' => $tagName]);
+
+        if ($existingTag) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Тег с таким именем уже существует',
+                'tag' => [
+                    'id' => $existingTag->getId(),
+                    'name' => $existingTag->getName(),
+                    'color' => $existingTag->getColor()
+                ]
+            ]);
+        }
+
+        $tag = new Tag();
+        $tag->setName($tagName);
+        $tag->setDescription($tagDescription);
+        $tag->setColor($tagColor);
+
+        $entityManager->persist($tag);
+        $entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'message' => 'Тег успешно создан',
+            'tag' => [
+                'id' => $tag->getId(),
+                'name' => $tag->getName(),
+                'color' => $tag->getColor(),
+                'description' => $tag->getDescription()
+            ]
+        ]);
+    }
 }

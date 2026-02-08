@@ -141,6 +141,9 @@ class DashboardController extends AbstractController
         // Get tag statistics
         $tagStats = $tagRepository->getTagUsageStats();
         
+        // Get tag completion rates
+        $tagCompletionRates = $tagRepository->getTagCompletionRates();
+        
         return $this->render('dashboard/index.html.twig', [
             'user' => $user,
             'task_stats' => $taskStats,
@@ -153,6 +156,7 @@ class DashboardController extends AbstractController
             'recent_notifications' => $recentNotifications,
             'categories' => $categories,
             'tag_stats' => $tagStats,
+            'tag_completion_rates' => $tagCompletionRates,
         ]);
     }
     

@@ -38,6 +38,17 @@
                         <div class="col-md-12 mb-3">
                             {{ form_row(form.assignedUser) }}
                         </div>
+                        <div class="col-md-12 mb-3">
+                            {{ form_row(form.tags) }}
+                            <div class="d-flex align-items-center mt-2">
+                                <input type="text" id="quick-tag-input" class="form-control me-2" placeholder="Введите название нового тега...">
+                                <input type="color" id="quick-tag-color" class="form-control form-control-color" value="#007bff" title="Выберите цвет тега">
+                                <button type="button" class="btn btn-outline-primary ms-2" id="create-quick-tag-btn">
+                                    <i class="fas fa-plus"></i> Создать тег
+                                </button>
+                            </div>
+                            <small class="form-text text-muted">Выберите существующие теги или создайте новые</small>
+                        </div>
                     </div>
                     
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
@@ -54,4 +65,65 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const quickTagInput = document.getElementById('quick-tag-input');
+    const quickTagColor = document.getElementById('quick-tag-color');
+    const createQuickTagBtn = document.getElementById('create-quick-tag-btn');
+    const tagsSelect = document.querySelector('#task_tags'); // Adjust selector based on actual form field ID
+    
+    if (createQuickTagBtn) {
+        createQuickTagBtn.addEventListener('click', function() {
+            const tagName = quickTagInput.value.trim();
+            
+            if (!tagName) {
+                alert('Пожалуйста, введите название тега');
+                return;
+            }
+            
+            // Make AJAX request to create the tag
+            fetch('{{ path('app_tag_create_ajax') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-Token': document.querySelector('[name="_token"]').value
+                },
+                body: JSON.stringify({
+                    name: tagName,
+                    color: quickTagColor.value,
+                    description: ''
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Add the new tag to the select element
+                    const option = document.createElement('option');
+                    option.value = data.tag.id;
+                    option.text = data.tag.name;
+                    option.selected = true; // Select the newly created tag
+                    tagsSelect.appendChild(option);
+                    
+                    // Clear the input field
+                    quickTagInput.value = '';
+                    
+                    // Show success message
+                    alert(data.message);
+                } else {
+                    alert(data.message || 'Ошибка при создании тега');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Произошла ошибка при создании тега');
+            });
+        });
+    }
+});
+</script>
 {% endblock %}

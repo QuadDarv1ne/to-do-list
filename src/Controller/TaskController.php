@@ -404,11 +404,18 @@ class TaskController extends AbstractController
         $tasks = $qb->getQuery()->getResult();
         
         // Create CSV content
-        $csvContent = "ID,Название,Описание,Статус,Приоритет,Дата создания,Срок выполнения,Категория,Назначен пользователю\n";
+        $csvContent = "ID,Название,Описание,Статус,Приоритет,Дата создания,Срок выполнения,Категория,Назначен пользователю,Теги\n";
         
         foreach ($tasks as $task) {
+            // Collect tag names
+            $tagNames = [];
+            foreach ($task->getTags() as $tag) {
+                $tagNames[] = $tag->getName();
+            }
+            $tagsString = implode(', ', $tagNames);
+            
             $csvContent .= sprintf(
-                '"%s","%s","%s","%s","%s","%s","%s","%s","%s"' . "\n",
+                '"%s","%s","%s","%s","%s","%s","%s","%s","%s","%s"' . "\n",
                 $task->getId(),
                 str_replace('"', '""', $task->getTitle()),
                 str_replace('"', '""', strip_tags($task->getDescription() ?? '')),
@@ -417,7 +424,8 @@ class TaskController extends AbstractController
                 $task->getCreatedAt()->format('d.m.Y H:i'),
                 $task->getDueDate() ? $task->getDueDate()->format('d.m.Y') : '',
                 $task->getCategory() ? $task->getCategory()->getName() : '',
-                $task->getAssignedUser() ? $task->getAssignedUser()->getFullName() : ''
+                $task->getAssignedUser() ? $task->getAssignedUser()->getFullName() : '',
+                str_replace('"', '""', $tagsString)
             );
         }
         

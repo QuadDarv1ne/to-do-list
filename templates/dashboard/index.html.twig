@@ -346,6 +346,77 @@
             </div>
         </div>
     </div>
+    
+    <!-- Tag Completion Rates -->
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-percentage me-2 text-info"></i>
+                        Процент выполнения задач по тегам
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if tag_completion_rates is defined and tag_completion_rates is not empty %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Тег</th>
+                                        <th>Цвет</th>
+                                        <th>Всего задач</th>
+                                        <th>Выполнено</th>
+                                        <th>Процент выполнения</th>
+                                        <th>Статус</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for tag_rate in tag_completion_rates|slice(0, 10) %}
+                                        <tr>
+                                            <td>
+                                                <span class="badge" style="background-color: {{ tag_rate.color }}; color: white;">{{ tag_rate.name }}</span>
+                                            </td>
+                                            <td>
+                                                <div style="width: 20px; height: 20px; background-color: {{ tag_rate.color }}; border-radius: 50%; display: inline-block;"></div>
+                                            </td>
+                                            <td>{{ tag_rate.totalTasks }}</td>
+                                            <td>{{ tag_rate.completedTasks }}</td>
+                                            <td>
+                                                <div class="progress" style="height: 20px;">
+                                                    <div class="progress-bar" 
+                                                         role="progressbar" 
+                                                         style="width: {{ tag_rate.completionRate }}%; background-color: {{ tag_rate.color }};"
+                                                         aria-valuenow="{{ tag_rate.completionRate }}"
+                                                         aria-valuemin="0"
+                                                         aria-valuemax="100">
+                                                        {{ tag_rate.completionRate }}%
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                {% if tag_rate.completionRate == 100 %}
+                                                    <span class="badge bg-success">Отлично!</span>
+                                                {% elseif tag_rate.completionRate >= 75 %}
+                                                    <span class="badge bg-primary">Хорошо</span>
+                                                {% elseif tag_rate.completionRate >= 50 %}
+                                                    <span class="badge bg-warning text-dark">Средне</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">Нуждается в улучшении</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center mb-0">Нет данных о выполнении задач по тегам</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

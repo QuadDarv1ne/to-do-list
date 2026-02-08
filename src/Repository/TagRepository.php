@@ -57,4 +57,32 @@ class TagRepository extends ServiceEntityRepository
             
         return $result;
     }
+    
+    /**
+     * Get tag completion rates
+     */
+    public function getTagCompletionRates(): array
+    {
+        $qb = $this->createQueryBuilder('t');
+        
+        $result = $qb->select('
+                t.id, 
+                t.name, 
+                t.color,
+                COUNT(task.id) as totalTasks,
+                SUM(CASE WHEN task.status = \'completed\' THEN 1 ELSE 0 END) as completedTasks,
+                CASE 
+                    WHEN COUNT(task.id) > 0 THEN 
+                        ROUND((SUM(CASE WHEN task.status = \'completed\' THEN 1 ELSE 0 END) * 100.0) / COUNT(task.id), 2)
+                    ELSE 0 
+                END as completionRate
+            ')
+            ->leftJoin('t.tasks', 'task')
+            ->groupBy('t.id, t.name, t.color')
+            ->orderBy('completionRate', 'DESC')
+            ->getQuery()
+            ->getResult();
+            
+        return $result;
+    }
 }

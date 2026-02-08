@@ -575,6 +575,20 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    
+    // Handle tag selection visibility based on selected action
+    const bulkActionSelect = document.getElementById('bulk-action-select');
+    const tagSelectionContainer = document.getElementById('tag-selection-container');
+    
+    if (bulkActionSelect && tagSelectionContainer) {
+        bulkActionSelect.addEventListener('change', function() {
+            if (this.value === 'assign_tag') {
+                tagSelectionContainer.style.display = 'block';
+            } else {
+                tagSelectionContainer.style.display = 'none';
+            }
+        });
+    }
 });
 </script>
 {% endblock %}
