@@ -113,6 +113,22 @@ class TaskController extends AbstractController
             $entityManager->persist($task);
             $entityManager->flush();
 
+            // Создаем уведомление для назначенного пользователя
+            if ($task->getAssignedUser() && $task->getAssignedUser() !== $this->getUser()) {
+                $notification = new Notification();
+                $notification->setTitle('Новая задача назначена')
+                    ->setMessage(sprintf(
+                        'Вам назначена новая задача "%s" пользователем %s', 
+                        $task->getName(),
+                        $this->getUser()->getFullName()
+                    ))
+                    ->setUser($task->getAssignedUser())
+                    ->setTask($task);
+                
+                $entityManager->persist($notification);
+                $entityManager->flush();
+            }
+
             $this->addFlash('success', 'Задача успешно создана');
 
             return $this->redirectToRoute('app_task_index', [], Response::HTTP_SEE_OTHER);
@@ -150,7 +166,28 @@ class TaskController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $task->setUpdateAt(new \DateTimeImmutable());
+            
+            // Проверяем, изменился ли пользователь, которому назначена задача
+            $originalAssignedUser = $entityManager->getUnitOfWork()->getOriginalEntityData($task)['assigned_user_id'] ?? null;
+            $newAssignedUser = $task->getAssignedUser()?->getId();
+            
             $entityManager->flush();
+
+            // Создаем уведомление для нового назначенного пользователя
+            if ($newAssignedUser && $newAssignedUser != $originalAssignedUser) {
+                $notification = new Notification();
+                $notification->setTitle('Задача переназначена')
+                    ->setMessage(sprintf(
+                        'Вам переназначена задача "%s" пользователем %s', 
+                        $task->getName(),
+                        $this->getUser()->getFullName()
+                    ))
+                    ->setUser($task->getAssignedUser())
+                    ->setTask($task);
+                
+                $entityManager->persist($notification);
+                $entityManager->flush();
+            }
 
             $this->addFlash('success', 'Задача успешно обновлена');
 

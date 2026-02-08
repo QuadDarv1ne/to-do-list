@@ -47,6 +47,46 @@
                 
                 {% if app.user %}
                 <ul class="navbar-nav">
+                    <!-- Notifications Dropdown -->
+                    <li class="nav-item dropdown me-3">
+                        <a class="nav-link dropdown-toggle position-relative" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-bell"></i>
+                            {% set unreadNotifications = app.user.notifications|filter(n => not n.isRead)|length %}
+                            {% if unreadNotifications > 0 %}
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                    {{ unreadNotifications }}
+                                </span>
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" style="min-width: 350px; max-height: 400px; overflow-y: auto;">
+                            <li class="dropdown-header">
+                                <i class="fas fa-bell me-2"></i>Уведомления
+                                {% if unreadNotifications > 0 %}
+                                    <span class="badge bg-primary">{{ unreadNotifications }} непрочитанных</span>
+                                {% endif %}
+                            </li>
+                            {% set notifications = app.user.notifications|slice(0, 10) %}
+                            {% if notifications is empty %}
+                                <li><a class="dropdown-item disabled" href="#">Нет уведомлений</a></li>
+                            {% else %}
+                                {% for notification in notifications %}
+                                    <li>
+                                        <a class="dropdown-item d-flex flex-column {% if not notification.isRead %}fw-bold{% endif %}" href="{{ notification.task ? path('app_task_show', {'id': notification.task.id}) : '#' }}">
+                                            <div class="d-flex justify-content-between">
+                                                <span>{{ notification.title }}</span>
+                                                <small class="text-muted">{{ notification.createdAt|date('d.m.Y H:i') }}</small>
+                                            </div>
+                                            <div class="text-muted small">{{ notification.message|striptags }}</div>
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ path('app_notification_index') }}">Просмотреть все уведомления</a></li>
+                            {% endif %}
+                        </ul>
+                    </li>
+                    
+                    <!-- User Dropdown -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
                             <i class="fas fa-user"></i> {{ app.user.fullName }}

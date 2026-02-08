@@ -18,6 +18,28 @@ class TaskRepository extends ServiceEntityRepository
     }
 
     /**
+     * Count tasks by status and optionally by user
+     */
+    public function countByStatus(?User $user = null, ?bool $isDone = null): int
+    {
+        $qb = $this->createQueryBuilder('t');
+        
+        if ($user !== null) {
+            $qb->andWhere('t.assignedUser = :user')
+               ->setParameter('user', $user);
+        }
+        
+        if ($isDone !== null) {
+            $qb->andWhere('t.isDone = :isDone')
+               ->setParameter('isDone', $isDone);
+        }
+        
+        return $qb->select('COUNT(t.id)')
+                  ->getQuery()
+                  ->getSingleScalarResult();
+    }
+
+    /**
      * Find tasks assigned to a specific user
      */
     public function findByAssignedUser(User $user): array
@@ -39,27 +61,5 @@ class TaskRepository extends ServiceEntityRepository
             ->orderBy('t.createdAt', 'DESC')
             ->getQuery()
             ->getResult();
-    }
-
-    /**
-     * Count tasks by status for a user
-     */
-    public function countByStatus(?User $user = null, ?bool $isDone = null): int
-    {
-        $qb = $this->createQueryBuilder('t');
-        
-        if ($user) {
-            $qb->andWhere('t.assignedUser = :user')
-                ->setParameter('user', $user);
-        }
-        
-        if ($isDone !== null) {
-            $qb->andWhere('t.isDone = :isDone')
-                ->setParameter('isDone', $isDone);
-        }
-        
-        return $qb->select('COUNT(t.id)')
-            ->getQuery()
-            ->getSingleScalarResult();
     }
 }
