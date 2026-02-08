@@ -3,126 +3,124 @@
 namespace App\Controller;
 
 use App\Entity\Task;
+use App\Entity\User;
 use App\Form\TaskType;
 use App\Repository\TaskRepository;
-use App\Entity\User;
 use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 #[Route('/tasks')]
-#[IsGranted('ROLE_USER')]
 class TaskController extends AbstractController
 {
+    public function __construct(
+        private NotificationService $notificationService
+    ) {
+    }
+
     #[Route('/', name: 'app_task_index', methods: ['GET'])]
-    public function index(TaskRepository $taskRepository, Request $request): Response
+    public function index(TaskRepository $taskRepository): Response
     {
         $user = $this->getUser();
         
-        // Получаем параметры фильтрации
-        $status = $request->query->get('status');
-        $assignedUser = $request->query->get('assignedUser');
-        $dateFrom = $request->query->get('dateFrom');
-        $dateTo = $request->query->get('dateTo');
-        
-        // Формируем критерии поиска
-        $criteria = [];
-        
-        if ($this->isGranted('ROLE_ADMIN')) {
-            // Администратор видит все задачи, может фильтровать по пользователю
-            if ($assignedUser && $assignedUser !== 'all') {
-                $criteria['assignedUser'] = $assignedUser;
-            }
+        if ($user->hasRole('ROLE_ADMIN')) {
+            $tasks = $taskRepository->findAll();
         } else {
-            // Обычный пользователь видит только свои задачи
-            $criteria['assignedUser'] = $user;
+            $tasks = $taskRepository->findByAssignedToOrCreatedBy($user);
         }
-        
-        // Фильтр по статусу
-        if ($status !== null && $status !== 'all') {
-            $criteria['isDone'] = $status === 'done';
-        }
-        
-        // Получаем задачи
-        $queryBuilder = $taskRepository->createQueryBuilder('t')
-            ->where('1=1'); // Начинаем с всегда истинного условия
-        
-        // Применяем критерии
-        foreach ($criteria as $field => $value) {
-            $queryBuilder->andWhere("t.$field = :$field")
-                ->setParameter($field, $value);
-        }
-        
-        // Фильтр по дате
-        if ($dateFrom) {
-            $queryBuilder->andWhere('t.createdAt >= :dateFrom')
-                ->setParameter('dateFrom', new \DateTime($dateFrom));
-        }
-        
-        if ($dateTo) {
-            $dateToObj = new \DateTime($dateTo);
-            $dateToObj->modify('+1 day'); // Включаем весь день
-            $queryBuilder->andWhere('t.createdAt < :dateTo')
-                ->setParameter('dateTo', $dateToObj);
-        }
-        
-        // Сортировка
-        $queryBuilder->orderBy('t.createdAt', 'DESC');
-        
-        $tasks = $queryBuilder->getQuery()->getResult();
-        
-        // Для администратора получаем список пользователей для фильтра
-        $usersList = [];
-        if ($this->isGranted('ROLE_ADMIN')) {
-            $usersList = $taskRepository->getEntityManager()
-                ->getRepository(User::class)
-                ->findBy([], ['lastName' => 'ASC']);
-        }
-        
+
         return $this->render('task/index.html.twig', [
             'tasks' => $tasks,
-            'statusFilter' => $status,
-            'assignedUserFilter' => $assignedUser,
-            'dateFromFilter' => $dateFrom,
-            'dateToFilter' => $dateTo,
-            'usersList' => $usersList,
         ]);
     }
 
+    #[Route('/export', name: 'app_task_export', methods: ['GET'])]
+    public function export(TaskRepository $taskRepository): StreamedResponse
+    {
+        $user = $this->getUser();
+        
+        if ($user->hasRole('ROLE_ADMIN')) {
+            $tasks = $taskRepository->findAll();
+        } else {
+            $tasks = $taskRepository->findByAssignedToOrCreatedBy($user);
+        }
+
+        $response = new StreamedResponse(function () use ($tasks) {
+            $handle = fopen('php://output', 'w+');
+            
+            // Add BOM (byte order mark) to make sure Excel reads UTF-8 correctly
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
+            
+            // Write CSV headers
+            fputcsv($handle, [
+                'ID',
+                'Заголовок',
+                'Описание',
+                'Статус',
+                'Дата создания',
+                'Дата обновления',
+                'Срок выполнения',
+                'Приоритет',
+                'Назначен пользователю',
+                'Создан пользователем'
+            ], ';'); // Using semicolon as separator for better Excel compatibility
+            
+            // Write task data
+            foreach ($tasks as $task) {
+                fputcsv($handle, [
+                    $task->getId(),
+                    $task->getTitle(),
+                    strip_tags($task->getDescription()), // Remove HTML tags for clean export
+                    $task->getStatus(),
+                    $task->getCreatedAt()->format('d.m.Y H:i'),
+                    $task->getUpdatedAt()->format('d.m.Y H:i'),
+                    $task->getDeadline() ? $task->getDeadline()->format('d.m.Y') : '',
+                    $task->getPriority(),
+                    $task->getAssignedTo() ? $task->getAssignedTo()->getFullName() : '',
+                    $task->getCreatedBy() ? $task->getCreatedBy()->getFullName() : ''
+                ], ';');
+            }
+            
+            fclose($handle);
+        });
+
+        $response->headers->set('Content-Type', 'application/csv');
+        $response->headers->set('Content-Disposition', $response->headers->makeDisposition(
+            ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+            'tasks_export_' . date('Y-m-d_H-i-s') . '.csv'
+        ));
+
+        return $response;
+    }
+
     #[Route('/new', name: 'app_task_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, NotificationService $notificationService): Response
+    public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $task = new Task();
+        $task->setCreatedBy($this->getUser());
         $form = $this->createForm(TaskType::class, $task);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $task->setCreatedAt(new \DateTimeImmutable());
-            $task->setUpdateAt(new \DateTimeImmutable());
-            
-            // Если пользователь не выбрал исполнителя, назначаем текущего пользователя
-            if (!$task->getAssignedUser()) {
-                $task->setAssignedUser($this->getUser());
-            }
+            $task->setCreatedBy($this->getUser());
             
             $entityManager->persist($task);
             $entityManager->flush();
 
-            // Создаем уведомление для назначенного пользователя
-            if ($task->getAssignedUser() && $task->getAssignedUser() !== $this->getUser()) {
-                $notificationService->notifyTaskAssignment($task, $this->getUser());
+            // Notify the assigned user if different from creator
+            if ($task->getAssignedTo() && $task->getAssignedTo() !== $this->getUser()) {
+                $this->notificationService->notifyTaskAssignment($task, $this->getUser());
             }
-
-            $this->addFlash('success', 'Задача успешно создана');
 
             return $this->redirectToRoute('app_task_index', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->render('task/new.html.twig', [
+        return $this->render('task/form.html.twig', [
             'task' => $task,
             'form' => $form,
         ]);
@@ -131,9 +129,9 @@ class TaskController extends AbstractController
     #[Route('/{id}', name: 'app_task_show', methods: ['GET'])]
     public function show(Task $task): Response
     {
-        // Проверяем права доступа к задаче
-        if (!$this->isGranted('ROLE_ADMIN') && $task->getAssignedUser() !== $this->getUser()) {
-            throw $this->createAccessDeniedException('У вас нет доступа к этой задаче.');
+        // Check if user can access this task
+        if (!$this->isGranted('TASK_VIEW', $task)) {
+            throw $this->createAccessDeniedException('У вас нет прав для просмотра этой задачи.');
         }
         
         return $this->render('task/show.html.twig', [
@@ -142,36 +140,30 @@ class TaskController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_task_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Task $task, EntityManagerInterface $entityManager, NotificationService $notificationService): Response
+    public function edit(Request $request, Task $task, EntityManagerInterface $entityManager): Response
     {
-        // Проверяем права доступа к задаче
-        if (!$this->isGranted('ROLE_ADMIN') && $task->getAssignedUser() !== $this->getUser()) {
+        // Check if user can edit this task
+        if (!$this->isGranted('TASK_EDIT', $task)) {
             throw $this->createAccessDeniedException('У вас нет прав для редактирования этой задачи.');
         }
+        
+        $originalAssignedTo = $task->getAssignedTo(); // Store original assignee
         
         $form = $this->createForm(TaskType::class, $task);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $task->setUpdateAt(new \DateTimeImmutable());
-            
-            // Проверяем, изменился ли пользователь, которому назначена задача
-            $originalAssignedUser = $entityManager->getUnitOfWork()->getOriginalEntityData($task)['assigned_user_id'] ?? null;
-            $newAssignedUser = $task->getAssignedUser()?->getId();
-            
             $entityManager->flush();
 
-            // Создаем уведомление для нового назначенного пользователя
-            if ($newAssignedUser && $newAssignedUser != $originalAssignedUser) {
-                $notificationService->notifyTaskReassignment($task, $this->getUser());
+            // Notify the newly assigned user if different from original
+            if ($task->getAssignedTo() && $task->getAssignedTo() !== $originalAssignedTo && $task->getAssignedTo() !== $this->getUser()) {
+                $this->notificationService->notifyTaskReassignment($task, $this->getUser());
             }
-
-            $this->addFlash('success', 'Задача успешно обновлена');
 
             return $this->redirectToRoute('app_task_index', [], Response::HTTP_SEE_OTHER);
         }
 
-        return $this->render('task/edit.html.twig', [
+        return $this->render('task/form.html.twig', [
             'task' => $task,
             'form' => $form,
         ]);
@@ -180,139 +172,30 @@ class TaskController extends AbstractController
     #[Route('/{id}', name: 'app_task_delete', methods: ['POST'])]
     public function delete(Request $request, Task $task, EntityManagerInterface $entityManager): Response
     {
-        // Проверяем права доступа к задаче
-        if (!$this->isGranted('ROLE_ADMIN') && $task->getAssignedUser() !== $this->getUser()) {
+        // Check if user can delete this task
+        if (!$this->isGranted('TASK_DELETE', $task)) {
             throw $this->createAccessDeniedException('У вас нет прав для удаления этой задачи.');
         }
         
         if ($this->isCsrfTokenValid('delete'.$task->getId(), $request->request->get('_token'))) {
             $entityManager->remove($task);
             $entityManager->flush();
-            
-            $this->addFlash('success', 'Задача успешно удалена');
         }
 
         return $this->redirectToRoute('app_task_index', [], Response::HTTP_SEE_OTHER);
     }
-    
+
     #[Route('/{id}/toggle', name: 'app_task_toggle', methods: ['POST'])]
-    public function toggle(Request $request, Task $task, EntityManagerInterface $entityManager): Response
+    public function toggle(Task $task, EntityManagerInterface $entityManager): Response
     {
-        // Проверяем права доступа к задаче
-        if (!$this->isGranted('ROLE_ADMIN') && $task->getAssignedUser() !== $this->getUser()) {
+        // Check if user can toggle this task
+        if (!$this->isGranted('TASK_TOGGLE', $task)) {
             throw $this->createAccessDeniedException('У вас нет прав для изменения статуса этой задачи.');
         }
         
-        if ($this->isCsrfTokenValid('toggle'.$task->getId(), $request->request->get('_token'))) {
-            $task->setIsDone(!$task->isDone());
-            $task->setUpdateAt(new \DateTimeImmutable());
-            $entityManager->flush();
-            
-            $status = $task->isDone() ? 'выполнена' : 'возвращена в работу';
-            $this->addFlash('success', "Задача {$status}");
-        }
+        $task->setStatus($task->isDone() ? 'in_progress' : 'done');
+        $entityManager->flush();
 
-        return $this->redirectToRoute('app_task_index', [], Response::HTTP_SEE_OTHER);
-    }
-    
-    #[Route('/export', name: 'app_task_export', methods: ['GET'])]
-    public function export(TaskRepository $taskRepository, Request $request): Response
-    {
-        $user = $this->getUser();
-        
-        // Получаем параметры фильтрации (те же, что и в index)
-        $status = $request->query->get('status');
-        $assignedUser = $request->query->get('assignedUser');
-        $dateFrom = $request->query->get('dateFrom');
-        $dateTo = $request->query->get('dateTo');
-        
-        // Формируем критерии поиска
-        $criteria = [];
-        
-        if ($this->isGranted('ROLE_ADMIN')) {
-            // Администратор видит все задачи, может фильтровать по пользователю
-            if ($assignedUser && $assignedUser !== 'all') {
-                $criteria['assignedUser'] = $assignedUser;
-            }
-        } else {
-            // Обычный пользователь видит только свои задачи
-            $criteria['assignedUser'] = $user;
-        }
-        
-        // Фильтр по статусу
-        if ($status !== null && $status !== 'all') {
-            $criteria['isDone'] = $status === 'done';
-        }
-        
-        // Получаем задачи
-        $queryBuilder = $taskRepository->createQueryBuilder('t')
-            ->where('1=1'); // Начинаем с всегда истинного условия
-        
-        // Применяем критерии
-        foreach ($criteria as $field => $value) {
-            $queryBuilder->andWhere("t.$field = :$field")
-                ->setParameter($field, $value);
-        }
-        
-        // Фильтр по дате
-        if ($dateFrom) {
-            $queryBuilder->andWhere('t.createdAt >= :dateFrom')
-                ->setParameter('dateFrom', new \DateTime($dateFrom));
-        }
-        
-        if ($dateTo) {
-            $dateToObj = new \DateTime($dateTo);
-            $dateToObj->modify('+1 day'); // Включаем весь день
-            $queryBuilder->andWhere('t.createdAt < :dateTo')
-                ->setParameter('dateTo', $dateToObj);
-        }
-        
-        // Сортировка
-        $queryBuilder->orderBy('t.createdAt', 'DESC');
-        
-        $tasks = $queryBuilder->getQuery()->getResult();
-        
-        // Подготавливаем CSV
-        $response = new Response();
-        $response->headers->set('Content-Type', 'text/csv; charset=utf-8');
-        $response->headers->set('Content-Disposition', 'attachment; filename="tasks_export.csv"');
-        
-        $handle = fopen('php://memory', 'r+');
-        
-        // Заголовки CSV
-        fputcsv($handle, [
-            'ID',
-            'Название',
-            'Описание',
-            'Статус',
-            'Приоритет',
-            'Срок выполнения',
-            'Назначена',
-            'Дата создания',
-            'Дата обновления'
-        ], ';');
-        
-        // Данные
-        foreach ($tasks as $task) {
-            fputcsv($handle, [
-                $task->getId(),
-                $task->getName(),
-                $task->getDescription(),
-                $task->isDone() ? 'Выполнена' : 'В работе',
-                $task->getPriorityLabel(),
-                $task->getDeadline() ? $task->getDeadline()->format('d.m.Y') : '',
-                $task->getAssignedUser() ? $task->getAssignedUser()->getFullName() : 'Не назначена',
-                $task->getCreatedAt()->format('d.m.Y H:i'),
-                $task->getUpdateAt()->format('d.m.Y H:i')
-            ], ';');
-        }
-        
-        rewind($handle);
-        $content = stream_get_contents($handle);
-        fclose($handle);
-        
-        $response->setContent($content);
-        
-        return $response;
+        return $this->redirectToRoute('app_task_index');
     }
 }
