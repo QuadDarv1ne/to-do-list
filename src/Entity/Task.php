@@ -59,6 +59,9 @@ class Task
         #[ORM\ManyToMany(targetEntity: TaskCategory::class, inversedBy: 'tasks')]
         #[ORM\JoinTable(name: 'task_category_task')]
         private Collection $categories;
+        
+        #[ORM\OneToOne(targetEntity: TaskRecurrence::class, mappedBy: 'task', cascade: ['persist', 'remove'])]
+        private ?TaskRecurrence $recurrence = null;
 
     public function getId(): ?int
     {
@@ -260,6 +263,22 @@ class Task
     {
         $this->categories->removeElement($category);
         
+        return $this;
+    }
+    
+    public function getRecurrence(): ?TaskRecurrence
+    {
+        return $this->recurrence;
+    }
+    
+    public function setRecurrence(?TaskRecurrence $recurrence): static
+    {
+        if ($recurrence !== null) {
+            $recurrence->setTask($this);
+        }
+            
+        $this->recurrence = $recurrence;
+            
         return $this;
     }
 }
