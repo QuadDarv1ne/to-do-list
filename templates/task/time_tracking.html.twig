@@ -1,0 +1,175 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Учет времени - {{ task.name }}{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_dashboard') }}">Панель управления</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('app_task_index') }}">Задачи</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('app_task_show', {'id': task.id}) }}">{{ task.name }}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Учет времени</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <h2 class="h3 mb-4">
+                <i class="fas fa-clock me-2"></i>Учет времени - {{ task.name }}
+            </h2>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Time Entry Form -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-plus-circle me-2"></i>Добавить затраченное время</h5>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form) }}
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form_row(form.timeSpent) }}
+                        </div>
+                        <div class="col-md-12">
+                            {{ form_row(form.description) }}
+                        </div>
+                        <div class="col-md-12">
+                            {{ form_row(form.save) }}
+                        </div>
+                    </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+
+            <!-- Time Tracking Records -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0"><i class="fas fa-history me-2"></i>Записи учета времени</h5>
+                    <span class="badge bg-primary">Всего: {{ total_time|date('H:i:s') }}</span>
+                </div>
+                <div class="card-body">
+                    {% if time_trackings %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Пользователь</th>
+                                    <th>Время</th>
+                                    <th>Дата</th>
+                                    <th>Описание</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for timeTracking in time_trackings %}
+                                <tr>
+                                    <td>{{ timeTracking.user.fullName }}</td>
+                                    <td>{{ timeTracking.timeSpent|date('H:i:s') }}</td>
+                                    <td>{{ timeTracking.dateLogged|date('d.m.Y H:i') }}</td>
+                                    <td>{{ timeTracking.description|default('')|nl2br }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">Нет записей учета времени.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Task Summary -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-info-circle me-2"></i>Информация о задаче</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Название:</label>
+                        <p class="mb-0">{{ task.name }}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Статус:</label>
+                        <p class="mb-0">
+                            {% if task.isDone %}
+                                <span class="badge bg-success">Выполнена</span>
+                            {% else %}
+                                {% if task.isOverdue %}
+                                    <span class="badge bg-danger">Просрочена</span>
+                                {% else %}
+                                    <span class="badge bg-warning">В работе</span>
+                                {% endif %}
+                            {% endif %}
+                        </p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Приоритет:</label>
+                        <p class="mb-0">
+                            <span class="{{ task.priorityClass }}">{{ task.priorityLabel }}</span>
+                        </p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Срок:</label>
+                        <p class="mb-0">
+                            {% if task.deadline %}
+                                {% if task.isOverdue %}
+                                    <span class="text-danger fw-bold">{{ task.deadline|date('d.m.Y') }}</span>
+                                {% else %}
+                                    {{ task.deadline|date('d.m.Y') }}
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">Не указан</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Назначена:</label>
+                        <p class="mb-0">
+                            {% if task.assignedUser %}
+                                {{ task.assignedUser.fullName }}
+                            {% else %}
+                                <span class="text-muted">Не назначена</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Создана:</label>
+                        <p class="mb-0">{{ task.createdAt|date('d.m.Y H:i') }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-bolt me-2"></i>Быстрые действия</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ path('app_task_show', {'id': task.id}) }}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left me-2"></i>Назад к задаче
+                        </a>
+                        <a href="{{ path('app_task_edit', {'id': task.id}) }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-edit me-2"></i>Редактировать задачу
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

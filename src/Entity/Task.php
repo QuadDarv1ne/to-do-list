@@ -214,5 +214,23 @@ class Task
     public function __construct()
     {
         $this->comments = new ArrayCollection();
+        $this->activityLogs = new ArrayCollection();
+        $this->timeTrackings = new ArrayCollection();
+    }
+    
+    /**
+     * @return Collection<int, ActivityLog>
+     */
+    public function getActivityLogs(): Collection
+    {
+        return $this->activityLogs;
+    }
+    
+    /**
+     * @return Collection<int, TaskTimeTracking>
+     */
+    public function getTimeTrackings(): Collection
+    {
+        return $this->timeTrackings;
     }
 }

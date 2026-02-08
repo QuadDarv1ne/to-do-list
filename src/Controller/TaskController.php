@@ -17,6 +17,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use App\Entity\TaskTimeTracking;
+use Symfony\Component\Form\Extension\Core\Type\TimeType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
 #[Route('/tasks')]
 class TaskController extends AbstractController
@@ -236,6 +240,53 @@ class TaskController extends AbstractController
         return $this->render('task/comments.html.twig', [
             'task' => $task,
             'comments' => $comments,
+        ]);
+    }
+    
+    #[Route('/{id}/time-tracking', name: 'app_task_time_tracking', methods: ['GET', 'POST'])]
+    public function timeTracking(Task $task, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('view', $task);
+        
+        $timeTracking = new TaskTimeTracking();
+        $timeTracking->setTask($task);
+        $timeTracking->setUser($this->getUser());
+        $timeTracking->setDateLogged(new \DateTimeImmutable());
+        
+        $form = $this->createFormBuilder($timeTracking)
+            ->add('timeSpent', TimeType::class, [
+                'label' => 'Затраченное время',
+                'widget' => 'single_text',
+            ])
+            ->add('description', TextareaType::class, [
+                'label' => 'Описание работы',
+                'required' => false,
+            ])
+            ->add('save', SubmitType::class, [
+                'label' => 'Сохранить время',
+                'attr' => ['class' => 'btn btn-primary'],
+            ])
+            ->getForm();
+        
+        $form->handleRequest($request);
+        
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($timeTracking);
+            $entityManager->flush();
+            
+            $this->addFlash('success', 'Время успешно записано!');
+            
+            return $this->redirectToRoute('app_task_time_tracking', ['id' => $task->getId()]);
+        }
+        
+        $timeTrackings = $entityManager->getRepository(TaskTimeTracking::class)->findByTask($task);
+        $totalTime = $entityManager->getRepository(TaskTimeTracking::class)->getTotalTimeForTask($task);
+        
+        return $this->render('task/time_tracking.html.twig', [
+            'task' => $task,
+            'form' => $form->createView(),
+            'time_trackings' => $timeTrackings,
+            'total_time' => $totalTime,
         ]);
     }
 }
