@@ -310,6 +310,20 @@ class TaskRepository extends ServiceEntityRepository
     }
     
     /**
+     * Find completed tasks older than a specific date
+     */
+    public function findCompletedTasksOlderThan(\DateTime $date): array
+    {
+        return $this->createQueryBuilder('t')
+            ->andWhere('t.status = :completed')
+            ->andWhere('t.createdAt < :date')
+            ->setParameter('completed', 'completed')
+            ->setParameter('date', $date)
+            ->getQuery()
+            ->getResult();
+    }
+    
+    /**
      * Get task completion statistics by priority
      */
     public function getCompletionStatsByPriority(): array
@@ -327,6 +341,31 @@ class TaskRepository extends ServiceEntityRepository
                 'total' => (int)$item['total'],
                 'completed' => (int)$item['completed'],
                 'percentage' => $item['total'] > 0 ? round(($item['completed'] / $item['total']) * 100, 2) : 0
+            ];
+        }
+        
+        return $stats;
+    }
+    
+    /**
+     * Calculate average completion time by priority in days
+     */
+    public function getAverageCompletionTimeByPriority(): array
+    {
+        $result = $this->createQueryBuilder('t')
+            ->select('t.priority, AVG((julianday(t.completedAt) - julianday(t.createdAt))) as avgDays')
+            ->where('t.status = :completed')
+            ->andWhere('t.completedAt IS NOT NULL')
+            ->setParameter('completed', 'completed')
+            ->groupBy('t.priority')
+            ->orderBy('t.priority')
+            ->getQuery()
+            ->getResult();
+
+        $stats = [];
+        foreach ($result as $item) {
+            $stats[$item['priority']] = [
+                'avgDays' => $item['avgDays'] ? round((float)$item['avgDays'], 2) : 0
             ];
         }
         

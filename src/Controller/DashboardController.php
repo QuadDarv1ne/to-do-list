@@ -225,4 +225,14 @@ class DashboardController extends AbstractController
         
         return $this->json($stats);
     }
+    
+    #[Route('/api/average-completion-time', name: 'app_dashboard_average_completion_time', methods: ['GET'])]
+    public function getAverageCompletionTime(TaskRepository $taskRepository): Response
+    {
+        $user = $this->getUser();
+        
+        $stats = $taskRepository->getAverageCompletionTimeByPriority();
+        
+        return $this->json($stats);
+    }
 }
