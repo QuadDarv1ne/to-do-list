@@ -7,5 +7,86 @@
 # To list all registered routes, run the following command:
 #   bin/console debug:router
 
+# Import controllers from the App\Controller namespace
 controllers:
-    resource: routing.controllers
+    resource: ../src/Controller/
+    type: attribute
+
+# Root route
+app_homepage:
+    path: /
+    controller: App\Controller\HomeController::index
+
+# Login route
+app_login:
+    path: /login
+    controller: App\Controller\SecurityController::login
+
+# Logout route
+app_logout:
+    path: /logout
+    controller: App\Controller\SecurityController::logout
+
+# Access denied route
+app_access_denied:
+    path: /access-denied
+    controller: App\Controller\SecurityController::accessDenied
+
+# Dashboard route
+app_dashboard:
+    path: /dashboard
+    controller: App\Controller\DashboardController::index
+
+# User routes
+app_user_index:
+    path: /users
+    controller: App\Controller\UserController::index
+
+app_user_new:
+    path: /users/new
+    controller: App\Controller\UserController::new
+
+app_user_show:
+    path: /users/{id}
+    controller: App\Controller\UserController::show
+
+app_user_edit:
+    path: /users/{id}/edit
+    controller: App\Controller\UserController::edit
+
+app_user_delete:
+    path: /users/{id}
+    controller: App\Controller\UserController::delete
+
+app_user_toggle_active:
+    path: /users/{id}/toggle-active
+    controller: App\Controller\UserController::toggleActive
+
+app_user_unlock:
+    path: /users/{id}/unlock
+    controller: App\Controller\UserController::unlock
+
+# Task routes
+app_task_index:
+    path: /tasks
+    controller: App\Controller\TaskController::index
+
+app_task_new:
+    path: /tasks/new
+    controller: App\Controller\TaskController::new
+
+app_task_show:
+    path: /tasks/{id}
+    controller: App\Controller\TaskController::show
+
+app_task_edit:
+    path: /tasks/{id}/edit
+    controller: App\Controller\TaskController::edit
+
+app_task_delete:
+    path: /tasks/{id}
+    controller: App\Controller\TaskController::delete
+
+app_task_toggle:
+    path: /tasks/{id}/toggle
+    controller: App\Controller\TaskController::toggle
