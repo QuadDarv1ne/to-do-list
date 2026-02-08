@@ -16,7 +16,11 @@
                     {% if task.isDone %}
                         <span class="badge bg-success">Выполнено</span>
                     {% else %}
-                        <span class="badge bg-warning text-dark">В работе</span>
+                        {% if task.isOverdue %}
+                            <span class="badge bg-danger">Просрочено</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">В работе</span>
+                        {% endif %}
                     {% endif %}
                 </div>
                 <div class="card-body">
@@ -29,7 +33,26 @@
                                 {% if task.isDone %}
                                     <span class="badge bg-success">Выполнено</span>
                                 {% else %}
-                                    <span class="badge bg-warning text-dark">В работе</span>
+                                    {% if task.isOverdue %}
+                                        <span class="badge bg-danger">Просрочено</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">В работе</span>
+                                    {% endif %}
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>Приоритет:</strong> <span class="{{ task.priorityClass }}">{{ task.priorityLabel }}</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Срок:</strong> 
+                                {% if task.deadline %}
+                                    <span {% if task.isOverdue %}class="text-danger fw-bold"{% endif %}>{{ task.deadline|date('d.m.Y') }}</span>
+                                {% else %}
+                                    <span class="text-muted">Не указан</span>
                                 {% endif %}
                             </p>
                         </div>
