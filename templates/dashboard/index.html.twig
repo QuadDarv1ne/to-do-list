@@ -1,0 +1,239 @@
+{# templates/dashboard/index.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Панель управления{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .stat-card {
+            border-left: 4px solid #3498db;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+        .stat-card.completed {
+            border-left-color: #2ecc71;
+        }
+        .stat-card.pending {
+            border-left-color: #f39c12;
+        }
+        .stat-card.total {
+            border-left-color: #9b59b6;
+        }
+        .task-item {
+            border-left: 3px solid #e0e0e0;
+            transition: border-color 0.3s;
+        }
+        .task-item.done {
+            border-left-color: #2ecc71;
+        }
+        .task-item.pending {
+            border-left-color: #f39c12;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-tachometer-alt me-2"></i>Панель управления
+        </h1>
+        <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="userMenu" data-bs-toggle="dropdown">
+                <i class="fas fa-user me-1"></i>{{ app.user.fullName }}
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="{{ path('app_user_edit', {'id': app.user.id}) }}">Профиль</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{{ path('app_logout') }}">Выход</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Статистика задач -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card total">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">
+                                Всего задач
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ total_tasks }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-tasks fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card completed">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">
+                                Выполнено
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ completed_tasks }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card pending">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">
+                                В ожидании
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ pending_tasks }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">
+                                Роль
+                            </div>
+                            <div class="h6 mb-0 font-weight-bold text-gray-800">
+                                {% for role in app.user.roles %}
+                                    {% if role == 'ROLE_ADMIN' %}
+                                        <span class="badge bg-danger">Администратор</span>
+                                    {% elseif role == 'ROLE_MANAGER' %}
+                                        <span class="badge bg-warning text-dark">Менеджер</span>
+                                    {% elseif role == 'ROLE_USER' %}
+                                        <span class="badge bg-secondary">Пользователь</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-tag fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Административная статистика -->
+    {% if user_stats %}
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Статистика системы</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <i class="fas fa-users fa-3x text-gray-400 mb-2"></i>
+                                <h4>{{ user_stats.total }}</h4>
+                                <p class="text-muted">Всего пользователей</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <i class="fas fa-user-check fa-3x text-gray-400 mb-2"></i>
+                                <h4>{{ user_stats.active }}</h4>
+                                <p class="text-muted">Активных</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <i class="fas fa-crown fa-3x text-gray-400 mb-2"></i>
+                                <h4>{{ user_stats.admins }}</h4>
+                                <p class="text-muted">Администраторов</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <i class="fas fa-user-tie fa-3x text-gray-400 mb-2"></i>
+                                <h4>{{ user_stats.managers }}</h4>
+                                <p class="text-muted">Менеджеров</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Последние задачи -->
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Последние задачи</h6>
+                </div>
+                <div class="card-body">
+                    {% if recent_tasks %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Название</th>
+                                        <th>Описание</th>
+                                        <th>Статус</th>
+                                        <th>Дата создания</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for task in recent_tasks %}
+                                    <tr class="task-item {{ task.isDone ? 'done' : 'pending' }}">
+                                        <td><strong>{{ task.name }}</strong></td>
+                                        <td>{{ task.description|truncate(100) }}</td>
+                                        <td>
+                                            {% if task.isDone %}
+                                                <span class="badge bg-success">Выполнено</span>
+                                            {% else %}
+                                                <span class="badge bg-warning text-dark">В работе</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ task.createdAt|date('d.m.Y H:i') }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Нет задач для отображения</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

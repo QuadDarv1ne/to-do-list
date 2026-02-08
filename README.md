@@ -13,3 +13,7 @@ composer require symfonycasts/reset-password-bundle
 
 composer require symfony/rate-limiter
 ```
+
+```bash
+npm i intelephense -g
+```
