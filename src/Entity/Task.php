@@ -29,6 +29,12 @@ class Task
     #[ORM\Column]
     private ?\DateTimeImmutable $updateAt = null;
     
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $deadline = null;
+    
+    #[ORM\Column(length: 20, options: ['default' => 'normal'])]
+    private string $priority = 'normal';
+    
         #[ORM\ManyToOne(inversedBy: 'tasks')]
         #[ORM\JoinColumn(nullable: true)]
         private ?User $assignedUser = null;
@@ -108,5 +114,58 @@ class Task
         $this->assignedUser = $assignedUser;
 
         return $this;    
+    }
+    
+    public function getDeadline(): ?\DateTimeImmutable
+    {
+        return $this->deadline;
+    }
+
+    public function setDeadline(?\DateTimeImmutable $deadline): static
+    {
+        $this->deadline = $deadline;
+
+        return $this;
+    }
+    
+    public function getPriority(): string
+    {
+        return $this->priority;
+    }
+
+    public function setPriority(string $priority): static
+    {
+        $this->priority = $priority;
+
+        return $this;
+    }
+    
+    public function getPriorityLabel(): string
+    {
+        return match($this->priority) {
+            'low' => 'Низкий',
+            'high' => 'Высокий',
+            'urgent' => 'Срочный',
+            default => 'Обычный',
+        };
+    }
+    
+    public function getPriorityClass(): string
+    {
+        return match($this->priority) {
+            'low' => 'badge bg-success',
+            'high' => 'badge bg-warning',
+            'urgent' => 'badge bg-danger',
+            default => 'badge bg-secondary',
+        };
+    }
+    
+    public function isOverdue(): bool
+    {
+        if (!$this->deadline || $this->isDone()) {
+            return false;
+        }
+        
+        return $this->deadline < new \DateTimeImmutable();
     }
 }
