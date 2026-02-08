@@ -162,6 +162,15 @@ class Task
 
     public function setStatus(string $status): static
     {
+        // If changing to completed status and not already completed, set completion timestamp
+        if ($status === 'completed' && $this->status !== 'completed') {
+            $this->completedAt = new \DateTime();
+        }
+        // If changing from completed to another status, clear completion timestamp
+        elseif ($this->status === 'completed' && $status !== 'completed') {
+            $this->completedAt = null;
+        }
+        
         $this->status = $status;
         return $this;
     }
@@ -229,6 +238,17 @@ class Task
     public function setDueDate(?\DateTimeInterface $dueDate): static
     {
         $this->dueDate = $dueDate;
+        return $this;
+    }
+
+    public function getCompletedAt(): ?\DateTimeInterface
+    {
+        return $this->completedAt;
+    }
+
+    public function setCompletedAt(?\DateTimeInterface $completedAt): static
+    {
+        $this->completedAt = $completedAt;
         return $this;
     }
 
