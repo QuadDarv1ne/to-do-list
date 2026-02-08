@@ -16,6 +16,16 @@ class CreateAdminCommand extends Command
     protected static $defaultName = 'app:create-admin';
     protected static $defaultDescription = 'Создает администратора CRM системы';
 
+    public static function getDefaultName(): ?string
+    {
+        return 'app:create-admin';
+    }
+
+    public static function getDefaultDescription(): ?string
+    {
+        return 'Создает администратора CRM системы';
+    }
+
     private EntityManagerInterface $entityManager;
     private UserPasswordHasherInterface $passwordHasher;
 
