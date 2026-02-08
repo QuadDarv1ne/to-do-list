@@ -1,0 +1,128 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ task_notification.subject }}{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_dashboard') }}">Панель управления</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('app_task_notification_index') }}">Уведомления</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ task_notification.subject }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <h2 class="h3 mb-4">
+                <i class="fas fa-bell me-2"></i>{{ task_notification.subject }}
+            </h2>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Детали уведомления</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>Тип:</strong> 
+                                {% if task_notification.type == 'assignment' %}
+                                    Назначение задачи
+                                {% elseif task_notification.type == 'update' %}
+                                    Обновление задачи
+                                {% elseif task_notification.type == 'completion' %}
+                                    Выполнение задачи
+                                {% elseif task_notification.type == 'reminder' %}
+                                    Напоминание
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Статус отправки:</strong> 
+                                {% if task_notification.isIsSent %}
+                                    <span class="badge bg-success">Отправлено</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Не отправлено</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>Отправитель:</strong> {{ task_notification.sender.fullName }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Получатель:</strong> {{ task_notification.recipient.fullName }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>Дата создания:</strong> {{ task_notification.createdAt|date('d.m.Y H:i') }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Статус прочтения:</strong> 
+                                {% if task_notification.isIsRead %}
+                                    <span class="badge bg-success">Прочитано</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Непрочитано</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <p><strong>Сообщение:</strong></p>
+                        <div class="border p-3 bg-light">
+                            {{ task_notification.message|nl2br }}
+                        </div>
+                    </div>
+                    
+                    {% if task_notification.task %}
+                    <div class="mb-3">
+                        <p><strong>Задача:</strong> 
+                            <a href="{{ path('app_task_show', {'id': task_notification.task.id}) }}">
+                                {{ task_notification.task.name }}
+                            </a>
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Действия</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ path('app_task_notification_index') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left me-2"></i>Назад к списку
+                        </a>
+                        <a href="{{ path('app_task_notification_edit', {'id': task_notification.id}) }}" class="btn btn-outline-warning">
+                            <i class="fas fa-edit me-2"></i>Редактировать
+                        </a>
+                        <form method="post" action="{{ path('app_task_notification_delete', {'id': task_notification.id}) }}" onsubmit="return confirm('Вы уверены, что хотите удалить это уведомление?');">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ task_notification.id) }}">
+                            <button type="submit" class="btn btn-outline-danger w-100">
+                                <i class="fas fa-trash me-2"></i>Удалить
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

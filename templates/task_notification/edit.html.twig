@@ -1,0 +1,79 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Редактировать уведомление{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_dashboard') }}">Панель управления</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('app_task_notification_index') }}">Уведомления</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Редактировать</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <h2 class="h3 mb-4">
+                <i class="fas fa-edit me-2"></i>Редактировать уведомление
+            </h2>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Форма редактирования</h5>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form) }}
+                    <div class="row">
+                        <div class="col-md-12">
+                            {{ form_row(form.type) }}
+                        </div>
+                        <div class="col-md-12">
+                            {{ form_row(form.subject) }}
+                        </div>
+                        <div class="col-md-12">
+                            {{ form_row(form.message) }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form_row(form.isSent) }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form_row(form.isRead) }}
+                        </div>
+                        <div class="col-md-12">
+                            <button class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Сохранить
+                            </button>
+                            <a href="{{ path('app_task_notification_index') }}" class="btn btn-secondary ms-2">
+                                <i class="fas fa-times me-2"></i>Отмена
+                            </a>
+                        </div>
+                    </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Информация</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Здесь вы можете отредактировать детали уведомления. Убедитесь, что все поля заполнены корректно.</p>
+                    <p><strong>Текущий тип:</strong> {{ task_notification.type }}</p>
+                    <p><strong>Дата создания:</strong> {{ task_notification.createdAt|date('d.m.Y H:i') }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

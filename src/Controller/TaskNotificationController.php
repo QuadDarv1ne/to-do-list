@@ -50,7 +50,7 @@ class TaskNotificationController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_task_notification_show', methods: ['GET'])]
-    public function show(TaskNotification $taskNotification): Response
+    public function show(TaskNotification $taskNotification, EntityManagerInterface $entityManager): Response
     {
         // Mark notification as read when viewed
         if (!$taskNotification->isIsRead()) {
