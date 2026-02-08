@@ -122,7 +122,7 @@ class TaskController extends AbstractController
     }
 
     #[Route('/new', name: 'app_task_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, EmailNotificationService $emailNotificationService): Response
     {
         $task = new Task();
         $form = $this->createForm(TaskType::class, $task);
@@ -134,9 +134,14 @@ class TaskController extends AbstractController
             $entityManager->persist($task);
             $entityManager->flush();
 
-            // Notify the assigned user if different from creator
-            if ($task->getAssignedUser() && $task->getAssignedUser() !== $this->getUser()) {
-                $this->notificationService->notifyTaskAssignment($task, $this->getUser());
+            // Send notification if task is assigned to someone else
+            $assignee = $task->getAssignedUser();
+            if ($assignee && $assignee !== $this->getUser()) {
+                $emailNotificationService->sendTaskAssignmentNotification(
+                    $assignee, 
+                    $this->getUser(), 
+                    $task
+                );
             }
 
             return $this->redirectToRoute('app_task_index', [], Response::HTTP_SEE_OTHER);
@@ -172,7 +177,7 @@ class TaskController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_task_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Task $task, EntityManagerInterface $entityManager): Response
+    public function edit(Request $request, Task $task, EntityManagerInterface $entityManager, EmailNotificationService $emailNotificationService): Response
     {
         // Check if user can edit this task
         if (!$this->isGranted('TASK_EDIT', $task)) {
@@ -187,9 +192,13 @@ class TaskController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
 
-            // Notify the newly assigned user if different from original
+            // Send notification if task was reassigned
             if ($task->getAssignedUser() && $task->getAssignedUser() !== $originalAssignedTo && $task->getAssignedUser() !== $this->getUser()) {
-                $this->notificationService->notifyTaskReassignment($task, $this->getUser());
+                $emailNotificationService->sendTaskAssignmentNotification(
+                    $task->getAssignedUser(), 
+                    $this->getUser(), 
+                    $task
+                );
             }
 
             return $this->redirectToRoute('app_task_index', [], Response::HTTP_SEE_OTHER);
@@ -252,15 +261,29 @@ class TaskController extends AbstractController
     }
 
     #[Route('/{id}/toggle', name: 'app_task_toggle', methods: ['POST'])]
-    public function toggle(Task $task, EntityManagerInterface $entityManager): Response
+    public function toggle(Task $task, EntityManagerInterface $entityManager, EmailNotificationService $emailNotificationService): Response
     {
         // Check if user can toggle this task
         if (!$this->isGranted('TASK_TOGGLE', $task)) {
             throw $this->createAccessDeniedException('У вас нет прав для изменения статуса этой задачи.');
         }
         
+        $wasDone = $task->isDone();
         $task->setIsDone(!$task->isDone());
+        
         $entityManager->flush();
+        
+        // Send notification if task was marked as completed
+        if (!$wasDone && $task->isDone()) {
+            $assigner = $task->getCreatedBy();
+            if ($assigner && $assigner !== $this->getUser()) {
+                $emailNotificationService->sendTaskCompletionNotification(
+                    $assigner,
+                    $this->getUser(),
+                    $task
+                );
+            }
+        }
 
         return $this->redirectToRoute('app_task_index');
     }
