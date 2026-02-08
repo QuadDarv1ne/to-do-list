@@ -35,6 +35,7 @@ class TaskController extends AbstractController
         $priority = $request->query->get('priority');
         $categoryId = $request->query->get('category');
         $tagId = $request->query->get('tag');
+        $hideCompleted = $request->query->get('hide_completed', false);
         $sort = $request->query->get('sort', 'createdAt');
         $direction = $request->query->get('direction', 'DESC');
         $page = max(1, (int)$request->query->get('page', 1));
@@ -71,6 +72,11 @@ class TaskController extends AbstractController
             $qb->join('t.tags', 'jt')
                ->andWhere('jt.id = :tagId')
                ->setParameter('tagId', $tagId);
+        }
+        
+        if ($hideCompleted) {
+            $qb->andWhere('t.status != :completedStatus')
+               ->setParameter('completedStatus', 'completed');
         }
         
         // Apply sorting
@@ -236,7 +242,37 @@ class TaskController extends AbstractController
             'categories' => $categories,
         ]);
     }
-
+        
+    #[Route('/{id}/clone', name: 'app_task_clone', methods: ['POST'])]
+    public function cloneTask(Task $task, EntityManagerInterface $entityManager, NotificationService $notificationService): Response
+    {
+        $this->denyAccessUnlessGranted('TASK_VIEW', $task);
+            
+        // Create a new task with the same properties
+        $clonedTask = new Task();
+        $clonedTask->setTitle($task->getTitle() . ' (копия)');
+        $clonedTask->setDescription($task->getDescription());
+        $clonedTask->setUser($this->getUser()); // Cloner becomes the owner
+        $clonedTask->setStatus('pending'); // New tasks start as pending
+        $clonedTask->setPriority($task->getPriority());
+        $clonedTask->setDueDate($task->getDueDate());
+        $clonedTask->setCategory($task->getCategory());
+        $clonedTask->setAssignedUser($task->getAssignedUser()); // Keep the same assigned user
+        $clonedTask->setCreatedAt(new \DateTimeImmutable());
+            
+        // Clone tags
+        foreach ($task->getTags() as $tag) {
+            $clonedTask->addTag($tag);
+        }
+            
+        $entityManager->persist($clonedTask);
+        $entityManager->flush();
+            
+        $this->addFlash('success', 'Задача успешно скопирована');
+            
+        return $this->redirectToRoute('app_task_show', ['id' => $clonedTask->getId()]);
+    }
+        
     #[Route('/{id}', name: 'app_task_delete', methods: ['POST'])]
     public function delete(Request $request, Task $task, EntityManagerInterface $entityManager): Response
     {
@@ -522,6 +558,76 @@ class TaskController extends AbstractController
         $response->headers->set('Content-Disposition', 'attachment; filename="tasks_with_tags_export_' . date('Y-m-d_H-i-s') . '.csv"');
         
         return $response;
+    }
+    
+    #[Route('/quick-create', name: 'app_task_quick_create', methods: ['POST'])]
+    public function quickCreate(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $data = json_decode($request->getContent(), true);
+        $title = trim($data['title'] ?? '');
+        
+        if (empty($title)) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Название задачи не может быть пустым'
+            ], 400);
+        }
+        
+        $task = new Task();
+        $task->setTitle($title);
+        $task->setDescription($data['description'] ?? '');
+        $task->setUser($this->getUser());
+        $task->setStatus('pending');
+        $task->setPriority($data['priority'] ?? 'medium');
+        $task->setCreatedAt(new \DateTimeImmutable());
+        
+        // Set default due date to next week if not specified
+        if (!empty($data['dueDate'])) {
+            $task->setDueDate(new \DateTime($data['dueDate']));
+        }
+        
+        // Assign to a category if provided
+        if (!empty($data['category'])) {
+            $category = $entityManager->find(\App\Entity\TaskCategory::class, (int)$data['category']);
+            if ($category) {
+                $task->setCategory($category);
+            }
+        }
+        
+        // Assign to a user if provided
+        if (!empty($data['assignedUser'])) {
+            $assignedUser = $entityManager->find(\App\Entity\User::class, (int)$data['assignedUser']);
+            if ($assignedUser) {
+                $task->setAssignedUser($assignedUser);
+            }
+        }
+        
+        // Add tags if provided
+        if (!empty($data['tags']) && is_array($data['tags'])) {
+            foreach ($data['tags'] as $tagId) {
+                $tag = $entityManager->find(\App\Entity\Tag::class, (int)$tagId);
+                if ($tag) {
+                    $task->addTag($tag);
+                }
+            }
+        }
+        
+        $entityManager->persist($task);
+        $entityManager->flush();
+        
+        return $this->json([
+            'success' => true,
+            'message' => 'Задача успешно создана',
+            'task' => [
+                'id' => $task->getId(),
+                'title' => $task->getTitle(),
+                'description' => $task->getDescription(),
+                'status' => $task->getStatus(),
+                'priority' => $task->getPriority(),
+                'createdAt' => $task->getCreatedAt()->format('Y-m-d H:i:s'),
+                'dueDate' => $task->getDueDate() ? $task->getDueDate()->format('Y-m-d') : null
+            ]
+        ]);
     }
     
     #[Route('/bulk-action', name: 'app_task_bulk_action', methods: ['POST'])]

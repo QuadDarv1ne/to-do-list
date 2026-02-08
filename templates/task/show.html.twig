@@ -145,6 +145,15 @@
                                 </button>
                             </form>
                         {% endif %}
+                        <form action="{{ path('app_task_clone', {'id': task.id}) }}" 
+                              method="post" 
+                              class="d-inline">
+                            <input type="hidden" name="_token" value="{{ csrf_token('clone' ~ task.id) }}">
+                            <button type="submit" class="btn btn-info" 
+                                    onclick="return confirm('Вы уверены, что хотите скопировать эту задачу?')">
+                                <i class="fas fa-copy me-2"></i>Клонировать
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>

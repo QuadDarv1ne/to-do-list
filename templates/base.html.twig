@@ -6,6 +6,9 @@
     <title>{% block title %}To-Do List{% endblock %}</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
     
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="{{ csrf_token('authenticate') }}">
+    
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
@@ -141,5 +144,146 @@
     {% block javascripts %}
         {% block importmap %}{{ importmap('app') }}{% endblock %}
     {% endblock %}
+    
+    <!-- Quick Task Modal -->
+    <div class="modal fade" id="quickTaskModal" tabindex="-1" aria-labelledby="quickTaskModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="quickTaskModalLabel">Быстрое создание задачи</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="quick-task-form">
+                        <div class="mb-3">
+                            <label for="quick-task-title" class="form-label">Название задачи *</label>
+                            <input type="text" class="form-control" id="quick-task-title" required placeholder="Введите название задачи">
+                        </div>
+                        <div class="mb-3">
+                            <label for="quick-task-description" class="form-label">Описание</label>
+                            <textarea class="form-control" id="quick-task-description" rows="3" placeholder="Добавьте описание задачи"></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="quick-task-priority" class="form-label">Приоритет</label>
+                                <select class="form-select" id="quick-task-priority">
+                                    <option value="low">Низкий</option>
+                                    <option value="medium" selected>Средний</option>
+                                    <option value="high">Высокий</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="quick-task-due-date" class="form-label">Срок выполнения</label>
+                                <input type="date" class="form-control" id="quick-task-due-date">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="quick-task-category" class="form-label">Категория</label>
+                            <select class="form-select" id="quick-task-category">
+                                <option value="">Без категории</option>
+                                {% for category in app.user.taskCategories %}
+                                    <option value="{{ category.id }}">{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="quick-task-assigned-user" class="form-label">Назначить пользователю</label>
+                            <select class="form-select" id="quick-task-assigned-user">
+                                <option value="">Назначить себе</option>
+                                {% for user in app.user.taskUsers %}
+                                    <option value="{{ user.id }}">{{ user.fullName }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="quick-task-tags" class="form-label">Теги</label>
+                            <select class="form-select" id="quick-task-tags" multiple>
+                                {% for tag in app.user.taskTags %}
+                                    <option value="{{ tag.id }}">{{ tag.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" id="save-quick-task">Создать задачу</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Floating Quick Task Button -->
+    <button type="button" class="btn btn-primary btn-lg rounded-circle shadow position-fixed" 
+            style="bottom: 30px; right: 30px; z-index: 1000; width: 60px; height: 60px;" 
+            id="quick-task-fab" 
+            data-bs-toggle="modal" 
+            data-bs-target="#quickTaskModal">
+        <i class="fas fa-plus"></i>
+    </button>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const quickTaskFab = document.getElementById('quick-task-fab');
+            const saveQuickTaskBtn = document.getElementById('save-quick-task');
+            const quickTaskForm = document.getElementById('quick-task-form');
+            
+            saveQuickTaskBtn.addEventListener('click', function() {
+                const title = document.getElementById('quick-task-title').value.trim();
+                
+                if (!title) {
+                    alert('Пожалуйста, введите название задачи');
+                    return;
+                }
+                
+                // Collect form data
+                const formData = {
+                    title: title,
+                    description: document.getElementById('quick-task-description').value,
+                    priority: document.getElementById('quick-task-priority').value,
+                    dueDate: document.getElementById('quick-task-due-date').value,
+                    category: document.getElementById('quick-task-category').value,
+                    assignedUser: document.getElementById('quick-task-assigned-user').value,
+                    tags: Array.from(document.getElementById('quick-task-tags').selectedOptions).map(option => option.value)
+                };
+                
+                // Send AJAX request to create the task
+                fetch('{{ path('app_task_quick_create') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Close modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('quickTaskModal'));
+                        if (modal) {
+                            modal.hide();
+                        }
+                        
+                        // Reset form
+                        quickTaskForm.reset();
+                        
+                        // Show success message
+                        alert(data.message);
+                        
+                        // Optionally redirect to task list or show the new task
+                        window.location.reload(); // Refresh the page to show the new task
+                    } else {
+                        alert(data.message || 'Ошибка при создании задачи');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Произошла ошибка при создании задачи');
+                });
+            });
+        });
+    </script>
 </body>
 </html>

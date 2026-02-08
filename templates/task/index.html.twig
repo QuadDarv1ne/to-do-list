@@ -109,6 +109,10 @@
                             <i class="fas fa-download me-1"></i>
                             Экспорт
                         </a>
+                        <a href="{{ path('app_task_export_with_tags', app.request.query.all) }}" class="btn btn-info">
+                            <i class="fas fa-tags me-1"></i>
+                            Экспорт с тегами
+                        </a>
                     </div>
                 </div>
             </form>
