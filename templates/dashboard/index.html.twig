@@ -1,73 +1,28 @@
-{# templates/dashboard/index.html.twig #}
-
 {% extends 'base.html.twig' %}
 
 {% block title %}Панель управления{% endblock %}
 
-{% block stylesheets %}
-    {{ parent() }}
-    <style>
-        .stat-card {
-            border-left: 4px solid #3498db;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
-        }
-        .stat-card:hover {
-            transform: translateY(-2px);
-        }
-        .stat-card.completed {
-            border-left-color: #2ecc71;
-        }
-        .stat-card.pending {
-            border-left-color: #f39c12;
-        }
-        .stat-card.total {
-            border-left-color: #9b59b6;
-        }
-        .task-item {
-            border-left: 3px solid #e0e0e0;
-            transition: border-color 0.3s;
-        }
-        .task-item.done {
-            border-left-color: #2ecc71;
-        }
-        .task-item.pending {
-            border-left-color: #f39c12;
-        }
-    </style>
-{% endblock %}
-
 {% block body %}
 <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 text-gray-800">
-            <i class="fas fa-tachometer-alt me-2"></i>Панель управления
-        </h1>
-        <div class="dropdown">
-            <button class="btn btn-secondary dropdown-toggle" type="button" id="userMenu" data-bs-toggle="dropdown">
-                <i class="fas fa-user me-1"></i>{{ app.user.fullName }}
-            </button>
-            <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="{{ path('app_user_edit', {'id': app.user.id}) }}">Профиль</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="{{ path('app_logout') }}">Выход</a></li>
-            </ul>
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4">
+                <i class="fas fa-tachometer-alt me-2"></i>Панель управления
+            </h1>
         </div>
     </div>
 
-    <!-- Статистика задач -->
+    <!-- Statistics Cards -->
     <div class="row mb-4">
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card stat-card total">
+            <div class="card border-left-primary shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-uppercase mb-1">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
                                 Всего задач
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {{ total_tasks }}
-                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ task_stats.total }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-tasks fa-2x text-gray-300"></i>
@@ -76,17 +31,16 @@
                 </div>
             </div>
         </div>
+
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card stat-card completed">
+            <div class="card border-left-success shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-uppercase mb-1">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
                                 Выполнено
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {{ completed_tasks }}
-                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ task_stats.completed }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-check-circle fa-2x text-gray-300"></i>
@@ -95,17 +49,16 @@
                 </div>
             </div>
         </div>
+
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card stat-card pending">
+            <div class="card border-left-info shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-uppercase mb-1">
-                                В ожидании
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                В работе
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {{ pending_tasks }}
-                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ task_stats.pending }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-clock fa-2x text-gray-300"></i>
@@ -114,86 +67,36 @@
                 </div>
             </div>
         </div>
+
+        {% if user_stats %}
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card stat-card">
+            <div class="card border-left-warning shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-uppercase mb-1">
-                                Роль
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Всего пользователей
                             </div>
-                            <div class="h6 mb-0 font-weight-bold text-gray-800">
-                                {% for role in app.user.roles %}
-                                    {% if role == 'ROLE_ADMIN' %}
-                                        <span class="badge bg-danger">Администратор</span>
-                                    {% elseif role == 'ROLE_MANAGER' %}
-                                        <span class="badge bg-warning text-dark">Менеджер</span>
-                                    {% elseif role == 'ROLE_USER' %}
-                                        <span class="badge bg-secondary">Пользователь</span>
-                                    {% endif %}
-                                {% endfor %}
-                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ user_stats.total }}</div>
                         </div>
                         <div class="col-auto">
-                            <i class="fas fa-user-tag fa-2x text-gray-300"></i>
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
 
-    <!-- Административная статистика -->
-    {% if user_stats %}
-    <div class="row mb-4">
-        <div class="col-lg-12">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Статистика системы</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <i class="fas fa-users fa-3x text-gray-400 mb-2"></i>
-                                <h4>{{ user_stats.total }}</h4>
-                                <p class="text-muted">Всего пользователей</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <i class="fas fa-user-check fa-3x text-gray-400 mb-2"></i>
-                                <h4>{{ user_stats.active }}</h4>
-                                <p class="text-muted">Активных</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <i class="fas fa-crown fa-3x text-gray-400 mb-2"></i>
-                                <h4>{{ user_stats.admins }}</h4>
-                                <p class="text-muted">Администраторов</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <i class="fas fa-user-tie fa-3x text-gray-400 mb-2"></i>
-                                <h4>{{ user_stats.managers }}</h4>
-                                <p class="text-muted">Менеджеров</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Последние задачи -->
     <div class="row">
-        <div class="col-lg-12">
+        <!-- Recent Tasks -->
+        <div class="col-xl-8 col-lg-7">
             <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Последние задачи</h6>
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-list me-2"></i>Последние задачи
+                    </h6>
                 </div>
                 <div class="card-body">
                     {% if recent_tasks %}
@@ -202,21 +105,31 @@
                                 <thead>
                                     <tr>
                                         <th>Название</th>
-                                        <th>Описание</th>
                                         <th>Статус</th>
+                                        <th>Назначена</th>
                                         <th>Дата создания</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% for task in recent_tasks %}
-                                    <tr class="task-item {{ task.isDone ? 'done' : 'pending' }}">
-                                        <td><strong>{{ task.name }}</strong></td>
-                                        <td>{{ task.description|truncate(100) }}</td>
+                                    <tr>
+                                        <td>
+                                            <a href="{{ path('app_task_show', {'id': task.id}) }}" class="text-decoration-none">
+                                                {{ task.name }}
+                                            </a>
+                                        </td>
                                         <td>
                                             {% if task.isDone %}
-                                                <span class="badge bg-success">Выполнено</span>
+                                                <span class="badge bg-success">Выполнена</span>
                                             {% else %}
-                                                <span class="badge bg-warning text-dark">В работе</span>
+                                                <span class="badge bg-warning">В работе</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if task.assignedUser %}
+                                                {{ task.assignedUser.fullName }}
+                                            {% else %}
+                                                Не назначена
                                             {% endif %}
                                         </td>
                                         <td>{{ task.createdAt|date('d.m.Y H:i') }}</td>
@@ -226,13 +139,76 @@
                             </table>
                         </div>
                     {% else %}
-                        <div class="text-center py-4">
-                            <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
-                            <p class="text-muted">Нет задач для отображения</p>
-                        </div>
+                        <p class="text-muted">Нет недавних задач для отображения.</p>
                     {% endif %}
                 </div>
             </div>
+        </div>
+
+        <!-- User Info -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-user me-2"></i>Информация о пользователе
+                    </h6>
+                </div>
+                <div class="card-body text-center">
+                    <img src="{{ user.avatarUrl }}" alt="Avatar" class="rounded-circle mb-3" width="100" height="100">
+                    <h5 class="card-title">{{ user.fullName }}</h5>
+                    <p class="card-text text-muted">{{ user.email }}</p>
+                    <p class="card-text">
+                        {% if user.position %}
+                            <small class="text-muted"><i class="fas fa-briefcase me-1"></i>{{ user.position }}</small>
+                        {% endif %}
+                        {% if user.department %}
+                            <br>
+                            <small class="text-muted"><i class="fas fa-building me-1"></i>{{ user.department }}</small>
+                        {% endif %}
+                    </p>
+                    <div class="mt-3">
+                        <a href="{{ path('app_profile_show') }}" class="btn btn-primary btn-sm me-2">
+                            <i class="fas fa-user-circle me-1"></i>Профиль
+                        </a>
+                        <a href="{{ path('app_profile_change_password') }}" class="btn btn-warning btn-sm">
+                            <i class="fas fa-key me-1"></i>Пароль
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            {% if user_stats %}
+            <!-- User Stats for Admins -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-bar me-2"></i>Статистика пользователей
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center mb-3">
+                        <div class="col-6 border-end">
+                            <div class="text-success">{{ user_stats.active }}</div>
+                            <small class="text-muted">Активных</small>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-info">{{ user_stats.admins }}</div>
+                            <small class="text-muted">Администраторов</small>
+                        </div>
+                    </div>
+                    <div class="row text-center">
+                        <div class="col-6 border-end">
+                            <div class="text-warning">{{ user_stats.managers }}</div>
+                            <small class="text-muted">Менеджеров</small>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-secondary">{{ user_stats.total - user_stats.active }}</div>
+                            <small class="text-muted">Неактивных</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>

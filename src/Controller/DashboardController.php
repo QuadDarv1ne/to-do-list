@@ -21,26 +21,46 @@ class DashboardController extends AbstractController
         $user = $this->getUser();
         
         // Получаем статистику для текущего пользователя
-        $totalTasks = $taskRepository->count(['id' => null]); // общее количество задач
-        $completedTasks = $taskRepository->count(['isDone' => true]);
-        $pendingTasks = $totalTasks - $completedTasks;
-        
-        // Получаем последние задачи
-        $recentTasks = $taskRepository->findBy([], ['createdAt' => 'DESC'], 5);
-        
-        // Для администраторов показываем дополнительную информацию
-        $isAdmin = $this->isGranted('ROLE_ADMIN');
-        $userStats = null;
-        
-        if ($isAdmin) {
+        if ($this->isGranted('ROLE_ADMIN')) {
+            // Администратор видит общую статистику
+            $totalTasks = $taskRepository->count([]);
+            $completedTasks = $taskRepository->count(['isDone' => true]);
+            $pendingTasks = $taskRepository->count(['isDone' => false]);
+            
+            // Статистика по пользователям
             $userStats = $userRepository->getStatistics();
+            
+            // Получаем задачи всех пользователей
+            $recentTasks = $taskRepository->findBy([], ['createdAt' => 'DESC'], 5);
+            
+            // Статистика по статусам для диаграммы
+            $taskStats = [
+                'total' => $totalTasks,
+                'completed' => $completedTasks,
+                'pending' => $pendingTasks,
+            ];
+        } else {
+            // Обычный пользователь видит только свою статистику
+            $totalTasks = $taskRepository->countByStatus($user);
+            $completedTasks = $taskRepository->countByStatus($user, true);
+            $pendingTasks = $taskRepository->countByStatus($user, false);
+            
+            // Получаем последние задачи пользователя
+            $recentTasks = $taskRepository->findBy(['assignedUser' => $user], ['createdAt' => 'DESC'], 5);
+            
+            $userStats = null;
+            
+            // Статистика по статусам для диаграммы
+            $taskStats = [
+                'total' => $totalTasks,
+                'completed' => $completedTasks,
+                'pending' => $pendingTasks,
+            ];
         }
         
         return $this->render('dashboard/index.html.twig', [
             'user' => $user,
-            'total_tasks' => $totalTasks,
-            'completed_tasks' => $completedTasks,
-            'pending_tasks' => $pendingTasks,
+            'task_stats' => $taskStats,
             'recent_tasks' => $recentTasks,
             'user_stats' => $userStats,
         ]);
