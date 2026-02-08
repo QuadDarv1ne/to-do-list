@@ -62,21 +62,12 @@
                         }) }}
                     </div>
                     
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            {{ form_row(registration_form.plainPassword.first, {
-                                'attr': {'class': 'form-control'},
-                                'row_attr': {'class': 'form-group'},
-                                'label': 'Пароль'
-                            }) }}
-                        </div>
-                        <div class="col-md-6">
-                            {{ form_row(registration_form.plainPassword.second, {
-                                'attr': {'class': 'form-control'},
-                                'row_attr': {'class': 'form-group'},
-                                'label': 'Подтверждение пароля'
-                            }) }}
-                        </div>
+                    <div class="mb-3">
+                        {{ form_row(registration_form.plainPassword, {
+                            'attr': {'class': 'form-control'},
+                            'row_attr': {'class': 'form-group'},
+                            'label': 'Пароль'
+                        }) }}
                     </div>
                     
                     <div class="mb-3">

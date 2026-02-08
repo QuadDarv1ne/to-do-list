@@ -56,9 +56,24 @@ class Task
     #[ORM\OneToMany(mappedBy: 'task', targetEntity: Comment::class, orphanRemoval: true)]
     private Collection $comments;
 
+    #[ORM\OneToMany(mappedBy: 'task', targetEntity: ActivityLog::class, orphanRemoval: true)]
+    private Collection $activityLogs;
+
+    #[ORM\OneToMany(mappedBy: 'task', targetEntity: TaskNotification::class, inversedBy: 'notifications')]
+    private Collection $notifications;
+
+    #[ORM\OneToOne(mappedBy: 'task', targetEntity: TaskRecurrence::class, cascade: ['persist', 'remove'])]
+    private ?TaskRecurrence $recurrence = null;
+
+    #[ORM\OneToMany(mappedBy: 'task', targetEntity: TaskTimeTracking::class, orphanRemoval: true)]
+    private Collection $timeTrackings;
+
     public function __construct()
     {
         $this->comments = new ArrayCollection();
+        $this->activityLogs = new ArrayCollection();
+        $this->notifications = new ArrayCollection();
+        $this->timeTrackings = new ArrayCollection();
         $this->createdAt = new \DateTime();
     }
 
@@ -231,6 +246,118 @@ class Task
             // set the owning side to null (unless already changed)
             if ($comment->getTask() === $this) {
                 $comment->setTask(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ActivityLog>
+     */
+    public function getActivityLogs(): Collection
+    {
+        return $this->activityLogs;
+    }
+
+    public function addActivityLog(ActivityLog $activityLog): static
+    {
+        if (!$this->activityLogs->contains($activityLog)) {
+            $this->activityLogs->add($activityLog);
+            $activityLog->setTask($this);
+        }
+
+        return $this;
+    }
+
+    public function removeActivityLog(ActivityLog $activityLog): static
+    {
+        if ($this->activityLogs->removeElement($activityLog)) {
+            // set the owning side to null (unless already changed)
+            if ($activityLog->getTask() === $this) {
+                $activityLog->setTask(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TaskNotification>
+     */
+    public function getNotifications(): Collection
+    {
+        return $this->notifications;
+    }
+
+    public function addNotification(TaskNotification $notification): static
+    {
+        if (!$this->notifications->contains($notification)) {
+            $this->notifications->add($notification);
+            $notification->setTask($this);
+        }
+
+        return $this;
+    }
+
+    public function removeNotification(TaskNotification $notification): static
+    {
+        if ($this->notifications->removeElement($notification)) {
+            // set the owning side to null (unless already changed)
+            if ($notification->getTask() === $this) {
+                $notification->setTask(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getRecurrence(): ?TaskRecurrence
+    {
+        return $this->recurrence;
+    }
+
+    public function setRecurrence(?TaskRecurrence $recurrence): static
+    {
+        // unset the owning side of the relation if necessary
+        if ($recurrence === null && $this->recurrence !== null) {
+            $this->recurrence->setTask(null);
+        }
+
+        // set the owning side of the relation if necessary
+        if ($recurrence !== null && $recurrence->getTask() !== $this) {
+            $recurrence->setTask($this);
+        }
+
+        $this->recurrence = $recurrence;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TaskTimeTracking>
+     */
+    public function getTimeTrackings(): Collection
+    {
+        return $this->timeTrackings;
+    }
+
+    public function addTimeTracking(TaskTimeTracking $timeTracking): static
+    {
+        if (!$this->timeTrackings->contains($timeTracking)) {
+            $this->timeTrackings->add($timeTracking);
+            $timeTracking->setTask($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTimeTracking(TaskTimeTracking $timeTracking): static
+    {
+        if ($this->timeTrackings->removeElement($timeTracking)) {
+            // set the owning side to null (unless already changed)
+            if ($timeTracking->getTask() === $this) {
+                $timeTracking->setTask(null);
             }
         }
 

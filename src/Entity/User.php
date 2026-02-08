@@ -91,11 +91,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: ActivityLog::class, orphanRemoval: true)]
     private Collection $activityLogs;
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: TaskRecurrence::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: TaskRecurrence::class)]
     private Collection $taskRecurrences;
 
-    #[ORM\OneToMany(mappedBy: 'recipient', targetEntity: TaskNotification::class, orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'recipient', targetEntity: TaskNotification::class)]
     private Collection $notifications;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: TaskTimeTracking::class)]
+    private Collection $timeTrackings;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $createdAt = null;
@@ -512,6 +515,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($notification->getRecipient() === $this) {
                 $notification->setRecipient(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TaskTimeTracking>
+     */
+    public function getTimeTrackings(): Collection
+    {
+        return $this->timeTrackings;
+    }
+
+    public function addTimeTracking(TaskTimeTracking $timeTracking): static
+    {
+        if (!$this->timeTrackings->contains($timeTracking)) {
+            $this->timeTrackings->add($timeTracking);
+            $timeTracking->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTimeTracking(TaskTimeTracking $timeTracking): static
+    {
+        if ($this->timeTrackings->removeElement($timeTracking)) {
+            // set the owning side to null (unless already changed)
+            if ($timeTracking->getUser() === $this) {
+                $timeTracking->setUser(null);
             }
         }
 
