@@ -251,6 +251,11 @@ class TaskRepository extends ServiceEntityRepository
                ->setParameter('tagId', $criteria['tag']);
         }
         
+        if (!empty($criteria['hideCompleted']) && $criteria['hideCompleted']) {
+            $qb->andWhere('t.status != :completedStatus')
+               ->setParameter('completedStatus', 'completed');
+        }
+        
         if (!empty($criteria['sortBy'])) {
             $allowedSortFields = ['title', 'createdAt', 'dueDate', 'priority', 'status'];
             $direction = (!empty($criteria['sortDirection']) && strtoupper($criteria['sortDirection']) === 'ASC') ? 'ASC' : 'DESC';

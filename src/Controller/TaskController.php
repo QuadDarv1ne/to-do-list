@@ -359,6 +359,12 @@ class TaskController extends AbstractController
         }
         $criteria['user'] = $user;
         
+        // Add hide completed filter to criteria
+        $hideCompleted = $request->query->get('hide_completed', false);
+        if ($hideCompleted) {
+            $criteria['hideCompleted'] = true;
+        }
+        
         // Perform search
         $tasks = $taskRepository->searchTasks($criteria);
         

@@ -181,26 +181,27 @@
                             <label for="quick-task-category" class="form-label">Категория</label>
                             <select class="form-select" id="quick-task-category">
                                 <option value="">Без категории</option>
-                                {% for category in app.user.taskCategories %}
-                                    <option value="{{ category.id }}">{{ category.name }}</option>
-                                {% endfor %}
+                                {% if app.user %}
+                                    {% for category in app.user.taskCategories %}
+                                        <option value="{{ category.id }}">{{ category.name }}</option>
+                                    {% endfor %}
+                                {% endif %}
                             </select>
                         </div>
                         <div class="mb-3">
                             <label for="quick-task-assigned-user" class="form-label">Назначить пользователю</label>
                             <select class="form-select" id="quick-task-assigned-user">
                                 <option value="">Назначить себе</option>
-                                {% for user in app.user.taskUsers %}
-                                    <option value="{{ user.id }}">{{ user.fullName }}</option>
-                                {% endfor %}
+                                {% if app.user %}
+                                    <option value="{{ app.user.id }}">{{ app.user.fullName }}</option>
+                                    <!-- This will be populated dynamically via JavaScript -->
+                                {% endif %}
                             </select>
                         </div>
                         <div class="mb-3">
                             <label for="quick-task-tags" class="form-label">Теги</label>
                             <select class="form-select" id="quick-task-tags" multiple>
-                                {% for tag in app.user.taskTags %}
-                                    <option value="{{ tag.id }}">{{ tag.name }}</option>
-                                {% endfor %}
+                                <!-- This will be populated dynamically via JavaScript -->
                             </select>
                         </div>
                     </form>
