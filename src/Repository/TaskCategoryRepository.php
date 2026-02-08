@@ -3,7 +3,6 @@
 namespace App\Repository;
 
 use App\Entity\TaskCategory;
-use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -17,18 +16,49 @@ class TaskCategoryRepository extends ServiceEntityRepository
         parent::__construct($registry, TaskCategory::class);
     }
 
-    /**
-     * Find categories by owner user
-     */
-    public function findByOwner(User $owner): array
+    public function findByUser($user)
     {
         return $this->createQueryBuilder('tc')
-            ->andWhere('tc.owner = :owner')
-            ->setParameter('owner', $owner)
+            ->andWhere('tc.user = :user')
+            ->setParameter('user', $user)
             ->orderBy('tc.name', 'ASC')
             ->getQuery()
             ->getResult();
     }
 
-    // Add more methods as needed
+    public function findOneByUser($category_id, $user)
+    {
+        return $this->createQueryBuilder('tc')
+            ->andWhere('tc.id = :id')
+            ->andWhere('tc.user = :user')
+            ->setParameter('id', $category_id)
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    //    /**
+    //     * @return TaskCategory[] Returns an array of TaskCategory objects
+    //     */
+    //    public function findByExampleField($value): array
+    //    {
+    //        return $this->createQueryBuilder('t')
+    //            ->andWhere('t.exampleField = :val')
+    //            ->setParameter('val', $value)
+    //            ->orderBy('t.id', 'ASC')
+    //            ->setMaxResults(10)
+    //            ->getQuery()
+    //            ->getResult()
+    //        ;
+    //    }
+
+    //    public function findOneBySomeField($value): ?TaskCategory
+    //    {
+    //        return $this->createQueryBuilder('t')
+    //            ->andWhere('t.exampleField = :val')
+    //            ->setParameter('val', $value)
+    //            ->getQuery()
+    //            ->getOneOrNullResult()
+    //        ;
+    //    }
 }

@@ -10,6 +10,7 @@ use App\Repository\CommentRepository;
 use App\Repository\ActivityLogRepository;
 use App\Repository\TaskRecurrenceRepository;
 use App\Repository\TaskNotificationRepository;
+use App\Repository\TaskCategoryRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -20,7 +21,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class DashboardController extends AbstractController
 {
     #[Route('/', name: 'app_dashboard', methods: ['GET'])]
-    public function index(TaskRepository $taskRepository, UserRepository $userRepository, CommentRepository $commentRepository, ActivityLogRepository $activityLogRepository, TaskRecurrenceRepository $taskRecurrenceRepository, TaskNotificationRepository $taskNotificationRepository): Response
+    public function index(TaskRepository $taskRepository, UserRepository $userRepository, CommentRepository $commentRepository, ActivityLogRepository $activityLogRepository, TaskRecurrenceRepository $taskRecurrenceRepository, TaskNotificationRepository $taskNotificationRepository, TaskCategoryRepository $categoryRepository): Response
     {
         $user = $this->getUser();
         
@@ -120,6 +121,9 @@ class DashboardController extends AbstractController
                 'recipient' => $user
             ], ['createdAt' => 'DESC'], 5);
         };
+
+        // Get user's categories
+        $categories = $categoryRepository->findByUser($user);
         
         return $this->render('dashboard/index.html.twig', [
             'user' => $user,
@@ -131,6 +135,7 @@ class DashboardController extends AbstractController
             'upcoming_recurring_tasks' => $upcomingRecurringTasks,
             'unread_notifications_count' => $unreadNotificationsCount,
             'recent_notifications' => $recentNotifications,
+            'categories' => $categories,
         ]);
     }
     

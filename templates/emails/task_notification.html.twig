@@ -2,43 +2,281 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ notification.subject }}</title>
     <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .header { background-color: #f8f9fa; padding: 20px; text-align: center; }
-        .content { padding: 20px; }
-        .footer { background-color: #f8f9fa; padding: 15px; text-align: center; font-size: 0.9em; color: #666; }
-        .button { display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; margin-top: 15px; }
+        /* Base styles */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+        }
+        
+        /* Container */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        
+        /* Header */
+        .header { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px 20px;
+            text-align: center;
+            color: white;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        /* Content */
+        .content { 
+            padding: 30px;
+        }
+        
+        .greeting {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .message {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            margin: 20px 0;
+        }
+        
+        .task-info {
+            background-color: #f0f7ff;
+            border: 1px solid #d1e7ff;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .task-info h3 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        
+        .task-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #546e7a;
+            font-size: 14px;
+        }
+        
+        /* Button */
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .button { 
+            display: inline-block; 
+            padding: 12px 30px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; 
+            text-decoration: none; 
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        /* Footer */
+        .footer { 
+            background-color: #f8f9fa; 
+            padding: 20px; 
+            text-align: center; 
+            font-size: 0.9em; 
+            color: #666;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .footer-links {
+            margin: 10px 0;
+        }
+        
+        .footer-links a {
+            color: #667eea;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 600px) {
+            .content { 
+                padding: 20px; 
+            }
+            
+            .header { 
+                padding: 20px 15px; 
+            }
+            
+            .header h1 {
+                font-size: 20px;
+            }
+            
+            .task-meta {
+                flex-direction: column;
+                gap: 8px;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>{{ notification.subject }}</h1>
-    </div>
-    
-    <div class="content">
-        <p>Здравствуйте, {{ recipient.fullName }}!</p>
+    <div class="container">
+        <div class="header">
+            <h1>{{ notification.subject }}</h1>
+        </div>
         
-        <p>{{ notification.message|nl2br }}</p>
+        <div class="content">
+            <p class="greeting">Здравствуйте, {{ recipient.fullName }}!</p>
+            
+            <div class="message">
+                {{ notification.message|nl2br }}
+            </div>
+            
+            <!-- Контекстная информация в зависимости от типа уведомления -->
+            {% if notification.type == 'assignment' %}
+                <div class="task-info">
+                    <h3>📋 Новая назначенная задача</h3>
+                    <p>Вам назначена новая задача. Пожалуйста, проверьте детали и приступите к выполнению в установленные сроки.</p>
+                    
+                    {% if task is defined and task %}
+                        <div class="task-meta">
+                            {% if task.deadline %}
+                                <div class="meta-item">
+                                    <strong>📅 Срок:</strong> {{ task.deadline|date('d.m.Y') }}
+                                </div>
+                            {% endif %}
+                            
+                            {% if task.priority %}
+                                <div class="meta-item">
+                                    <strong>⚠️ Приоритет:</strong> 
+                                    <span style="color: {% if task.priority == 'high' %}#dc3545{% elseif task.priority == 'medium' %}#ffc107{% else %}#28a745{% endif %}">
+                                        {{ task.priority|trans }}
+                                    </span>
+                                </div>
+                            {% endif %}
+                            
+                            {% if task.creator %}
+                                <div class="meta-item">
+                                    <strong>👤 Назначил:</strong> {{ task.creator.fullName }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+            {% elseif notification.type == 'update' %}
+                <div class="task-info">
+                    <h3>🔄 Обновление задачи</h3>
+                    <p>В задачу, за которой вы наблюдаете или в которой участвуете, были внесены изменения.</p>
+                </div>
+                
+            {% elseif notification.type == 'completion' %}
+                <div class="task-info">
+                    <h3>✅ Задача выполнена</h3>
+                    <p>Задача, которую вы назначили, была успешно выполнена исполнителем.</p>
+                    
+                    {% if task is defined and task and task.completedBy %}
+                        <p><strong>Исполнитель:</strong> {{ task.completedBy.fullName }}</p>
+                    {% endif %}
+                </div>
+                
+            {% elseif notification.type == 'reminder' %}
+                <div class="task-info">
+                    <h3>⏰ Напоминание о задаче</h3>
+                    <p>Напоминаем о необходимости выполнения задачи в установленные сроки.</p>
+                    
+                    {% if task is defined and task and task.deadline %}
+                        <div class="meta-item">
+                            <strong>⏳ До срока выполнения:</strong> 
+                            {% set daysLeft = task.deadline.diff(notification.createdAt).days %}
+                            {% if daysLeft == 0 %}
+                                <span style="color: #dc3545;">Сегодня</span>
+                            {% elseif daysLeft == 1 %}
+                                <span style="color: #fd7e14;">1 день</span>
+                            {% elseif daysLeft < 3 %}
+                                <span style="color: #fd7e14;">{{ daysLeft }} дня</span>
+                            {% else %}
+                                {{ daysLeft }} дней
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+            {% else %}
+                <div class="task-info">
+                    <h3>📢 Системное уведомление</h3>
+                    <p>Это автоматическое уведомление от системы управления задачами.</p>
+                </div>
+            {% endif %}
+            
+            <!-- Кнопка для просмотра задачи (если задача существует) -->
+            {% if task is defined and task %}
+                <div class="button-container">
+                    <a href="{{ url('app_task_show', {'id': task.id}) }}" class="button">
+                        {% if notification.type == 'assignment' %}
+                            Перейти к задаче
+                        {% elseif notification.type == 'update' %}
+                            Посмотреть изменения
+                        {% elseif notification.type == 'completion' %}
+                            Посмотреть результат
+                        {% else %}
+                            Открыть задачу
+                        {% endif %}
+                    </a>
+                </div>
+            {% endif %}
+            
+            <p style="text-align: center; color: #666; margin-top: 20px;">
+                С уважением,<br>
+                <strong>Система управления задачами</strong>
+            </p>
+        </div>
         
-        {% if notification.type == 'assignment' %}
-            <p>Пожалуйста, проверьте назначенную вам задачу и приступите к её выполнению.</p>
-        {% elseif notification.type == 'update' %}
-            <p>Обратите внимание на изменения в задаче.</p>
-        {% elseif notification.type == 'completion' %}
-            <p>Задача, которую вы назначили, была успешно выполнена.</p>
-        {% elseif notification.type == 'reminder' %}
-            <p>Напоминаем о необходимости выполнения задачи.</p>
-        {% endif %}
-        
-        <a href="{{ url('app_task_show', {'id': task.id}) }}" class="button">Просмотреть задачу</a>
-        
-        <p>С уважением,<br>Система управления задачами</p>
-    </div>
-    
-    <div class="footer">
-        <p>Это автоматическое сообщение. Пожалуйста, не отвечайте на него.</p>
-        <p>&copy; {{ 'now'|date('Y') }} Система управления задачами. Все права защищены.</p>
+        <div class="footer">
+            <p>Это автоматическое сообщение. Пожалуйста, не отвечайте на него.</p>
+            
+            <div class="footer-links">
+                {% if recipient is defined and recipient %}
+                    <a href="{{ url('app_profile_notifications') }}">Настройки уведомлений</a> |
+                    <a href="{{ url('app_task_index') }}">Все задачи</a>
+                {% endif %}
+            </div>
+            
+            <p>&copy; {{ 'now'|date('Y') }} Система управления задачми. Все права защищены.</p>
+            
+            <p style="font-size: 0.8em; color: #999; margin-top: 10px;">
+                ID уведомления: {{ notification.id }}<br>
+                {{ notification.createdAt|date('d.m.Y H:i') }}
+            </p>
+        </div>
     </div>
 </body>
 </html>

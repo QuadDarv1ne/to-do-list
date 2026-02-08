@@ -15,52 +15,37 @@ class ChangePasswordType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('currentPassword', PasswordType::class, [
-                'label' => 'Текущий пароль',
-                'attr' => [
-                    'class' => 'form-control',
-                    'placeholder' => 'Введите текущий пароль'
-                ],
-                'mapped' => false,
-            ])
-            ->add('newPassword', RepeatedType::class, [
+            ->add('plainPassword', RepeatedType::class, [
                 'type' => PasswordType::class,
-                'invalid_message' => 'Пароли должны совпадать',
                 'options' => [
                     'attr' => [
-                        'class' => 'form-control',
+                        'autocomplete' => 'new-password',
                     ],
                 ],
-                'required' => true,
                 'first_options' => [
+                    'constraints' => [
+                        new NotBlank([
+                            'message' => 'Введите пароль',
+                        ]),
+                        new Length([
+                            'min' => 6,
+                            'minMessage' => 'Ваш пароль должен содержать минимум {{ limit }} символов',
+                            'max' => 4096,
+                        ]),
+                    ],
                     'label' => 'Новый пароль',
-                    'attr' => [
-                        'class' => 'form-control',
-                        'placeholder' => 'Введите новый пароль'
-                    ]
                 ],
                 'second_options' => [
-                    'label' => 'Подтвердите новый пароль',
-                    'attr' => [
-                        'class' => 'form-control',
-                        'placeholder' => 'Подтвердите новый пароль'
-                    ]
+                    'label' => 'Повторите пароль',
                 ],
-                'constraints' => [
-                    new NotBlank(message: 'Пожалуйста, введите пароль'),
-                    new Length(
-                        min: 6,
-                        minMessage: 'Пароль должен содержать минимум {{ limit }} символов',
-                        max: 4096,
-                    ),
-                ],
-            ]);
+                'invalid_message' => 'Пароли не совпадают',
+                'mapped' => false,
+            ])
+        ;
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults([
-            // Configure your form options here
-        ]);
+        $resolver->setDefaults([]);
     }
 }

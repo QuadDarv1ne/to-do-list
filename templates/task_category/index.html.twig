@@ -3,70 +3,87 @@
 {% block title %}Категории задач{% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <div class="row">
+<div class="container-fluid">
+    <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="h3"><i class="fas fa-tags me-2"></i>Категории задач</h2>
-                <a href="{{ path('app_task_category_new') }}" class="btn btn-primary">
-                    <i class="fas fa-plus me-2"></i>Создать категорию
-                </a>
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="mb-0">
+                        <i class="fas fa-tags me-3 text-primary"></i>
+                        Категории задач
+                    </h1>
+                    <p class="text-muted mb-0">Управляйте категориями для организации ваших задач</p>
+                </div>
+                <div>
+                    <a href="{{ path('app_task_category_new') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-plus me-2"></i>
+                        Создать категорию
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 
     {% if categories %}
     <div class="row">
-        <div class="col-12">
-            <div class="table-responsive">
-                <table class="table table-striped table-hover">
-                    <thead>
-                        <tr>
-                            <th>Название</th>
-                            <th>Описание</th>
-                            <th>Дата создания</th>
-                            <th>Действия</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for category in categories %}
-                        <tr>
-                            <td>
-                                <strong>{{ category.name }}</strong>
-                            </td>
-                            <td>
-                                {% if category.description %}
-                                    {{ category.description|truncate(100) }}
-                                {% else %}
-                                    <span class="text-muted">Нет описания</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ category.createdAt|date('d.m.Y H:i') }}</td>
-                            <td>
-                                <a href="{{ path('app_task_category_edit', {'id': category.id}) }}" class="btn btn-sm btn-outline-primary me-1">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <form method="post" action="{{ path('app_task_category_delete', {'id': category.id}) }}" style="display: inline-block;" onsubmit="return confirm('Вы уверены, что хотите удалить эту категорию?');">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ category.id) }}">
-                                    <button class="btn btn-sm btn-outline-danger" type="submit">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+        {% for category in categories %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h5 class="card-title mb-0">{{ category.name }}</h5>
+                        <div class="dropdown">
+                            <button class="btn btn-light btn-sm" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="{{ path('app_task_category_edit', {'id': category.id}) }}">
+                                        <i class="fas fa-edit me-2"></i>Редактировать
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="#" 
+                                       onclick="if(confirm('Удалить категорию?')) { window.location='{{ path('app_task_category_delete', {'id': category.id}) }}'; }">
+                                        <i class="fas fa-trash me-2"></i>Удалить
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    {% if category.description %}
+                        <p class="card-text text-muted mb-3">
+                            {{ category.description|slice(0, 100) }}{% if category.description|length > 100 %}...{% endif %}
+                        </p>
+                    {% else %}
+                        <p class="card-text text-muted mb-3">Нет описания</p>
+                    {% endif %}
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            <i class="fas fa-calendar me-1"></i>
+                            {{ category.createdAt|date('d.m.Y') }}
+                        </small>
+                        <span class="badge bg-secondary">
+                            {{ category.tasks|length }} задач
+                        </span>
+                    </div>
+                </div>
             </div>
         </div>
+        {% endfor %}
     </div>
     {% else %}
     <div class="row">
         <div class="col-12">
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle me-2"></i>
-                У вас пока нет ни одной категории задач.
-                <a href="{{ path('app_task_category_new') }}">Создайте первую категорию</a>.
+            <div class="empty-state py-5">
+                <i class="fas fa-tags mb-3"></i>
+                <h4 class="mb-3">Нет категорий</h4>
+                <p class="mb-4">Создайте первую категорию для организации ваших задач</p>
+                <a href="{{ path('app_task_category_new') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus me-2"></i>Создать категорию
+                </a>
             </div>
         </div>
     </div>

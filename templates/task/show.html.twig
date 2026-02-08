@@ -2,55 +2,62 @@
 
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ task.name }}{% endblock %}
+{% block title %}{{ task.title }}{% endblock %}
 
 {% block body %}
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center bg-white">
                     <h3 class="card-title mb-0">
-                        <i class="fas fa-tasks me-2"></i>{{ task.name }}
+                        <i class="fas fa-tasks me-2 text-primary"></i>{{ task.title }}
                     </h3>
-                    {% if task.isDone %}
-                        <span class="badge bg-success">Выполнено</span>
-                    {% else %}
-                        {% if task.isOverdue %}
-                            <span class="badge bg-danger">Просрочено</span>
-                        {% else %}
-                            <span class="badge bg-warning text-dark">В работе</span>
-                        {% endif %}
-                    {% endif %}
+                    <span class="badge badge-{{ task.status|lower }}">
+                        {{ task.status|trans }}
+                    </span>
                 </div>
                 <div class="card-body">
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <p><strong>Название:</strong> {{ task.name }}</p>
+                            <p><strong>Название:</strong> {{ task.title }}</p>
                         </div>
                         <div class="col-md-6">
                             <p><strong>Статус:</strong> 
-                                {% if task.isDone %}
-                                    <span class="badge bg-success">Выполнено</span>
-                                {% else %}
-                                    {% if task.isOverdue %}
-                                        <span class="badge bg-danger">Просрочено</span>
-                                    {% else %}
-                                        <span class="badge bg-warning text-dark">В работе</span>
-                                    {% endif %}
-                                {% endif %}
+                                <span class="badge badge-{{ task.status|lower }}">
+                                    {{ task.status|trans }}
+                                </span>
                             </p>
                         </div>
                     </div>
                     
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <p><strong>Приоритет:</strong> <span class="{{ task.priorityClass }}">{{ task.priorityLabel }}</span></p>
+                            <p><strong>Приоритет:</strong> 
+                                {% if task.priority == 'high' %}
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>Высокий
+                                    </span>
+                                {% elseif task.priority == 'medium' %}
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="fas fa-exclamation me-1"></i>Средний
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-arrow-down me-1"></i>Низкий
+                                    </span>
+                                {% endif %}
+                            </p>
                         </div>
                         <div class="col-md-6">
                             <p><strong>Срок:</strong> 
-                                {% if task.deadline %}
-                                    <span {% if task.isOverdue %}class="text-danger fw-bold"{% endif %}>{{ task.deadline|date('d.m.Y') }}</span>
+                                {% if task.dueDate %}
+                                    <span {% if task.isOverdue %}class="text-danger fw-bold"{% endif %}>
+                                        {{ task.dueDate|date('d.m.Y') }}
+                                        {% if task.isOverdue %}
+                                            <span class="badge bg-danger ms-1">Просрочено</span>
+                                        {% endif %}
+                                    </span>
                                 {% else %}
                                     <span class="text-muted">Не указан</span>
                                 {% endif %}
@@ -58,29 +65,35 @@
                         </div>
                     </div>
                     
-                    {% if task.categories|length > 0 %}
+                    {% if task.category %}
                     <div class="row mb-3">
                         <div class="col-12">
-                            <p><strong>Категории:</strong></p>
-                            <div class="d-flex flex-wrap gap-2">
-                                {% for category in task.categories %}
-                                    <span class="badge bg-secondary">{{ category.name }}</span>
-                                {% endfor %}
-                            </div>
+                            <p><strong>Категория:</strong></p>
+                            <span class="badge bg-secondary">{{ task.category.name }}</span>
                         </div>
                     </div>
                     {% endif %}
                     
                     <div class="mb-3">
                         <p><strong>Описание:</strong></p>
-                        <div class="border p-3 bg-light">
-                            {{ task.description|nl2br }}
+                        <div class="border p-3 bg-light rounded">
+                            {% if task.description %}
+                                {{ task.description|nl2br }}
+                            {% else %}
+                                <span class="text-muted">Описание отсутствует</span>
+                            {% endif %}
                         </div>
                     </div>
                     
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <p><strong>Назначена:</strong> {{ task.assignedUser.fullName }}</p>
+                            <p><strong>Назначена:</strong> 
+                                {% if task.assignedUser %}
+                                    {{ task.assignedUser.fullName }}
+                                {% else %}
+                                    <span class="text-muted">Не назначена</span>
+                                {% endif %}
+                            </p>
                         </div>
                         <div class="col-md-6">
                             <p><strong>Создана:</strong> {{ task.createdAt|date('d.m.Y H:i') }}</p>
@@ -89,97 +102,18 @@
                     
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <p><strong>Обновлена:</strong> {{ task.updateAt|date('d.m.Y H:i') }}</p>
+                            <p><strong>Обновлена:</strong> {{ task.updatedAt|date('d.m.Y H:i') }}</p>
                         </div>
                     </div>
                                     
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <a href="{{ path('app_task_index') }}" class="btn btn-secondary me-md-2">
+                        <a href="{{ path('app_task_index') }}" class="btn btn-outline-secondary me-md-2">
                             <i class="fas fa-arrow-left me-2"></i>Назад
                         </a>
                         <a href="{{ path('app_task_edit', {'id': task.id}) }}" class="btn btn-warning me-md-2">
                             <i class="fas fa-edit me-2"></i>Редактировать
                         </a>
-                        <a href="{{ path('app_task_time_tracking', {'id': task.id}) }}" class="btn btn-info me-md-2">
-                            <i class="fas fa-clock me-2"></i>Учет времени
-                        </a>
-                        <a href="{{ path('app_task_recurrence', {'id': task.id}) }}" class="btn btn-outline-secondary me-md-2">
-                            <i class="fas fa-sync-alt me-2"></i>Повторение
-                        </a>
-                                        
-                        {# Comments Section #}
-                        {% if comments is defined %}
-                        <div class="card mt-4">
-                            <div class="card-header">
-                                <h5 class="mb-0">
-                                    <i class="fas fa-comments me-2"></i>
-                                    Комментарии ({{ comments|length }})
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                {% if comments is empty %}
-                                    <p class="text-muted fst-italic">К этой задаче пока нет комментариев.</p>
-                                {% else %}
-                                    <div class="comments-list">
-                                        {% for comment in comments %}
-                                            <div class="comment-item mb-3 p-3 border-start border-primary border-3 bg-light">
-                                                <div class="d-flex justify-content-between align-items-start">
-                                                    <div>
-                                                        <h6 class="mb-1">
-                                                            <i class="fas fa-user-circle me-1"></i>
-                                                            {{ comment.author.fullName }}
-                                                        </h6>
-                                                        <small class="text-muted">
-                                                            <i class="far fa-clock me-1"></i>
-                                                            {{ comment.createdAt|date('d.m.Y H:i') }}
-                                                        </small>
-                                                    </div>
-                                                    {% if app.user == comment.author or app.user.hasRole('ROLE_ADMIN') %}
-                                                        <form method="post" action="{{ path('app_comment_delete', {'id': comment.id}) }}" 
-                                                              onsubmit="return confirm('Вы уверены, что хотите удалить этот комментарий?')" 
-                                                              class="d-inline">
-                                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ comment.id) }}">
-                                                            <button type="submit" class="btn btn-sm btn-outline-danger">
-                                                                <i class="fas fa-trash"></i>
-                                                            </button>
-                                                        </form>
-                                                    {% endif %}
-                                                </div>
-                                                <div class="mt-2">
-                                                    <p class="mb-0">{{ comment.content|nl2br }}</p>
-                                                </div>
-                                            </div>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                                                
-                                {# Comment form #}
-                                {% if comment_form is defined %}
-                                    <div class="mt-4">
-                                        <h6 class="mb-3">
-                                            <i class="fas fa-comment-dots me-2"></i>
-                                            Добавить комментарий
-                                        </h6>
-                                        {{ form_start(comment_form) }}
-                                            <div class="mb-3">
-                                                {{ form_widget(comment_form.content, {'attr': {'class': 'form-control', 'rows': 3}}) }}
-                                                {{ form_errors(comment_form.content) }}
-                                            </div>
-                                            <input type="hidden" name="taskId" value="{{ task.id }}">
-                                            <div class="d-grid">
-                                                <button type="submit" class="btn btn-primary">
-                                                    <i class="fas fa-paper-plane me-2"></i>
-                                                    Отправить комментарий
-                                                </button>
-                                            </div>
-                                        {{ form_end(comment_form) }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% endif %}
-                                    
-                        {% if not task.isDone %}
+                        {% if task.status != 'completed' %}
                             <form action="{{ path('app_task_toggle', {'id': task.id}) }}" 
                                   method="post" 
                                   class="d-inline">
@@ -198,18 +132,6 @@
                                 </button>
                             </form>
                         {% endif %}
-                    </div>
-                    
-                    <div class="mt-3 text-end">
-                        <form action="{{ path('app_task_delete', {'id': task.id}) }}" 
-                              method="post" 
-                              class="d-inline"
-                              onsubmit="return confirm('Вы уверены, что хотите удалить эту задачу? Все данные будут потеряны.')">
-                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ task.id) }}">
-                            <button type="submit" class="btn btn-danger">
-                                <i class="fas fa-trash me-2"></i>Удалить задачу
-                            </button>
-                        </form>
                     </div>
                 </div>
             </div>

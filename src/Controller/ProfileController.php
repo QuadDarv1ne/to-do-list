@@ -26,21 +26,11 @@ class ProfileController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $data = $form->getData();
-            
-            // Check current password
-            if (!$passwordHasher->isPasswordValid($user, $data['currentPassword'])) {
-                $this->addFlash('error', 'Текущий пароль введен неправильно');
-                return $this->redirectToRoute('app_profile_change_password');
-            }
+            $plainPassword = $form->get('plainPassword')->getData();
             
             // Set new password
-            $newPassword = $data['newPassword'];
-            $hashedPassword = $passwordHasher->hashPassword($user, $newPassword);
+            $hashedPassword = $passwordHasher->hashPassword($user, $plainPassword);
             $user->setPassword($hashedPassword);
-            
-            // Update password changed date
-            $user->setPasswordChangedAt(new \DateTime());
             
             $entityManager->flush();
             
