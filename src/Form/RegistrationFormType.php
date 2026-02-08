@@ -49,8 +49,8 @@ class RegistrationFormType extends AbstractType
                     new NotBlank(),
                     new Length([
                         'min' => 3,
-                        'minMessage' => 'Логин должен содержать минимум {{ limit }} символа',
                         'max' => 50,
+                        'minMessage' => 'Логин должен содержать минимум {{ limit }} символа',
                     ]),
                 ],
             ])
@@ -82,8 +82,8 @@ class RegistrationFormType extends AbstractType
                         new NotBlank(),
                         new Length([
                             'min' => 6,
-                            'minMessage' => 'Пароль должен содержать минимум {{ limit }} символов',
                             'max' => 4096,
+                            'minMessage' => 'Пароль должен содержать минимум {{ limit }} символов',
                         ]),
                     ],
                 ],

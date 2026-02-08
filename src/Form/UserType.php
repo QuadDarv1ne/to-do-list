@@ -126,8 +126,8 @@ class UserType extends AbstractType
                     new NotBlank(),
                     new Length([
                         'min' => 6,
-                        'minMessage' => 'Пароль должен содержать минимум {{ limit }} символов',
                         'max' => 4096,
+                        'minMessage' => 'Пароль должен содержать минимум {{ limit }} символов',
                     ]),
                 ],
             ]);
