@@ -5,8 +5,10 @@ namespace App\Entity;
 use App\Repository\TaskRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\{PrePersist, PreUpdate};
 
 #[ORM\Entity(repositoryClass: TaskRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class Task
 {
     #[ORM\Id]
@@ -183,5 +185,18 @@ class Task
         }
         
         return $this->deadline < new \DateTimeImmutable();
+    }
+    
+    #[PrePersist]
+    public function onPrePersist(): void
+    {
+        $this->createdAt = new \DateTimeImmutable();
+        $this->updateAt = new \DateTimeImmutable();
+    }
+    
+    #[PreUpdate]
+    public function onPreUpdate(): void
+    {
+        $this->updateAt = new \DateTimeImmutable();
     }
 }
