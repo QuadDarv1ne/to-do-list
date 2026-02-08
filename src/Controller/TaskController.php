@@ -45,8 +45,10 @@ class TaskController extends AbstractController
             $task->setCreatedAt(new \DateTimeImmutable());
             $task->setUpdateAt(new \DateTimeImmutable());
             
-            // Привязываем задачу к текущему пользователю
-            $task->setAssignedUser($this->getUser());
+            // Если пользователь не выбрал исполнителя, назначаем текущего пользователя
+            if (!$task->getAssignedUser()) {
+                $task->setAssignedUser($this->getUser());
+            }
             
             $entityManager->persist($task);
             $entityManager->flush();

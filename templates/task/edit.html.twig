@@ -1,0 +1,48 @@
+{# templates/task/edit.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Редактировать задачу{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-edit me-2"></i>Редактировать задачу
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form) }}
+                    <div class="row">
+                        <div class="col-md-12">
+                            {{ form_row(form.name) }}
+                        </div>
+                        <div class="col-md-12">
+                            {{ form_row(form.description) }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form_row(form.isDone) }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form_row(form.assignedUser) }}
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ path('app_task_index') }}" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-arrow-left me-2"></i>Назад
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Обновить
+                        </button>
+                    </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

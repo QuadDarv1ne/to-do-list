@@ -30,7 +30,7 @@ class Task
     private ?\DateTimeImmutable $updateAt = null;
     
         #[ORM\ManyToOne(inversedBy: 'tasks')]
-        #[ORM\JoinColumn(nullable: false)]
+        #[ORM\JoinColumn(nullable: true)]
         private ?User $assignedUser = null;
 
     public function getId(): ?int
