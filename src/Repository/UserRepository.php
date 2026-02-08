@@ -84,23 +84,31 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     {
         $qb = $this->createQueryBuilder('u');
         
+        $totalUsers = $qb->select('COUNT(u.id)')->getQuery()->getSingleScalarResult();
+        
+        $activeUsers = $qb->select('COUNT(u.id)')
+            ->andWhere('u.isActive = :active')
+            ->setParameter('active', true)
+            ->getQuery()
+            ->getSingleScalarResult();
+            
+        $adminUsers = $qb->select('COUNT(u.id)')
+            ->andWhere('JSON_CONTAINS(u.roles, :role) = 1')
+            ->setParameter('role', json_encode('ROLE_ADMIN'))
+            ->getQuery()
+            ->getSingleScalarResult();
+            
+        $managerUsers = $qb->select('COUNT(u.id)')
+            ->andWhere('JSON_CONTAINS(u.roles, :role) = 1')
+            ->setParameter('role', json_encode('ROLE_MANAGER'))
+            ->getQuery()
+            ->getSingleScalarResult();
+        
         return [
-            'total' => $qb->select('COUNT(u.id)')->getQuery()->getSingleScalarResult(),
-            'active' => $qb->select('COUNT(u.id)')
-                ->andWhere('u.isActive = :active')
-                ->setParameter('active', true)
-                ->getQuery()
-                ->getSingleScalarResult(),
-            'admins' => $qb->select('COUNT(u.id)')
-                ->andWhere('JSON_CONTAINS(u.roles, :role) = 1')
-                ->setParameter('role', json_encode('ROLE_ADMIN'))
-                ->getQuery()
-                ->getSingleScalarResult(),
-            'managers' => $qb->select('COUNT(u.id)')
-                ->andWhere('JSON_CONTAINS(u.roles, :role) = 1')
-                ->setParameter('role', json_encode('ROLE_MANAGER'))
-                ->getQuery()
-                ->getSingleScalarResult(),
+            'total' => $totalUsers,
+            'active' => $activeUsers,
+            'admins' => $adminUsers,
+            'managers' => $managerUsers,
         ];
     }
 

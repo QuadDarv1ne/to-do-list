@@ -83,17 +83,25 @@ class LoginAuthenticator extends AbstractAuthenticator implements Authentication
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
+        // Log successful authentication
+        error_log('Authentication successful for user: ' . $token->getUser()->getUserIdentifier());
+        
         // Перенаправляем на предыдущую страницу или на дашборд
         $targetPath = $this->getTargetPath($request->getSession(), $firewallName);
         if ($targetPath) {
+            error_log('Redirecting to target path: ' . $targetPath);
             return new RedirectResponse($targetPath);
         }
 
-        return new RedirectResponse($this->urlGenerator->generate('app_dashboard'));
+        // Явно указываем маршрут дашборда
+        $dashboardUrl = $this->urlGenerator->generate('app_dashboard');
+        error_log('Redirecting to dashboard: ' . $dashboardUrl);
+        return new RedirectResponse($dashboardUrl);
     }
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
     {
+        error_log('Authentication failed: ' . $exception->getMessage());
         $request->getSession()->set(SecurityRequestAttributes::AUTHENTICATION_ERROR, $exception);
         
         return new RedirectResponse($this->urlGenerator->generate(self::LOGIN_ROUTE));
