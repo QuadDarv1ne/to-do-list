@@ -2,6 +2,7 @@
 
 namespace App\Form;
 
+use App\Entity\Tag;
 use App\Entity\TaskCategory;
 use App\Entity\User;
 use App\Repository\TaskCategoryRepository;
@@ -131,6 +132,22 @@ class TaskType extends AbstractType
                 'constraints' => [
                     new NotBlank()
                 ]
+            ])
+            ->add('tags', EntityType::class, [
+                'label' => 'Теги',
+                'class' => Tag::class,
+                'choice_label' => 'name',
+                'required' => false,
+                'multiple' => true,
+                'expanded' => false,
+                'attr' => [
+                    'class' => 'form-select',
+                    'data-placeholder' => 'Выберите теги...'
+                ],
+                'query_builder' => function(\Doctrine\ORM\EntityRepository $er) {
+                    return $er->createQueryBuilder('t')
+                        ->orderBy('t.name', 'ASC');
+                }
             ])
         ;
     }
