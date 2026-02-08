@@ -139,6 +139,48 @@
             </div>
         </div>
     </div>
+    
+    <!-- Tag Distribution Chart -->
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tags me-2 text-success"></i>
+                        Распределение задач по тегам
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="tagChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tag Cloud -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cloud me-2 text-info"></i>
+                        Облако тегов
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if tag_stats is defined and tag_stats is not empty %}
+                        <div class="tag-cloud">
+                            {% for tag_stat in tag_stats|slice(0, 15) %}
+                                <span class="tag-item" style="font-size: {{ 14 + (tag_stat.taskCount * 2) }}px; background-color: {{ tag_stat.color }}; color: white; padding: 5px 10px; margin: 3px; border-radius: 4px; display: inline-block;">
+                                    {{ tag_stat.name }} ({{ tag_stat.taskCount }})
+                                </span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">Нет тегов для отображения</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="row">
         <!-- Recent Tasks -->
@@ -399,12 +441,81 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+    
+    // Task Tag Distribution Chart
+    {% if tag_stats is defined and tag_stats is not empty %}
+    const tagCtx = document.getElementById('tagChart').getContext('2d');
+    const tagChart = new Chart(tagCtx, {
+        type: 'doughnut',
+        data: {
+            labels: [
+                {% for tag_stat in tag_stats|slice(0, 10) %}
+                    '{{ tag_stat.name }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                data: [
+                    {% for tag_stat in tag_stats|slice(0, 10) %}
+                        {{ tag_stat.taskCount }},
+                    {% endfor %}
+                ],
+                backgroundColor: [
+                    {% for tag_stat in tag_stats|slice(0, 10) %}
+                        '{{ tag_stat.color }}',
+                    {% endfor %}
+                ],
+                borderColor: [
+                    {% for tag_stat in tag_stats|slice(0, 10) %}
+                        'rgba(255, 255, 255, 1)',
+                    {% endfor %}
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.raw || 0;
+                            const total = context.chart.getDatasetMeta(0).total;
+                            const percentage = Math.round((value / total) * 100);
+                            return `${label}: ${value} задач (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+    {% endif %}
 });
 </script>
 
 <style>
 .bg-gradient-primary {
     background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+}
+
+.tag-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+}
+
+.tag-item {
+    transition: transform 0.2s ease;
+}
+
+.tag-item:hover {
+    transform: scale(1.05);
+    cursor: pointer;
 }
 </style>
 {% endblock %}

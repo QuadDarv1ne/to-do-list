@@ -7,6 +7,7 @@ use App\Entity\User;
 use App\Form\TaskType;
 use App\Repository\TaskRepository;
 use App\Repository\TaskCategoryRepository;
+use App\Repository\TagRepository;
 use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -23,7 +24,8 @@ class TaskController extends AbstractController
     public function index(
         Request $request, 
         TaskRepository $taskRepository, 
-        TaskCategoryRepository $categoryRepository
+        TaskCategoryRepository $categoryRepository,
+        TagRepository $tagRepository
     ): Response {
         $user = $this->getUser();
         
@@ -32,6 +34,7 @@ class TaskController extends AbstractController
         $status = $request->query->get('status');
         $priority = $request->query->get('priority');
         $categoryId = $request->query->get('category');
+        $tagId = $request->query->get('tag');
         $sort = $request->query->get('sort', 'createdAt');
         $direction = $request->query->get('direction', 'DESC');
         $page = max(1, (int)$request->query->get('page', 1));
@@ -64,33 +67,61 @@ class TaskController extends AbstractController
                ->setParameter('category', $categoryId);
         }
         
+        if ($tagId) {
+            $qb->join('t.tags', 'jt')
+               ->andWhere('jt.id = :tagId')
+               ->setParameter('tagId', $tagId);
+        }
+        
         // Apply sorting
-        $allowedSorts = ['createdAt', 'priority', 'dueDate', 'title'];
+        $allowedSorts = ['createdAt', 'priority', 'dueDate', 'title', 'tag_count'];
         $allowedDirections = ['ASC', 'DESC'];
         
-        if (in_array($sort, $allowedSorts) && in_array($direction, $allowedDirections)) {
+        if ($sort === 'tag_count') {
+            // Special handling for tag count sorting
+            $qb->select('t, COUNT(tg.id) as HIDDEN tag_count')
+               ->leftJoin('t.tags', 'tg')
+               ->groupBy('t.id')
+               ->orderBy('tag_count', $direction)
+               ->addOrderBy('t.createdAt', 'DESC');
+        } elseif (in_array($sort, $allowedSorts) && in_array($direction, $allowedDirections)) {
             $qb->orderBy('t.' . $sort, $direction);
         } else {
             $qb->orderBy('t.createdAt', 'DESC');
         }
         
-        // Get total count for pagination
-        $totalTasks = (clone $qb)->select('COUNT(t.id)')->getQuery()->getSingleScalarResult();
-        $totalPages = ceil($totalTasks / $limit);
-        
-        // Apply pagination
-        $tasks = $qb
-            ->setFirstResult($offset)
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult();
+        // Handle pagination differently when sorting by tag count
+        if ($sort === 'tag_count') {
+            // For tag count sorting, get all matching tasks and handle pagination in memory
+            $allTasks = $qb->getQuery()->getResult();
+            $totalTasks = count($allTasks);
+            $totalPages = ceil($totalTasks / $limit);
+            
+            // Apply pagination manually
+            $tasks = array_slice($allTasks, $offset, $limit);
+        } else {
+            // Get total count for pagination
+            $totalTasks = (clone $qb)->select('COUNT(t.id)')->getQuery()->getSingleScalarResult();
+            $totalPages = ceil($totalTasks / $limit);
+            
+            // Apply pagination
+            $tasks = $qb
+                ->setFirstResult($offset)
+                ->setMaxResults($limit)
+                ->getQuery()
+                ->getResult();
+        }
         
         // Get user's categories for filter dropdown
         $categories = $categoryRepository->findByUser($user);
         
+        // Get all tags for filter dropdown
+        $tags = $tagRepository->findAll();
+        
         return $this->render('task/index.html.twig', [
             'tasks' => $tasks,
             'categories' => $categories,
+            'tags' => $tags,
             'currentPage' => $page,
             'totalPages' => $totalPages,
             'totalTasks' => $totalTasks,
@@ -225,7 +256,8 @@ class TaskController extends AbstractController
     public function search(
         Request $request, 
         TaskRepository $taskRepository, 
-        TaskCategoryRepository $categoryRepository
+        TaskCategoryRepository $categoryRepository,
+        TagRepository $tagRepository
     ): Response {
         $user = $this->getUser();
         
@@ -234,6 +266,7 @@ class TaskController extends AbstractController
         $status = $request->query->get('status');
         $priority = $request->query->get('priority');
         $categoryId = $request->query->get('category');
+        $tagId = $request->query->get('tag');
         $startDate = $request->query->get('start_date');
         $endDate = $request->query->get('end_date');
         $createdAfter = $request->query->get('created_after');
@@ -257,6 +290,9 @@ class TaskController extends AbstractController
         }
         if ($categoryId) {
             $criteria['category'] = $categoryId;
+        }
+        if ($tagId) {
+            $criteria['tag'] = $tagId;
         }
         if ($startDate) {
             $criteria['startDate'] = new \DateTime($startDate);
@@ -293,14 +329,19 @@ class TaskController extends AbstractController
         // Get user's categories for filter dropdown
         $categories = $categoryRepository->findByUser($user);
         
+        // Get all tags for filter dropdown
+        $tags = $tagRepository->findAll();
+        
         return $this->render('task/index.html.twig', [
             'tasks' => $tasks,
             'categories' => $categories,
+            'tags' => $tags,
             'searchQuery' => $search,
             'currentFilters' => [
                 'status' => $status,
                 'priority' => $priority,
                 'category' => $categoryId,
+                'tag' => $tagId,
                 'start_date' => $startDate,
                 'end_date' => $endDate,
                 'created_after' => $createdAfter,
@@ -457,6 +498,19 @@ class TaskController extends AbstractController
                     $notificationService->notifyTaskPriorityChange($task, $currentUser);
                     $successfulOperations++;
                     break;
+                    
+                case 'assign_tag':
+                    $tagIds = $request->request->get('tag_ids', []);
+                    if (!empty($tagIds) && is_array($tagIds)) {
+                        foreach ($tagIds as $tagId) {
+                            $tag = $entityManager->find(\App\Entity\Tag::class, (int)$tagId);
+                            if ($tag) {
+                                $task->addTag($tag);
+                            }
+                        }
+                        $successfulOperations++;
+                    }
+                    break;
             }
         }
         
@@ -484,6 +538,10 @@ class TaskController extends AbstractController
                     break;
                 case 'set_priority_low':
                     $this->addFlash('success', "{$successfulOperations} задач(и) получили низкий приоритет.");
+                    break;
+                    
+                case 'assign_tag':
+                    $this->addFlash('success', "Теги успешно назначены для {$successfulOperations} задач(и).");
                     break;
             }
         } else {

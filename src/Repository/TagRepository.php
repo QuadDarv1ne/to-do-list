@@ -40,4 +40,21 @@ class TagRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+    
+    /**
+     * Get tag usage statistics
+     */
+    public function getTagUsageStats(): array
+    {
+        $qb = $this->createQueryBuilder('t');
+        
+        $result = $qb->select('t.id, t.name, t.color, COUNT(task.id) as taskCount')
+            ->leftJoin('t.tasks', 'task')
+            ->groupBy('t.id, t.name, t.color')
+            ->orderBy('taskCount', 'DESC')
+            ->getQuery()
+            ->getResult();
+            
+        return $result;
+    }
 }

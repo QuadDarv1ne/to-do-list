@@ -245,11 +245,24 @@ class TaskRepository extends ServiceEntityRepository
                ->setParameter('completed', 'completed');
         }
         
+        if (!empty($criteria['tag'])) {
+            $qb->join('t.tags', 'jt')
+               ->andWhere('jt.id = :tagId')
+               ->setParameter('tagId', $criteria['tag']);
+        }
+        
         if (!empty($criteria['sortBy'])) {
             $allowedSortFields = ['title', 'createdAt', 'dueDate', 'priority', 'status'];
             $direction = (!empty($criteria['sortDirection']) && strtoupper($criteria['sortDirection']) === 'ASC') ? 'ASC' : 'DESC';
             
-            if (in_array($criteria['sortBy'], $allowedSortFields)) {
+            if ($criteria['sortBy'] === 'tag_count') {
+                // Sort by tag count (tasks with more tags first)
+                $qb->select('t, COUNT(tg.id) as HIDDEN tag_count')
+                   ->leftJoin('t.tags', 'tg')
+                   ->groupBy('t.id')
+                   ->orderBy('tag_count', $direction)
+                   ->addOrderBy('t.createdAt', 'DESC');
+            } elseif (in_array($criteria['sortBy'], $allowedSortFields)) {
                 $qb->orderBy('t.' . $criteria['sortBy'], $direction);
             } else {
                 $qb->orderBy('t.createdAt', 'DESC');
@@ -260,5 +273,34 @@ class TaskRepository extends ServiceEntityRepository
 
         return $qb->getQuery()
                   ->getResult();
+    }
+    
+    /**
+     * Find tasks by tag
+     */
+    public function findByTag(int $tagId): array
+    {
+        return $this->createQueryBuilder('t')
+            ->join('t.tags', 'tag')
+            ->andWhere('tag.id = :tagId')
+            ->setParameter('tagId', $tagId)
+            ->orderBy('t.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+    
+    /**
+     * Find all tasks sorted by tag count (tasks with more tags first)
+     */
+    public function findAllSortedByTagCount(): array
+    {
+        return $this->createQueryBuilder('t')
+            ->select('t, COUNT(tg.id) as HIDDEN tag_count')
+            ->leftJoin('t.tags', 'tg')
+            ->groupBy('t.id')
+            ->orderBy('tag_count', 'DESC')
+            ->addOrderBy('t.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
     }
 }

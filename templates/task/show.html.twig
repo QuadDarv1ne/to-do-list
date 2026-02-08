@@ -105,6 +105,19 @@
                             <p><strong>Обновлена:</strong> {{ task.updatedAt|date('d.m.Y H:i') }}</p>
                         </div>
                     </div>
+                    
+                    {% if task.tags is not empty %}
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <p><strong>Теги:</strong></p>
+                            <div class="mt-2">
+                                {% for tag in task.tags %}
+                                    <span class="badge me-1" style="background-color: {{ tag.color }}; color: white;">{{ tag.name }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
                                     
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <a href="{{ path('app_task_index') }}" class="btn btn-outline-secondary me-md-2">

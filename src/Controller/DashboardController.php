@@ -11,6 +11,7 @@ use App\Repository\ActivityLogRepository;
 use App\Repository\TaskRecurrenceRepository;
 use App\Repository\TaskNotificationRepository;
 use App\Repository\TaskCategoryRepository;
+use App\Repository\TagRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -21,7 +22,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class DashboardController extends AbstractController
 {
     #[Route('/', name: 'app_dashboard', methods: ['GET'])]
-    public function index(TaskRepository $taskRepository, UserRepository $userRepository, CommentRepository $commentRepository, ActivityLogRepository $activityLogRepository, TaskRecurrenceRepository $taskRecurrenceRepository, TaskNotificationRepository $taskNotificationRepository, TaskCategoryRepository $categoryRepository): Response
+    public function index(TaskRepository $taskRepository, UserRepository $userRepository, CommentRepository $commentRepository, ActivityLogRepository $activityLogRepository, TaskRecurrenceRepository $taskRecurrenceRepository, TaskNotificationRepository $taskNotificationRepository, TaskCategoryRepository $categoryRepository, TagRepository $tagRepository): Response
     {
         $user = $this->getUser();
         
@@ -137,6 +138,9 @@ class DashboardController extends AbstractController
         // Get user's categories
         $categories = $categoryRepository->findByUser($user);
         
+        // Get tag statistics
+        $tagStats = $tagRepository->getTagUsageStats();
+        
         return $this->render('dashboard/index.html.twig', [
             'user' => $user,
             'task_stats' => $taskStats,
@@ -148,6 +152,7 @@ class DashboardController extends AbstractController
             'unread_notifications_count' => $unreadNotificationsCount,
             'recent_notifications' => $recentNotifications,
             'categories' => $categories,
+            'tag_stats' => $tagStats,
         ]);
     }
     

@@ -84,6 +84,18 @@
                     </select>
                 </div>
                 
+                <div class="col-md-2">
+                    <label for="tag" class="form-label">Тег</label>
+                    <select class="form-select" id="tag" name="tag">
+                        <option value="">Все теги</option>
+                        {% for tag in tags %}
+                            <option value="{{ tag.id }}" {{ app.request.query.get('tag') == tag.id ? 'selected' : '' }}>
+                                {{ tag.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
                 <div class="col-md-3 d-flex align-items-end">
                     <div class="btn-group w-100" role="group">
                         <button type="submit" class="btn btn-primary">
@@ -122,6 +134,7 @@
                     <input type="hidden" name="status" value="{{ app.request.query.get('status') }}">
                     <input type="hidden" name="priority" value="{{ app.request.query.get('priority') }}">
                     <input type="hidden" name="category" value="{{ app.request.query.get('category') }}">
+                    <input type="hidden" name="tag" value="{{ app.request.query.get('tag') }}">
                     <input type="hidden" name="start_date" value="{{ app.request.query.get('start_date') }}">
                     <input type="hidden" name="end_date" value="{{ app.request.query.get('end_date') }}">
                     
@@ -146,6 +159,7 @@
                             <option value="dueDate" {{ app.request.query.get('sort_by') == 'dueDate' ? 'selected' : '' }}>Срок выполнения</option>
                             <option value="priority" {{ app.request.query.get('sort_by') == 'priority' ? 'selected' : '' }}>Приоритет</option>
                             <option value="status" {{ app.request.query.get('sort_by') == 'status' ? 'selected' : '' }}>Статус</option>
+                            <option value="tag_count" {{ app.request.query.get('sort_by') == 'tag_count' ? 'selected' : '' }}>Количество тегов</option>
                         </select>
                     </div>
                     
@@ -282,6 +296,11 @@
                         <i class="fas fa-exclamation-triangle me-1"></i>
                         По приоритету
                     </a>
+                    <a href="{{ path('app_task_index', app.request.query.all|merge({'sort': 'tag_count', 'direction': app.request.query.get('direction') == 'ASC' ? 'DESC' : 'ASC'})) }}" 
+                       class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-tags me-1"></i>
+                        По количеству тегов
+                    </a>
                 </div>
             </div>
         </div>
@@ -385,6 +404,14 @@
                                         <p class="task-description mb-0">
                                             {{ task.description|slice(0, 150) }}{% if task.description|length > 150 %}...{% endif %}
                                         </p>
+                                    {% endif %}
+                                    
+                                    {% if task.tags is not empty %}
+                                    <div class="mt-2">
+                                        {% for tag in task.tags %}
+                                            <span class="badge me-1" style="background-color: {{ tag.color }}; color: white; font-size: 0.75em;">{{ tag.name }}</span>
+                                        {% endfor %}
+                                    </div>
                                     {% endif %}
                                 </div>
                                 
