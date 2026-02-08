@@ -52,6 +52,9 @@ class Task
             
         #[ORM\OneToMany(targetEntity: ActivityLog::class, mappedBy: 'task', orphanRemoval: true)]
         private Collection $activityLogs;
+            
+        #[ORM\OneToMany(targetEntity: TaskTimeTracking::class, mappedBy: 'task', orphanRemoval: true)]
+        private Collection $timeTrackings;
 
     public function getId(): ?int
     {

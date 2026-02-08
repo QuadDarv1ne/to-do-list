@@ -123,6 +123,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\OneToMany(targetEntity: ActivityLog::class, mappedBy: 'user', orphanRemoval: true)]
     private Collection $activityLogs;
+    
+    #[ORM\OneToMany(targetEntity: TaskTimeTracking::class, mappedBy: 'user', orphanRemoval: true)]
+    private Collection $timeTrackings;
 
     public function __construct()
     {
@@ -132,6 +135,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->createdTasks = new \Doctrine\Common\Collections\ArrayCollection();
         $this->comments = new \Doctrine\Common\Collections\ArrayCollection();
         $this->activityLogs = new \Doctrine\Common\Collections\ArrayCollection();
+        $this->timeTrackings = new \Doctrine\Common\Collections\ArrayCollection();
         $this->notifications = new \Doctrine\Common\Collections\ArrayCollection();
     }
 
@@ -549,6 +553,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getActivityLogs(): Collection
     {
         return $this->activityLogs;
+    }
+
+    /**
+     * @return Collection<int, TaskTimeTracking>
+     */
+    public function getTimeTrackings(): Collection
+    {
+        return $this->timeTrackings;
     }
 
     /**
