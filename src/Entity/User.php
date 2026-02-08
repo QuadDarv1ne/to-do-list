@@ -121,6 +121,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'author', orphanRemoval: true)]
     private Collection $comments;
 
+    #[ORM\OneToMany(targetEntity: ActivityLog::class, mappedBy: 'user', orphanRemoval: true)]
+    private Collection $activityLogs;
+
     public function __construct()
     {
         $this->createdAt = new \DateTime();
@@ -128,6 +131,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->tasks = new \Doctrine\Common\Collections\ArrayCollection();
         $this->createdTasks = new \Doctrine\Common\Collections\ArrayCollection();
         $this->comments = new \Doctrine\Common\Collections\ArrayCollection();
+        $this->activityLogs = new \Doctrine\Common\Collections\ArrayCollection();
         $this->notifications = new \Doctrine\Common\Collections\ArrayCollection();
     }
 
@@ -537,6 +541,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getComments(): Collection
     {
         return $this->comments;
+    }
+
+    /**
+     * @return Collection<int, ActivityLog>
+     */
+    public function getActivityLogs(): Collection
+    {
+        return $this->activityLogs;
     }
 
     /**

@@ -49,6 +49,9 @@ class Task
             
         #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'task', orphanRemoval: true)]
         private Collection $comments;
+            
+        #[ORM\OneToMany(targetEntity: ActivityLog::class, mappedBy: 'task', orphanRemoval: true)]
+        private Collection $activityLogs;
 
     public function getId(): ?int
     {
