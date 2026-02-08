@@ -107,3 +107,16 @@ app_reset_password_check_email:
 app_reset_password_reset:
     path: /reset-password/reset/{token}
     controller: Symfony\Casts\Bundle\ResetPassword\Controller\ResetPasswordController::reset
+
+# Profile routes
+app_profile_show:
+    path: /profile
+    controller: App\Controller\ProfileController::show
+
+app_profile_edit:
+    path: /profile/edit
+    controller: App\Controller\ProfileController::edit
+
+app_profile_change_password:
+    path: /profile/change-password
+    controller: App\Controller\ProfileController::changePassword
