@@ -87,6 +87,9 @@
                         <a href="{{ path('app_task_edit', {'id': task.id}) }}" class="btn btn-warning me-md-2">
                             <i class="fas fa-edit me-2"></i>Редактировать
                         </a>
+                        <a href="{{ path('app_task_time_tracking', {'id': task.id}) }}" class="btn btn-info me-md-2">
+                            <i class="fas fa-clock me-2"></i>Учет времени
+                        </a>
                                         
                         {# Comments Section #}
                         {% if comments is defined %}
