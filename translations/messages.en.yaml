@@ -1,0 +1,124 @@
+# messages.en.yaml
+# English translations for the To-Do List application
+
+# Navigation
+navigation:
+    dashboard: "Dashboard"
+    tasks: "Tasks"
+    categories: "Categories"
+    templates: "Templates"
+    profile: "Profile"
+    users: "Users"
+    notifications: "Notifications"
+    login: "Login"
+    register: "Register"
+    logout: "Logout"
+
+# Dashboard
+dashboard:
+    welcome: "Welcome"
+    quick_actions: "Quick Actions"
+    create_task: "Create Task"
+    new_category: "New Category"
+    change_password: "Change Password"
+    
+    stats:
+        total_tasks: "Total Tasks"
+        pending: "Pending"
+        in_progress: "In Progress"
+        completed: "Completed"
+    
+    charts:
+        status_distribution: "Task Status Distribution"
+        priority_distribution: "Task Priority Distribution"
+        tag_distribution: "Task Tag Distribution"
+        tag_cloud: "Tag Cloud"
+
+# Tasks
+tasks:
+    title: "My Tasks"
+    create: "Create Task"
+    edit: "Edit Task"
+    delete: "Delete Task"
+    view: "View Task"
+    search_placeholder: "Search by title or description"
+    no_tasks_found: "No tasks found"
+    create_first: "Create your first task to get started"
+    
+    filters:
+        search: "Search"
+        status: "Status"
+        priority: "Priority"
+        category: "Category"
+        tag: "Tag"
+        hide_completed: "Hide Completed"
+        filter: "Filter"
+        clear_filters: "Clear Filters"
+        advanced_filters: "Advanced Filters"
+    
+    status:
+        pending: "Pending"
+        in_progress: "In Progress"
+        completed: "Completed"
+    
+    priority:
+        low: "Low"
+        medium: "Medium"
+        high: "High"
+        urgent: "Urgent"
+
+# Forms
+forms:
+    title: "Title"
+    description: "Description"
+    status: "Status"
+    priority: "Priority"
+    category: "Category"
+    due_date: "Due Date"
+    assign_to: "Assign To"
+    tags: "Tags"
+    save: "Save"
+    cancel: "Cancel"
+    submit: "Submit"
+    reset: "Reset"
+
+# Messages
+messages:
+    success: "Success"
+    error: "Error"
+    warning: "Warning"
+    info: "Information"
+    
+    task_created: "Task created successfully"
+    task_updated: "Task updated successfully"
+    task_deleted: "Task deleted successfully"
+    login_success: "Login successful"
+    logout_success: "Logged out successfully"
+    profile_updated: "Profile updated successfully"
+
+# Buttons
+buttons:
+    create: "Create"
+    edit: "Edit"
+    delete: "Delete"
+    save: "Save"
+    cancel: "Cancel"
+    close: "Close"
+    back: "Back"
+    next: "Next"
+    previous: "Previous"
+    submit: "Submit"
+    reset: "Reset"
+    search: "Search"
+    filter: "Filter"
+    export: "Export"
+    import: "Import"
+
+# Validation
+validation:
+    required: "This field is required"
+    email_invalid: "Please enter a valid email address"
+    password_weak: "Password is too weak"
+    passwords_dont_match: "Passwords do not match"
+    min_length: "Must be at least {{ limit }} characters long"
+    max_length: "Must not exceed {{ limit }} characters"

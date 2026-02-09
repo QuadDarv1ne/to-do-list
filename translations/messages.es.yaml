@@ -1,0 +1,124 @@
+# messages.es.yaml
+# Spanish translations for the To-Do List application
+
+# Navigation
+navigation:
+    dashboard: "Panel de Control"
+    tasks: "Tareas"
+    categories: "Categorías"
+    templates: "Plantillas"
+    profile: "Perfil"
+    users: "Usuarios"
+    notifications: "Notificaciones"
+    login: "Iniciar Sesión"
+    register: "Registrarse"
+    logout: "Cerrar Sesión"
+
+# Dashboard
+dashboard:
+    welcome: "Bienvenido"
+    quick_actions: "Acciones Rápidas"
+    create_task: "Crear Tarea"
+    new_category: "Nueva Categoría"
+    change_password: "Cambiar Contraseña"
+    
+    stats:
+        total_tasks: "Tareas Totales"
+        pending: "Pendientes"
+        in_progress: "En Progreso"
+        completed: "Completadas"
+    
+    charts:
+        status_distribution: "Distribución de Estado de Tareas"
+        priority_distribution: "Distribución de Prioridad de Tareas"
+        tag_distribution: "Distribución de Etiquetas de Tareas"
+        tag_cloud: "Nube de Etiquetas"
+
+# Tasks
+tasks:
+    title: "Mis Tareas"
+    create: "Crear Tarea"
+    edit: "Editar Tarea"
+    delete: "Eliminar Tarea"
+    view: "Ver Tarea"
+    search_placeholder: "Buscar por título o descripción"
+    no_tasks_found: "No se encontraron tareas"
+    create_first: "Crea tu primera tarea para comenzar"
+    
+    filters:
+        search: "Buscar"
+        status: "Estado"
+        priority: "Prioridad"
+        category: "Categoría"
+        tag: "Etiqueta"
+        hide_completed: "Ocultar Completadas"
+        filter: "Filtrar"
+        clear_filters: "Limpiar Filtros"
+        advanced_filters: "Filtros Avanzados"
+    
+    status:
+        pending: "Pendiente"
+        in_progress: "En Progreso"
+        completed: "Completada"
+    
+    priority:
+        low: "Baja"
+        medium: "Media"
+        high: "Alta"
+        urgent: "Urgente"
+
+# Forms
+forms:
+    title: "Título"
+    description: "Descripción"
+    status: "Estado"
+    priority: "Prioridad"
+    category: "Categoría"
+    due_date: "Fecha de Vencimiento"
+    assign_to: "Asignar A"
+    tags: "Etiquetas"
+    save: "Guardar"
+    cancel: "Cancelar"
+    submit: "Enviar"
+    reset: "Restablecer"
+
+# Messages
+messages:
+    success: "Éxito"
+    error: "Error"
+    warning: "Advertencia"
+    info: "Información"
+    
+    task_created: "Tarea creada exitosamente"
+    task_updated: "Tarea actualizada exitosamente"
+    task_deleted: "Tarea eliminada exitosamente"
+    login_success: "Inicio de sesión exitoso"
+    logout_success: "Sesión cerrada exitosamente"
+    profile_updated: "Perfil actualizado exitosamente"
+
+# Buttons
+buttons:
+    create: "Crear"
+    edit: "Editar"
+    delete: "Eliminar"
+    save: "Guardar"
+    cancel: "Cancelar"
+    close: "Cerrar"
+    back: "Atrás"
+    next: "Siguiente"
+    previous: "Anterior"
+    submit: "Enviar"
+    reset: "Restablecer"
+    search: "Buscar"
+    filter: "Filtrar"
+    export: "Exportar"
+    import: "Importar"
+
+# Validation
+validation:
+    required: "Este campo es obligatorio"
+    email_invalid: "Por favor ingrese una dirección de correo válida"
+    password_weak: "La contraseña es demasiado débil"
+    passwords_dont_match: "Las contraseñas no coinciden"
+    min_length: "Debe tener al menos {{ limit }} caracteres"
+    max_length: "No debe exceder {{ limit }} caracteres"

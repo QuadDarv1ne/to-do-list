@@ -1,0 +1,25 @@
+# API Routes for Tasks
+app_api_task_reorder:
+    path: /api/tasks/reorder
+    controller: App\Controller\Api\TaskApiController::reorderTasks
+    methods: POST
+
+app_api_categories:
+    path: /api/tasks/categories
+    controller: App\Controller\Api\TaskApiController::getCategories
+    methods: GET
+
+app_api_users:
+    path: /api/tasks/users
+    controller: App\Controller\Api\TaskApiController::getUsers
+    methods: GET
+
+app_api_tags:
+    path: /api/tasks/tags
+    controller: App\Controller\Api\TaskApiController::getTags
+    methods: GET
+
+app_task_quick_create:
+    path: /api/tasks/quick-create
+    controller: App\Controller\Api\TaskApiController::quickCreateTask
+    methods: POST

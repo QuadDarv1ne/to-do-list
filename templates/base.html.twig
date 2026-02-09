@@ -6,6 +6,14 @@
     <title>{% block title %}To-Do List{% endblock %}</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
     
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0d6efd">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="To-Do List">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token('authenticate') }}">
     
@@ -19,18 +27,25 @@
     {% endblock %}
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary" role="navigation" aria-label="Основная навигация">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{{ path('app_dashboard') }}">
-                <i class="fas fa-tasks"></i> To-Do List
+            <a class="navbar-brand" href="{{ path('app_dashboard') }}" aria-label="Перейти на главную страницу">
+                <i class="fas fa-tasks" aria-hidden="true"></i> To-Do List
             </a>
             
             <!-- Theme Toggle -->
-            <button class="theme-toggle me-3" id="themeToggle" title="Переключить тему">
-                <i class="fas fa-moon"></i>
+            <button class="theme-toggle me-3" id="themeToggle" 
+                    title="Переключить тему" 
+                    aria-label="Переключить между светлой и темной темой">
+                <i class="fas fa-moon" aria-hidden="true"></i>
             </button>
             
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler" type="button" 
+                    data-bs-toggle="collapse" 
+                    data-bs-target="#navbarNav" 
+                    aria-controls="navbarNav" 
+                    aria-expanded="false" 
+                    aria-label="Переключить навигацию">
                 <span class="navbar-toggler-icon"></span>
             </button>
             
@@ -38,8 +53,11 @@
                 <ul class="navbar-nav me-auto">
                     <!-- Keyboard Shortcuts Help -->
                     <li class="nav-item me-2">
-                        <button class="btn btn-outline-light btn-sm" id="showShortcuts" title="Горячие клавиши">
-                            <i class="fas fa-keyboard"></i>
+                        <button class="btn btn-outline-light btn-sm" 
+                                id="showShortcuts" 
+                                title="Горячие клавиши" 
+                                aria-label="Показать справку по горячим клавишам">
+                            <i class="fas fa-keyboard" aria-hidden="true"></i>
                         </button>
                     </li>
                     {% if app.user %}
@@ -70,20 +88,31 @@
                 <ul class="navbar-nav">
                     <!-- Notifications Dropdown -->
                     <li class="nav-item dropdown me-3">
-                        <a class="nav-link dropdown-toggle position-relative" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-bell"></i>
+                        <a class="nav-link dropdown-toggle position-relative" 
+                           href="#" 
+                           role="button" 
+                           data-bs-toggle="dropdown" 
+                           aria-expanded="false"
+                           aria-label="Уведомления{% if unreadNotifications > 0 %}, {{ unreadNotifications }} непрочитанных{% endif %}">
+                            <i class="fas fa-bell" aria-hidden="true"></i>
                             {% set unreadNotifications = app.user.notifications|filter(n => not n.isRead)|length %}
                             {% if unreadNotifications > 0 %}
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger badge-enter" 
+                                      aria-label="{{ unreadNotifications }} непрочитанных уведомлений">
                                     {{ unreadNotifications }}
                                 </span>
                             {% endif %}
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end" style="min-width: 350px; max-height: 400px; overflow-y: auto;">
+                        <ul class="dropdown-menu dropdown-menu-end" 
+                            style="min-width: 350px; max-height: 400px; overflow-y: auto;" 
+                            role="menu" 
+                            aria-label="Меню уведомлений">
                             <li class="dropdown-header">
-                                <i class="fas fa-bell me-2"></i>Уведомления
+                                <i class="fas fa-bell me-2" aria-hidden="true"></i>Уведомления
                                 {% if unreadNotifications > 0 %}
-                                    <span class="badge bg-primary">{{ unreadNotifications }} непрочитанных</span>
+                                    <span class="badge bg-primary" role="status" aria-live="polite">
+                                        {{ unreadNotifications }} непрочитанных
+                                    </span>
                                 {% endif %}
                             </li>
                             {% set notifications = app.user.notifications|slice(0, 10) %}
@@ -109,14 +138,20 @@
                     
                     <!-- User Dropdown -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-user"></i> {{ app.user.fullName }}
+                        <a class="nav-link dropdown-toggle" 
+                           href="#" 
+                           id="navbarDropdown" 
+                           role="button" 
+                           data-bs-toggle="dropdown" 
+                           aria-expanded="false"
+                           aria-label="Меню пользователя {{ app.user.fullName }}">
+                            <i class="fas fa-user" aria-hidden="true"></i> {{ app.user.fullName }}
                         </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ path('app_profile_show') }}"><i class="fas fa-user me-2"></i>Мой профиль</a></li>
-                            <li><a class="dropdown-item" href="{{ path('app_profile_change_password') }}"><i class="fas fa-key me-2"></i>Сменить пароль</a></li>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="{{ path('app_profile_show') }}"><i class="fas fa-user me-2" aria-hidden="true"></i>Мой профиль</a></li>
+                            <li><a class="dropdown-item" href="{{ path('app_profile_change_password') }}"><i class="fas fa-key me-2" aria-hidden="true"></i>Сменить пароль</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ path('app_logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Выход</a></li>
+                            <li><a class="dropdown-item" href="{{ path('app_logout') }}"><i class="fas fa-sign-out-alt me-2" aria-hidden="true"></i>Выход</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -133,6 +168,26 @@
             </div>
         </div>
     </nav>
+    
+    <!-- Offline Indicator -->
+    <div id="offlineIndicator" class="offline-indicator bg-warning text-dark text-center py-2 d-none">
+        <i class="fas fa-wifi me-2"></i>
+        Работает в автономном режиме
+    </div>
+    
+    <!-- PWA Install Prompt -->
+    <div id="installPrompt" class="install-prompt">
+        <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h6 class="mb-1">Установить приложение?</h6>
+                <p class="mb-0 small text-muted">Добавьте приложение на домашний экран для быстрого доступа</p>
+            </div>
+            <div class="ms-3">
+                <button id="installButton" class="btn btn-primary btn-sm me-2">Установить</button>
+                <button id="dismissInstall" class="btn btn-outline-secondary btn-sm">Позже</button>
+            </div>
+        </div>
+    </div>
     
     <main class="container-fluid mt-4">
         {% for flash_message in app.session.flashbag.get('success') %}
@@ -154,6 +209,21 @@
     
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(function(registrationError) {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+    </script>
     
     <!-- Toast Container -->
     <div class="toast-container"></div>
@@ -232,16 +302,96 @@
     </div>
     
     <!-- Floating Quick Task Button -->
-    <button type="button" class="btn btn-primary btn-lg rounded-circle shadow position-fixed" 
+    <button type="button" 
+            class="btn btn-primary btn-lg rounded-circle shadow position-fixed fab-enter" 
             style="bottom: 30px; right: 30px; z-index: 1000; width: 60px; height: 60px;" 
             id="quick-task-fab" 
             data-bs-toggle="modal" 
-            data-bs-target="#quickTaskModal">
+            data-bs-target="#quickTaskModal"
+            aria-label="Быстрое создание задачи"
+            title="Быстрое создание задачи (N)">
         <i class="fas fa-plus"></i>
     </button>
     
     <script>
         // Theme Management
+        // Offline/Online detection
+        window.addEventListener('online', function() {
+            const indicator = document.getElementById('offlineIndicator');
+            if (indicator) {
+                indicator.classList.add('d-none');
+                showToast('Соединение восстановлено', 'success');
+            }
+        });
+        
+        window.addEventListener('offline', function() {
+            const indicator = document.getElementById('offlineIndicator');
+            if (indicator) {
+                indicator.classList.remove('d-none');
+                showToast('Нет подключения к интернету. Работа в автономном режиме', 'warning');
+            }
+        });
+        
+        // Check initial connection status
+        if (!navigator.onLine) {
+            const indicator = document.getElementById('offlineIndicator');
+            if (indicator) {
+                indicator.classList.remove('d-none');
+            }
+        }
+        
+        // PWA Installation
+        let deferredPrompt;
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent Chrome 67 and earlier from automatically showing the prompt
+            e.preventDefault();
+            // Stash the event so it can be triggered later
+            deferredPrompt = e;
+            
+            // Show the install prompt after a delay
+            setTimeout(() => {
+                const installPrompt = document.getElementById('installPrompt');
+                if (installPrompt && !localStorage.getItem('installPromptDismissed')) {
+                    installPrompt.classList.add('show');
+                }
+            }, 3000);
+        });
+        
+        // Installation button handler
+        document.addEventListener('DOMContentLoaded', function() {
+            const installButton = document.getElementById('installButton');
+            const dismissButton = document.getElementById('dismissInstall');
+            const installPrompt = document.getElementById('installPrompt');
+            
+            if (installButton) {
+                installButton.addEventListener('click', async () => {
+                    if (!deferredPrompt) return;
+                    
+                    // Show the install prompt
+                    deferredPrompt.prompt();
+                    
+                    // Wait for the user to respond to the prompt
+                    const { outcome } = await deferredPrompt.userChoice;
+                    
+                    if (outcome === 'accepted') {
+                        showToast('Приложение установлено!', 'success');
+                    }
+                    
+                    // We've used the prompt, and can't use it again, throw it away
+                    deferredPrompt = null;
+                    installPrompt.classList.remove('show');
+                });
+            }
+            
+            if (dismissButton) {
+                dismissButton.addEventListener('click', () => {
+                    installPrompt.classList.remove('show');
+                    localStorage.setItem('installPromptDismissed', 'true');
+                });
+            }
+        });
+        
         document.addEventListener('DOMContentLoaded', function() {
             const themeToggle = document.getElementById('themeToggle');
             const themeIcon = themeToggle.querySelector('i');
@@ -359,12 +509,12 @@
                 const toastId = 'toast-' + Date.now();
                 
                 const toastHtml = `
-                    <div id="${toastId}" class="toast toast-${type}" role="alert">
+                    <div id="${toastId}" class="toast toast-${type} fade-in" role="alert" aria-live="assertive" aria-atomic="true">
                         <div class="toast-body">
                             <div class="d-flex align-items-center">
                                 <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
                                 <span>${message}</span>
-                                <button type="button" class="btn-close ms-auto" data-bs-dismiss="toast"></button>
+                                <button type="button" class="btn-close ms-auto" data-bs-dismiss="toast" aria-label="Закрыть уведомление"></button>
                             </div>
                         </div>
                     </div>
@@ -380,6 +530,63 @@
                     this.remove();
                 });
             };
+            
+            // Navbar scroll effect
+            let lastScrollTop = 0;
+            const navbar = document.querySelector('.navbar');
+            
+            window.addEventListener('scroll', function() {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                
+                if (scrollTop > 50) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+                
+                lastScrollTop = scrollTop;
+            });
+            
+            // Focus management for modals
+            document.addEventListener('shown.bs.modal', function(e) {
+                const modal = e.target;
+                const firstFocusable = modal.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+                if (firstFocusable) {
+                    firstFocusable.focus();
+                }
+            });
+            
+            // Enhanced keyboard navigation
+            document.addEventListener('keydown', function(e) {
+                // ESC to close modals
+                if (e.key === 'Escape') {
+                    const modals = document.querySelectorAll('.modal.show');
+                    modals.forEach(modal => {
+                        const bsModal = bootstrap.Modal.getInstance(modal);
+                        if (bsModal) bsModal.hide();
+                    });
+                }
+                
+                // Tab navigation improvements
+                if (e.key === 'Tab') {
+                    const activeModal = document.querySelector('.modal.show');
+                    if (activeModal) {
+                        const focusableElements = activeModal.querySelectorAll(
+                            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+                        );
+                        const firstElement = focusableElements[0];
+                        const lastElement = focusableElements[focusableElements.length - 1];
+                        
+                        if (e.shiftKey && document.activeElement === firstElement) {
+                            lastElement.focus();
+                            e.preventDefault();
+                        } else if (!e.shiftKey && document.activeElement === lastElement) {
+                            firstElement.focus();
+                            e.preventDefault();
+                        }
+                    }
+                }
+            });
             // Quick Task functionality
             const quickTaskFab = document.getElementById('quick-task-fab');
             const saveQuickTaskBtn = document.getElementById('save-quick-task');

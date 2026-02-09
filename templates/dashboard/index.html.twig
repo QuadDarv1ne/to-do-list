@@ -535,7 +535,8 @@
     {% endif %}
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Chart.js loaded with defer for better performance -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -601,23 +602,42 @@ document.addEventListener('DOMContentLoaded', function() {
                     'rgba(23, 162, 184, 1)',
                     'rgba(255, 193, 7, 1)'
                 ],
-                borderWidth: 1
+                borderWidth: 1,
+                hoverOffset: 15
             }]
         },
         options: {
             responsive: true,
+            animation: {
+                animateRotate: true,
+                animateScale: true,
+                duration: 1000
+            },
             plugins: {
                 legend: {
-                    position: 'bottom'
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
                 },
                 tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleFont: {
+                        size: 14,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 13
+                    },
                     callbacks: {
                         label: function(context) {
                             const label = context.label || '';
                             const value = context.raw || 0;
                             const total = context.chart.getDatasetMeta(0).total;
                             const percentage = Math.round((value / total) * 100);
-                            return `${label}: ${value} (${percentage}%)`;
+                            return `${label}: ${value} задач (${percentage}%)`;
                         }
                     }
                 }
@@ -648,22 +668,44 @@ document.addEventListener('DOMContentLoaded', function() {
                     'rgba(255, 193, 7, 1)',
                     'rgba(220, 53, 69, 1)'
                 ],
-                borderWidth: 1
+                borderWidth: 1,
+                borderRadius: 6,
+                borderSkipped: false
             }]
         },
         options: {
             responsive: true,
+            animation: {
+                duration: 1500,
+                easing: 'easeInOutQuart'
+            },
             scales: {
                 y: {
                     beginAtZero: true,
                     ticks: {
                         precision: 0
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
                     }
                 }
             },
             plugins: {
                 legend: {
                     display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    callbacks: {
+                        label: function(context) {
+                            return `Задач: ${context.raw}`;
+                        }
+                    }
                 }
             }
         }
@@ -696,16 +738,39 @@ document.addEventListener('DOMContentLoaded', function() {
                         'rgba(255, 255, 255, 1)',
                     {% endfor %}
                 ],
-                borderWidth: 2
+                borderWidth: 2,
+                hoverOffset: 10
             }]
         },
         options: {
             responsive: true,
+            cutout: '60%',
+            animation: {
+                animateRotate: true,
+                animateScale: true,
+                duration: 1200
+            },
             plugins: {
                 legend: {
-                    position: 'bottom'
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        font: {
+                            size: 12
+                        }
+                    }
                 },
                 tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleFont: {
+                        size: 14,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 13
+                    },
                     callbacks: {
                         label: function(context) {
                             const label = context.label || '';
@@ -718,6 +783,68 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         }
+    });
+    
+    // Add click interaction to charts
+    statusChart.canvas.onclick = function(evt) {
+        const activePoints = statusChart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+        if (activePoints.length > 0) {
+            const firstPoint = activePoints[0];
+            const label = statusChart.data.labels[firstPoint.index];
+            const statusMap = {
+                'Завершено': 'completed',
+                'В процессе': 'in_progress',
+                'В ожидании': 'pending'
+            };
+            
+            if (statusMap[label]) {
+                window.location.href = `{{ path('app_task_index') }}?status=${statusMap[label]}`;
+            }
+        }
+    };
+    
+    priorityChart.canvas.onclick = function(evt) {
+        const activePoints = priorityChart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+        if (activePoints.length > 0) {
+            const firstPoint = activePoints[0];
+            const label = priorityChart.data.labels[firstPoint.index];
+            const priorityMap = {
+                'Низкий': 'low',
+                'Средний': 'medium',
+                'Высокий': 'high'
+            };
+            
+            if (priorityMap[label]) {
+                window.location.href = `{{ path('app_task_index') }}?priority=${priorityMap[label]}`;
+            }
+        }
+    };
+    
+    {% if tag_stats is defined and tag_stats is not empty %}
+    tagChart.canvas.onclick = function(evt) {
+        const activePoints = tagChart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+        if (activePoints.length > 0) {
+            const firstPoint = activePoints[0];
+            const label = tagChart.data.labels[firstPoint.index];
+            // Find tag ID by name (you'd need to pass tag IDs to the template)
+            showToast(`Фильтрация по тегу: ${label}`, 'info');
+        }
+    };
+    {% endif %}
+    
+    // Add chart legends with better styling
+    const chartCards = document.querySelectorAll('.card-header h5 i');
+    chartCards.forEach(icon => {
+        icon.style.cursor = 'pointer';
+        icon.addEventListener('click', function() {
+            const chartContainer = this.closest('.card').querySelector('canvas');
+            if (chartContainer) {
+                chartContainer.style.animation = 'bounce 0.6s';
+                setTimeout(() => {
+                    chartContainer.style.animation = '';
+                }, 600);
+            }
+        });
     });
     {% endif %}
 });

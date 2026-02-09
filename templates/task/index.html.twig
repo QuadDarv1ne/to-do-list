@@ -50,14 +50,25 @@
             <form method="get" class="row g-3">
                 <div class="col-md-3">
                     <label for="search" class="form-label">Поиск</label>
-                    <div class="input-group">
+                    <div class="input-group search-autocomplete-wrapper">
                         <span class="input-group-text">
                             <i class="fas fa-search"></i>
                         </span>
-                        <input type="text" class="form-control" id="search" name="search" 
+                        <input type="text" 
+                               class="form-control search-input" 
+                               id="search" 
+                               name="search" 
                                value="{{ app.request.query.get('search') ?: searchQuery }}" 
-                               placeholder="Поиск по названию или описанию">
+                               placeholder="Поиск по названию или описанию"
+                               autocomplete="off"
+                               aria-autocomplete="list"
+                               aria-expanded="false"
+                               role="combobox">
+                        <div class="autocomplete-dropdown shadow" id="searchAutocomplete" style="display: none;">
+                            <div class="autocomplete-list"></div>
+                        </div>
                     </div>
+                    <div class="form-text">Введите 3+ символа для автозаполнения</div>
                 </div>
                 
                 <div class="col-md-2">
@@ -318,7 +329,7 @@
 
     <!-- Tasks List -->
     <form method="post" action="{{ path('app_task_bulk_action') }}" id="bulk-actions-form">
-    <div class="card border-0 shadow-sm">
+    <div class="card border-0 shadow-sm" data-controller="drag-drop" data-drag-drop-reorder-url-value="{{ path('app_task_reorder') }}">
         <div class="card-header bg-white">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <div class="d-flex align-items-center">
@@ -332,7 +343,7 @@
                     </h5>
                 </div>
                 <div class="d-flex gap-2 flex-wrap">
-                    <button type="button" class="btn btn-outline-primary btn-sm" id="dragModeToggle" title="Режим перетаскивания">
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="dragModeToggle" title="Режим перетаскивания" data-action="click->drag-drop#enable">
                         <i class="fas fa-arrows-alt me-1"></i>Перетаскивание
                     </button>
                 <div class="btn-group" role="group">
@@ -395,9 +406,16 @@
         
         <div class="card-body p-0">
             {% if tasks is not empty %}
-                <div class="list-group list-group-flush">
+                <div class="list-group list-group-flush sortable-list" data-drag-drop-target="container">
                     {% for task in tasks %}
-                        <div class="list-group-item task-item task-item-enhanced border-0 px-4 py-3 priority-{{ task.priority }} {% if task.priority == 'high' %}priority-high-glow{% elseif task.priority == 'medium' %}priority-medium-glow{% else %}priority-low-glow{% endif %}" data-task-id="{{ task.id }}">
+                        <div class="list-group-item task-item task-item-enhanced drag-drop-item border-0 px-4 py-3 priority-{{ task.priority }} {% if task.priority == 'high' %}priority-high-glow{% elseif task.priority == 'medium' %}priority-medium-glow{% else %}priority-low-glow{% endif %}" 
+                             data-drag-drop-target="item" 
+                             data-id="{{ task.id }}"
+                             draggable="false"
+                             data-action="dragstart->drag-drop#handleDragStart dragover->drag-drop#handleDragOver dragleave->drag-drop#handleDragLeave drop->drag-drop#handleDrop dragend->drag-drop#handleDragEnd">
+                            <div class="drag-handle" data-drag-drop-target="handle">
+                                <i class="fas fa-grip-lines text-muted"></i>
+                            </div>
                             <div class="d-flex justify-content-between align-items-start">
                                 <div class="form-check me-3">
                                     <input type="checkbox" class="form-check-input task-checkbox" name="task_ids[]" value="{{ task.id }}" id="task-{{ task.id }}">
@@ -681,11 +699,167 @@ document.addEventListener('DOMContentLoaded', function() {
         new bootstrap.Tooltip(button);
     });
     
-    // Drag and drop functionality
-    let dragModeEnabled = false;
-    const dragModeToggle = document.getElementById('dragModeToggle');
+    // Autocomplete search functionality
+    const searchInput = document.getElementById('search');
+    const autocompleteDropdown = document.getElementById('searchAutocomplete');
+    const autocompleteList = autocompleteDropdown.querySelector('.autocomplete-list');
+    let searchTimeout;
+    let currentIndex = -1;
     
-    if (dragModeToggle) {
+    // Sample search data (in real app, this would come from API)
+    const searchData = [
+        { id: 1, title: 'Подготовить отчет по проекту', description: 'Собрать данные и подготовить еженедельный отчет' },
+        { id: 2, title: 'Позвонить клиенту', description: 'Обсудить детали нового проекта' },
+        { id: 3, title: 'Обновить документацию', description: 'Актуализировать техническую документацию' },
+        { id: 4, title: 'Провести код-ревью', description: 'Проверить pull request от разработчика' },
+        { id: 5, title: 'Запланировать встречу', description: 'Организовать встречу команды на следующую неделю' },
+        { id: 6, title: 'Тестирование функционала', description: 'Провести тестирование новой функции' },
+        { id: 7, title: 'Обучение новому сотруднику', description: 'Провести онбординг для нового члена команды' }
+    ];
+    
+    searchInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        
+        // Clear previous timeout
+        clearTimeout(searchTimeout);
+        
+        if (query.length < 3) {
+            hideAutocomplete();
+            return;
+        }
+        
+        // Debounce search
+        searchTimeout = setTimeout(() => {
+            performSearch(query);
+        }, 300);
+    });
+    
+    searchInput.addEventListener('keydown', function(e) {
+        if (!autocompleteDropdown.style.display || autocompleteDropdown.style.display === 'none') return;
+        
+        const items = autocompleteList.querySelectorAll('.autocomplete-item');
+        
+        switch(e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                currentIndex = Math.min(currentIndex + 1, items.length - 1);
+                updateActiveItem(items);
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                currentIndex = Math.max(currentIndex - 1, -1);
+                updateActiveItem(items);
+                break;
+            case 'Enter':
+                e.preventDefault();
+                if (currentIndex >= 0 && currentIndex < items.length) {
+                    items[currentIndex].click();
+                }
+                break;
+            case 'Escape':
+                hideAutocomplete();
+                this.blur();
+                break;
+        }
+    });
+    
+    function performSearch(query) {
+        // In real application, this would be an API call
+        const results = fuzzySearch(query, searchData);
+        showAutocomplete(results, query);
+    }
+    
+    function fuzzySearch(query, data) {
+        const lowerQuery = query.toLowerCase();
+        return data.filter(item => {
+            const titleMatch = item.title.toLowerCase().includes(lowerQuery);
+            const descMatch = item.description.toLowerCase().includes(lowerQuery);
+            return titleMatch || descMatch;
+        }).slice(0, 8); // Limit to 8 results
+    }
+    
+    function showAutocomplete(results, query) {
+        if (results.length === 0) {
+            autocompleteList.innerHTML = `
+                <div class="autocomplete-no-results">
+                    <i class="fas fa-search me-2"></i>
+                    Ничего не найдено
+                </div>
+            `;
+        } else {
+            autocompleteList.innerHTML = results.map((item, index) => `
+                <div class="autocomplete-item" data-index="${index}" data-id="${item.id}">
+                    <div class="fw-bold">${highlightMatch(item.title, query)}</div>
+                    <div class="small text-muted">${highlightMatch(item.description, query)}</div>
+                </div>
+            `).join('');
+            
+            // Add click handlers
+            autocompleteList.querySelectorAll('.autocomplete-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const title = this.querySelector('.fw-bold').textContent;
+                    searchInput.value = title.replace(/<[^>]*>/g, ''); // Remove HTML tags
+                    hideAutocomplete();
+                    searchInput.form.submit();
+                });
+            });
+        }
+        
+        autocompleteDropdown.style.display = 'block';
+        currentIndex = -1;
+    }
+    
+    function hideAutocomplete() {
+        autocompleteDropdown.style.display = 'none';
+        currentIndex = -1;
+    }
+    
+    function updateActiveItem(items) {
+        items.forEach((item, index) => {
+            if (index === currentIndex) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+        
+        // Scroll to active item
+        if (currentIndex >= 0 && items[currentIndex]) {
+            items[currentIndex].scrollIntoView({ block: 'nearest' });
+        }
+    }
+    
+    function highlightMatch(text, query) {
+        if (!query) return text;
+        const regex = new RegExp(`(${escapeRegExp(query)})`, 'gi');
+        return text.replace(regex, '<strong>$1</strong>');
+    }
+    
+    function escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+    
+    // Hide autocomplete when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !autocompleteDropdown.contains(e.target)) {
+            hideAutocomplete();
+        }
+    });
+    
+    // Add search help text
+    const searchWrapper = searchInput.closest('.search-autocomplete-wrapper');
+    const helpText = document.createElement('div');
+    helpText.className = 'search-help';
+    helpText.innerHTML = '↑↓ для навигации, Enter для выбора';
+    searchWrapper.appendChild(helpText);
+    
+    // Enhanced drag mode toggle with Stimulus controller
+    const dragModeToggle = document.getElementById('dragModeToggle');
+    const dragDropController = document.querySelector('[data-controller="drag-drop"]');
+    
+    if (dragModeToggle && dragDropController) {
+        let dragModeEnabled = false;
+        
         dragModeToggle.addEventListener('click', function() {
             dragModeEnabled = !dragModeEnabled;
             
@@ -693,46 +867,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.classList.add('btn-primary');
                 this.classList.remove('btn-outline-primary');
                 this.innerHTML = '<i class="fas fa-lock me-1"></i>Перетаскивание вкл';
-                enableDragMode();
+                
+                // Enable drag and drop via Stimulus controller
+                const items = dragDropController.querySelectorAll('[data-drag-drop-target="item"]');
+                items.forEach(item => {
+                    item.setAttribute('draggable', 'true');
+                    item.classList.add('draggable');
+                });
+                
+                showToast('Режим перетаскивания включен. Перетаскивайте задачи для изменения порядка.', 'info');
             } else {
                 this.classList.remove('btn-primary');
                 this.classList.add('btn-outline-primary');
                 this.innerHTML = '<i class="fas fa-arrows-alt me-1"></i>Перетаскивание';
-                disableDragMode();
+                
+                // Disable drag and drop
+                const items = dragDropController.querySelectorAll('[data-drag-drop-target="item"]');
+                items.forEach(item => {
+                    item.setAttribute('draggable', 'false');
+                    item.classList.remove('draggable', 'drop-zone', 'drag-over');
+                });
+                
+                showToast('Режим перетаскивания выключен', 'info');
             }
         });
-    }
-    
-    function enableDragMode() {
-        const taskItems = document.querySelectorAll('.task-item');
-        taskItems.forEach(item => {
-            item.setAttribute('draggable', 'true');
-            item.classList.add('draggable');
-            
-            item.addEventListener('dragstart', handleDragStart);
-            item.addEventListener('dragover', handleDragOver);
-            item.addEventListener('drop', handleDrop);
-            item.addEventListener('dragenter', handleDragEnter);
-            item.addEventListener('dragleave', handleDragLeave);
-        });
-        
-        showToast('Режим перетаскивания включен. Перетаскивайте задачи для изменения порядка.', 'info');
-    }
-    
-    function disableDragMode() {
-        const taskItems = document.querySelectorAll('.task-item');
-        taskItems.forEach(item => {
-            item.setAttribute('draggable', 'false');
-            item.classList.remove('draggable', 'drop-zone', 'drag-over');
-            
-            item.removeEventListener('dragstart', handleDragStart);
-            item.removeEventListener('dragover', handleDragOver);
-            item.removeEventListener('drop', handleDrop);
-            item.removeEventListener('dragenter', handleDragEnter);
-            item.removeEventListener('dragleave', handleDragLeave);
-        });
-        
-        showToast('Режим перетаскивания выключен', 'info');
     }
     
     let draggedItem = null;

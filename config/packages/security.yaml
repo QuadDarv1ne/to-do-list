@@ -1,69 +1,52 @@
 # config/packages/security.yaml
-
 security:
+    # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
     password_hashers:
-        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: "auto"
-        App\Entity\User:
-            algorithm: auto
-            cost: 12
-
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+    # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
+        # used to reload user from session & other features (e.g. switch_user)
         app_user_provider:
             entity:
                 class: App\Entity\User
-                property: email # Используем email
-
+                property: email
     firewalls:
         dev:
-            pattern: ^/(_(profiler|wdt|error)|css|images|js)/
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
-
         main:
             lazy: true
             provider: app_user_provider
             custom_authenticator: App\Security\LoginAuthenticator
-
-            # УДАЛИТЕ ВСЁ, что относится к form_login, если используете custom_authenticator
-            # form_login:  ← Удалить или закомментировать весь блок
-
-            remember_me:
-                secret: "%kernel.secret%"
-                lifetime: 604800
-                path: /
-                always_remember_me: false
-
             logout:
                 path: app_logout
+                # where to redirect after logout
                 target: app_login
-                invalidate_session: true
 
-            login_throttling:
-                max_attempts: 5
-                interval: "15 minutes"
+            # activate different ways to authenticate
+            # https://symfony.com/doc/current/security.html#the-firewall
 
+            # https://symfony.com/doc/current/security/impersonating_user.html
+            # switch_user: true
+
+    # Easy way to control access for large sections of your site
+    # Note: Only the *first* access control that matches will be used
     access_control:
-        - { path: ^/login$, roles: PUBLIC_ACCESS }
-        - { path: ^/register, roles: PUBLIC_ACCESS }
-        - { path: ^/reset-password, roles: PUBLIC_ACCESS }
-        - { path: ^/forgot-password, roles: PUBLIC_ACCESS }
-        - { path: ^/public, roles: PUBLIC_ACCESS }
-        - { path: ^/debug, roles: PUBLIC_ACCESS }  # Add debug routes
-        - { path: ^/api, roles: ROLE_USER }
         - { path: ^/admin, roles: ROLE_ADMIN }
-        - { path: ^/manager, roles: ROLE_MANAGER }
-        - { path: ^/, roles: ROLE_USER }
+        - { path: ^/profile, roles: ROLE_USER }
 
-    role_hierarchy:
-        ROLE_SUPER_ADMIN: [ROLE_ADMIN, ROLE_ALLOWED_TO_SWITCH]
-        ROLE_ADMIN: [ROLE_MANAGER, ROLE_USER]
-        ROLE_MANAGER: [ROLE_USER]
-        ROLE_USER: []
-
-when@test:
-    security:
-        password_hashers:
-            Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
-                algorithm: auto
-                cost: 4
-                time_cost: 3
-                memory_cost: 10
+# Content Security Policy Headers
+headers:
+    content_security_policy:
+        directives:
+            default-src: "'self'"
+            script-src: "'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com"
+            style-src: "'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com"
+            img-src: "'self' data: https:"
+            font-src: "'self' https://cdnjs.cloudflare.com"
+            connect-src: "'self'"
+            frame-src: "'self'"
+            object-src: "'none'"
+            base-uri: "'self'"
+            form-action: "'self'"
+            upgrade-insecure-requests: true

@@ -1,5 +1,57 @@
 /* Custom styles for To-Do List App */
 
+/* Offline indicator */
+.offline-indicator {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10000;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+/* PWA install prompt */
+.install-prompt {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    padding: 16px;
+    z-index: 1000;
+    max-width: 350px;
+    width: 90%;
+    display: none;
+}
+
+.install-prompt.show {
+    display: block;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translate(-50%, 100%);
+        opacity: 0;
+    }
+    to {
+        transform: translate(-50%, 0);
+        opacity: 1;
+    }
+}
+
 :root {
     --primary-color: #0d6efd;
     --secondary-color: #6c757d;
@@ -361,6 +413,17 @@ main {
     padding: 1rem 1.5rem;
 }
 
+[data-theme='dark'] .offline-indicator {
+    background-color: #f59e0b;
+    color: #1f2937;
+}
+
+[data-theme='dark'] .install-prompt {
+    background-color: #1f2937;
+    color: #f9fafb;
+    border: 1px solid #374151;
+}
+
 /* Dark mode support */
 :root[data-theme='dark'] {
     --primary-color: #3b82f6;
@@ -600,25 +663,212 @@ main {
     color: #f9fafb;
 }
 
-/* Drag and drop styles */
+/* Enhanced Drag and drop styles */
 .draggable {
     cursor: move;
     user-select: none;
+    position: relative;
 }
 
 .draggable:active {
     cursor: grabbing;
 }
 
+.draggable.dragging {
+    opacity: 0.5;
+    transform: rotate(2deg);
+    z-index: 1000;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
 .drop-zone {
     border: 2px dashed transparent;
     border-radius: 8px;
     transition: all 0.3s ease;
+    position: relative;
 }
 
 .drop-zone.drag-over {
     border-color: var(--primary-color);
     background-color: rgba(13, 110, 253, 0.1);
+    transform: scale(1.02);
+}
+
+.drop-zone.drag-over::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border: 2px dashed var(--primary-color);
+    border-radius: 8px;
+    animation: pulseBorder 1.5s infinite;
+}
+
+@keyframes pulseBorder {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* Drag handle */
+.drag-handle {
+    cursor: move;
+    padding: 8px;
+    margin-right: 12px;
+    color: var(--secondary-color);
+    transition: all 0.2s ease;
+}
+
+.drag-handle:hover {
+    color: var(--primary-color);
+    transform: scale(1.1);
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+/* Sortable list styles */
+.sortable-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sortable-item {
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.sortable-item.chosen {
+    opacity: 0.8;
+    transform: scale(1.02);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    z-index: 10;
+}
+
+.sortable-item.ghost {
+    opacity: 0.4;
+    background-color: var(--light-color);
+}
+
+.sortable-item.drag-over-above::before,
+.sortable-item.drag-over-below::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: var(--primary-color);
+    border-radius: 2px;
+}
+
+.sortable-item.drag-over-above::before {
+    top: -3px;
+}
+
+.sortable-item.drag-over-below::after {
+    bottom: -3px;
+}
+
+/* Smooth scrolling for drag operations */
+html.dragging {
+    scroll-behavior: smooth;
+}
+
+/* Drag and drop controller styles */
+[data-controller~="drag-drop"] {
+    position: relative;
+}
+
+.drag-drop-item {
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.drag-drop-item.dragging {
+    opacity: 0.8;
+    transform: rotate(1deg) scale(1.02);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    z-index: 1000;
+    border-radius: 8px;
+}
+
+.drag-drop-item.chosen {
+    opacity: 0.9;
+    transform: scale(1.01);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.drag-drop-item.ghost {
+    opacity: 0.3;
+    background-color: var(--light-color);
+    border: 2px dashed var(--primary-color);
+}
+
+.drag-drop-item.drag-over-above::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: var(--primary-color);
+    border-radius: 2px;
+    box-shadow: 0 0 5px var(--primary-color);
+}
+
+.drag-drop-item.drag-over-below::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: var(--primary-color);
+    border-radius: 2px;
+    box-shadow: 0 0 5px var(--primary-color);
+}
+
+.sortable-placeholder {
+    background-color: rgba(13, 110, 253, 0.1);
+    border: 2px dashed var(--primary-color);
+    border-radius: 6px;
+    margin: 4px 0;
+    transition: all 0.2s ease;
+}
+
+/* Feedback animations */
+[data-controller~="drag-drop"].reorder-success {
+    animation: reorderSuccess 0.6s ease;
+}
+
+[data-controller~="drag-drop"].reorder-error {
+    animation: reorderError 0.6s ease;
+}
+
+@keyframes reorderSuccess {
+    0% { background-color: transparent; }
+    50% { background-color: rgba(40, 167, 69, 0.1); }
+    100% { background-color: transparent; }
+}
+
+@keyframes reorderError {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* Disabled state */
+[data-controller~="drag-drop"].drag-disabled .drag-drop-item {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+[data-controller~="drag-drop"].drag-disabled .drag-drop-item:hover {
+    transform: none;
+    box-shadow: none;
 }
 
 /* Custom scrollbar */
@@ -651,6 +901,16 @@ main {
 
 [data-theme='dark'] ::-webkit-scrollbar-thumb:hover {
     background: #718096;
+}
+
+[data-theme='dark'] .drag-drop-item.ghost {
+    background-color: rgba(31, 41, 55, 0.5);
+    border-color: var(--primary-color);
+}
+
+[data-theme='dark'] .sortable-placeholder {
+    background-color: rgba(31, 41, 55, 0.3);
+    border-color: var(--primary-color);
 }
 
 /* Mobile responsive improvements */
@@ -826,4 +1086,426 @@ img[loading="lazy"][data-loaded="true"] {
 /* Non-critical CSS that can be deferred */
 .non-critical {
     /* Styles that can load later */
+}
+
+/* Image lazy loading */
+img.lazy {
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+img.lazy.loaded {
+    opacity: 1;
+}
+
+/* Intersection Observer for lazy loading */
+.lazy-load {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 1000px;
+}
+
+/* Micro-interactions and Animations */
+/* Button hover effects */
+.btn {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.btn:active {
+    transform: scale(0.95);
+    transition: transform 0.1s;
+}
+
+/* Card hover animations */
+.card {
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Smooth transitions for all interactive elements */
+.nav-link,
+.dropdown-item,
+.list-group-item {
+    transition: all 0.2s ease;
+}
+
+/* Task item entrance animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.task-item {
+    animation: fadeInUp 0.3s ease forwards;
+}
+
+/* Staggered animations for lists */
+.task-item:nth-child(1) { animation-delay: 0.1s; }
+.task-item:nth-child(2) { animation-delay: 0.2s; }
+.task-item:nth-child(3) { animation-delay: 0.3s; }
+.task-item:nth-child(4) { animation-delay: 0.4s; }
+.task-item:nth-child(5) { animation-delay: 0.5s; }
+
+/* Loading spinner animations */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.spinner-animate {
+    animation: spin 1s linear infinite;
+}
+
+/* Pulse animation for notifications */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.pulse-animation {
+    animation: pulse 2s infinite;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+/* Slide in from left */
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.slide-in-left {
+    animation: slideInLeft 0.4s ease-out;
+}
+
+/* Bounce effect for important actions */
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    60% { transform: translateY(-5px); }
+}
+
+.bounce-animation {
+    animation: bounce 1s;
+}
+
+/* Shimmer effect for premium elements */
+.shimmer {
+    position: relative;
+    overflow: hidden;
+}
+
+.shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+/* Floating action button animations */
+.fab-enter {
+    animation: fabEnter 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes fabEnter {
+    0% {
+        transform: scale(0) rotate(0deg);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1) rotate(360deg);
+        opacity: 1;
+    }
+}
+
+/* Notification badge animations */
+.badge-enter {
+    animation: badgeEnter 0.3s ease-out forwards;
+}
+
+@keyframes badgeEnter {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    70% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Progress bar animations */
+.progress-bar {
+    transition: width 0.6s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background-image: linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.2) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255, 255, 255, 0.2) 50%,
+        rgba(255, 255, 255, 0.2) 75%,
+        transparent 75%,
+        transparent
+    );
+    background-size: 1rem 1rem;
+    animation: progressAnimation 1s linear infinite;
+}
+
+@keyframes progressAnimation {
+    0% { background-position: 1rem 0; }
+    100% { background-position: 0 0; }
+}
+
+/* Modal entrance animations */
+.modal.fade .modal-dialog {
+    transition: transform 0.3s ease-out;
+    transform: translate(0, -50px);
+}
+
+.modal.show .modal-dialog {
+    transform: none;
+}
+
+/* Tooltip animations */
+.tooltip {
+    opacity: 0;
+    transition: opacity 0.15s linear;
+}
+
+.tooltip.show {
+    opacity: 0.9;
+}
+
+/* Form field focus animations */
+.form-control,
+.form-select {
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.form-control:focus,
+.form-select:focus {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(13, 110, 253, 0.2);
+}
+
+/* Checkbox and radio animations */
+.form-check-input {
+    transition: all 0.2s ease;
+}
+
+.form-check-input:checked {
+    transform: scale(1.1);
+}
+
+/* Navbar scroll effects */
+.navbar {
+    transition: all 0.3s ease;
+}
+
+.navbar.scrolled {
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Smooth scrolling for anchor links */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Search Autocomplete Styles */
+.search-autocomplete-wrapper {
+    position: relative;
+}
+
+.autocomplete-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    z-index: 1000;
+    max-height: 300px;
+    overflow-y: auto;
+    margin-top: 2px;
+}
+
+[data-theme='dark'] .autocomplete-dropdown {
+    background: #1f2937;
+    border-color: #4b5563;
+    color: #f9fafb;
+}
+
+.autocomplete-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.autocomplete-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    transition: all 0.2s ease;
+}
+
+[data-theme='dark'] .autocomplete-item {
+    border-bottom-color: #374151;
+}
+
+.autocomplete-item:last-child {
+    border-bottom: none;
+}
+
+.autocomplete-item:hover,
+.autocomplete-item.active {
+    background-color: #f8f9fa;
+}
+
+[data-theme='dark'] .autocomplete-item:hover,
+[data-theme='dark'] .autocomplete-item.active {
+    background-color: #374151;
+}
+
+.autocomplete-item strong {
+    color: var(--primary-color);
+}
+
+.autocomplete-no-results {
+    padding: 15px;
+    text-align: center;
+    color: var(--secondary-color);
+}
+
+.search-highlight {
+    background-color: #fff3cd;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+[data-theme='dark'] .search-highlight {
+    background-color: #374151;
+    color: #f9fafb;
+}
+
+/* Search input focus enhancements */
+.search-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    border-color: var(--primary-color);
+}
+
+/* Loading indicator for search */
+.search-loading {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: none;
+}
+
+.search-loading.show {
+    display: block;
+}
+
+/* Search results counter */
+.search-results-info {
+    font-size: 0.875rem;
+    color: var(--secondary-color);
+    margin-top: 5px;
+}
+
+/* Keyboard navigation hints */
+.search-help {
+    position: absolute;
+    bottom: -25px;
+    right: 0;
+    font-size: 0.75rem;
+    color: var(--secondary-color);
+    opacity: 0.7;
+}
+
+/* Fuzzy search match highlighting */
+.fuzzy-match {
+    text-decoration: underline;
+    text-decoration-color: var(--warning-color);
+    text-decoration-style: wavy;
 }

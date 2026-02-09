@@ -12,6 +12,11 @@ controllers:
     resource: ../src/Controller/
     type: attribute
 
+# Import API routes
+api_routes:
+    resource: routes/api/
+    type: directory
+
 # Root route
 app_homepage:
     path: /
