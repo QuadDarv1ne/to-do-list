@@ -6,6 +6,7 @@ use App\Repository\TaskRecurrenceRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Task;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: TaskRecurrenceRepository::class)]
 #[ORM\Table(name: 'task_recurrences')]
