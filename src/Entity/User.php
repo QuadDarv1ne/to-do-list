@@ -112,6 +112,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $passwordChangedAt = null;
 
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $lockedUntil = null;
+
+    #[ORM\Column(type: Types::INTEGER, options: ['default' => 0])]
+    private int $failedLoginAttempts = 0;
+
     public function __construct()
     {
         $this->tasks = new ArrayCollection();
@@ -531,5 +537,29 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function hasRole(string $role): bool
     {
         return in_array($role, $this->getRoles());
+    }
+
+    public function getLockedUntil(): ?\DateTimeInterface
+    {
+        return $this->lockedUntil;
+    }
+
+    public function setLockedUntil(?\DateTimeInterface $lockedUntil): static
+    {
+        $this->lockedUntil = $lockedUntil;
+
+        return $this;
+    }
+
+    public function getFailedLoginAttempts(): int
+    {
+        return $this->failedLoginAttempts;
+    }
+
+    public function setFailedLoginAttempts(int $failedLoginAttempts): static
+    {
+        $this->failedLoginAttempts = $failedLoginAttempts;
+
+        return $this;
     }
 }

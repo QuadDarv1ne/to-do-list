@@ -52,8 +52,8 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     public function findByRole(string $role): array
     {
         return $this->createQueryBuilder('u')
-            ->andWhere('JSON_CONTAINS(u.roles, :role) = 1')
-            ->setParameter('role', json_encode($role))
+            ->andWhere('u.roles LIKE :role')
+            ->setParameter('role', '%"' . $role . '"%')
             ->andWhere('u.isActive = :active')
             ->setParameter('active', true)
             ->orderBy('u.createdAt', 'DESC')
@@ -93,14 +93,14 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getSingleScalarResult();
             
         $adminUsers = $qb->select('COUNT(u.id)')
-            ->andWhere('JSON_CONTAINS(u.roles, :role) = 1')
-            ->setParameter('role', json_encode('ROLE_ADMIN'))
+            ->andWhere('u.roles LIKE :admin_role')
+            ->setParameter('admin_role', '%ROLE_ADMIN%')
             ->getQuery()
             ->getSingleScalarResult();
-            
+                
         $managerUsers = $qb->select('COUNT(u.id)')
-            ->andWhere('JSON_CONTAINS(u.roles, :role) = 1')
-            ->setParameter('role', json_encode('ROLE_MANAGER'))
+            ->andWhere('u.roles LIKE :manager_role')
+            ->setParameter('manager_role', '%ROLE_MANAGER%')
             ->getQuery()
             ->getSingleScalarResult();
         
