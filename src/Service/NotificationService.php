@@ -56,6 +56,20 @@ class NotificationService
 
         $this->entityManager->flush();
     }
+    
+    /**
+     * @deprecated Use notifyTaskAssignment instead
+     */
+    public function sendTaskAssignedNotification(Task $task): void
+    {
+        // For backward compatibility, we'll try to determine the assigner
+        // In most contexts where this is called, the assigner should be passed explicitly
+        // For now, assume the task creator is the assigner
+        $assigner = $task->getUser() ?? $task->getAssignedUser();
+        if ($assigner) {
+            $this->notifyTaskAssignment($task, $assigner);
+        }
+    }
 
     public function notifyTaskReassignment(Task $task, User $changer): void
     {
@@ -208,7 +222,8 @@ class NotificationService
         $priorityLabels = [
             'low' => 'низкий',
             'medium' => 'средний',
-            'high' => 'высокий'
+            'high' => 'высокий',
+            'urgent' => 'критический'
         ];
         $priorityLabel = $priorityLabels[$task->getPriority()] ?? $task->getPriority();
 
@@ -256,21 +271,22 @@ class NotificationService
     {
         $taskUrl = $this->urlGenerator->generate('app_task_show', ['id' => $task->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
         
-        $html = "
-            <h2>Новая задача {$action}</h2>
-            <p>Здравствуйте, {$task->getAssignedUser()->getFullName()}!</p>
-            <p>Вам {$action} задача: <strong>{$task->getName()}</strong></p>
-            <p><strong>Описание:</strong> {$task->getDescription()}</p>
-            <p><strong>Приоритет:</strong> {$task->getPriorityLabel()}</p>
-        ";
+        $assignedUser = $task->getAssignedUser();
+        $userName = $assignedUser ? $assignedUser->getFullName() : 'пользователь';
+        
+        $html = '<h2>Новая задача ' . $action . '</h2>' .
+               '<p>Здравствуйте, ' . htmlspecialchars($userName) . '!</p>' .
+               '<p>Вам ' . $action . ' задача: <strong>' . htmlspecialchars($task->getName()) . '</strong></p>' .
+               '<p><strong>Описание:</strong> ' . htmlspecialchars($task->getDescription() ?? '') . '</p>' .
+               '<p><strong>Приоритет:</strong> ' . htmlspecialchars($task->getPriorityLabel()) . '</p>';
+        
         if ($task->getDeadline()) {
-            $html .= "<p><strong>Срок выполнения:</strong> {$task->getDeadline()->format('d.m.Y')}</p>";
+            $html .= '<p><strong>Срок выполнения:</strong> ' . $task->getDeadline()->format('d.m.Y') . '</p>';
         }
-        $html .= "
-            <p><strong>Назначил(а):</strong> {$assigner->getFullName()}</p>
-            <p><a href=\"{$taskUrl}\" style=\"background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;\">Перейти к задаче</a></p>
-            <p>С уважением,<br>Система управления задачами</p>
-        ";
+        
+        $html .= '<p><strong>Назначил(а):</strong> ' . htmlspecialchars($assigner->getFullName()) . '</p>' .
+               '<p><a href="' . $taskUrl . '" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Перейти к задаче</a></p>' .
+               '<p>С уважением,<br>Система управления задачами</p>';
         
         return $html;
     }
@@ -279,15 +295,16 @@ class NotificationService
     {
         $taskUrl = $this->urlGenerator->generate('app_task_show', ['id' => $task->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
         
-        return "
-            <h2>Напоминание о сроке выполнения задачи</h2>
-            <p>Здравствуйте, {$task->getAssignedUser()->getFullName()}!</p>
-            <p>Срок выполнения задачи: <strong>{$task->getName()}</strong> приближается</p>
-            <p><strong>Описание:</strong> {$task->getDescription()}</p>
-            <p><strong>Приоритет:</strong> {$task->getPriorityLabel()}</p>
-            <p><strong>Срок выполнения:</strong> {$task->getDeadline()?->format('d.m.Y')}</p>
-            <p><a href=\"{$taskUrl}\" style=\"background-color: #ffc107; color: black; padding: 10px 20px; text-decoration: none; border-radius: 5px;\">Перейти к задаче</a></p>
-            <p>С уважением,<br>Система управления задачами</p>
-        ";
+        $assignedUser = $task->getAssignedUser();
+        $userName = $assignedUser ? $assignedUser->getFullName() : 'пользователь';
+        
+        return '<h2>Напоминание о сроке выполнения задачи</h2>' .
+               '<p>Здравствуйте, ' . htmlspecialchars($userName) . '!</p>' .
+               '<p>Срок выполнения задачи: <strong>' . htmlspecialchars($task->getName()) . '</strong> приближается</p>' .
+               '<p><strong>Описание:</strong> ' . htmlspecialchars($task->getDescription() ?? '') . '</p>' .
+               '<p><strong>Приоритет:</strong> ' . htmlspecialchars($task->getPriorityLabel()) . '</p>' .
+               '<p><strong>Срок выполнения:</strong> ' . ($task->getDeadline() ? $task->getDeadline()->format('d.m.Y') : 'не указан') . '</p>' .
+               '<p><a href="' . $taskUrl . '" style="background-color: #ffc107; color: black; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Перейти к задаче</a></p>' .
+               '<p>С уважением,<br>Система управления задачами</p>';
     }
 }

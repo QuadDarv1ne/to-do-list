@@ -156,7 +156,7 @@ class TaskController extends AbstractController
             
             // Send notification to assigned user
             if ($task->getAssignedUser() && $task->getAssignedUser() !== $this->getUser()) {
-                $notificationService->sendTaskAssignedNotification($task);
+                $notificationService->notifyTaskAssignment($task, $this->getUser());
             }
 
             $this->addFlash('success', 'Задача успешно создана');
