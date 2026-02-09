@@ -132,6 +132,7 @@ class TaskController extends AbstractController
             'currentPage' => $page,
             'totalPages' => $totalPages,
             'totalTasks' => $totalTasks,
+            'searchQuery' => $search,
         ]);
     }
 

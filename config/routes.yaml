@@ -121,3 +121,24 @@ app_check_email:
 app_reset_password:
     path: /reset-password/reset/{token}
     controller: App\Controller\ResetPasswordController::reset
+
+# Task Category routes
+app_task_category_index:
+    path: /task-category/
+    controller: App\Controller\TaskCategoryController::index
+
+app_task_category_new:
+    path: /task-category/new
+    controller: App\Controller\TaskCategoryController::new
+
+app_task_category_show:
+    path: /task-category/{id}
+    controller: App\Controller\TaskCategoryController::show
+
+app_task_category_edit:
+    path: /task-category/{id}/edit
+    controller: App\Controller\TaskCategoryController::edit
+
+app_task_category_delete:
+    path: /task-category/{id}
+    controller: App\Controller\TaskCategoryController::delete

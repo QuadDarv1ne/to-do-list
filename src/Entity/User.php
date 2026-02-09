@@ -538,6 +538,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    /**
+     * @return Collection<int, TaskCategory>
+     */
+    public function getTaskCategories(): Collection
+    {
+        return $this->taskCategories;
+    }
+
+    public function addTaskCategory(TaskCategory $taskCategory): static
+    {
+        if (!$this->taskCategories->contains($taskCategory)) {
+            $this->taskCategories->add($taskCategory);
+            $taskCategory->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTaskCategory(TaskCategory $taskCategory): static
+    {
+        if ($this->taskCategories->removeElement($taskCategory)) {
+            // set the owning side to null (unless already changed)
+            if ($taskCategory->getUser() === $this) {
+                $taskCategory->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
     public function getCreatedAt(): ?\DateTimeInterface
     {
         return $this->createdAt;
