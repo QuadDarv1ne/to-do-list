@@ -6,7 +6,6 @@ namespace App\Service;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 class UserLastLoginService
 {
@@ -15,8 +14,7 @@ class UserLastLoginService
 
     public function __construct(
         EntityManagerInterface $entityManager,
-        LoggerInterface $logger,
-        #[Autowire(env: 'kernel.environment')] private string $environment
+        LoggerInterface $logger
     ) {
         $this->entityManager = $entityManager;
         $this->logger = $logger;
