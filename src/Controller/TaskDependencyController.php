@@ -148,12 +148,22 @@ class TaskDependencyController extends AbstractController
         return $this->json(['success' => true]);
     }
 
-    #[Route('/check-start/{taskId}', name: 'app_task_dependency_check_start', methods: ['GET'])]
+    #[Route('/check-start', name: 'app_task_dependency_check_start', methods: ['GET'])]
     public function checkCanStart(
-        int $taskId,
+        Request $request,
         TaskRepository $taskRepository,
         TaskDependencyRepository $dependencyRepository
     ): JsonResponse {
+        $taskId = (int) $request->query->get('taskId');
+        if (!$taskId) {
+            return new JsonResponse(['error' => 'Task ID is required'], 400);
+        }
+
+        $task = $taskRepository->find($taskId);
+        
+        if (!$task) {
+            return new JsonResponse(['error' => 'Task not found'], 404);
+        }
         $task = $taskRepository->find($taskId);
         
         if (!$task) {
