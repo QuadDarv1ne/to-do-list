@@ -77,6 +77,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $notes = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $totpSecret = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $totpSecretTemp = null;
+
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => false])]
+    private bool $isTotpEnabled = false;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $totpEnabledAt = null;
+
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $backupCodes = null;
+
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Task::class, orphanRemoval: true)]
     private Collection $tasks;
 
@@ -354,6 +369,66 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setNotes(?string $notes): static
     {
         $this->notes = $notes;
+
+        return $this;
+    }
+
+    public function getTotpSecret(): ?string
+    {
+        return $this->totpSecret;
+    }
+
+    public function setTotpSecret(?string $totpSecret): static
+    {
+        $this->totpSecret = $totpSecret;
+
+        return $this;
+    }
+
+    public function getTotpSecretTemp(): ?string
+    {
+        return $this->totpSecretTemp;
+    }
+
+    public function setTotpSecretTemp(?string $totpSecretTemp): static
+    {
+        $this->totpSecretTemp = $totpSecretTemp;
+
+        return $this;
+    }
+
+    public function isTotpEnabled(): bool
+    {
+        return $this->isTotpEnabled;
+    }
+
+    public function setIsTotpEnabled(bool $isTotpEnabled): static
+    {
+        $this->isTotpEnabled = $isTotpEnabled;
+
+        return $this;
+    }
+
+    public function getTotpEnabledAt(): ?\DateTimeImmutable
+    {
+        return $this->totpEnabledAt;
+    }
+
+    public function setTotpEnabledAt(\DateTimeImmutable $totpEnabledAt): static
+    {
+        $this->totpEnabledAt = $totpEnabledAt;
+
+        return $this;
+    }
+
+    public function getBackupCodes(): ?array
+    {
+        return $this->backupCodes;
+    }
+
+    public function setBackupCodes(?array $backupCodes): static
+    {
+        $this->backupCodes = $backupCodes;
 
         return $this;
     }

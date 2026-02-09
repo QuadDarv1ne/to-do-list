@@ -1,0 +1,246 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Настройка двухфакторной аутентификации{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-shield-alt me-2"></i>
+                        Настройка двухфакторной аутентификации
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-info-circle me-2"></i>Как это работает</h5>
+                        <p class="mb-0">После активации вы должны будете вводить код из приложения Google Authenticator при каждом входе в систему.</p>
+                    </div>
+
+                    <ol class="mb-4">
+                        <li>Установите приложение Google Authenticator на ваш телефон</li>
+                        <li>Отсканируйте QR-код ниже или введите секретный ключ вручную</li>
+                        <li>Введите 6-значный код из приложения для подтверждения</li>
+                    </ol>
+
+                    <div class="text-center mb-4">
+                        <h5>QR-код для Google Authenticator</h5>
+                        {% if qr_code_image %}
+                            <img src="{{ qr_code_image }}" alt="QR Code" class="img-fluid border rounded p-2">
+                        {% else %}
+                            <div class="alert alert-warning">QR-код недоступен</div>
+                        {% endif %}
+                        
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                Или введите вручную: <strong>{{ secret }}</strong>
+                            </small>
+                        </div>
+                    </div>
+
+                    <form id="verifyForm">
+                        <div class="mb-3">
+                            <label for="verificationCode" class="form-label">6-значный код из Google Authenticator</label>
+                            <input type="text" 
+                                   class="form-control form-control-lg text-center" 
+                                   id="verificationCode" 
+                                   name="code" 
+                                   maxlength="6" 
+                                   placeholder="123456"
+                                   autocomplete="off"
+                                   required>
+                            <div class="invalid-feedback">Введите 6-значный код</div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-check me-2"></i>Подтвердить и активировать
+                            </button>
+                            <a href="{{ path('app_profile_show') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Отмена
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Backup Codes Modal -->
+<div class="modal fade" id="backupCodesModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-key me-2"></i>Резервные коды
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Важно!</h6>
+                    <p class="mb-0">Сохраните эти резервные коды в безопасном месте. Они могут быть использованы для входа, если вы потеряете доступ к Google Authenticator.</p>
+                </div>
+                
+                <div class="row" id="backupCodesList">
+                    <!-- Backup codes will be inserted here -->
+                </div>
+                
+                <div class="mt-3">
+                    <button class="btn btn-primary" onclick="printBackupCodes()">
+                        <i class="fas fa-print me-2"></i>Распечатать коды
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal">
+                    <i class="fas fa-check me-2"></i>Я сохранил коды
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('verifyForm');
+            const codeInput = document.getElementById('verificationCode');
+            
+            // Auto-submit when 6 digits entered
+            codeInput.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '');
+                if (this.value.length === 6) {
+                    form.requestSubmit();
+                }
+            });
+            
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Проверка...';
+                submitBtn.disabled = true;
+                
+                const formData = new FormData(form);
+                
+                fetch('{{ path('app_2fa_verify_setup') }}', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showBackupCodes(data.backup_codes);
+                    } else {
+                        showError(data.message);
+                        submitBtn.innerHTML = originalText;
+                        submitBtn.disabled = false;
+                        codeInput.value = '';
+                        codeInput.focus();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showError('Произошла ошибка. Попробуйте еще раз.');
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                });
+            });
+        });
+        
+        function showBackupCodes(codes) {
+            const modal = new bootstrap.Modal(document.getElementById('backupCodesModal'));
+            const listContainer = document.getElementById('backupCodesList');
+            
+            listContainer.innerHTML = '';
+            codes.forEach((code, index) => {
+                const col = document.createElement('div');
+                col.className = 'col-md-6 mb-2';
+                col.innerHTML = `
+                    <div class="card bg-light">
+                        <div class="card-body py-2 text-center">
+                            <code class="fs-5">${code}</code>
+                        </div>
+                    </div>
+                `;
+                listContainer.appendChild(col);
+            });
+            
+            modal.show();
+            
+            // Redirect after modal is closed
+            document.getElementById('backupCodesModal').addEventListener('hidden.bs.modal', function() {
+                window.location.href = '{{ path('app_2fa_status') }}';
+            });
+        }
+        
+        function showError(message) {
+            // Remove existing alerts
+            document.querySelectorAll('.alert-danger').forEach(alert => alert.remove());
+            
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-danger alert-dismissible fade show';
+            alert.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.querySelector('.card-body').insertBefore(alert, document.querySelector('.card-body').firstChild);
+        }
+        
+        function printBackupCodes() {
+            const printWindow = window.open('', '_blank');
+            const codes = Array.from(document.querySelectorAll('#backupCodesList code')).map(code => code.textContent);
+            
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Резервные коды 2FA</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; }
+                        .codes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+                        .code { 
+                            border: 1px solid #ccc; 
+                            padding: 10px; 
+                            text-align: center; 
+                            font-family: monospace;
+                            font-size: 18px;
+                        }
+                        h1 { text-align: center; }
+                        .warning { 
+                            background: #fff3cd; 
+                            border: 1px solid #ffeaa7; 
+                            padding: 15px; 
+                            margin: 20px 0;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h1>Резервные коды двухфакторной аутентификации</h1>
+                    <div class="warning">
+                        <strong>ВАЖНО:</strong> Сохраните эти коды в безопасном месте. 
+                        Каждый код может быть использован только один раз.
+                    </div>
+                    <div class="codes">
+                        ${codes.map(code => `<div class="code">${code}</div>`).join('')}
+                    </div>
+                    <div style="margin-top: 30px; text-align: center; color: #666;">
+                        Сгенерировано: ${new Date().toLocaleString('ru-RU')}
+                    </div>
+                </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+            printWindow.print();
+        }
+    </script>
+{% endblock %}
