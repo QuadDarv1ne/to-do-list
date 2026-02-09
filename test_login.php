@@ -13,8 +13,8 @@ $session->start();
 
 // Create a mock request
 $request = Request::create('/login', 'POST', [
-    'email' => 'admin@example.com',
-    'password' => 'test123',
+    'email' => 'admin@test.local',
+    'password' => 'admin123',
     '_csrf_token' => 'test_token'
 ]);
 $request->setSession($session);

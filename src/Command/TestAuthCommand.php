@@ -31,7 +31,7 @@ class TestAuthCommand extends Command
         
         // Find test user
         $userRepository = $this->entityManager->getRepository(User::class);
-        $user = $userRepository->findOneBy(['email' => 'admin@example.com']);
+        $user = $userRepository->findOneBy(['email' => 'admin@test.local']);
         
         if (!$user) {
             $io->error('Test user not found');
@@ -43,7 +43,7 @@ class TestAuthCommand extends Command
         $io->writeln('User active: ' . ($user->isActive() ? 'Yes' : 'No'));
         
         // Test password verification
-        $testPassword = 'test123';
+        $testPassword = 'admin123';
         $isPasswordValid = $this->passwordHasher->isPasswordValid($user, $testPassword);
         
         if ($isPasswordValid) {
