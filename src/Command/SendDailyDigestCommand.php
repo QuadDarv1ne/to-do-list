@@ -56,8 +56,8 @@ class SendDailyDigestCommand extends Command
         $fromDate = new \DateTime('-1 day');
         $toDate = new \DateTime();
 
-        $pendingTasks = $this->taskRepository->findByUserAndStatus($user, false, $fromDate, $toDate);
-        $completedTasks = $this->taskRepository->findByUserAndStatus($user, true, $fromDate, $toDate);
+        $pendingTasks = $this->taskRepository->findByUserAndStatus($user, 'pending', $fromDate, $toDate);
+        $completedTasks = $this->taskRepository->findByUserAndStatus($user, 'completed', $fromDate, $toDate);
 
         // Логика отправки email будет реализована позже
         // Для демонстрации просто выводим информацию

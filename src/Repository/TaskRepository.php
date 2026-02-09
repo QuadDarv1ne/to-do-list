@@ -30,8 +30,8 @@ class TaskRepository extends ServiceEntityRepository
         }
         
         if ($isDone !== null) {
-            $qb->andWhere('t.isDone = :isDone')
-               ->setParameter('isDone', $isDone);
+            $qb->andWhere('t.status = :statusValue')
+               ->setParameter('statusValue', $isDone ? 'completed' : 'pending');
         }
         
         if ($status !== null) {
@@ -75,8 +75,8 @@ class TaskRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('t')
             ->andWhere('t.dueDate IS NOT NULL')
-            ->andWhere('t.deadline <= :beforeDate')
-            ->andWhere('t.isDone = :isDone')
+            ->andWhere('t.dueDate <= :beforeDate')
+            ->andWhere('t.status = :status')
             ->setParameter('beforeDate', $beforeDate)
             ->setParameter('status', 'pending')
             ->getQuery()
@@ -107,14 +107,14 @@ class TaskRepository extends ServiceEntityRepository
             ->leftJoin('t.assignedUser', 'au')
             ->leftJoin('t.createdBy', 'cu')
             ->where('(
-                LOWER(t.name) LIKE :search OR
+                LOWER(t.title) LIKE :search OR
                 LOWER(t.description) LIKE :search OR
                 LOWER(au.firstName) LIKE :search OR
                 LOWER(au.lastName) LIKE :search OR
                 LOWER(cu.firstName) LIKE :search OR
                 LOWER(cu.lastName) LIKE :search OR
                 LOWER(t.priority) LIKE :search OR
-                t.isDone = :doneStatus
+                t.status = :doneStatus
             )')
             ->setParameter('search', '%' . strtolower($searchQuery) . '%')
             ->setParameter('doneStatus', $searchQuery === 'completed' || $searchQuery === 'выполнено' || $searchQuery === 'done');
@@ -134,14 +134,14 @@ class TaskRepository extends ServiceEntityRepository
             ->leftJoin('t.createdBy', 'cu')
             ->andWhere('(au = :user OR cu = :user)')
             ->andWhere('(
-                LOWER(t.name) LIKE :search OR
+                LOWER(t.title) LIKE :search OR
                 LOWER(t.description) LIKE :search OR
                 LOWER(au.firstName) LIKE :search OR
                 LOWER(au.lastName) LIKE :search OR
                 LOWER(cu.firstName) LIKE :search OR
                 LOWER(cu.lastName) LIKE :search OR
                 LOWER(t.priority) LIKE :search OR
-                t.isDone = :doneStatus
+                t.status = :doneStatus
             )')
             ->setParameter('user', $user)
             ->setParameter('search', '%' . strtolower($searchQuery) . '%')
@@ -155,14 +155,14 @@ class TaskRepository extends ServiceEntityRepository
     /**
      * Find tasks by user and status within date range
      */
-    public function findByUserAndStatus(User $user, bool $isDone, \DateTime $fromDate, \DateTime $toDate): array
+    public function findByUserAndStatus(User $user, string $status, \DateTime $fromDate, \DateTime $toDate): array
     {
         return $this->createQueryBuilder('t')
             ->andWhere('(t.assignedUser = :user OR t.createdBy = :user)')
-            ->andWhere('t.isDone = :isDone')
+            ->andWhere('t.status = :status')
             ->andWhere('t.createdAt BETWEEN :fromDate AND :toDate')
             ->setParameter('user', $user)
-            ->setParameter('isDone', $isDone)
+            ->setParameter('status', $status)
             ->setParameter('fromDate', $fromDate)
             ->setParameter('toDate', $toDate)
             ->getQuery()
