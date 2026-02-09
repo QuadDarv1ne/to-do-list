@@ -37,10 +37,10 @@
             </a>
             
             <!-- Theme Toggle -->
-            <button class="theme-toggle me-3" id="themeToggle" 
+            <button class="btn btn-outline-light btn-sm theme-toggle me-3" id="themeToggle" 
                     title="Переключить тему" 
                     aria-label="Переключить между светлой и темной темой">
-                <i class="fas fa-moon" aria-hidden="true"></i>
+                <i class="fas fa-moon hover-scale" aria-hidden="true"></i>
             </button>
             
             <button class="navbar-toggler" type="button" 
@@ -56,19 +56,19 @@
                 <ul class="navbar-nav me-auto">
                     <!-- Keyboard Shortcuts Help -->
                     <li class="nav-item me-2">
-                        <button class="btn btn-outline-light btn-sm" 
+                        <button class="btn btn-outline-light btn-sm btn-icon" 
                                 id="showShortcuts" 
                                 title="Горячие клавиши" 
                                 aria-label="Показать справку по горячим клавишам">
-                            <i class="fas fa-keyboard" aria-hidden="true"></i>
+                            <i class="fas fa-keyboard hover-scale" aria-hidden="true"></i>
                         </button>
                     </li>
                     <li class="nav-item me-2">
-                        <button class="btn btn-outline-light btn-sm" 
+                        <button class="btn btn-outline-light btn-sm btn-icon" 
                                 id="voiceControlBtn" 
                                 title="Голосовое управление" 
                                 aria-label="Включить голосовое управление">
-                            <i class="fas fa-microphone" aria-hidden="true"></i>
+                            <i class="fas fa-microphone hover-scale" aria-hidden="true"></i>
                         </button>
                     </li>
                     {% if app.user %}
@@ -102,14 +102,14 @@
                 <ul class="navbar-nav">
                     <!-- Notifications Dropdown -->
                     <li class="nav-item dropdown me-3">
+                        {% set unreadNotifications = app.user.notifications|filter(n => not n.isRead)|length %}
                         <a class="nav-link dropdown-toggle position-relative" 
                            href="#" 
                            role="button" 
                            data-bs-toggle="dropdown" 
                            aria-expanded="false"
                            aria-label="Уведомления{% if unreadNotifications > 0 %}, {{ unreadNotifications }} непрочитанных{% endif %}">
-                            <i class="fas fa-bell" aria-hidden="true"></i>
-                            {% set unreadNotifications = app.user.notifications|filter(n => not n.isRead)|length %}
+                            <i class="fas fa-bell hover-pulse" aria-hidden="true"></i>
                             {% if unreadNotifications > 0 %}
                                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger badge-enter" 
                                       aria-label="{{ unreadNotifications }} непрочитанных уведомлений">

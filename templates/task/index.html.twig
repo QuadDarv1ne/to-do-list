@@ -286,7 +286,7 @@
                     </h3>
                     <p class="stat-label mb-0">В ожидании</p>
                     <div class="progress mt-2" style="height: 5px;">
-                        <div class="progress-bar bg-warning" role="progressbar" style="width: {{ (tasks|filter(t => t.status == 'pending')|length / tasks|length * 100)|round(0) }}%"></div>
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: {{ tasks|length > 0 ? (tasks|filter(t => t.status == 'pending')|length / tasks|length * 100)|round(0) : 0 }}%"></div>
                     </div>
                 </div>
             </div>
@@ -303,7 +303,7 @@
                     </h3>
                     <p class="stat-label mb-0">В процессе</p>
                     <div class="progress mt-2" style="height: 5px;">
-                        <div class="progress-bar bg-info" role="progressbar" style="width: {{ (tasks|filter(t => t.status == 'in_progress')|length / tasks|length * 100)|round(0) }}%"></div>
+                        <div class="progress-bar bg-info" role="progressbar" style="width: {{ tasks|length > 0 ? (tasks|filter(t => t.status == 'in_progress')|length / tasks|length * 100)|round(0) : 0 }}%"></div>
                     </div>
                 </div>
             </div>
@@ -320,7 +320,7 @@
                     </h3>
                     <p class="stat-label mb-0">Завершено</p>
                     <div class="progress mt-2" style="height: 5px;">
-                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ (tasks|filter(t => t.status == 'completed')|length / tasks|length * 100)|round(0) }}%"></div>
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ tasks|length > 0 ? (tasks|filter(t => t.status == 'completed')|length / tasks|length * 100)|round(0) : 0 }}%"></div>
                     </div>
                 </div>
             </div>
@@ -329,7 +329,7 @@
 
     <!-- Tasks List -->
     <form method="post" action="{{ path('app_task_bulk_action') }}" id="bulk-actions-form">
-    <div class="card border-0 shadow-sm" data-controller="drag-drop" data-drag-drop-reorder-url-value="{{ path('app_task_reorder') }}">
+    <div class="card border-0 shadow-sm" data-controller="drag-drop" data-drag-drop-reorder-url-value="{{ path('app_api_task_reorder') }}">
         <div class="card-header bg-white">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <div class="d-flex align-items-center">
