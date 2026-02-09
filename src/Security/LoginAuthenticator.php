@@ -4,6 +4,7 @@
 namespace App\Security;
 
 use App\Entity\User;
+use App\Service\UserLastLoginService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -30,7 +31,8 @@ class LoginAuthenticator extends AbstractAuthenticator implements Authentication
 
     public function __construct(
         private UrlGeneratorInterface $urlGenerator,
-        private EntityManagerInterface $entityManager
+        private EntityManagerInterface $entityManager,
+        private UserLastLoginService $userLastLoginService
     ) {
     }
 
@@ -71,9 +73,9 @@ class LoginAuthenticator extends AbstractAuthenticator implements Authentication
                     throw new CustomUserMessageAuthenticationException('Аккаунт заблокирован. Повторите попытку позже.');
                 }
 
-                // Обновляем время последнего входа
-                $user->setLastLoginAt(new \DateTime());
-                $this->entityManager->flush();
+                // Обновляем время последнего входа асинхронно, чтобы не блокировать аутентификацию
+                // Вызываем сервис для обновления времени последнего входа
+                $this->userLastLoginService->updateUserLastLogin($user);
 
                 return $user;
             }),
