@@ -3,6 +3,7 @@
 namespace App\Form;
 
 use App\Entity\User;
+use App\Validator\Constraints\PasswordStrength;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -125,10 +126,11 @@ class UserType extends AbstractType
                 'constraints' => [
                     new NotBlank(),
                     new Length(
-                        min: 6,
+                        min: 8,
                         max: 4096,
                         minMessage: 'Пароль должен содержать минимум {{ limit }} символов',
                     ),
+                    new PasswordStrength(),
                 ],
             ]);
         }
