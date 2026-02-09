@@ -352,8 +352,9 @@ class TaskController extends AbstractController
     ): Response {
         $user = $this->getUser();
         
-        // Get search parameters
-        $search = $request->query->get('q');
+        // Get search parameters with validation
+        $search = $request->query->get('q', '');
+        $search = is_string($search) ? trim($search) : '';
         $status = $request->query->get('status');
         $priority = $request->query->get('priority');
         $categoryId = $request->query->get('category');
@@ -367,6 +368,43 @@ class TaskController extends AbstractController
         $overdue = $request->query->get('overdue');
         $sortBy = $request->query->get('sort_by');
         $sortDirection = $request->query->get('sort_direction');
+        
+        // Validate date formats
+        $validatedStartDate = null;
+        if ($startDate) {
+            $validatedStartDate = \DateTime::createFromFormat('Y-m-d', $startDate);
+            if (!$validatedStartDate) {
+                $this->addFlash('error', 'Неверный формат даты начала');
+                $startDate = null;
+            }
+        }
+        
+        $validatedEndDate = null;
+        if ($endDate) {
+            $validatedEndDate = \DateTime::createFromFormat('Y-m-d', $endDate);
+            if (!$validatedEndDate) {
+                $this->addFlash('error', 'Неверный формат даты окончания');
+                $endDate = null;
+            }
+        }
+        
+        $validatedCreatedAfter = null;
+        if ($createdAfter) {
+            $validatedCreatedAfter = \DateTime::createFromFormat('Y-m-d', $createdAfter);
+            if (!$validatedCreatedAfter) {
+                $this->addFlash('error', 'Неверный формат даты "создано после"');
+                $createdAfter = null;
+            }
+        }
+        
+        $validatedCreatedBefore = null;
+        if ($createdBefore) {
+            $validatedCreatedBefore = \DateTime::createFromFormat('Y-m-d', $createdBefore);
+            if (!$validatedCreatedBefore) {
+                $this->addFlash('error', 'Неверный формат даты "создано до"');
+                $createdBefore = null;
+            }
+        }
         
         // Prepare criteria for search
         $criteria = [];
@@ -385,17 +423,17 @@ class TaskController extends AbstractController
         if ($tagId) {
             $criteria['tag'] = $tagId;
         }
-        if ($startDate) {
-            $criteria['startDate'] = new \DateTime($startDate);
+        if ($validatedStartDate) {
+            $criteria['startDate'] = $validatedStartDate;
         }
-        if ($endDate) {
-            $criteria['endDate'] = new \DateTime($endDate);
+        if ($validatedEndDate) {
+            $criteria['endDate'] = $validatedEndDate;
         }
-        if ($createdAfter) {
-            $criteria['createdAfter'] = new \DateTime($createdAfter);
+        if ($validatedCreatedAfter) {
+            $criteria['createdAfter'] = $validatedCreatedAfter;
         }
-        if ($createdBefore) {
-            $criteria['createdBefore'] = new \DateTime($createdBefore);
+        if ($validatedCreatedBefore) {
+            $criteria['createdBefore'] = $validatedCreatedBefore;
         }
         if ($assignedToMe) {
             $criteria['assignedToMe'] = $user;
@@ -414,14 +452,32 @@ class TaskController extends AbstractController
         }
         $criteria['user'] = $user;
         
+        // Pagination parameters
+        $page = max(1, $request->query->getInt('page', 1));
+        $limit = min(100, max(1, $request->query->getInt('limit', 20))); // Max 100 items per page, min 1
+        $offset = ($page - 1) * $limit;
+        
+        $criteria['offset'] = $offset;
+        $criteria['limit'] = $limit;
+        
         // Add hide completed filter to criteria
         $hideCompleted = $request->query->get('hide_completed', false);
         if ($hideCompleted) {
             $criteria['hideCompleted'] = true;
         }
         
-        // Perform search
+        // Remove pagination parameters to get total count
+        $countCriteria = $criteria;
+        unset($countCriteria['offset'], $countCriteria['limit']);
+        
+        // Get total count for pagination
+        $totalCount = count($taskRepository->searchTasks($countCriteria));
+        
+        // Perform paginated search
         $tasks = $taskRepository->searchTasks($criteria);
+        
+        // Calculate pagination parameters
+        $totalPages = max(1, ceil($totalCount / $limit));
         
         // Get user's categories for filter dropdown
         $categories = $categoryRepository->findByUser($user);
@@ -448,7 +504,11 @@ class TaskController extends AbstractController
                 'overdue' => $overdue,
                 'sort_by' => $sortBy,
                 'sort_direction' => $sortDirection
-            ]
+            ],
+            'currentPage' => $page,
+            'totalPages' => $totalPages,
+            'totalTasks' => $totalCount,
+            'limit' => $limit
         ]);
     }
     

@@ -17,11 +17,25 @@ class RegistrationController extends AbstractController
     #[Route('/', name: 'app_register')]
     public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $entityManager): Response
     {
+        // Rate limiting: Check if too many registrations from same IP recently
+        $session = $request->getSession();
+        $lastRegistration = $session->get('last_registration_attempt', 0);
+        $currentTime = time();
+        
+        // Prevent registration attempts within 30 seconds of last attempt
+        if ($currentTime - $lastRegistration < 30) {
+            $this->addFlash('error', 'Пожалуйста, подождите перед повторной попыткой регистрации.');
+            return $this->redirectToRoute('app_register');
+        }
+        
         $user = new User();
         $form = $this->createForm(RegistrationFormType::class, $user);
         $form->handleRequest($request);
-
+        
         if ($form->isSubmitted() && $form->isValid()) {
+            // Update last registration attempt time
+            $session->set('last_registration_attempt', $currentTime);
+            
             // Encode the plain password
             $user->setPassword(
                 $userPasswordHasher->hashPassword(

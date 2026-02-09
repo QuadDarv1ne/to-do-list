@@ -30,6 +30,19 @@ class TaskNotificationRepository extends ServiceEntityRepository
     }
     
     /**
+     * Find notifications for a user
+     */
+    public function findForUser($user)
+    {
+        return $this->createQueryBuilder('tn')
+            ->andWhere('tn.recipient = :user')
+            ->setParameter('user', $user)
+            ->orderBy('tn.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+    
+    /**
      * Count unread notifications for a recipient
      */
     public function countUnreadByRecipient($recipient)

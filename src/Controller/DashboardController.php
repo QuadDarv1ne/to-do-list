@@ -12,6 +12,7 @@ use App\Repository\TaskRecurrenceRepository;
 use App\Repository\TaskNotificationRepository;
 use App\Repository\TaskCategoryRepository;
 use App\Repository\TagRepository;
+use App\Service\UserActivityService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -22,7 +23,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class DashboardController extends AbstractController
 {
     #[Route('/', name: 'app_dashboard', methods: ['GET'])]
-    public function index(TaskRepository $taskRepository, UserRepository $userRepository, CommentRepository $commentRepository, ActivityLogRepository $activityLogRepository, TaskRecurrenceRepository $taskRecurrenceRepository, TaskNotificationRepository $taskNotificationRepository, TaskCategoryRepository $categoryRepository, TagRepository $tagRepository): Response
+    public function index(TaskRepository $taskRepository, UserRepository $userRepository, CommentRepository $commentRepository, ActivityLogRepository $activityLogRepository, TaskRecurrenceRepository $taskRecurrenceRepository, TaskNotificationRepository $taskNotificationRepository, TaskCategoryRepository $categoryRepository, TagRepository $tagRepository, UserActivityService $userActivityService): Response
     {
         $user = $this->getUser();
         
@@ -56,6 +57,9 @@ class DashboardController extends AbstractController
             // Получаем недавнюю активность
             $recentActivity = $activityLogRepository->findRecent(10);
             
+            // Get platform activity stats
+            $platformActivityStats = $userActivityService->getPlatformActivityStats();
+            
             // Статистика по статусам для диаграммы
             $taskStats = [
                 'total' => $totalTasks,
@@ -86,6 +90,9 @@ class DashboardController extends AbstractController
             
             // Получаем недавнюю активность пользователя
             $recentActivity = $activityLogRepository->findByUser($user);
+            
+            // Get user activity stats
+            $userActivityStats = $userActivityService->getUserActivityStats($user);
             
             $userStats = null;
             
@@ -156,6 +163,8 @@ class DashboardController extends AbstractController
             'categories' => $categories,
             'tag_stats' => $tagStats,
             'tag_completion_rates' => $tagCompletionRates,
+            'platform_activity_stats' => $platformActivityStats ?? null,
+            'user_activity_stats' => $userActivityStats ?? null,
         ]);
     }
     

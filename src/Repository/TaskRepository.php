@@ -275,6 +275,12 @@ class TaskRepository extends ServiceEntityRepository
         } else {
             $qb->orderBy('t.createdAt', 'DESC');
         }
+        
+        // Apply pagination if offset and limit are provided
+        if (isset($criteria['offset']) && isset($criteria['limit'])) {
+            $qb->setFirstResult($criteria['offset'])
+              ->setMaxResults($criteria['limit']);
+        }
 
         return $qb->getQuery()
                   ->getResult();
@@ -353,19 +359,38 @@ class TaskRepository extends ServiceEntityRepository
     public function getAverageCompletionTimeByPriority(): array
     {
         $result = $this->createQueryBuilder('t')
-            ->select('t.priority, AVG((julianday(t.completedAt) - julianday(t.createdAt))) as avgDays')
+            ->select('t.priority, t.completedAt, t.createdAt')
             ->where('t.status = :completed')
             ->andWhere('t.completedAt IS NOT NULL')
             ->setParameter('completed', 'completed')
-            ->groupBy('t.priority')
             ->orderBy('t.priority')
             ->getQuery()
             ->getResult();
-
+        
+        // Calculate average completion time in PHP to avoid database-specific functions
         $stats = [];
+        $priorityTimes = [];
+        
         foreach ($result as $item) {
-            $stats[$item['priority']] = [
-                'avgDays' => $item['avgDays'] ? round((float)$item['avgDays'], 2) : 0
+            $priority = $item['priority'];
+            $createdAt = $item['createdAt'];
+            $completedAt = $item['completedAt'];
+            
+            if ($createdAt && $completedAt) {
+                $diff = $completedAt->diff($createdAt);
+                $days = $diff->days;
+                
+                if (!isset($priorityTimes[$priority])) {
+                    $priorityTimes[$priority] = [];
+                }
+                $priorityTimes[$priority][] = $days;
+            }
+        }
+        
+        foreach ($priorityTimes as $priority => $times) {
+            $avgDays = count($times) > 0 ? array_sum($times) / count($times) : 0;
+            $stats[$priority] = [
+                'avgDays' => round($avgDays, 2)
             ];
         }
         

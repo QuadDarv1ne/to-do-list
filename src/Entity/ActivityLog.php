@@ -32,8 +32,11 @@ class ActivityLog
     private ?User $user = null;
 
     #[ORM\ManyToOne(inversedBy: 'activityLogs')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]  // Made nullable to support login events
     private ?Task $task = null;
+
+    #[ORM\Column(length: 20, nullable: true)]  // Added to distinguish event types
+    private ?string $eventType = null;
 
     public function getId(): ?int
     {
@@ -89,6 +92,18 @@ class ActivityLog
     public function setTask(?Task $task): static
     {
         $this->task = $task;
+
+        return $this;
+    }
+
+    public function getEventType(): ?string
+    {
+        return $this->eventType;
+    }
+
+    public function setEventType(?string $eventType): static
+    {
+        $this->eventType = $eventType;
 
         return $this;
     }

@@ -13,13 +13,15 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/task-notifications')]
+#[IsGranted('ROLE_USER')]
 class TaskNotificationController extends AbstractController
 {
     #[Route('/', name: 'app_task_notification_index', methods: ['GET'])]
     public function index(TaskNotificationRepository $taskNotificationRepository): Response
     {
         $user = $this->getUser();
-        $notifications = $taskNotificationRepository->findBy(['recipient' => $user], ['createdAt' => 'DESC']);
+        // Only show notifications for the current user
+        $notifications = $taskNotificationRepository->findForUser($user);
         
         return $this->render('task_notification/index.html.twig', [
             'task_notifications' => $notifications,
@@ -29,6 +31,8 @@ class TaskNotificationController extends AbstractController
     #[Route('/new', name: 'app_task_notification_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
+        // Only admins or authorized users can create notifications
+        $this->denyAccessUnlessGranted('create', TaskNotification::class);
         $taskNotification = new TaskNotification();
         $form = $this->createForm(TaskNotificationType::class, $taskNotification);
         $form->handleRequest($request);
@@ -52,6 +56,9 @@ class TaskNotificationController extends AbstractController
     #[Route('/{id}', name: 'app_task_notification_show', methods: ['GET'])]
     public function show(TaskNotification $taskNotification, EntityManagerInterface $entityManager): Response
     {
+        // Ensure user can only view their own notifications
+        $this->denyAccessUnlessGranted('view', $taskNotification);
+        
         // Mark notification as read when viewed
         if (!$taskNotification->isIsRead()) {
             $taskNotification->setIsRead(true);
@@ -66,6 +73,8 @@ class TaskNotificationController extends AbstractController
     #[Route('/{id}/edit', name: 'app_task_notification_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, TaskNotification $taskNotification, EntityManagerInterface $entityManager): Response
     {
+        // Ensure user can only edit their own notifications
+        $this->denyAccessUnlessGranted('edit', $taskNotification);
         $form = $this->createForm(TaskNotificationType::class, $taskNotification);
         $form->handleRequest($request);
 
@@ -86,6 +95,8 @@ class TaskNotificationController extends AbstractController
     #[Route('/{id}', name: 'app_task_notification_delete', methods: ['POST'])]
     public function delete(Request $request, TaskNotification $taskNotification, EntityManagerInterface $entityManager): Response
     {
+        // Ensure user can only delete their own notifications
+        $this->denyAccessUnlessGranted('delete', $taskNotification);
         if ($this->isCsrfTokenValid('delete'.$taskNotification->getId(), $request->request->get('_token'))) {
             $entityManager->remove($taskNotification);
             $entityManager->flush();

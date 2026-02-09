@@ -55,4 +55,64 @@ class ActivityLogRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+    
+    /**
+     * Log a user login event
+     */
+    public function logLoginEvent(User $user, string $ipAddress = null): void
+    {
+        $log = new ActivityLog();
+        $log->setUser($user);
+        $log->setAction('login');
+        $log->setEventType('login');
+        $log->setDescription('User logged in' . ($ipAddress ? ' from IP: ' . $ipAddress : ''));
+        
+        $this->getEntityManager()->persist($log);
+        $this->getEntityManager()->flush();
+    }
+    
+    /**
+     * Log a user logout event
+     */
+    public function logLogoutEvent(User $user, string $ipAddress = null): void
+    {
+        $log = new ActivityLog();
+        $log->setUser($user);
+        $log->setAction('logout');
+        $log->setEventType('logout');
+        $log->setDescription('User logged out' . ($ipAddress ? ' from IP: ' . $ipAddress : ''));
+        
+        $this->getEntityManager()->persist($log);
+        $this->getEntityManager()->flush();
+    }
+    
+    /**
+     * Get login events for a user
+     */
+    public function findLoginEventsForUser(User $user, int $limit = 10): array
+    {
+        return $this->createQueryBuilder('al')
+            ->andWhere('al.user = :user')
+            ->andWhere('al.eventType = :eventType')
+            ->setParameter('user', $user)
+            ->setParameter('eventType', 'login')
+            ->orderBy('al.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+    
+    /**
+     * Get recent login events
+     */
+    public function findRecentLoginEvents(int $limit = 10): array
+    {
+        return $this->createQueryBuilder('al')
+            ->andWhere('al.eventType = :eventType')
+            ->setParameter('eventType', 'login')
+            ->orderBy('al.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 }

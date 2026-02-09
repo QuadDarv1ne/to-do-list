@@ -104,11 +104,25 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getQuery()
             ->getSingleScalarResult();
         
+        // Get users who logged in today
+        $todayQb = $this->createQueryBuilder('u');
+        $today = new \DateTime();
+        $todayStart = $today->format('Y-m-d 00:00:00');
+        $todayEnd = $today->format('Y-m-d 23:59:59');
+        
+        $activeToday = $todayQb->select('COUNT(u.id)')
+            ->where('u.lastLoginAt BETWEEN :start AND :end')
+            ->setParameter('start', $todayStart)
+            ->setParameter('end', $todayEnd)
+            ->getQuery()
+            ->getSingleScalarResult();
+        
         return [
             'total' => $totalUsers,
             'active' => $activeUsers,
             'admins' => $adminUsers,
             'managers' => $managerUsers,
+            'active_today' => $activeToday,
         ];
     }
 
@@ -130,4 +144,6 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         
         $this->getEntityManager()->flush();
     }
+    
+
 }

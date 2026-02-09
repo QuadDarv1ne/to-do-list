@@ -10,6 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use App\Entity\ActivityLog;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
@@ -122,6 +123,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->tasks = new ArrayCollection();
         $this->assignedTasks = new ArrayCollection();
+        $this->taskCategories = new ArrayCollection();
+        $this->comments = new ArrayCollection();
+        $this->activityLogs = new ArrayCollection();
         $this->taskRecurrences = new ArrayCollection();
         $this->notifications = new ArrayCollection();
         $this->systemNotifications = new ArrayCollection();
