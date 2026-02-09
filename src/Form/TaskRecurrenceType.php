@@ -45,6 +45,33 @@ class TaskRecurrenceType extends AbstractType
                     'class' => 'form-control',
                 ],
             ])
+            ->add('daysOfWeek', ChoiceType::class, [
+                'label' => 'Дни недели (для еженедельного повторения)',
+                'choices' => [
+                    'Понедельник' => '1',
+                    'Вторник' => '2',
+                    'Среда' => '3',
+                    'Четверг' => '4',
+                    'Пятница' => '5',
+                    'Суббота' => '6',
+                    'Воскресенье' => '7',
+                ],
+                'multiple' => true,
+                'required' => false,
+                'expanded' => true,
+                'attr' => [
+                    'class' => 'form-check-input',
+                ],
+            ])
+            ->add('daysOfMonth', ChoiceType::class, [
+                'label' => 'Дни месяца (для ежемесячного повторения)',
+                'choices' => array_combine(range(1, 31), range(1, 31)),
+                'multiple' => true,
+                'required' => false,
+                'attr' => [
+                    'class' => 'form-select',
+                ],
+            ])
             ->add('save', SubmitType::class, [
                 'label' => 'Сохранить повторение',
                 'attr' => [

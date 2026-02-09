@@ -34,16 +34,19 @@ class TaskRecurrence
     private ?int $interval = null; // e.g., every 2 weeks
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $daysOfWeek = null; // for weekly recurrence: "1,3,5" for Mon, Wed, Fri
+    private ?string $daysOfWeek = null; // JSON array of days of week (1-7) // for weekly recurrence: "1,3,5" for Mon, Wed, Fri
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $daysOfMonth = null; // for monthly recurrence: "1,15" for 1st and 15th
+    private ?string $daysOfMonth = null; // JSON array of days of month (1-31) // for monthly recurrence: "1,15" for 1st and 15th
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $updatedAt = null;
+
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $lastGenerated = null;
 
     public function __construct()
     {
@@ -153,6 +156,18 @@ class TaskRecurrence
     public function setUpdatedAt(): static
     {
         $this->updatedAt = new \DateTimeImmutable();
+
+        return $this;
+    }
+
+    public function getLastGenerated(): ?\DateTimeImmutable
+    {
+        return $this->lastGenerated;
+    }
+
+    public function setLastGenerated(\DateTimeImmutable $lastGenerated): static
+    {
+        $this->lastGenerated = $lastGenerated;
 
         return $this;
     }

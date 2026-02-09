@@ -41,7 +41,7 @@ class GenerateRecurringTasksCommand extends Command
             $task = $recurrence->getTask();
             
             // Skip if the task doesn't belong to an active user or is overdue
-            if (!$task || !$task->getCreatedBy()) {
+            if (!$task || !$task->getUser()) {
                 $progressBar->advance();
                 continue;
             }
@@ -53,10 +53,15 @@ class GenerateRecurringTasksCommand extends Command
                 if ($newTask) {
                     $this->entityManager->persist($newTask);
                     $generatedCount++;
+                    
+                    // Update the last generated date for this recurrence
+                    $recurrence->setLastGenerated(new \DateTimeImmutable());
+                    $this->entityManager->persist($recurrence);
+                    
                     $output->writeln(sprintf(
                         '<comment>Created recurring task: %s for user %s</comment>',
                         $newTask->getName(),
-                        $newTask->getCreatedBy()->getUserIdentifier()
+                        $newTask->getUser()->getUserIdentifier()
                     ));
                 }
             }
@@ -87,7 +92,15 @@ class GenerateRecurringTasksCommand extends Command
 
         // Check if the task should be created today based on frequency
         $today = new \DateTimeImmutable();
-        $lastCreated = $task->getCreatedAt(); // In a real implementation, you'd track the last generated date
+        $rawLastCreated = $recurrence->getLastGenerated() ?: $task->getCreatedAt(); // Use last generated date if available, otherwise use original creation date
+        
+        // Ensure $lastCreated is not null
+        if (!$rawLastCreated) {
+            return false; // Can't determine when to generate next task
+        }
+        
+        // Convert to DateTimeImmutable if needed
+        $lastCreated = $rawLastCreated instanceof \DateTimeImmutable ? $rawLastCreated : \DateTimeImmutable::createFromMutable($rawLastCreated);
         
         switch ($recurrence->getFrequency()) {
             case 'daily':
@@ -126,13 +139,18 @@ class GenerateRecurringTasksCommand extends Command
             case 'yearly':
                 // For yearly tasks, check if it's the right date and year interval matches
                 $currentMonthDay = $today->format('m-d');
-                $originalMonthDay = $task->getCreatedAt()->format('m-d');
+                $originalDate = $task->getCreatedAt();
+                if (!$originalDate) {
+                    return false;
+                }
+                $originalDateImmutable = $originalDate instanceof \DateTimeImmutable ? $originalDate : \DateTimeImmutable::createFromMutable($originalDate);
+                $originalMonthDay = $originalDateImmutable->format('m-d');
                 
                 if ($currentMonthDay !== $originalMonthDay) {
                     return false;
                 }
                 
-                $yearsSinceLast = $today->format('Y') - $lastCreated->format('Y');
+                $yearsSinceLast = (int)$today->format('Y') - (int)$lastCreated->format('Y');
                 return $yearsSinceLast >= $recurrence->getInterval();
                 
             default:
@@ -147,18 +165,16 @@ class GenerateRecurringTasksCommand extends Command
         $newTask->setName($originalTask->getName());
         $newTask->setDescription($originalTask->getDescription());
         $newTask->setPriority($originalTask->getPriority());
-        $newTask->setCreatedBy($originalTask->getCreatedBy());
+        $newTask->setUser($originalTask->getUser());
         $newTask->setAssignedUser($originalTask->getAssignedUser());
         
         // Set a new deadline based on the recurrence frequency
         $now = new \DateTimeImmutable();
         $newTask->setCreatedAt($now);
-        $newTask->setUpdateAt($now);
+        $newTask->setUpdatedAt($now);
 
-        // Copy categories
-        foreach ($originalTask->getCategories() as $category) {
-            $newTask->addCategory($category);
-        }
+        // Copy category
+        $newTask->setCategory($originalTask->getCategory());
 
         return $newTask;
     }
