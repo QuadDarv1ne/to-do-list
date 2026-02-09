@@ -107,12 +107,11 @@ class DashboardController extends AbstractController
         $upcomingRecurringTasks = [];
         if ($this->isGranted('ROLE_ADMIN')) {
             $upcomingRecurringTasks = $taskRecurrenceRepository->findAllRecurrences();
+            // Limit to first 5 upcoming recurring tasks
+            $upcomingRecurringTasks = array_slice($upcomingRecurringTasks, 0, 5);
         } else {
-            $upcomingRecurringTasks = $taskRecurrenceRepository->findByUser($user);
+            $upcomingRecurringTasks = $taskRecurrenceRepository->findUpcomingForUser($user, 5);
         }
-        
-        // Limit to first 5 upcoming recurring tasks
-        $upcomingRecurringTasks = array_slice($upcomingRecurringTasks, 0, 5);
         
         // Get unread notifications count
         $unreadNotificationsCount = 0;
@@ -167,7 +166,7 @@ class DashboardController extends AbstractController
         if ($user->hasRole('ROLE_ADMIN')) {
             // For admin, get trends for all tasks
             $trends = $qb
-                ->select('DATE(t.createdAt) as date, COUNT(t.id) as total, SUM(CASE WHEN t.status = \'completed\' THEN 1 ELSE 0 END) as completed')
+                ->select("DATE(t.createdAt) as date, COUNT(t.id) as total, SUM(CASE WHEN t.status = 'completed' THEN 1 ELSE 0 END) as completed")
                 ->groupBy('DATE(t.createdAt)')
                 ->orderBy('date', 'DESC')
                 ->setMaxResults(30) // Last 30 days
@@ -176,8 +175,8 @@ class DashboardController extends AbstractController
         } else {
             // For regular user, get trends for their tasks
             $trends = $qb
-                ->select('DATE(t.createdAt) as date, COUNT(t.id) as total, SUM(CASE WHEN t.status = \'completed\' THEN 1 ELSE 0 END) as completed')
-                ->andWhere('t.assignedUser = :user OR t.createdBy = :user')
+                ->select("DATE(t.createdAt) as date, COUNT(t.id) as total, SUM(CASE WHEN t.status = 'completed' THEN 1 ELSE 0 END) as completed")
+                ->andWhere('t.assignedUser = :user OR t.user = :user')
                 ->setParameter('user', $user)
                 ->groupBy('DATE(t.createdAt)')
                 ->orderBy('date', 'DESC')

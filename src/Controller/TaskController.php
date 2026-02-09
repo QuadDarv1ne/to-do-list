@@ -691,6 +691,43 @@ class TaskController extends AbstractController
         ]);
     }
     
+    #[Route('/{id}/recurrence', name: 'app_task_recurrence', methods: ['GET', 'POST'])]
+    public function recurrence(
+        Request $request,
+        Task $task,
+        EntityManagerInterface $entityManager
+    ): Response {
+        $this->denyAccessUnlessGranted('TASK_EDIT', $task);
+        
+        // Check if task already has a recurrence
+        $recurrence = $task->getRecurrence();
+        if (!$recurrence) {
+            $recurrence = new \App\Entity\TaskRecurrence();
+            $recurrence->setTask($task);
+            $recurrence->setUser($this->getUser());
+            $task->setRecurrence($recurrence);
+        }
+        
+        $form = $this->createForm(\App\Form\TaskRecurrenceType::class, $recurrence);
+        $form->handleRequest($request);
+        
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Update the task's user to be the same as the recurrence user
+            $recurrence->setUser($this->getUser());
+            $entityManager->persist($recurrence);
+            $entityManager->flush();
+            
+            $this->addFlash('success', 'Настройки повторения задачи успешно сохранены');
+            
+            return $this->redirectToRoute('app_task_show', ['id' => $task->getId()]);
+        }
+        
+        return $this->render('task/recurrence.html.twig', [
+            'task' => $task,
+            'form' => $form,
+        ]);
+    }
+    
     #[Route('/bulk-action', name: 'app_task_bulk_action', methods: ['POST'])]
     public function bulkAction(
         Request $request,

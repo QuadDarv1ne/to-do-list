@@ -42,6 +42,12 @@
                             {{ form_row(form.interval) }}
                         </div>
                         <div class="col-md-12">
+                            {{ form_row(form.daysOfWeek) }}
+                        </div>
+                        <div class="col-md-12">
+                            {{ form_row(form.daysOfMonth) }}
+                        </div>
+                        <div class="col-md-12">
                             {{ form_row(form.endDate) }}
                         </div>
                         <div class="col-md-12">
@@ -75,6 +81,24 @@
                         {% if recurrence.endDate %}
                         <div class="col-md-12">
                             <p><strong>Дата окончания:</strong> {{ recurrence.endDate|date('d.m.Y') }}</p>
+                        </div>
+                        {% endif %}
+                        {% if recurrence.daysOfWeekArrayForTemplate %}
+                        <div class="col-md-12">
+                            <p><strong>Дни недели:</strong> 
+                                {% for day in recurrence.daysOfWeekArrayForTemplate %}
+                                    {% if day == '1' %}Пн{% elseif day == '2' %}Вт{% elseif day == '3' %}Ср{% elseif day == '4' %}Чт{% elseif day == '5' %}Пт{% elseif day == '6' %}Сб{% elseif day == '7' %}Вс{% endif %}{% if not loop.last %}, {% endif %}
+                                {% endfor %}
+                            </p>
+                        </div>
+                        {% endif %}
+                        {% if recurrence.daysOfMonthArrayForTemplate %}
+                        <div class="col-md-12">
+                            <p><strong>Дни месяца:</strong> 
+                                {% for day in recurrence.daysOfMonthArrayForTemplate %}
+                                    {{ day }}{% if not loop.last %}, {% endif %}
+                                {% endfor %}
+                            </p>
                         </div>
                         {% endif %}
                     </div>

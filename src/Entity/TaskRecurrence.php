@@ -34,9 +34,11 @@ class TaskRecurrence
     #[ORM\Column]
     private ?int $interval = null; // e.g., every 2 weeks
 
+    #[Assert\Regex(pattern: '/^([1-7])(,[1-7])*$/i', message: 'Дни недели должны быть числами от 1 до 7, разделенными запятыми')]
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $daysOfWeek = null; // JSON array of days of week (1-7) // for weekly recurrence: "1,3,5" for Mon, Wed, Fri
 
+    #[Assert\Regex(pattern: '/^([1-9]|[12][0-9]|3[01])(,([1-9]|[12][0-9]|3[01]))*$/i', message: 'Дни месяца должны быть числами от 1 до 31, разделенными запятыми')]
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $daysOfMonth = null; // JSON array of days of month (1-31) // for monthly recurrence: "1,15" for 1st and 15th
 
@@ -170,6 +172,72 @@ class TaskRecurrence
     {
         $this->lastGenerated = $lastGenerated;
 
+        return $this;
+    }
+
+    /**
+     * Get days of week as array
+     *
+     * @return array|null
+     */
+    public function getDaysOfWeekArray(): ?array
+    {
+        return $this->daysOfWeek ? explode(',', $this->daysOfWeek) : null;
+    }
+
+    /**
+     * Getter for Twig template to access days of week array
+     *
+     * @return array|null
+     */
+    public function getDaysOfWeekArrayForTemplate(): ?array
+    {
+        return $this->getDaysOfWeekArray();
+    }
+
+    /**
+     * Set days of week from array
+     *
+     * @param array|null $days
+     * @return static
+     */
+    public function setDaysOfWeekFromArray(?array $days): static
+    {
+        $this->daysOfWeek = $days ? implode(',', $days) : null;
+        
+        return $this;
+    }
+
+    /**
+     * Get days of month as array
+     *
+     * @return array|null
+     */
+    public function getDaysOfMonthArray(): ?array
+    {
+        return $this->daysOfMonth ? explode(',', $this->daysOfMonth) : null;
+    }
+
+    /**
+     * Getter for Twig template to access days of month array
+     *
+     * @return array|null
+     */
+    public function getDaysOfMonthArrayForTemplate(): ?array
+    {
+        return $this->getDaysOfMonthArray();
+    }
+
+    /**
+     * Set days of month from array
+     *
+     * @param array|null $days
+     * @return static
+     */
+    public function setDaysOfMonthFromArray(?array $days): static
+    {
+        $this->daysOfMonth = $days ? implode(',', $days) : null;
+        
         return $this;
     }
 }

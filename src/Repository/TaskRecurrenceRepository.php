@@ -23,7 +23,7 @@ class TaskRecurrenceRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('tr')
             ->join('tr.task', 't')
-            ->andWhere('t.createdBy = :user')
+            ->andWhere('t.user = :user')
             ->setParameter('user', $user)
             ->getQuery()
             ->getResult();
@@ -35,6 +35,21 @@ class TaskRecurrenceRepository extends ServiceEntityRepository
     public function findAllRecurrences()
     {
         return $this->createQueryBuilder('tr')
+            ->getQuery()
+            ->getResult();
+    }
+    
+    /**
+     * Find upcoming recurring tasks for a specific user
+     */
+    public function findUpcomingForUser($user, $limit = 5)
+    {
+        return $this->createQueryBuilder('tr')
+            ->join('tr.task', 't')
+            ->andWhere('t.user = :user')
+            ->setParameter('user', $user)
+            ->orderBy('tr.createdAt', 'DESC')
+            ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
     }

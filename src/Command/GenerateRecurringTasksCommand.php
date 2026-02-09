@@ -112,7 +112,7 @@ class GenerateRecurringTasksCommand extends Command
             case 'weekly':
                 // For weekly tasks, we check if the day of week matches and interval is correct
                 $currentDayOfWeek = (int)$today->format('N'); // 1 (Monday) to 7 (Sunday)
-                $daysOfWeek = $recurrence->getDaysOfWeek() ? explode(',', $recurrence->getDaysOfWeek()) : [];
+                $daysOfWeek = $recurrence->getDaysOfWeekArray() ?: [];
                 
                 if (!empty($daysOfWeek) && !in_array($currentDayOfWeek, $daysOfWeek)) {
                     return false;
@@ -125,7 +125,7 @@ class GenerateRecurringTasksCommand extends Command
             case 'monthly':
                 // For monthly tasks, check if it's the right day of month and interval matches
                 $currentDayOfMonth = (int)$today->format('j');
-                $daysOfMonth = $recurrence->getDaysOfMonth() ? explode(',', $recurrence->getDaysOfMonth()) : [];
+                $daysOfMonth = $recurrence->getDaysOfMonthArray() ?: [];
                 
                 if (!empty($daysOfMonth) && !in_array($currentDayOfMonth, $daysOfMonth)) {
                     return false;

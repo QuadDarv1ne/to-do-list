@@ -562,4 +562,45 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+    
+    /**
+     * Check if the user account is currently locked
+     *
+     * @return bool True if the account is locked, false otherwise
+     */
+    public function isAccountLocked(): bool
+    {
+        if ($this->lockedUntil === null) {
+            return false;
+        }
+        
+        return new \DateTime() < $this->lockedUntil;
+    }
+    
+    /**
+     * Lock the user account until the specified time
+     *
+     * @param \DateTimeInterface|null $until Time until which the account should be locked
+     * @return static
+     */
+    public function lockAccount(?\DateTimeInterface $until): static
+    {
+        $this->lockedUntil = $until;
+        $this->failedLoginAttempts = 0; // Reset failed attempts when locking
+        
+        return $this;
+    }
+    
+    /**
+     * Unlock the user account
+     *
+     * @return static
+     */
+    public function unlockAccount(): static
+    {
+        $this->lockedUntil = null;
+        $this->failedLoginAttempts = 0;
+        
+        return $this;
+    }
 }
