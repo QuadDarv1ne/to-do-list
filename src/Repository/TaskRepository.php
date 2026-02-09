@@ -400,3 +400,48 @@ class TaskRepository extends ServiceEntityRepository
         return $stats;
     }
 }
+    /**
+     * Get task completion trends grouped by date for dashboard
+     *
+     * @return array
+     */
+    public function getTaskCompletionTrendsByDate(?User  = null): array
+    {
+         = ->createQueryBuilder('t')
+            ->select('DATE(t.createdAt) as date, t.status, COUNT(t.id) as count')
+            ->groupBy('date, t.status')
+            ->orderBy('date', 'DESC')
+            ->setMaxResults(30); // Last 30 days
+
+        if ( !== null) {
+            ->andWhere('t.assignedUser = :user OR t.user = :user')
+                ->setParameter('user', );
+        }
+
+         = ->getQuery()->getResult();
+
+        // Transform results to group by date
+         = [];
+        foreach ( as ) {
+             = ['date'];
+            if (!isset([])) {
+                [] = ['date' => , 'total' => 0, 'completed' => 0];
+            }
+            []['total'] += ['count'];
+            if (['status'] === 'completed') {
+                []['completed'] += ['count'];
+            }
+        }
+
+        // Convert to indexed array and sort by date descending
+         = array_values();
+        usort(, function(, ) {
+            return ['date'] <=> ['date'];
+        });
+
+        // Limit to last 30 days
+         = array_slice(, 0, 30);
+
+        return ;
+    }
+}
