@@ -360,3 +360,295 @@ main {
     border-top: 1px solid rgba(0,0,0,0.05);
     padding: 1rem 1.5rem;
 }
+
+/* Dark mode support */
+:root[data-theme='dark'] {
+    --primary-color: #3b82f6;
+    --secondary-color: #9ca3af;
+    --success-color: #10b981;
+    --danger-color: #ef4444;
+    --warning-color: #f59e0b;
+    --info-color: #0ea5e9;
+    --light-color: #1f2937;
+    --dark-color: #f9fafb;
+    
+    background-color: #111827;
+    color: #f9fafb;
+}
+
+[data-theme='dark'] body {
+    background-color: #111827;
+    color: #f9fafb;
+}
+
+[data-theme='dark'] .card {
+    background-color: #1f2937;
+    border-color: #374151;
+}
+
+[data-theme='dark'] .card-header {
+    background-color: #1f2937;
+    border-color: #374151;
+}
+
+[data-theme='dark'] .navbar {
+    background-color: #1f2937 !important;
+    border-bottom: 1px solid #374151;
+}
+
+[data-theme='dark'] .form-control,
+[data-theme='dark'] .form-select {
+    background-color: #1f2937;
+    border-color: #4b5563;
+    color: #f9fafb;
+}
+
+[data-theme='dark'] .form-control:focus,
+[data-theme='dark'] .form-select:focus {
+    background-color: #1f2937;
+    border-color: var(--primary-color);
+    color: #f9fafb;
+}
+
+/* Theme toggle button */
+.theme-toggle {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+    background-color: rgba(255,255,255,0.1);
+    transform: rotate(15deg);
+}
+
+/* Loading skeletons */
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    border-radius: 4px;
+}
+
+[data-theme='dark'] .skeleton {
+    background: linear-gradient(90deg, #2d3748 25%, #4a5568 50%, #2d3748 75%);
+    background-size: 200% 100%;
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.skeleton-text {
+    height: 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 4px;
+}
+
+.skeleton-text:last-child {
+    width: 60%;
+    margin-bottom: 0;
+}
+
+.skeleton-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+/* Enhanced dashboard cards */
+.dashboard-card-enhanced {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.dashboard-card-enhanced::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-color), var(--info-color));
+}
+
+.dashboard-card-enhanced:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+[data-theme='dark'] .dashboard-card-enhanced:hover {
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}
+
+/* Task item enhancements */
+.task-item-enhanced {
+    position: relative;
+    border-left: 3px solid transparent;
+    transition: all 0.3s ease;
+    padding: 1.25rem;
+}
+
+.task-item-enhanced:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+[data-theme='dark'] .task-item-enhanced:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+/* Priority glow effects */
+.priority-high-glow {
+    box-shadow: 0 0 15px rgba(220, 53, 69, 0.3);
+}
+
+.priority-medium-glow {
+    box-shadow: 0 0 15px rgba(255, 193, 7, 0.3);
+}
+
+.priority-low-glow {
+    box-shadow: 0 0 15px rgba(40, 167, 69, 0.3);
+}
+
+/* Animated badges */
+.badge-animated {
+    position: relative;
+    overflow: hidden;
+}
+
+.badge-animated::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.badge-animated:hover::after {
+    left: 100%;
+}
+
+/* Progress ring animation */
+.progress-ring {
+    transition: stroke-dashoffset 0.3s ease;
+}
+
+/* Toast notifications */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+}
+
+.toast {
+    background: white;
+    border-left: 4px solid var(--primary-color);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+}
+
+[data-theme='dark'] .toast {
+    background: #1f2937;
+    color: #f9fafb;
+}
+
+.toast.show {
+    transform: translateX(0);
+}
+
+.toast-success {
+    border-left-color: var(--success-color);
+}
+
+.toast-error {
+    border-left-color: var(--danger-color);
+}
+
+.toast-warning {
+    border-left-color: var(--warning-color);
+}
+
+/* Keyboard shortcut hints */
+.kbd-shortcut {
+    display: inline-block;
+    padding: 2px 6px;
+    font: 11px ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+    background-color: #f6f8fa;
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
+    box-shadow: inset 0 -1px 0 #d0d7de;
+}
+
+[data-theme='dark'] .kbd-shortcut {
+    background-color: #2d3748;
+    border-color: #4a5568;
+    box-shadow: inset 0 -1px 0 #4a5568;
+    color: #f9fafb;
+}
+
+/* Drag and drop styles */
+.draggable {
+    cursor: move;
+    user-select: none;
+}
+
+.draggable:active {
+    cursor: grabbing;
+}
+
+.drop-zone {
+    border: 2px dashed transparent;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.drop-zone.drag-over {
+    border-color: var(--primary-color);
+    background-color: rgba(13, 110, 253, 0.1);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-track {
+    background: #2d3748;
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-thumb {
+    background: #4a5568;
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-thumb:hover {
+    background: #718096;
+}

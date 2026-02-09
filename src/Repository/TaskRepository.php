@@ -170,7 +170,7 @@ class TaskRepository extends ServiceEntityRepository
     }
     
     /**
-     * Search tasks by various criteria
+     * Search tasks by various criteria with improved performance
      */
     public function searchTasks(array $criteria = []): array
     {
@@ -179,13 +179,14 @@ class TaskRepository extends ServiceEntityRepository
             ->leftJoin('t.assignedUser', 'au')
             ->leftJoin('t.category', 'c');
 
+        if (!empty($criteria['user'])) {
+            $qb->andWhere('t.user = :user OR t.assignedUser = :user')
+               ->setParameter('user', $criteria['user']);
+        }
+
         if (!empty($criteria['search'])) {
-            $qb->andWhere('LOWER(t.title) LIKE :search OR 
-                          LOWER(t.description) LIKE :search OR 
-                          LOWER(u.username) LIKE :search OR 
-                          LOWER(au.username) LIKE :search OR 
-                          LOWER(c.name) LIKE :search')
-               ->setParameter('search', '%' . strtolower($criteria['search']) . '%');
+            $qb->andWhere('t.title LIKE :search OR t.description LIKE :search')
+               ->setParameter('search', '%' . $criteria['search'] . '%');
         }
 
         if (!empty($criteria['status'])) {

@@ -33,74 +33,62 @@
     </div>
 
     <!-- Statistics Cards -->
-    <div class="row mb-4">
+    <div class="row mb-4" id="stats-row">
         <div class="col-md-3">
-            <div class="card dashboard-card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-shrink-0">
-                            <div class="rounded-circle bg-primary bg-opacity-10 p-3">
-                                <i class="fas fa-tasks fa-2x text-primary"></i>
-                            </div>
-                        </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h3 class="stat-number mb-0 text-primary">{{ task_stats.total }}</h3>
-                            <p class="stat-label mb-0">Всего задач</p>
-                        </div>
+            <div class="card dashboard-card dashboard-card-enhanced border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-3 d-inline-block mb-3">
+                        <i class="fas fa-tasks fa-2x text-primary"></i>
+                    </div>
+                    <h3 class="stat-number mb-0 text-primary">{{ task_stats.total }}</h3>
+                    <p class="stat-label mb-0">Всего задач</p>
+                    <div class="progress mt-2" style="height: 5px;">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: 100%"></div>
                     </div>
                 </div>
             </div>
         </div>
         
         <div class="col-md-3">
-            <div class="card dashboard-card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-shrink-0">
-                            <div class="rounded-circle bg-warning bg-opacity-10 p-3">
-                                <i class="fas fa-clock fa-2x text-warning"></i>
-                            </div>
-                        </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h3 class="stat-number mb-0 text-warning">{{ task_stats.pending }}</h3>
-                            <p class="stat-label mb-0">В ожидании</p>
-                        </div>
+            <div class="card dashboard-card dashboard-card-enhanced border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="rounded-circle bg-warning bg-opacity-10 p-3 d-inline-block mb-3">
+                        <i class="fas fa-clock fa-2x text-warning"></i>
+                    </div>
+                    <h3 class="stat-number mb-0 text-warning">{{ task_stats.pending }}</h3>
+                    <p class="stat-label mb-0">В ожидании</p>
+                    <div class="progress mt-2" style="height: 5px;">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: {{ (task_stats.pending / task_stats.total * 100)|round(0) }}%"></div>
                     </div>
                 </div>
             </div>
         </div>
         
         <div class="col-md-3">
-            <div class="card dashboard-card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-shrink-0">
-                            <div class="rounded-circle bg-info bg-opacity-10 p-3">
-                                <i class="fas fa-play-circle fa-2x text-info"></i>
-                            </div>
-                        </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h3 class="stat-number mb-0 text-info">{{ task_stats.in_progress }}</h3>
-                            <p class="stat-label mb-0">В процессе</p>
-                        </div>
+            <div class="card dashboard-card dashboard-card-enhanced border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="rounded-circle bg-info bg-opacity-10 p-3 d-inline-block mb-3">
+                        <i class="fas fa-play-circle fa-2x text-info"></i>
+                    </div>
+                    <h3 class="stat-number mb-0 text-info">{{ task_stats.in_progress }}</h3>
+                    <p class="stat-label mb-0">В процессе</p>
+                    <div class="progress mt-2" style="height: 5px;">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: {{ (task_stats.in_progress / task_stats.total * 100)|round(0) }}%"></div>
                     </div>
                 </div>
             </div>
         </div>
         
         <div class="col-md-3">
-            <div class="card dashboard-card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-shrink-0">
-                            <div class="rounded-circle bg-success bg-opacity-10 p-3">
-                                <i class="fas fa-check-circle fa-2x text-success"></i>
-                            </div>
-                        </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h3 class="stat-number mb-0 text-success">{{ task_stats.completed }}</h3>
-                            <p class="stat-label mb-0">Завершено</p>
-                        </div>
+            <div class="card dashboard-card dashboard-card-enhanced border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="rounded-circle bg-success bg-opacity-10 p-3 d-inline-block mb-3">
+                        <i class="fas fa-check-circle fa-2x text-success"></i>
+                    </div>
+                    <h3 class="stat-number mb-0 text-success">{{ task_stats.completed }}</h3>
+                    <p class="stat-label mb-0">Завершено</p>
+                    <div class="progress mt-2" style="height: 5px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ (task_stats.completed / task_stats.total * 100)|round(0) }}%"></div>
                     </div>
                 </div>
             </div>
@@ -198,10 +186,17 @@
                     </div>
                 </div>
                 <div class="card-body p-0">
+                    <div id="recent-tasks-loading" class="p-4 text-center d-none">
+                        <div class="skeleton skeleton-text" style="width: 80%;"></div>
+                        <div class="skeleton skeleton-text" style="width: 60%;"></div>
+                        <div class="skeleton skeleton-text" style="width: 90%;"></div>
+                    </div>
+                    
+                    <div id="recent-tasks-content">
                     {% if recent_tasks is not empty %}
                         <div class="list-group list-group-flush">
                             {% for task in recent_tasks %}
-                                <div class="list-group-item task-item border-0 px-4 py-3">
+                                <div class="list-group-item task-item task-item-enhanced border-0 px-4 py-3 priority-{{ task.priority }} {% if task.priority == 'high' %}priority-high-glow{% elseif task.priority == 'medium' %}priority-medium-glow{% else %}priority-low-glow{% endif %}">
                                     <div class="d-flex justify-content-between align-items-start">
                                         <div class="flex-grow-1">
                                             <div class="d-flex align-items-center mb-1">
@@ -210,12 +205,20 @@
                                                         {{ task.title }}
                                                     </a>
                                                 </h6>
-                                                <span class="badge badge-{{ task.status|lower }} me-2">
+                                                <span class="badge badge-{{ task.status|lower }} badge-animated me-2">
                                                     {{ task.status|trans }}
                                                 </span>
                                                 {% if task.priority == 'high' %}
-                                                    <span class="badge bg-danger">
+                                                    <span class="badge bg-danger badge-animated">
                                                         <i class="fas fa-exclamation-triangle me-1"></i>Высокий приоритет
+                                                    </span>
+                                                {% elseif task.priority == 'medium' %}
+                                                    <span class="badge bg-warning text-dark badge-animated">
+                                                        <i class="fas fa-exclamation me-1"></i>Средний приоритет
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-success badge-animated">
+                                                        <i class="fas fa-arrow-down me-1"></i>Низкий приоритет
                                                     </span>
                                                 {% endif %}
                                             </div>
@@ -254,7 +257,7 @@
                             {% endfor %}
                         </div>
                     {% else %}
-                        <div class="empty-state">
+                        <div class="empty-state" id="tasks-empty-state">
                             <i class="fas fa-tasks"></i>
                             <h5>Нет задач</h5>
                             <p class="mb-0">Создайте свою первую задачу, чтобы начать</p>
@@ -263,6 +266,7 @@
                             </a>
                         </div>
                     {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
@@ -535,6 +539,46 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Simulate loading state for demonstration
+    const recentTasksLoading = document.getElementById('recent-tasks-loading');
+    const recentTasksContent = document.getElementById('recent-tasks-content');
+    
+    // Show loading skeleton for 1.5 seconds
+    if (recentTasksLoading && recentTasksContent) {
+        recentTasksLoading.classList.remove('d-none');
+        recentTasksContent.style.display = 'none';
+        
+        setTimeout(() => {
+            recentTasksLoading.classList.add('d-none');
+            recentTasksContent.style.display = 'block';
+        }, 1500);
+    }
+    
+    // Add hover effects to task items
+    const taskItems = document.querySelectorAll('.task-item-enhanced');
+    taskItems.forEach(item => {
+        item.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateX(8px)';
+        });
+        
+        item.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateX(0)';
+        });
+    });
+    
+    // Add click animations
+    const taskLinks = document.querySelectorAll('.task-title a');
+    taskLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            const parentItem = this.closest('.task-item-enhanced');
+            if (parentItem) {
+                parentItem.style.animation = 'pulse 0.3s ease';
+                setTimeout(() => {
+                    parentItem.style.animation = '';
+                }, 300);
+            }
+        });
+    });
     // Task Status Distribution Chart
     const statusCtx = document.getElementById('statusChart').getContext('2d');
     const statusChart = new Chart(statusCtx, {

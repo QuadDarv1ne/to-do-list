@@ -25,12 +25,23 @@
                 <i class="fas fa-tasks"></i> To-Do List
             </a>
             
+            <!-- Theme Toggle -->
+            <button class="theme-toggle me-3" id="themeToggle" title="Переключить тему">
+                <i class="fas fa-moon"></i>
+            </button>
+            
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
+                    <!-- Keyboard Shortcuts Help -->
+                    <li class="nav-item me-2">
+                        <button class="btn btn-outline-light btn-sm" id="showShortcuts" title="Горячие клавиши">
+                            <i class="fas fa-keyboard"></i>
+                        </button>
+                    </li>
                     {% if app.user %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ path('app_dashboard') }}">Панель</a>
@@ -141,6 +152,9 @@
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
+    <!-- Toast Container -->
+    <div class="toast-container"></div>
+    
     {% block javascripts %}
         {% block importmap %}{{ importmap('app') }}{% endblock %}
     {% endblock %}
@@ -224,7 +238,146 @@
     </button>
     
     <script>
+        // Theme Management
         document.addEventListener('DOMContentLoaded', function() {
+            const themeToggle = document.getElementById('themeToggle');
+            const themeIcon = themeToggle.querySelector('i');
+            
+            // Load saved theme
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+            
+            // Theme toggle functionality
+            themeToggle.addEventListener('click', function() {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                updateThemeIcon(newTheme);
+                
+                showToast(`Тема переключена на ${newTheme === 'dark' ? 'темную' : 'светлую'}`, 'success');
+            });
+            
+            function updateThemeIcon(theme) {
+                if (theme === 'dark') {
+                    themeIcon.className = 'fas fa-sun';
+                    themeToggle.title = 'Переключить на светлую тему';
+                } else {
+                    themeIcon.className = 'fas fa-moon';
+                    themeToggle.title = 'Переключить на темную тему';
+                }
+            }
+            
+            // Keyboard Shortcuts
+            const shortcuts = {
+                'n': () => {
+                    if (document.getElementById('quick-task-fab')) {
+                        document.getElementById('quick-task-fab').click();
+                    }
+                },
+                't': () => window.location.href = '{{ path('app_task_index') }}',
+                'd': () => window.location.href = '{{ path('app_dashboard') }}',
+                'c': () => window.location.href = '{{ path('app_task_category_index') }}',
+                'p': () => window.location.href = '{{ path('app_profile_show') }}',
+                '?': () => showKeyboardShortcuts()
+            };
+            
+            document.addEventListener('keydown', function(e) {
+                // Ignore if typing in input/textarea
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+                
+                const key = e.key.toLowerCase();
+                if (shortcuts[key] && (e.ctrlKey || !Object.keys(shortcuts).includes(key))) {
+                    e.preventDefault();
+                    shortcuts[key]();
+                }
+            });
+            
+            // Show shortcuts modal
+            document.getElementById('showShortcuts').addEventListener('click', showKeyboardShortcuts);
+            
+            function showKeyboardShortcuts() {
+                const modalHtml = `
+                    <div class="modal fade" id="shortcutsModal" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title"><i class="fas fa-keyboard me-2"></i>Горячие клавиши</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6>Навигация</h6>
+                                            <ul class="list-unstyled">
+                                                <li class="mb-2"><kbd class="kbd-shortcut">d</kbd> Панель управления</li>
+                                                <li class="mb-2"><kbd class="kbd-shortcut">t</kbd> Задачи</li>
+                                                <li class="mb-2"><kbd class="kbd-shortcut">c</kbd> Категории</li>
+                                                <li class="mb-2"><kbd class="kbd-shortcut">p</kbd> Профиль</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>Действия</h6>
+                                            <ul class="list-unstyled">
+                                                <li class="mb-2"><kbd class="kbd-shortcut">n</kbd> Быстрое создание задачи</li>
+                                                <li class="mb-2"><kbd class="kbd-shortcut">?</kbd> Показать горячие клавиши</li>
+                                                <li class="mb-2"><kbd class="kbd-shortcut">Esc</kbd> Закрыть модальные окна</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Remove existing modal if present
+                const existingModal = document.getElementById('shortcutsModal');
+                if (existingModal) existingModal.remove();
+                
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                const modal = new bootstrap.Modal(document.getElementById('shortcutsModal'));
+                modal.show();
+                
+                // Clean up after modal is hidden
+                document.getElementById('shortcutsModal').addEventListener('hidden.bs.modal', function() {
+                    this.remove();
+                });
+            }
+            
+            // Toast notifications
+            window.showToast = function(message, type = 'info') {
+                const toastContainer = document.querySelector('.toast-container');
+                const toastId = 'toast-' + Date.now();
+                
+                const toastHtml = `
+                    <div id="${toastId}" class="toast toast-${type}" role="alert">
+                        <div class="toast-body">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+                                <span>${message}</span>
+                                <button type="button" class="btn-close ms-auto" data-bs-dismiss="toast"></button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+                const toastEl = document.getElementById(toastId);
+                const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+                toast.show();
+                
+                // Remove toast after it's hidden
+                toastEl.addEventListener('hidden.bs.toast', function() {
+                    this.remove();
+                });
+            };
+            // Quick Task functionality
             const quickTaskFab = document.getElementById('quick-task-fab');
             const saveQuickTaskBtn = document.getElementById('save-quick-task');
             const quickTaskForm = document.getElementById('quick-task-form');
