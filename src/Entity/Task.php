@@ -13,7 +13,15 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: TaskRepository::class)]
 #[ORM\HasLifecycleCallbacks]
-#[ORM\Table(name: 'tasks')]
+#[ORM\Table(name: 'tasks', indexes: [
+    new ORM\Index(name: 'idx_task_user', columns: ['user_id']),
+    new ORM\Index(name: 'idx_task_status', columns: ['status']),
+    new ORM\Index(name: 'idx_task_priority', columns: ['priority']),
+    new ORM\Index(name: 'idx_task_due_date', columns: ['due_date']),
+    new ORM\Index(name: 'idx_task_created_at', columns: ['created_at']),
+    new ORM\Index(name: 'idx_task_assigned_user', columns: ['assigned_user_id']),
+    new ORM\Index(name: 'idx_task_category', columns: ['category_id'])
+])]
 class Task
 {
     #[ORM\Id]
