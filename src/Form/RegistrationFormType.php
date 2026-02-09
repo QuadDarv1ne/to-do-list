@@ -112,11 +112,12 @@ class RegistrationFormType extends AbstractType
                     'constraints' => [
                         new NotBlank(),
                         new Length(
-                            min: 6,
+                            min: 8,
                             max: 4096,
                             minMessage: 'Пароль должен содержать минимум {{ limit }} символов',
                             maxMessage: 'Пароль должен содержать максимум {{ limit }} символов',
                         ),
+                        new PasswordStrength(),
                         new Regex(
                             pattern: '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/',
                             message: 'Пароль должен содержать хотя бы одну заглавную букву, одну строчную букву и одну цифру'

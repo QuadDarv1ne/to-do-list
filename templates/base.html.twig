@@ -38,9 +38,11 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{{ path('app_task_index') }}">Задачи</a>
                         </li>
+                        {% if app.router.getRouteCollection.has('app_task_category_index') %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ path('app_task_category_index') }}">Категории</a>
                         </li>
+                        {% endif %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ path('app_profile_show') }}">Профиль</a>
                         </li>

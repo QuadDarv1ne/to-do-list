@@ -65,7 +65,7 @@ class TagRepository extends ServiceEntityRepository
     {
         $qb = $this->createQueryBuilder('t');
         
-        $result = $qb->select('
+        $rawResult = $qb->select('
                 t.id, 
                 t.name, 
                 t.color,
@@ -73,7 +73,7 @@ class TagRepository extends ServiceEntityRepository
                 SUM(CASE WHEN task.status = \'completed\' THEN 1 ELSE 0 END) as completedTasks,
                 CASE 
                     WHEN COUNT(task.id) > 0 THEN 
-                        ROUND((SUM(CASE WHEN task.status = \'completed\' THEN 1 ELSE 0 END) * 100.0) / COUNT(task.id), 2)
+                        (SUM(CASE WHEN task.status = \'completed\' THEN 1 ELSE 0 END) * 100.0) / COUNT(task.id)
                     ELSE 0 
                 END as completionRate
             ')
@@ -83,6 +83,13 @@ class TagRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
             
+        // Round the completion rate in PHP
+        $result = [];
+        foreach ($rawResult as $item) {
+            $item['completionRate'] = round($item['completionRate'], 2);
+            $result[] = $item;
+        }
+        
         return $result;
     }
 }

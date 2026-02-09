@@ -165,24 +165,70 @@ class DashboardController extends AbstractController
         
         if ($user->hasRole('ROLE_ADMIN')) {
             // For admin, get trends for all tasks
-            $trends = $qb
-                ->select("DATE(t.createdAt) as date, COUNT(t.id) as total, SUM(CASE WHEN t.status = 'completed' THEN 1 ELSE 0 END) as completed")
-                ->groupBy('DATE(t.createdAt)')
-                ->orderBy('date', 'DESC')
-                ->setMaxResults(30) // Last 30 days
+            $results = $qb
+                ->select("t.createdAt, t.status")
+                ->orderBy('t.createdAt', 'DESC')
+                ->setMaxResults(1000) // Get more records to process in PHP
                 ->getQuery()
                 ->getResult();
+            
+            // Process results in PHP to group by date
+            $trends = [];
+            $dateCounts = [];
+            
+            foreach ($results as $result) {
+                $date = $result['createdAt']->format('Y-m-d');
+                if (!isset($dateCounts[$date])) {
+                    $dateCounts[$date] = ['date' => $date, 'total' => 0, 'completed' => 0];
+                }
+                $dateCounts[$date]['total']++;
+                if ($result['status'] === 'completed') {
+                    $dateCounts[$date]['completed']++;
+                }
+            }
+            
+            $trends = array_values($dateCounts);
+            // Sort by date descending
+            usort($trends, function($a, $b) {
+                return $b['date'] <=> $a['date'];
+            });
+            
+            // Take only last 30 days
+            $trends = array_slice($trends, 0, 30);
         } else {
             // For regular user, get trends for their tasks
-            $trends = $qb
-                ->select("DATE(t.createdAt) as date, COUNT(t.id) as total, SUM(CASE WHEN t.status = 'completed' THEN 1 ELSE 0 END) as completed")
+            $results = $qb
+                ->select("t.createdAt, t.status")
                 ->andWhere('t.assignedUser = :user OR t.user = :user')
                 ->setParameter('user', $user)
-                ->groupBy('DATE(t.createdAt)')
-                ->orderBy('date', 'DESC')
-                ->setMaxResults(30) // Last 30 days
+                ->orderBy('t.createdAt', 'DESC')
+                ->setMaxResults(1000) // Get more records to process in PHP
                 ->getQuery()
                 ->getResult();
+            
+            // Process results in PHP to group by date
+            $trends = [];
+            $dateCounts = [];
+            
+            foreach ($results as $result) {
+                $date = $result['createdAt']->format('Y-m-d');
+                if (!isset($dateCounts[$date])) {
+                    $dateCounts[$date] = ['date' => $date, 'total' => 0, 'completed' => 0];
+                }
+                $dateCounts[$date]['total']++;
+                if ($result['status'] === 'completed') {
+                    $dateCounts[$date]['completed']++;
+                }
+            }
+            
+            $trends = array_values($dateCounts);
+            // Sort by date descending
+            usort($trends, function($a, $b) {
+                return $b['date'] <=> $a['date'];
+            });
+            
+            // Take only last 30 days
+            $trends = array_slice($trends, 0, 30);
         }
         
         // Format data for chart
