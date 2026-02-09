@@ -13,7 +13,15 @@ framework:
 
         # APCu (not recommended with heavy random-write workloads as memory fragmentation can cause perf issues)
         #app: cache.adapter.apcu
-
-        # Namespaced pools use the above "app" backend by default
-        #pools:
-            #my.dedicated.cache: null
+        
+        app: cache.adapter.filesystem
+        system: cache.adapter.system
+        pools:
+            cache.validator:
+                adapter: cache.adapter.system
+            cache.serializer:
+                adapter: cache.adapter.system
+            cache.annotations:
+                adapter: cache.adapter.system
+            cache.property_info:
+                adapter: cache.adapter.system

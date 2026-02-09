@@ -1,0 +1,11 @@
+doctrine:
+    orm:
+        metadata_cache_driver: pool.cache.doctrine.orm.default
+        query_cache_driver: pool.cache.doctrine.orm.default
+        result_cache_driver: pool.cache.doctrine.orm.default
+
+framework:
+    cache:
+        pools:
+            cache.doctrine.orm.default:
+                adapter: cache.adapter.filesystem
