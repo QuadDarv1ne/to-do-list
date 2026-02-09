@@ -289,4 +289,19 @@ class DashboardController extends AbstractController
         
         return $this->json($stats);
     }
+    
+    #[Route('/api/user-stats', name: 'app_dashboard_user_stats', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
+    public function getUserStats(): Response
+    {
+        $user = $this->getUser();
+        
+        return $this->json([
+            'success' => true,
+            'data' => [
+                'username' => $user->getUserIdentifier(),
+                'roles' => $user->getRoles(),
+            ],
+        ]);
+    }
 }
