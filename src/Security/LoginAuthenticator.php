@@ -66,6 +66,10 @@ class LoginAuthenticator extends AbstractAuthenticator implements Authentication
                 if (!$user->isActive()) {
                     throw new CustomUserMessageAuthenticationException('Аккаунт деактивирован.');
                 }
+                
+                if ($user->isAccountLocked()) {
+                    throw new CustomUserMessageAuthenticationException('Аккаунт заблокирован. Повторите попытку позже.');
+                }
 
                 // Обновляем время последнего входа
                 $user->setLastLoginAt(new \DateTime());
@@ -103,6 +107,27 @@ class LoginAuthenticator extends AbstractAuthenticator implements Authentication
     {
         error_log('Authentication failed: ' . $exception->getMessage());
         $request->getSession()->set(SecurityRequestAttributes::AUTHENTICATION_ERROR, $exception);
+        
+        // Handle failed login attempts and account locking
+        $email = $request->request->get('email', '');
+        if ($email) {
+            $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
+            if ($user) {
+                $failedAttempts = $user->getFailedLoginAttempts() + 1;
+                $user->setFailedLoginAttempts($failedAttempts);
+                
+                // Lock account after 5 failed attempts
+                if ($failedAttempts >= 5) {
+                    $lockedUntil = new \DateTime();
+                    $lockedUntil->modify('+15 minutes'); // Lock for 15 minutes
+                    $user->lockAccount($lockedUntil);
+                    
+                    error_log('Account locked for user: ' . $user->getEmail() . ' until ' . $lockedUntil->format('Y-m-d H:i:s'));
+                }
+                
+                $this->entityManager->flush();
+            }
+        }
         
         return new RedirectResponse($this->urlGenerator->generate(self::LOGIN_ROUTE));
     }
