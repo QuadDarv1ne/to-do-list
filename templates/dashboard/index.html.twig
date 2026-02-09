@@ -58,7 +58,7 @@
                     <h3 class="stat-number mb-0 text-warning">{{ task_stats.pending }}</h3>
                     <p class="stat-label mb-0">В ожидании</p>
                     <div class="progress mt-2" style="height: 5px;">
-                        <div class="progress-bar bg-warning" role="progressbar" style="width: {{ (task_stats.pending / task_stats.total * 100)|round(0) }}%"></div>
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: {{ task_stats.total > 0 ? (task_stats.pending / task_stats.total * 100)|round(0) : 0 }}%"></div>
                     </div>
                 </div>
             </div>
@@ -73,7 +73,7 @@
                     <h3 class="stat-number mb-0 text-info">{{ task_stats.in_progress }}</h3>
                     <p class="stat-label mb-0">В процессе</p>
                     <div class="progress mt-2" style="height: 5px;">
-                        <div class="progress-bar bg-info" role="progressbar" style="width: {{ (task_stats.in_progress / task_stats.total * 100)|round(0) }}%"></div>
+                        <div class="progress-bar bg-info" role="progressbar" style="width: {{ task_stats.total > 0 ? (task_stats.in_progress / task_stats.total * 100)|round(0) : 0 }}%"></div>
                     </div>
                 </div>
             </div>
@@ -88,7 +88,7 @@
                     <h3 class="stat-number mb-0 text-success">{{ task_stats.completed }}</h3>
                     <p class="stat-label mb-0">Завершено</p>
                     <div class="progress mt-2" style="height: 5px;">
-                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ (task_stats.completed / task_stats.total * 100)|round(0) }}%"></div>
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ task_stats.total > 0 ? (task_stats.completed / task_stats.total * 100)|round(0) : 0 }}%"></div>
                     </div>
                 </div>
             </div>
@@ -157,7 +157,7 @@
                     {% if tag_stats is defined and tag_stats is not empty %}
                         <div class="tag-cloud">
                             {% for tag_stat in tag_stats|slice(0, 15) %}
-                                <span class="tag-item" style="font-size: {{ 14 + (tag_stat.taskCount * 2) }}px; background-color: {{ tag_stat.color }}; color: white; padding: 5px 10px; margin: 3px; border-radius: 4px; display: inline-block;">
+                                <span class="tag-item" style="font-size: {{ tag_stat.taskCount > 0 ? 14 + (tag_stat.taskCount * 2) : 14 }}px; background-color: {{ tag_stat.color }}; color: white; padding: 5px 10px; margin: 3px; border-radius: 4px; display: inline-block;">
                                     {{ tag_stat.name }} ({{ tag_stat.taskCount }})
                                 </span>
                             {% endfor %}

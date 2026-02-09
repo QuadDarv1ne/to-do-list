@@ -180,7 +180,7 @@ class NotificationService
             ->andWhere('n.createdAt > :since')
             ->andWhere('n.isRead = false')
             ->setParameter('user', $user)
-            ->setParameter('since', $since)
+            ->setParameter('since', \DateTimeImmutable::createFromMutable($since))
             ->orderBy('n.createdAt', 'ASC')
             ->getQuery()
             ->getResult();
@@ -286,7 +286,7 @@ class NotificationService
      */
     public function cleanupOldNotifications(): int
     {
-        $cutoffDate = new \DateTime('-30 days');
+        $cutoffDate = \DateTimeImmutable::createFromMutable(new \DateTime('-30 days'));
         
         $oldNotifications = $this->notificationRepository->createQueryBuilder('n')
             ->where('n.createdAt < :cutoff')
