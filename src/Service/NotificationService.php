@@ -2,309 +2,308 @@
 
 namespace App\Service;
 
-use App\Entity\Task;
 use App\Entity\User;
 use App\Entity\Notification;
+use App\Entity\Task;
+use App\Repository\NotificationRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Email;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class NotificationService
 {
+    private EntityManagerInterface $entityManager;
+    private LoggerInterface $logger;
+    private NotificationRepository $notificationRepository;
+
     public function __construct(
-        private MailerInterface $mailer,
-        private UrlGeneratorInterface $urlGenerator,
-        private EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        LoggerInterface $logger,
+        NotificationRepository $notificationRepository
     ) {
+        $this->entityManager = $entityManager;
+        $this->logger = $logger;
+        $this->notificationRepository = $notificationRepository;
     }
 
-    public function notifyTaskAssignment(Task $task, User $assigner): void
-    {
-        $assignedUser = $task->getAssignedUser();
-        
-        if (!$assignedUser || $assignedUser === $assigner) {
-            return;
-        }
-
-        // Create database notification
-        $notification = new Notification();
-        $notification->setTitle('Новая задача назначена')
-            ->setMessage(sprintf(
-                'Вам назначена новая задача "%s" пользователем %s', 
-                $task->getName(),
-                $assigner->getFullName()
-            ))
-            ->setUser($assignedUser)
-            ->setTask($task);
-
-        $this->entityManager->persist($notification);
-
-        // Send email notification
-        $email = (new Email())
-            ->from('noreply@todo-list.local')
-            ->to($assignedUser->getEmail())
-            ->subject(sprintf('Новая задача: %s', $task->getName()))
-            ->html($this->buildEmailContent($task, $assigner));
-
-        try {
-            $this->mailer->send($email);
-        } catch (\Exception $e) {
-            // Log error but don't fail the operation
-            error_log('Failed to send notification email: ' . $e->getMessage());
-        }
-
-        $this->entityManager->flush();
-    }
-    
     /**
-     * @deprecated Use notifyTaskAssignment instead
+     * Create a notification for a user
      */
-    public function sendTaskAssignedNotification(Task $task): void
-    {
-        // For backward compatibility, we'll try to determine the assigner
-        // In most contexts where this is called, the assigner should be passed explicitly
-        // For now, assume the task creator is the assigner
-        $assigner = $task->getUser() ?? $task->getAssignedUser();
-        if ($assigner) {
-            $this->notifyTaskAssignment($task, $assigner);
-        }
-    }
-
-    public function notifyTaskReassignment(Task $task, User $changer): void
-    {
-        $assignedUser = $task->getAssignedUser();
-        
-        if (!$assignedUser) {
-            return;
-        }
-
-        // Create database notification
+    public function createNotification(
+        User $user,
+        string $title,
+        string $message,
+        ?Task $task = null
+    ): Notification {
         $notification = new Notification();
-        $notification->setTitle('Задача переназначена')
-            ->setMessage(sprintf(
-                'Вам переназначена задача "%s" пользователем %s', 
-                $task->getName(),
-                $changer->getFullName()
-            ))
-            ->setUser($assignedUser)
-            ->setTask($task);
+        $notification->setUser($user);
+        $notification->setTitle($title);
+        $notification->setMessage($message);
+        $notification->setIsRead(false);
+        if ($task) {
+            $notification->setTask($task);
+        }
 
         $this->entityManager->persist($notification);
+        $this->entityManager->flush();
 
-        // Send email notification
-        $email = (new Email())
-            ->from('noreply@todo-list.local')
-            ->to($assignedUser->getEmail())
-            ->subject(sprintf('Задача переназначена: %s', $task->getName()))
-            ->html($this->buildEmailContent($task, $changer, 'переназначена'));
+        $this->logger->info("Created notification for user {$user->getId()}: {$title}");
 
-        try {
-            $this->mailer->send($email);
-        } catch (\Exception $e) {
-            // Log error but don't fail the operation
-            error_log('Failed to send reassignment email: ' . $e->getMessage());
-        }
+        return $notification;
+    }
 
+    /**
+     * Create task-related notification
+     */
+    public function createTaskNotification(
+        User $user,
+        string $title,
+        string $message,
+        int $taskId,
+        ?string $taskTitle = null
+    ): Notification {
+        // For now, we'll create a basic notification
+        // In a real implementation, you might want to extend the Notification entity
+        return $this->createNotification($user, $title, $message, null);
+    }
+
+    /**
+     * Get unread notifications for user
+     */
+    public function getUnreadNotifications(User $user): array
+    {
+        return $this->notificationRepository->findBy([
+            'user' => $user,
+            'isRead' => false
+        ], ['createdAt' => 'DESC']);
+    }
+
+    /**
+     * Mark notification as read
+     */
+    public function markAsRead(Notification $notification): void
+    {
+        $notification->setIsRead(true);
         $this->entityManager->flush();
     }
 
-    public function notifyTaskDeadline(Task $task): void
+    /**
+     * Mark all notifications as read for user
+     */
+    public function markAllAsRead(User $user): int
     {
-        $assignedUser = $task->getAssignedUser();
-        
-        if (!$assignedUser || $task->isCompleted()) {
-            return;
-        }
+        $unreadNotifications = $this->getUnreadNotifications($user);
+        $count = count($unreadNotifications);
 
-        // Create database notification
-        $notification = new Notification();
-        $notification->setTitle('Приближается срок выполнения задачи')
-            ->setMessage(sprintf(
-                'Срок выполнения задачи "%s" истекает %s', 
-                $task->getName(),
-                $task->getDeadline()?->format('d.m.Y')
-            ))
-            ->setUser($assignedUser)
-            ->setTask($task);
-
-        $this->entityManager->persist($notification);
-
-        // Send email notification
-        $email = (new Email())
-            ->from('noreply@todo-list.local')
-            ->to($assignedUser->getEmail())
-            ->subject(sprintf('Напоминание: срок задачи %s', $task->getName()))
-            ->html($this->buildDeadlineEmailContent($task));
-
-        try {
-            $this->mailer->send($email);
-        } catch (\Exception $e) {
-            // Log error but don't fail the operation
-            error_log('Failed to send deadline reminder email: ' . $e->getMessage());
+        foreach ($unreadNotifications as $notification) {
+            $notification->setIsRead(true);
         }
 
         $this->entityManager->flush();
+        return $count;
     }
 
-    public function notifyTaskStatusChange(Task $task, User $changer): void
+    /**
+     * Server-Sent Events stream for real-time notifications
+     */
+    public function createNotificationStream(User $user): StreamedResponse
     {
-        $assignedUser = $task->getAssignedUser();
-        $currentUser = $assignedUser ?? $task->getUser();
-        
-        // Don't notify the user who made the change
-        if ($currentUser === $changer) {
-            return;
-        }
+        $response = new StreamedResponse(function () use ($user) {
+            // Send headers
+            header('Content-Type: text/event-stream');
+            header('Cache-Control: no-cache');
+            header('Connection: keep-alive');
+            header('Access-Control-Allow-Origin: *');
 
-        // Create database notification
-        $notification = new Notification();
-        $statusLabels = [
-            'pending' => 'в ожидании',
-            'in_progress' => 'в процессе выполнения',
-            'completed' => 'завершена'
+            // Send initial connection confirmation
+            echo "event: connected\n";
+            echo "data: " . json_encode(['status' => 'connected', 'user_id' => $user->getId()]) . "\n\n";
+            flush();
+
+            $lastCheck = new \DateTime();
+            $heartbeatInterval = 25; // seconds
+            $checkInterval = 5; // seconds
+            
+            while (true) {
+                // Check for new notifications
+                $newNotifications = $this->getNewNotifications($user, $lastCheck);
+                
+                if (!empty($newNotifications)) {
+                    foreach ($newNotifications as $notification) {
+                        echo "event: notification\n";
+                        echo "data: " . json_encode([
+                            'id' => $notification->getId(),
+                            'title' => $notification->getTitle(),
+                            'message' => $notification->getMessage(),
+                            'task_id' => $notification->getTask() ? $notification->getTask()->getId() : null,
+                            'created_at' => $notification->getCreatedAt()->format('c')
+                        ]) . "\n\n";
+                        flush();
+                    }
+                    
+                    $lastCheck = new \DateTime();
+                }
+
+                // Send heartbeat to keep connection alive
+                static $counter = 0;
+                if (++$counter % $heartbeatInterval === 0) {
+                    echo "event: heartbeat\n";
+                    echo "data: " . json_encode(['time' => date('c')]) . "\n\n";
+                    flush();
+                }
+
+                sleep($checkInterval);
+                
+                // Check if connection is still alive
+                if (connection_aborted()) {
+                    break;
+                }
+            }
+        });
+
+        $response->headers->set('Content-Type', 'text/event-stream');
+        $response->headers->set('Cache-Control', 'no-cache');
+        $response->headers->set('Connection', 'keep-alive');
+        $response->headers->set('X-Accel-Buffering', 'no');
+
+        return $response;
+    }
+
+    /**
+     * Get notifications created after a specific time
+     */
+    private function getNewNotifications(User $user, \DateTime $since): array
+    {
+        return $this->notificationRepository->createQueryBuilder('n')
+            ->where('n.user = :user')
+            ->andWhere('n.createdAt > :since')
+            ->andWhere('n.isRead = false')
+            ->setParameter('user', $user)
+            ->setParameter('since', $since)
+            ->orderBy('n.createdAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Send task assignment notification
+     */
+    public function sendTaskAssignmentNotification(
+        User $assignedUser,
+        User $assigner,
+        int $taskId,
+        string $taskTitle
+    ): void {
+        $title = 'Новая задача назначена';
+        $message = sprintf(
+            'Пользователь %s назначил вам задачу "%s"',
+            $assigner->getFullName(),
+            $taskTitle
+        );
+
+        $this->createTaskNotification($assignedUser, $title, $message, $taskId, $taskTitle);
+    }
+
+    /**
+     * Send task completion notification
+     */
+    public function sendTaskCompletionNotification(
+        User $taskCreator,
+        User $completer,
+        int $taskId,
+        string $taskTitle
+    ): void {
+        if ($taskCreator->getId() !== $completer->getId()) {
+            $title = 'Задача завершена';
+            $message = sprintf(
+                'Пользователь %s завершил задачу "%s"',
+                $completer->getFullName(),
+                $taskTitle
+            );
+
+            $this->createTaskNotification($taskCreator, $title, $message, $taskId, $taskTitle);
+        }
+    }
+
+    /**
+     * Send deadline reminder notification
+     */
+    public function sendDeadlineReminder(
+        User $user,
+        int $taskId,
+        string $taskTitle,
+        \DateTime $deadline
+    ): void {
+        $title = 'Напоминание о сроке';
+        $message = sprintf(
+            'Задача "%s" должна быть завершена до %s',
+            $taskTitle,
+            $deadline->format('d.m.Y H:i')
+        );
+
+        $this->createTaskNotification($user, $title, $message, $taskId, $taskTitle);
+    }
+
+    /**
+     * Send system notification to all users
+     */
+    public function sendSystemNotification(
+        string $title,
+        string $message,
+        ?string $type = 'info'
+    ): void {
+        // This would typically send to all active users
+        // For now, we'll just log it
+        $this->logger->info("System notification: {$title} - {$message}");
+    }
+
+    /**
+     * Get notification statistics for user
+     */
+    public function getNotificationStats(User $user): array
+    {
+        $total = $this->notificationRepository->count(['user' => $user]);
+        $unread = $this->notificationRepository->count([
+            'user' => $user,
+            'isRead' => false
+        ]);
+        $today = $this->notificationRepository->count([
+            'user' => $user,
+            'createdAt' => new \DateTime('today')
+        ]);
+
+        return [
+            'total' => $total,
+            'unread' => $unread,
+            'today' => $today,
+            'read' => $total - $unread
         ];
-        $statusLabel = $statusLabels[$task->getStatus()] ?? $task->getStatus();
-
-        $notification->setTitle('Статус задачи изменен')
-            ->setMessage(sprintf(
-                'Статус задачи "%s" изменен на "%s" пользователем %s', 
-                $task->getName(),
-                $statusLabel,
-                $changer->getFullName()
-            ))
-            ->setUser($currentUser)
-            ->setTask($task);
-
-        $this->entityManager->persist($notification);
-        $this->entityManager->flush();
     }
 
-    public function notifyTaskComment(Task $task, User $commenter, string $commentContent): void
+    /**
+     * Clean old notifications (older than 30 days)
+     */
+    public function cleanupOldNotifications(): int
     {
-        $assignedUser = $task->getAssignedUser();
-        $creatorUser = $task->getUser();
-        $currentUser = $assignedUser ?? $creatorUser;
+        $cutoffDate = new \DateTime('-30 days');
         
-        // Don't notify the user who made the comment
-        if ($currentUser === $commenter) {
-            return;
-        }
+        $oldNotifications = $this->notificationRepository->createQueryBuilder('n')
+            ->where('n.createdAt < :cutoff')
+            ->setParameter('cutoff', $cutoffDate)
+            ->getQuery()
+            ->getResult();
 
-        // Create database notification
-        $notification = new Notification();
-        $notification->setTitle('Новый комментарий к задаче')
-            ->setMessage(sprintf(
-                'К задаче "%s" добавлен новый комментарий пользователем %s: %s', 
-                $task->getName(),
-                $commenter->getFullName(),
-                substr($commentContent, 0, 100) . (strlen($commentContent) > 100 ? '...' : '')
-            ))
-            ->setUser($currentUser)
-            ->setTask($task);
-
-        $this->entityManager->persist($notification);
-        $this->entityManager->flush();
-    }
-
-    public function notifyTaskPriorityChange(Task $task, User $changer): void
-    {
-        $assignedUser = $task->getAssignedUser();
-        $currentUser = $assignedUser ?? $task->getUser();
+        $count = count($oldNotifications);
         
-        // Don't notify the user who made the change
-        if ($currentUser === $changer) {
-            return;
-        }
-
-        // Create database notification
-        $notification = new Notification();
-        $priorityLabels = [
-            'low' => 'низкий',
-            'medium' => 'средний',
-            'high' => 'высокий',
-            'urgent' => 'критический'
-        ];
-        $priorityLabel = $priorityLabels[$task->getPriority()] ?? $task->getPriority();
-
-        $notification->setTitle('Приоритет задачи изменен')
-            ->setMessage(sprintf(
-                'Приоритет задачи "%s" изменен на "%s" пользователем %s', 
-                $task->getName(),
-                $priorityLabel,
-                $changer->getFullName()
-            ))
-            ->setUser($currentUser)
-            ->setTask($task);
-
-        $this->entityManager->persist($notification);
-        $this->entityManager->flush();
-    }
-
-    public function notifyTaskDueDateChange(Task $task, User $changer): void
-    {
-        $assignedUser = $task->getAssignedUser();
-        $currentUser = $assignedUser ?? $task->getUser();
-        
-        // Don't notify the user who made the change
-        if ($currentUser === $changer) {
-            return;
-        }
-
-        // Create database notification
-        $notification = new Notification();
-        $notification->setTitle('Срок выполнения задачи изменен')
-            ->setMessage(sprintf(
-                'Срок выполнения задачи "%s" изменен на %s пользователем %s', 
-                $task->getName(),
-                $task->getDueDate()?->format('d.m.Y'),
-                $changer->getFullName()
-            ))
-            ->setUser($currentUser)
-            ->setTask($task);
-
-        $this->entityManager->persist($notification);
-        $this->entityManager->flush();
-    }
-
-    private function buildEmailContent(Task $task, User $assigner, string $action = 'назначена'): string
-    {
-        $taskUrl = $this->urlGenerator->generate('app_task_show', ['id' => $task->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
-        
-        $assignedUser = $task->getAssignedUser();
-        $userName = $assignedUser ? $assignedUser->getFullName() : 'пользователь';
-        
-        $html = '<h2>Новая задача ' . $action . '</h2>' .
-               '<p>Здравствуйте, ' . htmlspecialchars($userName) . '!</p>' .
-               '<p>Вам ' . $action . ' задача: <strong>' . htmlspecialchars($task->getName()) . '</strong></p>' .
-               '<p><strong>Описание:</strong> ' . htmlspecialchars($task->getDescription() ?? '') . '</p>' .
-               '<p><strong>Приоритет:</strong> ' . htmlspecialchars($task->getPriorityLabel()) . '</p>';
-        
-        if ($task->getDeadline()) {
-            $html .= '<p><strong>Срок выполнения:</strong> ' . $task->getDeadline()->format('d.m.Y') . '</p>';
+        foreach ($oldNotifications as $notification) {
+            $this->entityManager->remove($notification);
         }
         
-        $html .= '<p><strong>Назначил(а):</strong> ' . htmlspecialchars($assigner->getFullName()) . '</p>' .
-               '<p><a href="' . $taskUrl . '" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Перейти к задаче</a></p>' .
-               '<p>С уважением,<br>Система управления задачами</p>';
+        $this->entityManager->flush();
         
-        return $html;
-    }
-
-    private function buildDeadlineEmailContent(Task $task): string
-    {
-        $taskUrl = $this->urlGenerator->generate('app_task_show', ['id' => $task->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
+        $this->logger->info("Cleaned up {$count} old notifications");
         
-        $assignedUser = $task->getAssignedUser();
-        $userName = $assignedUser ? $assignedUser->getFullName() : 'пользователь';
-        
-        return '<h2>Напоминание о сроке выполнения задачи</h2>' .
-               '<p>Здравствуйте, ' . htmlspecialchars($userName) . '!</p>' .
-               '<p>Срок выполнения задачи: <strong>' . htmlspecialchars($task->getName()) . '</strong> приближается</p>' .
-               '<p><strong>Описание:</strong> ' . htmlspecialchars($task->getDescription() ?? '') . '</p>' .
-               '<p><strong>Приоритет:</strong> ' . htmlspecialchars($task->getPriorityLabel()) . '</p>' .
-               '<p><strong>Срок выполнения:</strong> ' . ($task->getDeadline() ? $task->getDeadline()->format('d.m.Y') : 'не указан') . '</p>' .
-               '<p><a href="' . $taskUrl . '" style="background-color: #ffc107; color: black; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Перейти к задаче</a></p>' .
-               '<p>С уважением,<br>Система управления задачами</p>';
+        return $count;
     }
 }

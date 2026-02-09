@@ -214,6 +214,9 @@
         <span id="voiceFeedbackText"></span>
     </div>
     
+    <!-- Real-time Notification Toast -->
+    <div id="notificationToastContainer" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+    
     <main class="container-fluid mt-4">
         {% for flash_message in app.session.flashbag.get('success') %}
             <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -256,6 +259,175 @@
     {% block javascripts %}
         {% block importmap %}{{ importmap('app') }}{% endblock %}
     {% endblock %}
+    
+    <!-- Real-time Notifications JavaScript -->
+    {% if app.user %}
+    <script>
+        class RealTimeNotifications {
+            constructor() {
+                this.eventSource = null;
+                this.notificationCountElement = document.getElementById('notificationCount');
+                this.notificationsMenu = document.getElementById('notificationsMenu');
+                this.markAllReadBtn = document.getElementById('markAllRead');
+                this.toastContainer = document.getElementById('notificationToastContainer');
+                
+                this.init();
+            }
+            
+            init() {
+                this.connect();
+                this.bindEvents();
+                this.updateNotificationCount();
+            }
+            
+            connect() {
+                if (!window.EventSource) {
+                    console.warn('EventSource not supported');
+                    return;
+                }
+                
+                this.eventSource = new EventSource('/api/notifications/stream');
+                
+                this.eventSource.addEventListener('connected', (event) => {
+                    console.log('Connected to notification stream');
+                });
+                
+                this.eventSource.addEventListener('notification', (event) => {
+                    const data = JSON.parse(event.data);
+                    this.handleNotification(data);
+                });
+                
+                this.eventSource.addEventListener('heartbeat', (event) => {
+                    // Keep connection alive
+                });
+                
+                this.eventSource.onerror = (error) => {
+                    console.error('Notification stream error:', error);
+                    // Attempt to reconnect after delay
+                    setTimeout(() => {
+                        this.connect();
+                    }, 5000);
+                };
+            }
+            
+            handleNotification(notification) {
+                // Update notification count
+                this.updateNotificationCount();
+                
+                // Show toast notification
+                this.showNotificationToast(notification);
+                
+                // Add to dropdown menu
+                this.addNotificationToMenu(notification);
+                
+                // Play sound if enabled
+                this.playNotificationSound();
+            }
+            
+            showNotificationToast(notification) {
+                const toastHtml = `
+                    <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="toast-header">
+                            <strong class="me-auto">${notification.title}</strong>
+                            <small class="text-muted">только что</small>
+                            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+                        </div>
+                        <div class="toast-body">
+                            ${notification.message}
+                        </div>
+                    </div>
+                `;
+                
+                this.toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+                const toastElement = this.toastContainer.lastElementChild;
+                const toast = new bootstrap.Toast(toastElement);
+                toast.show();
+                
+                // Auto-remove after showing
+                toastElement.addEventListener('hidden.bs.toast', () => {
+                    toastElement.remove();
+                });
+            }
+            
+            addNotificationToMenu(notification) {
+                const menuItem = document.createElement('li');
+                menuItem.innerHTML = `
+                    <a class="dropdown-item d-flex flex-column fw-bold" href="#">
+                        <div class="d-flex justify-content-between">
+                            <span>${notification.title}</span>
+                            <small class="text-muted">только что</small>
+                        </div>
+                        <div class="text-muted small">${notification.message}</div>
+                    </a>
+                `;
+                
+                // Insert after header but before existing notifications
+                const divider = this.notificationsMenu.querySelector('.dropdown-divider');
+                this.notificationsMenu.insertBefore(menuItem, divider);
+            }
+            
+            async updateNotificationCount() {
+                try {
+                    const response = await fetch('/api/notifications/unread-count');
+                    const data = await response.json();
+                    
+                    if (this.notificationCountElement) {
+                        this.notificationCountElement.textContent = data.unread;
+                        this.notificationCountElement.classList.toggle('d-none', data.unread === 0);
+                    }
+                } catch (error) {
+                    console.error('Failed to update notification count:', error);
+                }
+            }
+            
+            bindEvents() {
+                if (this.markAllReadBtn) {
+                    this.markAllReadBtn.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        await this.markAllAsRead();
+                    });
+                }
+            }
+            
+            async markAllAsRead() {
+                try {
+                    const response = await fetch('/api/notifications/mark-all-read', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        await this.updateNotificationCount();
+                        // Clear dropdown notifications
+                        const notificationItems = this.notificationsMenu.querySelectorAll('.dropdown-item.fw-bold');
+                        notificationItems.forEach(item => item.classList.remove('fw-bold'));
+                    }
+                } catch (error) {
+                    console.error('Failed to mark notifications as read:', error);
+                }
+            }
+            
+            playNotificationSound() {
+                // Optional: play notification sound
+                // const audio = new Audio('/sounds/notification.mp3');
+                // audio.play().catch(e => console.log('Audio play failed:', e));
+            }
+            
+            disconnect() {
+                if (this.eventSource) {
+                    this.eventSource.close();
+                }
+            }
+        }
+        
+        // Initialize real-time notifications
+        document.addEventListener('DOMContentLoaded', () => {
+            window.realTimeNotifications = new RealTimeNotifications();
+        });
+    </script>
+    {% endif %}
     
     <!-- Quick Task Modal -->
     <div class="modal fade" id="quickTaskModal" tabindex="-1" aria-labelledby="quickTaskModalLabel" aria-hidden="true">

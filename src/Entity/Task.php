@@ -95,6 +95,12 @@ class Task
     #[ORM\OneToMany(mappedBy: 'task', targetEntity: TaskNotification::class)]
     private Collection $notifications;
 
+    #[ORM\OneToMany(mappedBy: 'dependentTask', targetEntity: TaskDependency::class, cascade: ['persist', 'remove'])]
+    private Collection $dependencies;
+
+    #[ORM\OneToMany(mappedBy: 'dependencyTask', targetEntity: TaskDependency::class)]
+    private Collection $dependents;
+
     #[ORM\OneToOne(mappedBy: 'task', targetEntity: TaskRecurrence::class, cascade: ['persist', 'remove'])]
     private ?TaskRecurrence $recurrence = null;
 
@@ -503,5 +509,102 @@ class Task
         $this->tags->removeElement($tag);
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, TaskDependency>
+     */
+    public function getDependencies(): Collection
+    {
+        return $this->dependencies;
+    }
+
+    public function addDependency(TaskDependency $dependency): static
+    {
+        if (!$this->dependencies->contains($dependency)) {
+            $this->dependencies->add($dependency);
+            $dependency->setDependentTask($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDependency(TaskDependency $dependency): static
+    {
+        if ($this->dependencies->removeElement($dependency)) {
+            // set the owning side to null (unless already changed)
+            if ($dependency->getDependentTask() === $this) {
+                $dependency->setDependentTask(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TaskDependency>
+     */
+    public function getDependents(): Collection
+    {
+        return $this->dependents;
+    }
+
+    public function addDependent(TaskDependency $dependent): static
+    {
+        if (!$this->dependents->contains($dependent)) {
+            $this->dependents->add($dependent);
+        }
+
+        return $this;
+    }
+
+    public function removeDependent(TaskDependency $dependent): static
+    {
+        if ($this->dependents->removeElement($dependent)) {
+            // set the owning side to null (unless already changed)
+            if ($dependent->getDependencyTask() === $this) {
+                $dependent->setDependencyTask(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Check if this task can be started (all blocking dependencies are satisfied)
+     */
+    public function canStart(): bool
+    {
+        foreach ($this->dependencies as $dependency) {
+            if (!$dependency->canStartDependentTask()) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+
+    /**
+     * Get all tasks that this task depends on
+     */
+    public function getDependencyTasks(): array
+    {
+        $tasks = [];
+        foreach ($this->dependencies as $dependency) {
+            $tasks[] = $dependency->getDependencyTask();
+        }
+        return $tasks;
+    }
+
+    /**
+     * Get all tasks that depend on this task
+     */
+    public function getDependentTasks(): array
+    {
+        $tasks = [];
+        foreach ($this->dependents as $dependent) {
+            $tasks[] = $dependent->getDependentTask();
+        }
+        return $tasks;
     }
 }

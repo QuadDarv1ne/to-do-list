@@ -1097,6 +1097,63 @@ html.dragging {
         font-size: 1rem;
         margin-bottom: 0.75rem;
     }
+}
+
+/* Real-time Notification Toasts */
+#notificationToastContainer {
+    z-index: 1050;
+}
+
+#notificationToastContainer .toast {
+    background: white;
+    border-left: 4px solid #007bff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    margin-bottom: 10px;
+    min-width: 300px;
+}
+
+#notificationToastContainer .toast-header {
+    background: rgba(0, 123, 255, 0.05);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+#notificationToastContainer .toast-body {
+    padding: 15px;
+}
+
+/* Notification Badge Animation */
+.badge-notification {
+    transition: all 0.3s ease;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* Notification Menu Improvements */
+.dropdown-menu .notification-loading {
+    padding: 10px 20px;
+    text-align: center;
+    color: #6c757d;
+}
+
+.dropdown-menu .dropdown-item.fw-bold {
+    background-color: rgba(0, 123, 255, 0.05);
+    border-left: 3px solid #007bff;
+}
+
+[data-theme='dark'] #notificationToastContainer .toast {
+    background: #1f2937;
+    color: #f9fafb;
+}
+
+[data-theme='dark'] #notificationToastContainer .toast-header {
+    background: rgba(31, 41, 55, 0.5);
+    border-bottom: 1px solid #374151;
+}
     
     .form-control, .form-select {
         font-size: 1rem;
