@@ -4,8 +4,9 @@
 
 1. [Main Documentation](README.md) - Complete project overview, features, and usage
 2. [Technical Documentation](DOCUMENTATION.md) - Detailed technical information about architecture and implementation
-3. [English Requirements](requirements.txt) - System requirements in English
-4. [Russian Requirements](requirements_ru.txt) - System requirements in Russian
+3. [Database Setup](DATABASE_SETUP.md) - Configuration guide for SQLite, MySQL, and PostgreSQL
+4. [English Requirements](requirements.txt) - System requirements in English
+5. [Russian Requirements](requirements_ru.txt) - System requirements in Russian
 
 ## Project Overview
 
