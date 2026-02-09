@@ -66,6 +66,7 @@ class ActivityLogRepository extends ServiceEntityRepository
         $log->setAction('login');
         $log->setEventType('login');
         $log->setDescription('User logged in' . ($ipAddress ? ' from IP: ' . $ipAddress : ''));
+        $log->setCreatedAt(new \DateTimeImmutable());
         
         $this->getEntityManager()->persist($log);
         $this->getEntityManager()->flush();
@@ -81,6 +82,7 @@ class ActivityLogRepository extends ServiceEntityRepository
         $log->setAction('logout');
         $log->setEventType('logout');
         $log->setDescription('User logged out' . ($ipAddress ? ' from IP: ' . $ipAddress : ''));
+        $log->setCreatedAt(new \DateTimeImmutable());
         
         $this->getEntityManager()->persist($log);
         $this->getEntityManager()->flush();

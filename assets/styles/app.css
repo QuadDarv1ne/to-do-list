@@ -188,6 +188,28 @@ body {
     }
 }
 
+/* Bounce Animation */
+@keyframes bounce {
+    0%, 20%, 53%, 80%, 100% {
+        animation-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000);
+        transform: translate3d(0, 0, 0);
+    }
+    
+    40%, 43% {
+        animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
+        transform: translate3d(0, -30px, 0);
+    }
+    
+    70% {
+        animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
+        transform: translate3d(0, -15px, 0);
+    }
+    
+    90% {
+        transform: translate3d(0, -4px, 0);
+    }
+}
+
 /* Priority indicators */
 .priority-high {
     border-left: 4px solid var(--danger-color);
@@ -329,6 +351,54 @@ main {
         padding-left: 0.75rem;
         padding-right: 0.75rem;
     }
+    
+    /* Even better touch targets for small screens */
+    .btn {
+        min-height: 48px;
+        min-width: 48px;
+        padding: 0.5rem 1rem;
+    }
+    
+    /* Improved card stacking */
+    .card-body {
+        padding: 1.25rem;
+    }
+    
+    /* Better form control sizing */
+    .form-control,
+    .form-select {
+        padding: 0.875rem 1rem;
+        font-size: 1rem;
+    }
+    
+    /* Enhanced mobile navigation */
+    .navbar-brand {
+        font-size: 1.25rem;
+    }
+    
+    /* Better modal spacing */
+    .modal-content {
+        margin: 5px;
+    }
+    
+    /* Improved grid for small screens */
+    .row-cols-1 > * {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    
+    /* Better typography scaling */
+    .display-1 { font-size: 2.5rem; }
+    .display-2 { font-size: 2.25rem; }
+    .display-3 { font-size: 2rem; }
+    .display-4 { font-size: 1.75rem; }
+    
+    h1 { font-size: 1.75rem; }
+    h2 { font-size: 1.5rem; }
+    h3 { font-size: 1.25rem; }
+    h4 { font-size: 1.1rem; }
+    h5 { font-size: 1rem; }
+    h6 { font-size: 0.9rem; }
     
     .card-body {
         padding: 1rem;
@@ -1231,6 +1301,173 @@ html.dragging {
         width: auto;
         max-width: 100%;
     }
+
+/* Enhanced Task Item Styling */
+.task-item-enhanced {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-left: 4px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.task-item-enhanced:hover {
+    transform: translateX(8px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-left-width: 4px;
+}
+
+.task-item-enhanced.priority-high:hover {
+    border-left-color: var(--danger-color);
+}
+
+.task-item-enhanced.priority-medium:hover {
+    border-left-color: var(--warning-color);
+}
+
+.task-item-enhanced.priority-low:hover {
+    border-left-color: var(--success-color);
+}
+
+/* Priority glow effects */
+.priority-high-glow {
+    box-shadow: 0 0 15px rgba(220, 53, 69, 0.2);
+}
+
+.priority-medium-glow {
+    box-shadow: 0 0 15px rgba(255, 193, 7, 0.2);
+}
+
+.priority-low-glow {
+    box-shadow: 0 0 15px rgba(40, 167, 69, 0.2);
+}
+
+/* Enhanced card styling */
+.card-enhanced {
+    transition: all 0.3s ease;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.card-enhanced:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Enhanced button hover effects */
+.btn-enhanced {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.btn-enhanced::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn-enhanced:hover::after {
+    width: 300px;
+    height: 300px;
+}
+
+.btn-enhanced:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Enhanced form controls */
+.form-control-enhanced,
+.form-select-enhanced {
+    transition: all 0.3s ease;
+    border-width: 2px;
+}
+
+.form-control-enhanced:focus,
+.form-select-enhanced:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(13, 110, 253, 0.2);
+}
+
+/* Enhanced badge animations */
+.badge-animated {
+    transition: all 0.3s ease;
+}
+
+.badge-animated:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Loading Skeletons */
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    border-radius: 4px;
+}
+
+.skeleton-text {
+    height: 16px;
+    margin-bottom: 8px;
+}
+
+.skeleton-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.skeleton-button {
+    height: 36px;
+    width: 120px;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Page Transition Animations */
+.page-transition {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Enhanced Card Hover Effects */
+.card-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateY(0);
+}
+
+.card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Smooth Scrolling */
+html {
+    scroll-behavior: smooth;
 }
 
 /* Performance optimizations */
@@ -1250,6 +1487,91 @@ html.dragging {
 }
 
 /* Lazy loading for images */
+img[loading="lazy"] {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+img[loading="lazy"][data-loaded="true"] {
+    opacity: 1;
+}
+
+/* Dark Theme Improvements */
+[data-theme="dark"] {
+    --bs-body-bg: #121212;
+    --bs-body-color: #e0e0e0;
+    --bs-card-bg: #1e1e1e;
+    --bs-border-color: #333;
+}
+
+[data-theme="dark"] .card {
+    background-color: var(--bs-card-bg);
+    border-color: var(--bs-border-color);
+}
+
+[data-theme="dark"] .navbar {
+    background-color: #1a1a1a !important;
+}
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+    background-color: #2d2d2d;
+    border-color: #444;
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus {
+    background-color: #2d2d2d;
+    border-color: var(--primary-color);
+    color: #e0e0e0;
+}
+
+/* Enhanced Mobile Responsiveness */
+@media (max-width: 767.98px) {
+    .container-fluid {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    /* Better touch targets */
+    .btn {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    /* Improved card spacing */
+    .card {
+        margin-bottom: 1rem;
+    }
+    
+    /* Better form layouts */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    /* Enhanced navigation */
+    .navbar-nav .nav-link {
+        padding: 0.75rem 1rem;
+    }
+    
+    /* Better modal dialogs */
+    .modal-dialog {
+        margin: 10px;
+    }
+    
+    /* Improved table display */
+    .table-responsive {
+        font-size: 0.9rem;
+    }
+    
+    /* Better badge sizing */
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.35em 0.65em;
+    }
+}
+
 img[loading="lazy"] {
     opacity: 0;
     transition: opacity 0.3s ease;

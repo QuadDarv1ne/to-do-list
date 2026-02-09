@@ -3,10 +3,10 @@
 {% block title %}Панель управления{% endblock %}
 
 {% block body %}
-<div class="container-fluid">
+<div class="container-fluid page-transition">
     <div class="row mb-4">
         <div class="col-12">
-            <div class="welcome-banner bg-gradient-primary text-white rounded-3 p-4 mb-4">
+            <div class="welcome-banner bg-gradient-primary text-white rounded-3 p-4 mb-4 card-hover">
                 <div class="row align-items-center">
                     <div class="col-md-8">
                         <h1 class="mb-2">
@@ -34,8 +34,8 @@
 
     <!-- Statistics Cards -->
     <div class="row mb-4" id="stats-row">
-        <div class="col-md-3">
-            <div class="card dashboard-card dashboard-card-enhanced border-0 shadow-sm h-100">
+        <div class="col-md-3 mb-4">
+            <div class="card dashboard-card dashboard-card-enhanced border-0 shadow-sm h-100 card-hover">
                 <div class="card-body text-center">
                     <div class="rounded-circle bg-primary bg-opacity-10 p-3 d-inline-block mb-3">
                         <i class="fas fa-tasks fa-2x text-primary"></i>
@@ -49,8 +49,8 @@
             </div>
         </div>
         
-        <div class="col-md-3">
-            <div class="card dashboard-card dashboard-card-enhanced border-0 shadow-sm h-100">
+        <div class="col-md-3 mb-4">
+            <div class="card dashboard-card dashboard-card-enhanced border-0 shadow-sm h-100 card-hover">
                 <div class="card-body text-center">
                     <div class="rounded-circle bg-warning bg-opacity-10 p-3 d-inline-block mb-3">
                         <i class="fas fa-clock fa-2x text-warning"></i>
@@ -64,8 +64,8 @@
             </div>
         </div>
         
-        <div class="col-md-3">
-            <div class="card dashboard-card dashboard-card-enhanced border-0 shadow-sm h-100">
+        <div class="col-md-3 mb-4">
+            <div class="card dashboard-card dashboard-card-enhanced border-0 shadow-sm h-100 card-hover">
                 <div class="card-body text-center">
                     <div class="rounded-circle bg-info bg-opacity-10 p-3 d-inline-block mb-3">
                         <i class="fas fa-play-circle fa-2x text-info"></i>
@@ -79,8 +79,8 @@
             </div>
         </div>
         
-        <div class="col-md-3">
-            <div class="card dashboard-card dashboard-card-enhanced border-0 shadow-sm h-100">
+        <div class="col-md-3 mb-4">
+            <div class="card dashboard-card dashboard-card-enhanced border-0 shadow-sm h-100 card-hover">
                 <div class="card-body text-center">
                     <div class="rounded-circle bg-success bg-opacity-10 p-3 d-inline-block mb-3">
                         <i class="fas fa-check-circle fa-2x text-success"></i>
@@ -186,13 +186,15 @@
                     </div>
                 </div>
                 <div class="card-body p-0">
-                    <div id="recent-tasks-loading" class="p-4 text-center d-none">
-                        <div class="skeleton skeleton-text" style="width: 80%;"></div>
-                        <div class="skeleton skeleton-text" style="width: 60%;"></div>
+                    <div id="recent-tasks-loading" class="p-4">
+                        <div class="skeleton skeleton-text" style="width: 85%;"></div>
+                        <div class="skeleton skeleton-text" style="width: 65%;"></div>
                         <div class="skeleton skeleton-text" style="width: 90%;"></div>
+                        <div class="skeleton skeleton-text" style="width: 75%;"></div>
+                        <div class="skeleton skeleton-text" style="width: 80%;"></div>
                     </div>
                     
-                    <div id="recent-tasks-content">
+                    <div id="recent-tasks-content" style="display: none;">
                     {% if recent_tasks is not empty %}
                         <div class="list-group list-group-flush">
                             {% for task in recent_tasks %}
@@ -544,15 +546,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const recentTasksLoading = document.getElementById('recent-tasks-loading');
     const recentTasksContent = document.getElementById('recent-tasks-content');
     
-    // Show loading skeleton for 1.5 seconds
+    // Show loading skeleton for 2 seconds
     if (recentTasksLoading && recentTasksContent) {
-        recentTasksLoading.classList.remove('d-none');
+        recentTasksLoading.style.display = 'block';
         recentTasksContent.style.display = 'none';
         
         setTimeout(() => {
-            recentTasksLoading.classList.add('d-none');
+            recentTasksLoading.style.display = 'none';
             recentTasksContent.style.display = 'block';
-        }, 1500);
+            
+            // Add fade-in animation to content
+            recentTasksContent.style.opacity = '0';
+            recentTasksContent.style.transition = 'opacity 0.5s ease';
+            
+            setTimeout(() => {
+                recentTasksContent.style.opacity = '1';
+            }, 50);
+        }, 2000);
     }
     
     // Add hover effects to task items

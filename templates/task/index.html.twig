@@ -3,7 +3,7 @@
 {% block title %}Мои задачи{% endblock %}
 
 {% block body %}
-<div class="container-fluid">
+<div class="container-fluid page-transition">
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
@@ -29,7 +29,7 @@
     </div>
 
     <!-- Filters and Search -->
-    <div class="card border-0 shadow-sm mb-4">
+    <div class="card border-0 shadow-sm mb-4 card-enhanced">
         <div class="card-header bg-white">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">
@@ -37,10 +37,10 @@
                     Фильтры и поиск
                 </h5>
                 <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-outline-primary btn-sm" id="toggleFilters">
+                    <button type="button" class="btn btn-outline-primary btn-sm btn-enhanced" id="toggleFilters">
                         <i class="fas fa-sliders-h me-1"></i>Фильтры
                     </button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm" id="clearFilters">
+                    <button type="button" class="btn btn-outline-secondary btn-sm btn-enhanced" id="clearFilters">
                         <i class="fas fa-times me-1"></i>Очистить
                     </button>
                 </div>
@@ -55,7 +55,7 @@
                             <i class="fas fa-search"></i>
                         </span>
                         <input type="text" 
-                               class="form-control search-input" 
+                               class="form-control search-input form-control-enhanced" 
                                id="search" 
                                name="search" 
                                value="{{ app.request.query.get('search') ?: searchQuery }}" 
@@ -73,7 +73,7 @@
                 
                 <div class="col-md-2">
                     <label for="status" class="form-label">Статус</label>
-                    <select class="form-select" id="status" name="status">
+                    <select class="form-select form-select-enhanced" id="status" name="status">
                         <option value="">Все статусы</option>
                         <option value="pending" {{ app.request.query.get('status') == 'pending' ? 'selected' : '' }}>
                             В ожидании
