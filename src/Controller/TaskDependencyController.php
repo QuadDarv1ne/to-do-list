@@ -1,0 +1,212 @@
+<?php
+
+namespace App\Controller;
+
+use App\Entity\Task;
+use App\Entity\TaskDependency;
+use App\Repository\TaskDependencyRepository;
+use App\Repository\TaskRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+
+#[Route('/api/tasks/{taskId}/dependencies')]
+#[IsGranted('ROLE_USER')]
+class TaskDependencyController extends AbstractController
+{
+    #[Route('', name: 'app_task_dependency_list', methods: ['GET'])]
+    public function list(
+        int $taskId,
+        TaskRepository $taskRepository,
+        TaskDependencyRepository $dependencyRepository
+    ): JsonResponse {
+        $task = $taskRepository->find($taskId);
+        
+        if (!$task) {
+            return new JsonResponse(['error' => 'Task not found'], 404);
+        }
+
+        // Check if user can access this task
+        if ($task->getAssignedTo() !== $this->getUser() && $task->getCreatedBy() !== $this->getUser()) {
+            return new JsonResponse(['error' => 'Access denied'], 403);
+        }
+
+        $dependencies = $dependencyRepository->findDependenciesForTask($task);
+        
+        $data = [];
+        foreach ($dependencies as $dependency) {
+            $data[] = [
+                'id' => $dependency->getId(),
+                'dependent_task_id' => $dependency->getDependentTask()->getId(),
+                'dependency_task_id' => $dependency->getDependencyTask()->getId(),
+                'dependency_task_name' => $dependency->getDependencyTask()->getName(),
+                'type' => $dependency->getType(),
+                'is_satisfied' => $dependency->isSatisfied(),
+                'created_at' => $dependency->getCreatedAt()->format('c')
+            ];
+        }
+
+        return $this->json($data);
+    }
+
+    #[Route('', name: 'app_task_dependency_add', methods: ['POST'])]
+    public function add(
+        int $taskId,
+        Request $request,
+        TaskRepository $taskRepository,
+        TaskDependencyRepository $dependencyRepository,
+        EntityManagerInterface $entityManager
+    ): JsonResponse {
+        $task = $taskRepository->find($taskId);
+        
+        if (!$task) {
+            return new JsonResponse(['error' => 'Task not found'], 404);
+        }
+
+        // Check if user can modify this task
+        if ($task->getAssignedTo() !== $this->getUser() && $task->getCreatedBy() !== $this->getUser()) {
+            return new JsonResponse(['error' => 'Access denied'], 403);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        $dependencyTaskId = $data['dependency_task_id'] ?? null;
+        $type = $data['type'] ?? 'blocking';
+
+        if (!$dependencyTaskId) {
+            return new JsonResponse(['error' => 'Dependency task ID is required'], 400);
+        }
+
+        $dependencyTask = $taskRepository->find($dependencyTaskId);
+        if (!$dependencyTask) {
+            return new JsonResponse(['error' => 'Dependency task not found'], 404);
+        }
+
+        // Prevent circular dependencies
+        if ($dependencyTaskId == $taskId) {
+            return new JsonResponse(['error' => 'Cannot create dependency on the same task'], 400);
+        }
+
+        // Check for circular dependency
+        if ($this->wouldCreateCircularDependency($task, $dependencyTask, $dependencyRepository)) {
+            return new JsonResponse(['error' => 'This would create a circular dependency'], 400);
+        }
+
+        // Check if dependency already exists
+        if ($dependencyRepository->dependencyExists($task, $dependencyTask)) {
+            return new JsonResponse(['error' => 'Dependency already exists'], 400);
+        }
+
+        $dependency = new TaskDependency();
+        $dependency->setDependentTask($task);
+        $dependency->setDependencyTask($dependencyTask);
+        $dependency->setType($type);
+
+        $entityManager->persist($dependency);
+        $entityManager->flush();
+
+        return $this->json([
+            'id' => $dependency->getId(),
+            'dependent_task_id' => $dependency->getDependentTask()->getId(),
+            'dependency_task_id' => $dependency->getDependencyTask()->getId(),
+            'dependency_task_name' => $dependency->getDependencyTask()->getName(),
+            'type' => $dependency->getType(),
+            'is_satisfied' => $dependency->isSatisfied(),
+            'created_at' => $dependency->getCreatedAt()->format('c')
+        ], 201);
+    }
+
+    #[Route('/{dependencyId}', name: 'app_task_dependency_remove', methods: ['DELETE'])]
+    public function remove(
+        int $taskId,
+        int $dependencyId,
+        TaskRepository $taskRepository,
+        TaskDependencyRepository $dependencyRepository,
+        EntityManagerInterface $entityManager
+    ): JsonResponse {
+        $task = $taskRepository->find($taskId);
+        
+        if (!$task) {
+            return new JsonResponse(['error' => 'Task not found'], 404);
+        }
+
+        // Check if user can modify this task
+        if ($task->getAssignedTo() !== $this->getUser() && $task->getCreatedBy() !== $this->getUser()) {
+            return new JsonResponse(['error' => 'Access denied'], 403);
+        }
+
+        $dependency = $dependencyRepository->find($dependencyId);
+        if (!$dependency || $dependency->getDependentTask()->getId() != $taskId) {
+            return new JsonResponse(['error' => 'Dependency not found'], 404);
+        }
+
+        $entityManager->remove($dependency);
+        $entityManager->flush();
+
+        return $this->json(['success' => true]);
+    }
+
+    #[Route('/check-start/{taskId}', name: 'app_task_dependency_check_start', methods: ['GET'])]
+    public function checkCanStart(
+        int $taskId,
+        TaskRepository $taskRepository,
+        TaskDependencyRepository $dependencyRepository
+    ): JsonResponse {
+        $task = $taskRepository->find($taskId);
+        
+        if (!$task) {
+            return new JsonResponse(['error' => 'Task not found'], 404);
+        }
+
+        // Check if user can access this task
+        if ($task->getAssignedTo() !== $this->getUser() && $task->getCreatedBy() !== $this->getUser()) {
+            return new JsonResponse(['error' => 'Access denied'], 403);
+        }
+
+        $canStart = $task->canStart();
+        $unsatisfiedDependencies = [];
+
+        if (!$canStart) {
+            $blockingDependencies = $dependencyRepository->getBlockingDependencies($task);
+            foreach ($blockingDependencies as $dependency) {
+                if (!$dependency->isSatisfied()) {
+                    $unsatisfiedDependencies[] = [
+                        'id' => $dependency->getId(),
+                        'task_id' => $dependency->getDependencyTask()->getId(),
+                        'task_name' => $dependency->getDependencyTask()->getName(),
+                        'status' => $dependency->getDependencyTask()->getStatus()
+                    ];
+                }
+            }
+        }
+
+        return $this->json([
+            'can_start' => $canStart,
+            'unsatisfied_dependencies' => $unsatisfiedDependencies
+        ]);
+    }
+
+    /**
+     * Check if adding a dependency would create a circular dependency
+     */
+    private function wouldCreateCircularDependency(
+        Task $task,
+        Task $dependencyTask,
+        TaskDependencyRepository $dependencyRepository
+    ): bool {
+        // Simple circular dependency check
+        // In a real implementation, you'd want a more sophisticated algorithm
+        
+        // Check if the dependency task already depends on the current task
+        $dependenciesOfDependency = $dependencyRepository->findDependenciesForTask($dependencyTask);
+        foreach ($dependenciesOfDependency as $dep) {
+            if ($dep->getDependencyTask()->getId() == $task->getId()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
