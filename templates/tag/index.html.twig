@@ -3,49 +3,113 @@
 {% block title %}Теги{% endblock %}
 
 {% block body %}
-<div class="container-fluid">
+<div class="container-fluid page-transition">
     <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <h1 class="mb-0">
-                    <i class="fas fa-tags me-3 text-primary"></i>
-                    Теги
-                </h1>
-                <a href="{{ path('app_tag_new') }}" class="btn btn-primary btn-lg">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+                <div class="d-flex align-items-center">
+                    <div class="icon-wrapper bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                        <i class="fas fa-tags fa-xl text-primary"></i>
+                    </div>
+                    <div>
+                        <h1 class="mb-1">Управление тегами</h1>
+                        <p class="text-muted mb-0">Организуйте свои задачи с помощью тегов</p>
+                    </div>
+                </div>
+                <a href="{{ path('app_tag_new') }}" class="btn btn-primary btn-lg px-4 py-2">
                     <i class="fas fa-plus me-2"></i>
-                    Новый тег
+                    Создать новый тег
                 </a>
             </div>
         </div>
     </div>
-
+    
     {% if tags is not empty %}
-        <div class="row">
+        <!-- Tag Statistics -->
+        <div class="row mb-4">
+            <div class="col-md-4 mb-3">
+                <div class="stat-card bg-primary bg-opacity-10 border-0 rounded-3 p-3 h-100">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px;">
+                            <i class="fas fa-tags text-white"></i>
+                        </div>
+                        <div>
+                            <h4 class="mb-0 text-primary">{{ tags|length }}</h4>
+                            <p class="mb-0 text-muted">Всего тегов</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-3">
+                <div class="stat-card bg-success bg-opacity-10 border-0 rounded-3 p-3 h-100">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-success rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px;">
+                            <i class="fas fa-check-circle text-white"></i>
+                        </div>
+                        <div>
+                            <h4 class="mb-0 text-success">{{ tags|filter(t => t.tasks|length > 0)|length }}</h4>
+                            <p class="mb-0 text-muted">Используются</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-3">
+                <div class="stat-card bg-warning bg-opacity-10 border-0 rounded-3 p-3 h-100">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-warning rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px;">
+                            <i class="fas fa-palette text-white"></i>
+                        </div>
+                        <div>
+                            <h4 class="mb-0 text-warning">{{ tags|column('color')|unique|length }}</h4>
+                            <p class="mb-0 text-muted">Уникальных цветов</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tags Grid -->
+        <div class="row" id="tags-container">
             {% for tag in tags %}
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100 border-0 shadow-sm">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h5 class="card-title mb-0">
-                                    <span class="badge" style="background-color: {{ tag.color }}; color: white;">{{ tag.name }}</span>
-                                </h5>
+                <div class="col-lg-4 col-md-6 mb-4 tag-card-wrapper" data-tag-id="{{ tag.id }}">
+                    <div class="card tag-card border-0 shadow-sm h-100 card-hover">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="tag-color-indicator me-3" style="width: 20px; height: 20px; background-color: {{ tag.color }}; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></div>
+                                    <h5 class="card-title mb-0">
+                                        <span class="badge tag-badge" style="background-color: {{ tag.color }}; color: white; font-size: 1.1rem; padding: 8px 16px; border-radius: 20px;">
+                                            {{ tag.name }}
+                                        </span>
+                                    </h5>
+                                </div>
+                                
                                 <div class="dropdown">
-                                    <button class="btn btn-light btn-sm" type="button" data-bs-toggle="dropdown">
+                                    <button class="btn btn-light btn-sm rounded-circle p-2" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Действия">
                                         <i class="fas fa-ellipsis-v"></i>
                                     </button>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="{{ path('app_tag_show', {'id': tag.id}) }}">
-                                            <i class="fas fa-eye me-2"></i>Просмотр
-                                        </a></li>
-                                        <li><a class="dropdown-item" href="{{ path('app_tag_edit', {'id': tag.id}) }}">
-                                            <i class="fas fa-edit me-2"></i>Редактировать
-                                        </a></li>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" href="{{ path('app_tag_show', {'id': tag.id}) }}">
+                                                <i class="fas fa-eye me-2 text-info"></i>
+                                                Просмотреть
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="{{ path('app_tag_edit', {'id': tag.id}) }}">
+                                                <i class="fas fa-edit me-2 text-warning"></i>
+                                                Редактировать
+                                            </a>
+                                        </li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li>
-                                            <form method="post" action="{{ path('app_tag_delete', {'id': tag.id}) }}" onsubmit="return confirm('Вы уверены, что хотите удалить тег \"' + '{{ tag.name|e('js') }}' + '\"?');">
+                                            <form method="post" action="{{ path('app_tag_delete', {'id': tag.id}) }}" onsubmit="return confirmDeleteTag('{{ tag.name|e('js') }}');">
                                                 <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ tag.id) }}">
-                                                <button class="dropdown-item text-danger">
-                                                    <i class="fas fa-trash me-2"></i>Удалить
+                                                <button class="dropdown-item text-danger" type="submit">
+                                                    <i class="fas fa-trash me-2"></i>
+                                                    Удалить
                                                 </button>
                                             </form>
                                         </li>
@@ -54,28 +118,291 @@
                             </div>
                             
                             {% if tag.description %}
-                                <p class="card-text text-muted">{{ tag.description }}</p>
+                                <p class="card-text text-muted mb-3">{{ tag.description }}</p>
                             {% endif %}
                             
-                            <div class="mt-2">
-                                <small class="text-muted">
-                                    Создан: {{ tag.createdAt|date('d.m.Y H:i') }}
-                                </small>
+                            <div class="tag-meta d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-tasks me-2 text-primary"></i>
+                                    <span class="text-muted">{{ tag.tasks|length }} задач</span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-calendar me-2 text-secondary"></i>
+                                    <small class="text-muted">{{ tag.createdAt|date('d.m.Y') }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Hover overlay -->
+                        <div class="tag-card-overlay position-absolute w-100 h-100 top-0 start-0 d-flex align-items-center justify-content-center opacity-0 rounded-3" style="background-color: rgba(0,0,0,0.7); transition: opacity 0.3s ease;">
+                            <div class="text-center text-white">
+                                <i class="fas fa-mouse-pointer fa-2x mb-2"></i>
+                                <p class="mb-0">Нажмите для действий</p>
                             </div>
                         </div>
                     </div>
                 </div>
             {% endfor %}
         </div>
+        
+        <!-- Tag Cloud Section -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0 text-info">
+                            <i class="fas fa-cloud me-2"></i>
+                            Облако тегов
+                        </h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="tag-cloud-container py-4">
+                            {% for tag in tags|shuffle %}
+                                <span class="tag-cloud-item" 
+                                      style="font-size: {{ 16 + (tag.tasks|length * 2) }}px; 
+                                             background-color: {{ tag.color }}; 
+                                             color: white; 
+                                             padding: 8px 15px; 
+                                             margin: 5px; 
+                                             border-radius: 25px; 
+                                             display: inline-block; 
+                                             cursor: pointer; 
+                                             transition: all 0.3s ease;"
+                                      onclick="showTagDetails({{ tag.id }})">
+                                    {{ tag.name }}
+                                    <span class="badge bg-white text-dark ms-1">{{ tag.tasks|length }}</span>
+                                </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     {% else %}
-        <div class="empty-state py-5">
-            <i class="fas fa-tags mb-3"></i>
-            <h4 class="mb-3">Теги не найдены</h4>
-            <p class="mb-4">Создайте первый тег для начала организации задач</p>
-            <a href="{{ path('app_tag_new') }}" class="btn btn-primary">
-                <i class="fas fa-plus me-2"></i>Создать тег
-            </a>
+        <!-- Empty State -->
+        <div class="empty-state-container py-5 text-center">
+            <div class="empty-state-icon bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 120px; height: 120px;">
+                <i class="fas fa-tags fa-3x text-primary"></i>
+            </div>
+            <h3 class="mb-3">Теги не найдены</h3>
+            <p class="lead text-muted mb-4">Создайте первый тег для начала организации ваших задач</p>
+            <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+                <a href="{{ path('app_tag_new') }}" class="btn btn-primary btn-lg px-4 py-3">
+                    <i class="fas fa-plus me-2"></i>
+                    Создать тег
+                </a>
+                <a href="{{ path('app_task_index') }}" class="btn btn-outline-secondary btn-lg px-4 py-3">
+                    <i class="fas fa-tasks me-2"></i>
+                    Просмотреть задачи
+                </a>
+            </div>
         </div>
     {% endif %}
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Confirm delete function
+    window.confirmDeleteTag = function(tagName) {
+        return confirm(`Вы уверены, что хотите удалить тег "${tagName}"? Это действие нельзя отменить.`);
+    };
+    
+    // Show tag details function
+    window.showTagDetails = function(tagId) {
+        window.location.href = `{{ path('app_tag_show', {'id': '__ID__'}) }}`.replace('__ID__', tagId);
+    };
+    
+    // Add hover effects to tag cards
+    const tagCards = document.querySelectorAll('.tag-card');
+    tagCards.forEach(card => {
+        const overlay = card.querySelector('.tag-card-overlay');
+        
+        card.addEventListener('mouseenter', function() {
+            if (overlay) {
+                overlay.classList.remove('opacity-0');
+                overlay.classList.add('opacity-100');
+            }
+            this.style.transform = 'translateY(-8px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            if (overlay) {
+                overlay.classList.remove('opacity-100');
+                overlay.classList.add('opacity-0');
+            }
+            this.style.transform = 'translateY(0)';
+        });
+    });
+    
+    // Add animation to tag cloud items
+    const tagCloudItems = document.querySelectorAll('.tag-cloud-item');
+    tagCloudItems.forEach((item, index) => {
+        item.style.animationDelay = `${index * 0.05}s`;
+        item.classList.add('fade-in-scale');
+        
+        item.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.1)';
+            this.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
+        });
+        
+        item.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+            this.style.boxShadow = 'none';
+        });
+    });
+    
+    // Add staggered entrance animation
+    const tagCardWrappers = document.querySelectorAll('.tag-card-wrapper');
+    tagCardWrappers.forEach((wrapper, index) => {
+        wrapper.style.animationDelay = `${index * 0.1}s`;
+        wrapper.classList.add('slide-in-up');
+    });
+    
+    // Stat card animations
+    const statCards = document.querySelectorAll('.stat-card');
+    statCards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.05}s`;
+        card.classList.add('fade-in-up');
+    });
+});
+</script>
+
+<style>
+.icon-wrapper {
+    transition: all 0.3s ease;
+}
+
+.icon-wrapper:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(13, 110, 253, 0.2);
+}
+
+.stat-card {
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+}
+
+.tag-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px !important;
+}
+
+.tag-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15) !important;
+}
+
+.tag-badge {
+    transition: all 0.2s ease;
+}
+
+.tag-badge:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.tag-color-indicator {
+    transition: all 0.3s ease;
+}
+
+.tag-card:hover .tag-color-indicator {
+    transform: scale(1.2);
+}
+
+.dropdown-menu {
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    border: none;
+}
+
+.dropdown-item {
+    transition: all 0.2s ease;
+    border-radius: 5px;
+    margin: 2px 8px;
+}
+
+.dropdown-item:hover {
+    background-color: rgba(13, 110, 253, 0.1);
+    transform: translateX(5px);
+}
+
+.empty-state-container {
+    animation: fadeInUp 0.8s ease;
+}
+
+.empty-state-icon {
+    transition: all 0.3s ease;
+}
+
+.empty-state-icon:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(13, 110, 253, 0.2) !important;
+}
+
+.tag-cloud-container {
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.slide-in-up {
+    animation: slideInUp 0.6s ease forwards;
+    opacity: 0;
+    transform: translateY(30px);
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.6s ease forwards;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.fade-in-scale {
+    animation: fadeInScale 0.4s ease forwards;
+    opacity: 0;
+    transform: scale(0.8);
+}
+
+@keyframes slideInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInScale {
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@media (max-width: 768px) {
+    .tag-meta {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start !important;
+    }
+    
+    .tag-cloud-item {
+        font-size: 14px !important;
+        padding: 6px 12px !important;
+    }
+}
+</style>
 {% endblock %}

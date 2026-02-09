@@ -3,63 +3,332 @@
 {% block title %}Редактировать профиль{% endblock %}
 
 {% block body %}
-<div class="container mt-4">
+<div class="container-fluid page-transition">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center mb-4">
+                <div class="avatar-placeholder bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px;">
+                    <i class="fas fa-user-edit fa-2x text-primary"></i>
+                </div>
+                <div>
+                    <h1 class="mb-1">Редактировать профиль</h1>
+                    <p class="text-muted mb-0">Обновите информацию о себе</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <div class="row">
-        <div class="col-md-8 mx-auto">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="card-title mb-0">
-                        <i class="fas fa-user-edit me-2"></i>Редактировать профиль
-                    </h3>
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 text-primary">
+                        <i class="fas fa-user-circle me-2"></i>
+                        Основная информация
+                    </h5>
                 </div>
                 <div class="card-body">
-                    {{ form_start(form) }}
-                    <div class="row">
+                    {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+                    
+                    <div class="row g-4">
                         <div class="col-md-6">
-                            {{ form_row(form.username) }}
+                            <div class="form-group-enhanced">
+                                {{ form_label(form.username, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-user"></i>
+                                    </span>
+                                    {{ form_widget(form.username, {'attr': {'class': 'form-control form-control-enhanced', 'placeholder': 'Введите имя пользователя'}}) }}
+                                </div>
+                                <div class="invalid-feedback">
+                                    Пожалуйста, введите корректное имя пользователя.
+                                </div>
+                            </div>
                         </div>
+                        
                         <div class="col-md-6">
-                            {{ form_row(form.email) }}
+                            <div class="form-group-enhanced">
+                                {{ form_label(form.email, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-envelope"></i>
+                                    </span>
+                                    {{ form_widget(form.email, {'attr': {'class': 'form-control form-control-enhanced', 'placeholder': 'Введите email'}}) }}
+                                </div>
+                                <div class="invalid-feedback">
+                                    Пожалуйста, введите корректный email.
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="row">
+                        
                         <div class="col-md-6">
-                            {{ form_row(form.firstName) }}
+                            <div class="form-group-enhanced">
+                                {{ form_label(form.firstName, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-id-card"></i>
+                                    </span>
+                                    {{ form_widget(form.firstName, {'attr': {'class': 'form-control form-control-enhanced', 'placeholder': 'Введите имя'}}) }}
+                                </div>
+                            </div>
                         </div>
+                        
                         <div class="col-md-6">
-                            {{ form_row(form.lastName) }}
+                            <div class="form-group-enhanced">
+                                {{ form_label(form.lastName, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-id-card"></i>
+                                    </span>
+                                    {{ form_widget(form.lastName, {'attr': {'class': 'form-control form-control-enhanced', 'placeholder': 'Введите фамилию'}}) }}
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="row">
+                        
                         <div class="col-md-6">
-                            {{ form_row(form.phone) }}
+                            <div class="form-group-enhanced">
+                                {{ form_label(form.phone, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-phone"></i>
+                                    </span>
+                                    {{ form_widget(form.phone, {'attr': {'class': 'form-control form-control-enhanced', 'placeholder': '+7 (XXX) XXX-XXXX'}}) }}
+                                </div>
+                            </div>
                         </div>
+                        
                         <div class="col-md-6">
-                            {{ form_row(form.position) }}
+                            <div class="form-group-enhanced">
+                                {{ form_label(form.position, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-briefcase"></i>
+                                    </span>
+                                    {{ form_widget(form.position, {'attr': {'class': 'form-control form-control-enhanced', 'placeholder': 'Должность'}}) }}
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="row">
+                        
                         <div class="col-12">
-                            {{ form_row(form.department) }}
+                            <div class="form-group-enhanced">
+                                {{ form_label(form.department, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-building"></i>
+                                    </span>
+                                    {{ form_widget(form.department, {'attr': {'class': 'form-control form-control-enhanced', 'placeholder': 'Отдел или департамент'}}) }}
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="row">
+                        
                         <div class="col-12">
-                            {{ form_row(form.notes) }}
+                            <div class="form-group-enhanced">
+                                {{ form_label(form.notes, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-sticky-note"></i>
+                                    </span>
+                                    {{ form_widget(form.notes, {'attr': {'class': 'form-control form-control-enhanced', 'rows': '4', 'placeholder': 'Дополнительная информация о себе'}}) }}
+                                </div>
+                                <div class="form-text">Максимум 500 символов</div>
+                            </div>
                         </div>
                     </div>
-                    <div class="mt-3">
-                        <button type="submit" class="btn btn-success">
-                            <i class="fas fa-save me-1"></i>Сохранить
+                    
+                    <div class="d-flex gap-3 mt-4 pt-3 border-top">
+                        <button type="submit" class="btn btn-primary btn-lg px-4 py-2">
+                            <i class="fas fa-save me-2"></i>
+                            Сохранить изменения
                         </button>
-                        <a href="{{ path('app_profile_show') }}" class="btn btn-secondary ms-2">
-                            <i class="fas fa-arrow-left me-1"></i>Назад
+                        <a href="{{ path('app_profile_show') }}" class="btn btn-outline-secondary btn-lg px-4 py-2">
+                            <i class="fas fa-times me-2"></i>
+                            Отмена
                         </a>
                     </div>
+                    
                     {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Profile Preview Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 text-info">
+                        <i class="fas fa-eye me-2"></i>
+                        Предварительный просмотр
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="avatar-preview bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 100px; height: 100px;">
+                        <i class="fas fa-user fa-3x text-primary"></i>
+                    </div>
+                    <h5 class="mb-1" id="previewName">{{ app.user.firstName }} {{ app.user.lastName }}</h5>
+                    <p class="text-muted mb-2" id="previewUsername">@{{ app.user.username }}</p>
+                    <p class="mb-3" id="previewEmail">{{ app.user.email }}</p>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-camera me-1"></i>
+                            Загрузить фото
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Tips -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 text-warning">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        Советы
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            Используйте реальное имя для лучшей идентификации
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            Укажите актуальный номер телефона
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            Добавьте информацию о вашей должности
+                        </li>
+                        <li class="mb-0">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            Регулярно обновляйте контактные данные
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Live preview functionality
+    const firstNameInput = document.getElementById('user_firstName');
+    const lastNameInput = document.getElementById('user_lastName');
+    const usernameInput = document.getElementById('user_username');
+    const emailInput = document.getElementById('user_email');
+    
+    const previewName = document.getElementById('previewName');
+    const previewUsername = document.getElementById('previewUsername');
+    const previewEmail = document.getElementById('previewEmail');
+    
+    if (firstNameInput && lastNameInput && previewName) {
+        function updatePreview() {
+            const fullName = `${firstNameInput.value || '{{ app.user.firstName }}'} ${lastNameInput.value || '{{ app.user.lastName }}'}`;
+            previewName.textContent = fullName.trim();
+        }
+        
+        firstNameInput.addEventListener('input', updatePreview);
+        lastNameInput.addEventListener('input', updatePreview);
+    }
+    
+    if (usernameInput && previewUsername) {
+        usernameInput.addEventListener('input', function() {
+            previewUsername.textContent = `@${this.value || '{{ app.user.username }}'}`;
+        });
+    }
+    
+    if (emailInput && previewEmail) {
+        emailInput.addEventListener('input', function() {
+            previewEmail.textContent = this.value || '{{ app.user.email }}';
+        });
+    }
+    
+    // Form validation
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        });
+    }
+    
+    // Add subtle animations
+    const cardElements = document.querySelectorAll('.card');
+    cardElements.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+        card.classList.add('fade-in-up');
+    });
+});
+</script>
+
+<style>
+.avatar-placeholder {
+    transition: all 0.3s ease;
+}
+
+.avatar-placeholder:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(13, 110, 253, 0.2);
+}
+
+.form-group-enhanced {
+    margin-bottom: 1.5rem;
+}
+
+.form-control-enhanced {
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+    padding: 0.75rem 1rem;
+}
+
+.form-control-enhanced:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    transform: translateY(-2px);
+}
+
+.input-group-text {
+    background-color: #f8f9fa;
+    border-color: #e9ecef;
+    color: #6c757d;
+}
+
+.btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-lg:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.6s ease forwards;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card {
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+}
+</style>
 {% endblock %}
