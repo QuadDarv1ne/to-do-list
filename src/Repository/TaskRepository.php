@@ -74,11 +74,11 @@ class TaskRepository extends ServiceEntityRepository
     public function findUpcomingDeadlines(\DateTimeImmutable $beforeDate): array
     {
         return $this->createQueryBuilder('t')
-            ->andWhere('t.deadline IS NOT NULL')
+            ->andWhere('t.dueDate IS NOT NULL')
             ->andWhere('t.deadline <= :beforeDate')
             ->andWhere('t.isDone = :isDone')
             ->setParameter('beforeDate', $beforeDate)
-            ->setParameter('isDone', false)
+            ->setParameter('status', 'pending')
             ->getQuery()
             ->getResult();
     }

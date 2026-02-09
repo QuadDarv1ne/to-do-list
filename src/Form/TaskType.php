@@ -78,6 +78,7 @@ class TaskType extends AbstractType
                     'Низкий' => 'low',
                     'Средний' => 'medium',
                     'Высокий' => 'high',
+                    'Критический' => 'urgent',
                 ],
                 'attr' => [
                     'class' => 'form-select',

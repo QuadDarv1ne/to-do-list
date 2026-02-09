@@ -44,8 +44,8 @@ class Task
     private string $status = 'pending';
 
     #[Assert\Choice(
-        choices: ['low', 'medium', 'high'],
-        message: 'Приоритет задачи должен быть одним из: low, medium, high'
+        choices: ['low', 'medium', 'high', 'urgent'],
+        message: 'Приоритет задачи должен быть одним из: low, medium, high, urgent'
     )]
     #[ORM\Column(length: 20, options: ['default' => 'medium'])]
     private string $priority = 'medium';
@@ -188,7 +188,8 @@ class Task
         $labels = [
             'low' => 'Низкий',
             'medium' => 'Средний',
-            'high' => 'Высокий'
+            'high' => 'Высокий',
+            'urgent' => 'Критический'
         ];
         
         return $labels[$this->priority] ?? $this->priority;
