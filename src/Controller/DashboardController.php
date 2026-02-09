@@ -170,75 +170,8 @@ class DashboardController extends AbstractController
     
     private function getTaskCompletionTrends(TaskRepository $taskRepository, $user)
     {
-        $qb = $taskRepository->createQueryBuilder('t');
-        
-        if ($user->hasRole('ROLE_ADMIN')) {
-            // For admin, get trends for all tasks
-            $results = $qb
-                ->select("t.createdAt, t.status")
-                ->orderBy('t.createdAt', 'DESC')
-                ->setMaxResults(1000) // Get more records to process in PHP
-                ->getQuery()
-                ->getResult();
-            
-            // Process results in PHP to group by date
-            $trends = [];
-            $dateCounts = [];
-            
-            foreach ($results as $result) {
-                $date = $result['createdAt']->format('Y-m-d');
-                if (!isset($dateCounts[$date])) {
-                    $dateCounts[$date] = ['date' => $date, 'total' => 0, 'completed' => 0];
-                }
-                $dateCounts[$date]['total']++;
-                if ($result['status'] === 'completed') {
-                    $dateCounts[$date]['completed']++;
-                }
-            }
-            
-            $trends = array_values($dateCounts);
-            // Sort by date descending
-            usort($trends, function($a, $b) {
-                return $b['date'] <=> $a['date'];
-            });
-            
-            // Take only last 30 days
-            $trends = array_slice($trends, 0, 30);
-        } else {
-            // For regular user, get trends for their tasks
-            $results = $qb
-                ->select("t.createdAt, t.status")
-                ->andWhere('t.assignedUser = :user OR t.user = :user')
-                ->setParameter('user', $user)
-                ->orderBy('t.createdAt', 'DESC')
-                ->setMaxResults(1000) // Get more records to process in PHP
-                ->getQuery()
-                ->getResult();
-            
-            // Process results in PHP to group by date
-            $trends = [];
-            $dateCounts = [];
-            
-            foreach ($results as $result) {
-                $date = $result['createdAt']->format('Y-m-d');
-                if (!isset($dateCounts[$date])) {
-                    $dateCounts[$date] = ['date' => $date, 'total' => 0, 'completed' => 0];
-                }
-                $dateCounts[$date]['total']++;
-                if ($result['status'] === 'completed') {
-                    $dateCounts[$date]['completed']++;
-                }
-            }
-            
-            $trends = array_values($dateCounts);
-            // Sort by date descending
-            usort($trends, function($a, $b) {
-                return $b['date'] <=> $a['date'];
-            });
-            
-            // Take only last 30 days
-            $trends = array_slice($trends, 0, 30);
-        }
+        // Use the optimized method that processes data in the database
+        $trends = $taskRepository->getTaskCompletionTrendsByDate($user);
         
         // Format data for chart
         $labels = [];

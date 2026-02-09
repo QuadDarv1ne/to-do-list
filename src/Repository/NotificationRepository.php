@@ -44,7 +44,7 @@ class NotificationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-}
+
     /**
      * Get notifications created after a specific date for a user (optimized for SSE)
      *

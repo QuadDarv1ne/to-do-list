@@ -399,51 +399,49 @@ class TaskRepository extends ServiceEntityRepository
         
         return $stats;
     }
-
+}
     /**
      * Get task completion trends grouped by date for dashboard
      *
      * @return array
      */
-    public function getTaskCompletionTrendsByDate(?User $user = null): array
+    public function getTaskCompletionTrendsByDate(?User  = null): array
     {
-        $qb = $this->createQueryBuilder('t')
-            ->select('t.createdAt as createdAt, t.status, COUNT(t.id) as count')
-            ->groupBy('t.createdAt, t.status')
-            ->orderBy('t.createdAt', 'DESC')
-            ->setMaxResults(1000); // Get more records to process in PHP
+         = ->createQueryBuilder('t')
+            ->select('DATE(t.createdAt) as date, t.status, COUNT(t.id) as count')
+            ->groupBy('date, t.status')
+            ->orderBy('date', 'DESC')
+            ->setMaxResults(30); // Last 30 days
 
-        if ($user !== null) {
-            $qb->andWhere('t.assignedUser = :user OR t.user = :user')
-                ->setParameter('user', $user);
+        if ( !== null) {
+            ->andWhere('t.assignedUser = :user OR t.user = :user')
+                ->setParameter('user', );
         }
 
-        $results = $qb->getQuery()->getResult();
+         = ->getQuery()->getResult();
 
-        // Process results in PHP to group by date
-        $trends = [];
-        $dateCounts = [];
-        
-        foreach ($results as $result) {
-            $date = $result['createdAt']->format('Y-m-d');
-            if (!isset($dateCounts[$date])) {
-                $dateCounts[$date] = ['date' => $date, 'total' => 0, 'completed' => 0];
+        // Transform results to group by date
+         = [];
+        foreach ( as ) {
+             = ['date'];
+            if (!isset([])) {
+                [] = ['date' => , 'total' => 0, 'completed' => 0];
             }
-            $dateCounts[$date]['total'] += $result['count'];
-            if ($result['status'] === 'completed') {
-                $dateCounts[$date]['completed'] += $result['count'];
+            []['total'] += ['count'];
+            if (['status'] === 'completed') {
+                []['completed'] += ['count'];
             }
         }
-        
-        $trends = array_values($dateCounts);
-        // Sort by date descending
-        usort($trends, function($a, $b) {
-            return $b['date'] <=> $a['date'];
+
+        // Convert to indexed array and sort by date descending
+         = array_values();
+        usort(, function(, ) {
+            return ['date'] <=> ['date'];
         });
-        
-        // Take only last 30 days
-        $trends = array_slice($trends, 0, 30);
-        
-        return $trends;
+
+        // Limit to last 30 days
+         = array_slice(, 0, 30);
+
+        return ;
     }
 }
