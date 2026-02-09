@@ -35,18 +35,5 @@ security:
         - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/profile, roles: ROLE_USER }
 
-# Content Security Policy Headers
-headers:
-    content_security_policy:
-        directives:
-            default-src: "'self'"
-            script-src: "'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com"
-            style-src: "'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com"
-            img-src: "'self' data: https:"
-            font-src: "'self' https://cdnjs.cloudflare.com"
-            connect-src: "'self'"
-            frame-src: "'self'"
-            object-src: "'none'"
-            base-uri: "'self'"
-            form-action: "'self'"
-            upgrade-insecure-requests: true
+# Content Security Policy is configured in framework.yaml
+# See config/packages/framework.yaml for CSP configuration

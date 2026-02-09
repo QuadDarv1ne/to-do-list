@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}To-Do List{% endblock %}</title>
+    
+    <!-- Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; img-src 'self' data: https:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
     
     <!-- PWA Manifest -->
@@ -60,6 +63,14 @@
                             <i class="fas fa-keyboard" aria-hidden="true"></i>
                         </button>
                     </li>
+                    <li class="nav-item me-2">
+                        <button class="btn btn-outline-light btn-sm" 
+                                id="voiceControlBtn" 
+                                title="Голосовое управление" 
+                                aria-label="Включить голосовое управление">
+                            <i class="fas fa-microphone" aria-hidden="true"></i>
+                        </button>
+                    </li>
                     {% if app.user %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ path('app_dashboard') }}">Панель</a>
@@ -72,6 +83,9 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ path('app_task_template_index') }}">Шаблоны</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_calendar_index') }}">Календарь</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ path('app_profile_show') }}">Профиль</a>
@@ -187,6 +201,17 @@
                 <button id="dismissInstall" class="btn btn-outline-secondary btn-sm">Позже</button>
             </div>
         </div>
+    </div>
+    
+    <!-- Voice Recognition Indicator -->
+    <div id="voiceIndicator" class="voice-recognition-indicator">
+        <div class="pulse-dot"></div>
+        <span>Говорите команду...</span>
+    </div>
+    
+    <!-- Voice Command Feedback -->
+    <div id="voiceFeedback" class="voice-command-feedback">
+        <span id="voiceFeedbackText"></span>
     </div>
     
     <main class="container-fluid mt-4">
@@ -339,6 +364,242 @@
                 indicator.classList.remove('d-none');
             }
         }
+        
+        // Voice Control functionality
+        let isListening = false;
+        let recognition;
+        
+        // Initialize speech recognition
+        function initVoiceControl() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!SpeechRecognition) {
+                console.warn('Speech recognition not supported in this browser');
+                return false;
+            }
+            
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'ru-RU';
+            
+            recognition.onstart = function() {
+                isListening = true;
+                updateVoiceButton(true);
+                showVoiceIndicator();
+                showVoiceFeedback('Голосовое управление активировано. Говорите команды', 'info');
+            };
+            
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript.toLowerCase().trim();
+                handleVoiceCommand(transcript);
+            };
+            
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+                isListening = false;
+                updateVoiceButton(false);
+                hideVoiceIndicator();
+                
+                if (event.error === 'no-speech') {
+                    showVoiceFeedback('Речь не обнаружена. Попробуйте снова', 'warning');
+                } else if (event.error === 'audio-capture') {
+                    showVoiceFeedback('Микрофон не доступен', 'error');
+                } else {
+                    showVoiceFeedback('Ошибка голосового управления: ' + event.error, 'error');
+                }
+            };
+            
+            recognition.onend = function() {
+                isListening = false;
+                updateVoiceButton(false);
+                hideVoiceIndicator();
+            };
+            
+            return true;
+        }
+        
+        function updateVoiceButton(listening) {
+            const button = document.getElementById('voiceControlBtn');
+            const icon = button.querySelector('i');
+            
+            if (listening) {
+                button.classList.add('btn-danger');
+                button.classList.remove('btn-outline-light');
+                icon.className = 'fas fa-microphone-alt';
+                button.title = 'Остановить голосовое управление';
+                button.setAttribute('aria-label', 'Остановить голосовое управление');
+            } else {
+                button.classList.remove('btn-danger');
+                button.classList.add('btn-outline-light');
+                icon.className = 'fas fa-microphone';
+                button.title = 'Голосовое управление';
+                button.setAttribute('aria-label', 'Включить голосовое управление');
+            }
+        }
+        
+        function handleVoiceCommand(command) {
+            console.log('Voice command received:', command);
+            
+            // Navigation commands
+            if (command.includes('панель') || command.includes('dashboard')) {
+                window.location.href = '{{ path('app_dashboard') }}';
+                showVoiceFeedback('Переход на панель управления', 'success');
+            } else if (command.includes('задачи') || command.includes('tasks')) {
+                window.location.href = '{{ path('app_task_index') }}';
+                showVoiceFeedback('Переход к задачам', 'success');
+            } else if (command.includes('категории') || command.includes('categories')) {
+                window.location.href = '{{ path('app_task_category_index') }}';
+                showVoiceFeedback('Переход к категориям', 'success');
+            } else if (command.includes('профиль') || command.includes('profile')) {
+                window.location.href = '{{ path('app_profile_show') }}';
+                showVoiceFeedback('Переход к профилю', 'success');
+            } else if (command.includes('календарь') || command.includes('calendar')) {
+                window.location.href = '{{ path('app_calendar_index') }}';
+                showVoiceFeedback('Переход к календарю', 'success');
+            }
+            
+            // Action commands
+            else if (command.includes('новая задача') || command.includes('create task')) {
+                window.location.href = '{{ path('app_task_new') }}';
+                showVoiceFeedback('Создание новой задачи', 'success');
+            } else if (command.includes('быстрая задача') || command.includes('quick task')) {
+                const fabButton = document.getElementById('quick-task-fab');
+                if (fabButton) {
+                    fabButton.click();
+                    showVoiceFeedback('Быстрое создание задачи', 'success');
+                }
+            } else if (command.includes('поиск') || command.includes('search')) {
+                const searchInput = document.getElementById('search');
+                if (searchInput) {
+                    searchInput.focus();
+                    showVoiceFeedback('Фокус на поиске', 'success');
+                }
+            } else if (command.includes('тема') || command.includes('theme')) {
+                const themeToggle = document.getElementById('themeToggle');
+                if (themeToggle) {
+                    themeToggle.click();
+                    showVoiceFeedback('Переключение темы', 'success');
+                }
+            } else if (command.includes('обновить') || command.includes('refresh') || command.includes('reload')) {
+                window.location.reload();
+                showVoiceFeedback('Страница обновлена', 'success');
+            }
+            
+            // Help command
+            else if (command.includes('помощь') || command.includes('help') || command.includes('команды')) {
+                showVoiceCommandsHelp();
+            }
+            
+            // Unknown command
+            else {
+                showVoiceFeedback('Команда не распознана: ' + command, 'warning');
+            }
+        }
+        
+        // Voice indicator functions
+        function showVoiceIndicator() {
+            const indicator = document.getElementById('voiceIndicator');
+            if (indicator) {
+                indicator.classList.add('active');
+            }
+        }
+        
+        function hideVoiceIndicator() {
+            const indicator = document.getElementById('voiceIndicator');
+            if (indicator) {
+                indicator.classList.remove('active');
+            }
+        }
+        
+        function showVoiceFeedback(message, type = 'info') {
+            const feedback = document.getElementById('voiceFeedback');
+            const textElement = document.getElementById('voiceFeedbackText');
+            
+            if (feedback && textElement) {
+                textElement.textContent = message;
+                feedback.className = 'voice-command-feedback show ' + type;
+                
+                // Auto hide after 3 seconds
+                setTimeout(() => {
+                    feedback.classList.remove('show');
+                }, 3000);
+            }
+        }
+        
+        function showVoiceCommandsHelp() {
+            const helpText = `
+                <div class="modal fade" id="voiceCommandsModal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title"><i class="fas fa-microphone me-2"></i>Голосовые команды</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <h6>Навигация:</h6>
+                                <ul class="list-unstyled">
+                                    <li class="mb-2">• "Панель" - переход на главную страницу</li>
+                                    <li class="mb-2">• "Задачи" - список задач</li>
+                                    <li class="mb-2">• "Категории" - управление категориями</li>
+                                    <li class="mb-2">• "Профиль" - личный кабинет</li>
+                                    <li class="mb-2">• "Календарь" - календарный вид</li>
+                                </ul>
+                                <h6>Действия:</h6>
+                                <ul class="list-unstyled">
+                                    <li class="mb-2">• "Новая задача" - создать задачу</li>
+                                    <li class="mb-2">• "Быстрая задача" - быстрое создание</li>
+                                    <li class="mb-2">• "Поиск" - фокус на поиске</li>
+                                    <li class="mb-2">• "Тема" - сменить тему</li>
+                                    <li class="mb-2">• "Обновить" - перезагрузить страницу</li>
+                                    <li class="mb-2">• "Помощь" - показать эту справку</li>
+                                </ul>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Remove existing modal if present
+            const existingModal = document.getElementById('voiceCommandsModal');
+            if (existingModal) existingModal.remove();
+            
+            document.body.insertAdjacentHTML('beforeend', helpText);
+            const modal = new bootstrap.Modal(document.getElementById('voiceCommandsModal'));
+            modal.show();
+            
+            // Clean up after modal is hidden
+            document.getElementById('voiceCommandsModal').addEventListener('hidden.bs.modal', function() {
+                this.remove();
+            });
+        }
+        
+        // Initialize voice control when button is clicked
+        document.addEventListener('DOMContentLoaded', function() {
+            const voiceButton = document.getElementById('voiceControlBtn');
+            if (voiceButton) {
+                if (initVoiceControl()) {
+                    voiceButton.addEventListener('click', function() {
+                        if (isListening) {
+                            recognition.stop();
+                        } else {
+                            try {
+                                recognition.start();
+                            } catch (error) {
+                                console.error('Error starting recognition:', error);
+                                showToast('Ошибка запуска голосового управления', 'error');
+                            }
+                        }
+                    });
+                } else {
+                    // Hide button if speech recognition is not supported
+                    voiceButton.style.display = 'none';
+                }
+            }
+        });
         
         // PWA Installation
         let deferredPrompt;
