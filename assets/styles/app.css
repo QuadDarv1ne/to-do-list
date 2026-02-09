@@ -1627,6 +1627,129 @@ html {
     background-color: #374151;
 }
 
+/* Analytics Dashboard Styles */
+.border-left-primary {
+    border-left: 0.25rem solid #4e73df !important;
+}
+
+.border-left-success {
+    border-left: 0.25rem solid #1cc88a !important;
+}
+
+.border-left-warning {
+    border-left: 0.25rem solid #f6c23e !important;
+}
+
+.border-left-danger {
+    border-left: 0.25rem solid #e74a3b !important;
+}
+
+.text-xs {
+    font-size: 0.7rem;
+}
+
+.circular-progress {
+    position: relative;
+    width: 120px;
+    height: 120px;
+}
+
+.progress-ring-circle {
+    transition: stroke-dashoffset 0.5s ease;
+}
+
+.progress-value {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+}
+
+.table th {
+    font-weight: 600;
+}
+
+.shadow {
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important;
+}
+
+[data-theme='dark'] .shadow {
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(0, 0, 0, 0.3) !important;
+}
+
+.card {
+    border: none;
+    border-radius: 0.5rem;
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+[data-theme='dark'] .card {
+    background-color: #1f2937;
+    border-color: #374151;
+}
+
+[data-theme='dark'] .card-header {
+    background-color: #1f2937;
+    border-color: #374151;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.alert-heading {
+    font-weight: 600;
+}
+
+.progress {
+    height: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    transition: width 0.6s ease;
+}
+
+/* Chart.js customizations */
+.chartjs-render-monitor {
+    animation: chartjs-render 0.3s ease;
+}
+
+@keyframes chartjs-render {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive adjustments for analytics */
+@media (max-width: 768px) {
+    .circular-progress {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .progress-value {
+        font-size: 1.2rem !important;
+    }
+    
+    .chart-container {
+        height: 250px;
+    }
+    
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+}
+
 .autocomplete-item strong {
     color: var(--primary-color);
 }

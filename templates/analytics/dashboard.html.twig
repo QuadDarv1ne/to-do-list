@@ -1,0 +1,488 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Аналитика и Отчеты{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>
+            <i class="fas fa-chart-line me-3"></i>
+            Аналитика и Отчеты
+        </h1>
+        <div class="btn-group">
+            <button class="btn btn-outline-primary" id="refreshAnalytics">
+                <i class="fas fa-sync-alt me-2"></i>Обновить
+            </button>
+            <button class="btn btn-success" id="exportCsv">
+                <i class="fas fa-file-csv me-2"></i>Экспорт CSV
+            </button>
+        </div>
+    </div>
+
+    <!-- Overview Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Всего задач
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalTasks">
+                                {{ analytics.overview.total_tasks }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-tasks fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Завершено
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="completedTasks">
+                                {{ analytics.overview.completed_tasks }}
+                            </div>
+                            <div class="text-xs text-success">
+                                {{ analytics.overview.completion_rate }}% от общего числа
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                В ожидании
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="pendingTasks">
+                                {{ analytics.overview.pending_tasks }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Просрочено
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="overdueTasks">
+                                {{ analytics.overview.overdue_tasks }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Efficiency Score and Insights -->
+    <div class="row mb-4">
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-tachometer-alt me-2"></i>
+                        Эффективность
+                    </h6>
+                </div>
+                <div class="card-body text-center">
+                    <div class="circular-progress mx-auto mb-3" data-percent="{{ analytics.performance_metrics.efficiency_score }}">
+                        <svg class="progress-ring" width="120" height="120">
+                            <circle class="progress-ring-circle-bg" cx="60" cy="60" r="54" fill="transparent" stroke="#e9ecef" stroke-width="8"/>
+                            <circle class="progress-ring-circle" cx="60" cy="60" r="54" fill="transparent" stroke="#4e73df" stroke-width="8" 
+                                    stroke-dasharray="339.292" stroke-dashoffset="0" transform="rotate(-90 60 60)"/>
+                        </svg>
+                        <span class="progress-value fs-3 fw-bold">{{ analytics.performance_metrics.efficiency_score }}%</span>
+                    </div>
+                    <p class="text-muted">Общий показатель эффективности</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        Персональные рекомендации
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if analytics.performance_metrics.insights|length > 0 %}
+                        <div class="alert alert-info">
+                            <h6 class="alert-heading">Анализ:</h6>
+                            <ul class="mb-0">
+                                {% for insight in analytics.performance_metrics.insights %}
+                                    <li>{{ insight }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    {% if analytics.performance_metrics.recommendations|length > 0 %}
+                        <div class="alert alert-warning">
+                            <h6 class="alert-heading">Рекомендации:</h6>
+                            <ul class="mb-0">
+                                {% for recommendation in analytics.performance_metrics.recommendations %}
+                                    <li>{{ recommendation }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        Завершение задач по дням
+                    </h6>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-primary btn-sm active" data-period="30">30 дней</button>
+                        <button class="btn btn-outline-primary btn-sm" data-period="7">7 дней</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="completionChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-pie me-2"></i>
+                        По приоритетам
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="priorityChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Analysis -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-tags me-2"></i>
+                        Анализ по категориям
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="categoryTable">
+                            <thead>
+                                <tr>
+                                    <th>Категория</th>
+                                    <th>Всего задач</th>
+                                    <th>Завершено</th>
+                                    <th>% завершения</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for category in analytics.category_analysis %}
+                                    <tr>
+                                        <td>{{ category.name }}</td>
+                                        <td>{{ category.task_count }}</td>
+                                        <td>{{ category.completed_count }}</td>
+                                        <td>
+                                            <div class="progress">
+                                                <div class="progress-bar" role="progressbar" 
+                                                     style="width: {{ category.completion_rate }}%" 
+                                                     aria-valuenow="{{ category.completion_rate }}" 
+                                                     aria-valuemin="0" 
+                                                     aria-valuemax="100">
+                                                    {{ category.completion_rate }}%
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Period Comparison -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-balance-scale me-2"></i>
+                        Сравнение периодов
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Текущий период</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Период</th>
+                                            <th>Завершено</th>
+                                            <th>Всего</th>
+                                            <th>%</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for period, data in analytics.completion_rates %}
+                                            <tr>
+                                                <td>{{ period|capitalize|replace({'_': ' '}) }}</td>
+                                                <td>{{ data.completed }}</td>
+                                                <td>{{ data.total }}</td>
+                                                <td>{{ data.rate }}%</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="alert alert-light text-center">
+                                <i class="fas fa-info-circle fa-2x text-info mb-3"></i>
+                                <p class="mb-0">Функция сравнения периодов будет доступна в следующих обновлениях</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize charts
+            initializeCharts();
+            
+            // Bind events
+            document.getElementById('refreshAnalytics').addEventListener('click', refreshAnalytics);
+            document.getElementById('exportCsv').addEventListener('click', exportCsv);
+            
+            // Period buttons
+            document.querySelectorAll('[data-period]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('[data-period]').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    updateCompletionChart(this.dataset.period);
+                });
+            });
+        });
+
+        function initializeCharts() {
+            // Completion chart
+            const completionCtx = document.getElementById('completionChart').getContext('2d');
+            window.completionChart = new Chart(completionCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Завершено задач',
+                        data: [],
+                        borderColor: '#4e73df',
+                        backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 }
+                        }
+                    }
+                }
+            });
+
+            // Priority chart
+            const priorityCtx = document.getElementById('priorityChart').getContext('2d');
+            window.priorityChart = new Chart(priorityCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Высокий', 'Средний', 'Низкий'],
+                    datasets: [{
+                        data: [0, 0, 0],
+                        backgroundColor: ['#e74a3b', '#f6c23e', '#1cc88a']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            // Load initial data
+            loadChartData();
+        }
+
+        function loadChartData() {
+            fetch('/analytics/api/completion-trend')
+                .then(response => response.json())
+                .then(data => {
+                    updateCompletionChart('30', data.daily_completion);
+                });
+
+            fetch('/analytics/api/priority-analysis')
+                .then(response => response.json())
+                .then(data => {
+                    const priorityData = [
+                        data.high?.total || 0,
+                        data.medium?.total || 0,
+                        data.low?.total || 0
+                    ];
+                    window.priorityChart.data.datasets[0].data = priorityData;
+                    window.priorityChart.update();
+                });
+        }
+
+        function updateCompletionChart(period, data = null) {
+            if (!data) {
+                // Fetch data for specific period
+                fetch(`/analytics/api/completion-trend?period=${period}`)
+                    .then(response => response.json())
+                    .then(chartData => {
+                        renderCompletionChart(chartData.daily_completion);
+                    });
+            } else {
+                renderCompletionChart(data);
+            }
+        }
+
+        function renderCompletionChart(dailyData) {
+            const labels = dailyData.map(item => {
+                const date = new Date(item.date);
+                return date.toLocaleDateString('ru-RU', { month: 'short', day: 'numeric' });
+            });
+            const values = dailyData.map(item => parseInt(item.count));
+
+            window.completionChart.data.labels = labels;
+            window.completionChart.data.datasets[0].data = values;
+            window.completionChart.update();
+        }
+
+        function refreshAnalytics() {
+            const btn = document.getElementById('refreshAnalytics');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Обновление...';
+            btn.disabled = true;
+
+            fetch('/analytics/api/data')
+                .then(response => response.json())
+                .then(data => {
+                    // Update overview numbers
+                    document.getElementById('totalTasks').textContent = data.overview.total_tasks;
+                    document.getElementById('completedTasks').textContent = data.overview.completed_tasks;
+                    document.getElementById('pendingTasks').textContent = data.overview.pending_tasks;
+                    document.getElementById('overdueTasks').textContent = data.overview.overdue_tasks;
+                    
+                    // Update efficiency score
+                    const efficiencyPercent = data.performance_metrics.efficiency_score;
+                    document.querySelector('.progress-value').textContent = efficiencyPercent + '%';
+                    updateCircularProgress(efficiencyPercent);
+                    
+                    // Reload charts
+                    loadChartData();
+                    
+                    // Show success message
+                    showToast('Аналитика обновлена', 'success');
+                })
+                .catch(error => {
+                    showToast('Ошибка при обновлении', 'error');
+                    console.error('Error:', error);
+                })
+                .finally(() => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                });
+        }
+
+        function exportCsv() {
+            window.location.href = '/analytics/export/csv';
+            showToast('Экспорт начат', 'success');
+        }
+
+        function updateCircularProgress(percent) {
+            const circumference = 2 * Math.PI * 54;
+            const offset = circumference - (percent / 100) * circumference;
+            document.querySelector('.progress-ring-circle').style.strokeDashoffset = offset;
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white bg-${type === 'error' ? 'danger' : type} border-0`;
+            toast.setAttribute('role', 'alert');
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            `;
+            
+            document.querySelector('.toast-container').appendChild(toast);
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+            
+            toast.addEventListener('hidden.bs.toast', () => {
+                toast.remove();
+            });
+        }
+    </script>
+{% endblock %}
