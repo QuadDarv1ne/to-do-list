@@ -1,0 +1,225 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Создать шаблон задач{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="mb-0">
+                        <i class="fas fa-plus-circle me-3 text-success"></i>
+                        Создать шаблон задач
+                    </h1>
+                    <p class="text-muted mb-0">Создайте свой собственный шаблон для повторяющихся задач</p>
+                </div>
+                <div>
+                    <a href="{{ path('app_task_template_index') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        Назад к шаблонам
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-edit me-2 text-primary"></i>
+                        Настройка шаблона
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="template-form">
+                        <div class="mb-4">
+                            <label for="template_name" class="form-label">Название шаблона *</label>
+                            <input type="text" class="form-control" id="template_name" name="template_name" required 
+                                   placeholder="Например: Еженедельное планирование">
+                            <div class="form-text">Дайте вашему шаблону понятное название</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Задачи в шаблоне</label>
+                            <div id="tasks-container">
+                                <!-- Task items will be added here dynamically -->
+                            </div>
+                            <button type="button" class="btn btn-outline-primary" id="add-task-btn">
+                                <i class="fas fa-plus me-2"></i>
+                                Добавить задачу
+                            </button>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save me-2"></i>
+                                Создать шаблон и задачи
+                            </button>
+                            <a href="{{ path('app_task_template_index') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>
+                                Отмена
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-lightbulb me-2 text-warning"></i>
+                        Советы
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-3">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <small>Используйте шаблоны для повторяющихся задач</small>
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <small>Добавляйте подробные описания к задачам</small>
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <small>Устанавливайте подходящие приоритеты</small>
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <small>Тестируйте шаблоны перед использованием</small>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-magic me-2 text-info"></i>
+                        Готовые шаблоны
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">Посмотрите готовые шаблоны для вдохновения:</p>
+                    <a href="{{ path('app_task_template_index') }}" class="btn btn-primary w-100">
+                        <i class="fas fa-clone me-2"></i>
+                        Просмотреть шаблоны
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tasksContainer = document.getElementById('tasks-container');
+    const addTaskBtn = document.getElementById('add-task-btn');
+    let taskCounter = 0;
+
+    // Add initial task
+    addTaskField();
+
+    addTaskBtn.addEventListener('click', addTaskField);
+
+    function addTaskField() {
+        taskCounter++;
+        const taskId = `task-${taskCounter}`;
+        
+        const taskHtml = `
+            <div class="card mb-3 task-item" id="${taskId}">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h6 class="mb-0">Задача #${taskCounter}</h6>
+                        <button type="button" class="btn btn-outline-danger btn-sm remove-task-btn" data-task-id="${taskId}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <label for="task_titles_${taskCounter}" class="form-label">Название задачи *</label>
+                            <input type="text" class="form-control" name="task_titles[]" id="task_titles_${taskCounter}" 
+                                   required placeholder="Введите название задачи">
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label for="task_priorities_${taskCounter}" class="form-label">Приоритет</label>
+                            <select class="form-select" name="task_priorities[]" id="task_priorities_${taskCounter}">
+                                <option value="low">Низкий</option>
+                                <option value="medium" selected>Средний</option>
+                                <option value="high">Высокий</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="task_descriptions_${taskCounter}" class="form-label">Описание</label>
+                        <textarea class="form-control" name="task_descriptions[]" id="task_descriptions_${taskCounter}" 
+                                  rows="2" placeholder="Добавьте описание задачи (необязательно)"></textarea>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        tasksContainer.insertAdjacentHTML('beforeend', taskHtml);
+        
+        // Add event listener to remove button
+        document.querySelector(`[data-task-id="${taskId}"]`).addEventListener('click', function() {
+            document.getElementById(taskId).remove();
+            updateTaskNumbers();
+        });
+    }
+
+    function updateTaskNumbers() {
+        const taskItems = document.querySelectorAll('.task-item');
+        taskItems.forEach((item, index) => {
+            const title = item.querySelector('h6');
+            if (title) {
+                title.textContent = `Задача #${index + 1}`;
+            }
+        });
+    }
+
+    // Form submission validation
+    document.getElementById('template-form').addEventListener('submit', function(e) {
+        const templateName = document.getElementById('template_name').value.trim();
+        const taskTitles = document.querySelectorAll('input[name="task_titles[]"]');
+        const hasValidTasks = Array.from(taskTitles).some(input => input.value.trim() !== '');
+        
+        if (!templateName) {
+            e.preventDefault();
+            showToast('Пожалуйста, введите название шаблона', 'error');
+            return;
+        }
+        
+        if (!hasValidTasks) {
+            e.preventDefault();
+            showToast('Пожалуйста, добавьте хотя бы одну задачу', 'error');
+            return;
+        }
+        
+        showToast('Создание задач из шаблона...', 'info');
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        
+        if (e.key === 'A' && e.ctrlKey) {
+            e.preventDefault();
+            addTaskField();
+        }
+    });
+});
+</script>
+{% endblock %}

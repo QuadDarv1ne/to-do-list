@@ -1,0 +1,110 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Шаблоны задач{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h1 class="mb-0">
+                        <i class="fas fa-clone me-3 text-primary"></i>
+                        Шаблоны задач
+                    </h1>
+                    <p class="text-muted mb-0">Используйте готовые шаблоны для быстрого создания задач</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ path('app_task_template_custom') }}" class="btn btn-success btn-lg">
+                        <i class="fas fa-plus-circle me-2"></i>
+                        Создать свой шаблон
+                    </a>
+                    <a href="{{ path('app_task_index') }}" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-tasks me-2"></i>
+                        Мои задачи
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if templates is not empty %}
+        <div class="row">
+            {% for template in templates %}
+                <div class="col-lg-6 col-xl-3 mb-4">
+                    <div class="card dashboard-card dashboard-card-enhanced h-100 border-0 shadow-sm">
+                        <div class="card-body d-flex flex-column">
+                            <div class="text-center mb-3">
+                                <div class="rounded-circle bg-primary bg-opacity-10 p-3 d-inline-block mb-3">
+                                    <i class="fas fa-file-alt fa-2x text-primary"></i>
+                                </div>
+                                <h5 class="card-title">{{ template.name }}</h5>
+                                <p class="text-muted small">{{ template.description }}</p>
+                            </div>
+                            
+                            <div class="mb-3 flex-grow-1">
+                                <h6 class="mb-2">Задачи в шаблоне:</h6>
+                                <ul class="list-unstyled small">
+                                    {% for task in template.tasks %}
+                                        <li class="mb-1">
+                                            <span class="badge bg-{% if task.priority == 'high' %}danger{% elseif task.priority == 'medium' %}warning text-dark{% else %}success{% endif %} me-1">
+                                                {{ task.priority == 'high' ? 'Высокий' : task.priority == 'medium' ? 'Средний' : 'Низкий' }}
+                                            </span>
+                                            {{ task.title }}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            
+                            <div class="mt-auto">
+                                <a href="{{ path('app_task_template_apply', {'templateIndex': loop.index0}) }}" 
+                                   class="btn btn-primary w-100"
+                                   onclick="return confirm('Создать {{ template.tasks|length }} задач из шаблона \"{{ template.name }}\"?')">
+                                    <i class="fas fa-bolt me-2"></i>
+                                    Использовать шаблон
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state py-5">
+            <i class="fas fa-clone mb-3"></i>
+            <h4 class="mb-3">Нет доступных шаблонов</h4>
+            <p class="mb-4">Создайте свой первый шаблон задач</p>
+            <a href="{{ path('app_task_template_custom') }}" class="btn btn-success btn-lg">
+                <i class="fas fa-plus-circle me-2"></i>
+                Создать шаблон
+            </a>
+        </div>
+    {% endif %}
+    
+    <!-- Keyboard Shortcuts Info -->
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">
+                <i class="fas fa-keyboard me-2 text-info"></i>
+                Горячие клавиши
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><kbd class="kbd-shortcut">T</kbd> Перейти к задачам</li>
+                        <li class="mb-2"><kbd class="kbd-shortcut">N</kbd> Быстрое создание задачи</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><kbd class="kbd-shortcut">D</kbd> Панель управления</li>
+                        <li class="mb-2"><kbd class="kbd-shortcut">?</kbd> Помощь по горячим клавишам</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

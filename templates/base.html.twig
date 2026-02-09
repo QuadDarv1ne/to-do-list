@@ -53,6 +53,9 @@
                             <a class="nav-link" href="{{ path('app_task_category_index') }}">Категории</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_task_template_index') }}">Шаблоны</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="{{ path('app_profile_show') }}">Профиль</a>
                         </li>
                         {% if app.user.hasRole('ROLE_ADMIN') %}

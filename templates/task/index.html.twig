@@ -6,7 +6,7 @@
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <div>
                     <h1 class="mb-0">
                         <i class="fas fa-tasks me-3 text-primary"></i>
@@ -14,7 +14,11 @@
                     </h1>
                     <p class="text-muted mb-0">Управляйте своими задачами и отслеживайте прогресс</p>
                 </div>
-                <div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button type="button" class="btn btn-success btn-lg" data-bs-toggle="modal" data-bs-target="#quickTaskModal">
+                        <i class="fas fa-bolt me-2"></i>
+                        Быстрое создание
+                    </button>
                     <a href="{{ path('app_task_new') }}" class="btn btn-primary btn-lg">
                         <i class="fas fa-plus me-2"></i>
                         Создать задачу
@@ -246,19 +250,22 @@
     <!-- Task Statistics -->
     <div class="row mb-4">
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
+            <div class="card dashboard-card dashboard-card-enhanced border-0 shadow-sm h-100">
                 <div class="card-body text-center">
                     <div class="rounded-circle bg-primary bg-opacity-10 p-3 d-inline-block mb-3">
                         <i class="fas fa-tasks fa-2x text-primary"></i>
                     </div>
                     <h3 class="stat-number mb-0 text-primary">{{ tasks|length }}</h3>
                     <p class="stat-label mb-0">Всего задач</p>
+                    <div class="progress mt-2" style="height: 5px;">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: 100%"></div>
+                    </div>
                 </div>
             </div>
         </div>
         
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
+            <div class="card dashboard-card dashboard-card-enhanced border-0 shadow-sm h-100">
                 <div class="card-body text-center">
                     <div class="rounded-circle bg-warning bg-opacity-10 p-3 d-inline-block mb-3">
                         <i class="fas fa-clock fa-2x text-warning"></i>
@@ -267,12 +274,15 @@
                         {{ tasks|filter(t => t.status == 'pending')|length }}
                     </h3>
                     <p class="stat-label mb-0">В ожидании</p>
+                    <div class="progress mt-2" style="height: 5px;">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: {{ (tasks|filter(t => t.status == 'pending')|length / tasks|length * 100)|round(0) }}%"></div>
+                    </div>
                 </div>
             </div>
         </div>
         
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
+            <div class="card dashboard-card dashboard-card-enhanced border-0 shadow-sm h-100">
                 <div class="card-body text-center">
                     <div class="rounded-circle bg-info bg-opacity-10 p-3 d-inline-block mb-3">
                         <i class="fas fa-play-circle fa-2x text-info"></i>
@@ -281,12 +291,15 @@
                         {{ tasks|filter(t => t.status == 'in_progress')|length }}
                     </h3>
                     <p class="stat-label mb-0">В процессе</p>
+                    <div class="progress mt-2" style="height: 5px;">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: {{ (tasks|filter(t => t.status == 'in_progress')|length / tasks|length * 100)|round(0) }}%"></div>
+                    </div>
                 </div>
             </div>
         </div>
         
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
+            <div class="card dashboard-card dashboard-card-enhanced border-0 shadow-sm h-100">
                 <div class="card-body text-center">
                     <div class="rounded-circle bg-success bg-opacity-10 p-3 d-inline-block mb-3">
                         <i class="fas fa-check-circle fa-2x text-success"></i>
@@ -295,6 +308,9 @@
                         {{ tasks|filter(t => t.status == 'completed')|length }}
                     </h3>
                     <p class="stat-label mb-0">Завершено</p>
+                    <div class="progress mt-2" style="height: 5px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ (tasks|filter(t => t.status == 'completed')|length / tasks|length * 100)|round(0) }}%"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -304,7 +320,7 @@
     <form method="post" action="{{ path('app_task_bulk_action') }}" id="bulk-actions-form">
     <div class="card border-0 shadow-sm">
         <div class="card-header bg-white">
-            <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <div class="d-flex align-items-center">
                     <div class="form-check me-3">
                         <input type="checkbox" class="form-check-input" id="select-all-tasks">
@@ -315,22 +331,27 @@
                         Список задач
                     </h5>
                 </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="dragModeToggle" title="Режим перетаскивания">
+                        <i class="fas fa-arrows-alt me-1"></i>Перетаскивание
+                    </button>
                 <div class="btn-group" role="group">
                     <a href="{{ path('app_task_index', app.request.query.all|merge({'sort': 'createdAt', 'direction': app.request.query.get('direction') == 'ASC' ? 'DESC' : 'ASC'})) }}" 
-                       class="btn btn-outline-secondary btn-sm">
+                       class="btn btn-outline-secondary btn-sm" data-bs-toggle="tooltip" title="Сортировать по дате создания">
                         <i class="fas fa-sort-amount-{{ app.request.query.get('direction') == 'ASC' ? 'up' : 'down' }} me-1"></i>
-                        По дате создания
+                        По дате
                     </a>
                     <a href="{{ path('app_task_index', app.request.query.all|merge({'sort': 'priority', 'direction': app.request.query.get('direction') == 'ASC' ? 'DESC' : 'ASC'})) }}" 
-                       class="btn btn-outline-secondary btn-sm">
+                       class="btn btn-outline-secondary btn-sm" data-bs-toggle="tooltip" title="Сортировать по приоритету">
                         <i class="fas fa-exclamation-triangle me-1"></i>
-                        По приоритету
+                        Приоритет
                     </a>
                     <a href="{{ path('app_task_index', app.request.query.all|merge({'sort': 'tag_count', 'direction': app.request.query.get('direction') == 'ASC' ? 'DESC' : 'ASC'})) }}" 
-                       class="btn btn-outline-secondary btn-sm">
+                       class="btn btn-outline-secondary btn-sm" data-bs-toggle="tooltip" title="Сортировать по количеству тегов">
                         <i class="fas fa-tags me-1"></i>
-                        По количеству тегов
+                        Теги
                     </a>
+                </div>
                 </div>
             </div>
         </div>
@@ -376,7 +397,7 @@
             {% if tasks is not empty %}
                 <div class="list-group list-group-flush">
                     {% for task in tasks %}
-                        <div class="list-group-item task-item border-0 px-4 py-3 priority-{{ task.priority }}">
+                        <div class="list-group-item task-item task-item-enhanced border-0 px-4 py-3 priority-{{ task.priority }} {% if task.priority == 'high' %}priority-high-glow{% elseif task.priority == 'medium' %}priority-medium-glow{% else %}priority-low-glow{% endif %}" data-task-id="{{ task.id }}">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div class="form-check me-3">
                                     <input type="checkbox" class="form-check-input task-checkbox" name="task_ids[]" value="{{ task.id }}" id="task-{{ task.id }}">
@@ -391,22 +412,22 @@
                                         </h5>
                                         
                                         <div class="d-flex gap-2">
-                                            <span class="badge badge-{{ task.status|lower }}">
+                                            <span class="badge badge-{{ task.status|lower }} badge-animated" data-bs-toggle="tooltip" title="Статус задачи">
                                                 {{ task.status|trans }}
                                             </span>
                                             
                                             {% if task.priority == 'high' %}
-                                                <span class="badge bg-danger">
+                                                <span class="badge bg-danger badge-animated" data-bs-toggle="tooltip" title="Высокий приоритет">
                                                     <i class="fas fa-exclamation-triangle me-1"></i>
                                                     Высокий
                                                 </span>
                                             {% elseif task.priority == 'medium' %}
-                                                <span class="badge bg-warning text-dark">
+                                                <span class="badge bg-warning text-dark badge-animated" data-bs-toggle="tooltip" title="Средний приоритет">
                                                     <i class="fas fa-exclamation me-1"></i>
                                                     Средний
                                                 </span>
                                             {% else %}
-                                                <span class="badge bg-success">
+                                                <span class="badge bg-success badge-animated" data-bs-toggle="tooltip" title="Низкий приоритет">
                                                     <i class="fas fa-arrow-down me-1"></i>
                                                     Низкий
                                                 </span>
@@ -513,17 +534,49 @@
                     </div>
                 {% endif %}
             {% else %}
-                <div class="empty-state py-5">
+                <div class="empty-state py-5" id="tasks-empty-state">
+                    <div class="mb-4">
+                        <div class="skeleton skeleton-avatar mx-auto mb-3"></div>
+                        <div class="skeleton skeleton-text mx-auto" style="width: 60%;"></div>
+                    </div>
                     <i class="fas fa-tasks mb-3"></i>
                     <h4 class="mb-3">Задачи не найдены</h4>
                     <p class="mb-4">Попробуйте изменить параметры поиска или фильтрации</p>
-                    <div class="d-grid gap-2 d-md-flex justify-content-center">
+                    <div class="d-grid gap-2 d-md-flex justify-content-center mb-4">
                         <a href="{{ path('app_task_new') }}" class="btn btn-primary">
                             <i class="fas fa-plus me-2"></i>Создать задачу
                         </a>
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#quickTaskModal">
+                            <i class="fas fa-bolt me-2"></i>Быстрое создание
+                        </button>
                         <a href="{{ path('app_task_index') }}" class="btn btn-outline-secondary">
                             <i class="fas fa-times me-2"></i>Сбросить фильтры
                         </a>
+                    </div>
+                    <div class="card border-0 bg-light">
+                        <div class="card-body text-center">
+                            <h6 class="mb-3">Советы по поиску:</h6>
+                            <div class="row">
+                                <div class="col-md-4 mb-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-search me-1"></i>
+                                        Используйте поиск по названию или описанию
+                                    </small>
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-filter me-1"></i>
+                                        Примените фильтры по статусу и приоритету
+                                    </small>
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-keyboard me-1"></i>
+                                        Горячая клавиша <kbd class="kbd-shortcut">F</kbd> для поиска
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             {% endif %}
@@ -537,6 +590,238 @@
 {{ parent() }}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Filter toggle functionality
+    const toggleFiltersBtn = document.getElementById('toggleFilters');
+    const filtersBody = document.getElementById('filtersBody');
+    const clearFiltersBtn = document.getElementById('clearFilters');
+    
+    if (toggleFiltersBtn && filtersBody) {
+        toggleFiltersBtn.addEventListener('click', function() {
+            const isHidden = filtersBody.style.display === 'none';
+            filtersBody.style.display = isHidden ? 'block' : 'none';
+            this.innerHTML = isHidden ? 
+                '<i class="fas fa-sliders-h me-1"></i>Скрыть фильтры' : 
+                '<i class="fas fa-sliders-h me-1"></i>Фильтры';
+        });
+    }
+    
+    // Clear filters functionality
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', function() {
+            const form = filtersBody.querySelector('form');
+            const inputs = form.querySelectorAll('input, select, textarea');
+            
+            inputs.forEach(input => {
+                if (input.type === 'checkbox') {
+                    input.checked = false;
+                } else {
+                    input.value = '';
+                }
+            });
+            
+            // Reset to default page
+            window.location.href = '{{ path('app_task_index') }}';
+        });
+    }
+    
+    // Auto-submit on filter change (optional)
+    const filterInputs = document.querySelectorAll('#filtersBody input, #filtersBody select');
+    filterInputs.forEach(input => {
+        if (input.type !== 'submit' && input.type !== 'button') {
+            input.addEventListener('change', function() {
+                // Uncomment the next line to auto-submit on filter change
+                // this.form.submit();
+            });
+        }
+    });
+    
+    // Enhanced task item interactions
+    const taskItems = document.querySelectorAll('.task-item');
+    taskItems.forEach(item => {
+        // Add hover effect
+        item.addEventListener('mouseenter', function() {
+            this.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
+        });
+        
+        item.addEventListener('mouseleave', function() {
+            this.style.boxShadow = '';
+        });
+        
+        // Add click effect
+        const taskLink = item.querySelector('.task-title a');
+        if (taskLink) {
+            taskLink.addEventListener('click', function(e) {
+                item.style.transform = 'scale(0.98)';
+                setTimeout(() => {
+                    item.style.transform = '';
+                }, 150);
+            });
+        }
+    });
+    
+    // Keyboard shortcuts for task list
+    document.addEventListener('keydown', function(e) {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        
+        switch(e.key.toLowerCase()) {
+            case 'r':
+                e.preventDefault();
+                window.location.reload();
+                break;
+            case 'f':
+                e.preventDefault();
+                document.getElementById('search')?.focus();
+                break;
+        }
+    });
+    
+    // Add tooltips to action buttons
+    const actionButtons = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    actionButtons.forEach(button => {
+        new bootstrap.Tooltip(button);
+    });
+    
+    // Drag and drop functionality
+    let dragModeEnabled = false;
+    const dragModeToggle = document.getElementById('dragModeToggle');
+    
+    if (dragModeToggle) {
+        dragModeToggle.addEventListener('click', function() {
+            dragModeEnabled = !dragModeEnabled;
+            
+            if (dragModeEnabled) {
+                this.classList.add('btn-primary');
+                this.classList.remove('btn-outline-primary');
+                this.innerHTML = '<i class="fas fa-lock me-1"></i>Перетаскивание вкл';
+                enableDragMode();
+            } else {
+                this.classList.remove('btn-primary');
+                this.classList.add('btn-outline-primary');
+                this.innerHTML = '<i class="fas fa-arrows-alt me-1"></i>Перетаскивание';
+                disableDragMode();
+            }
+        });
+    }
+    
+    function enableDragMode() {
+        const taskItems = document.querySelectorAll('.task-item');
+        taskItems.forEach(item => {
+            item.setAttribute('draggable', 'true');
+            item.classList.add('draggable');
+            
+            item.addEventListener('dragstart', handleDragStart);
+            item.addEventListener('dragover', handleDragOver);
+            item.addEventListener('drop', handleDrop);
+            item.addEventListener('dragenter', handleDragEnter);
+            item.addEventListener('dragleave', handleDragLeave);
+        });
+        
+        showToast('Режим перетаскивания включен. Перетаскивайте задачи для изменения порядка.', 'info');
+    }
+    
+    function disableDragMode() {
+        const taskItems = document.querySelectorAll('.task-item');
+        taskItems.forEach(item => {
+            item.setAttribute('draggable', 'false');
+            item.classList.remove('draggable', 'drop-zone', 'drag-over');
+            
+            item.removeEventListener('dragstart', handleDragStart);
+            item.removeEventListener('dragover', handleDragOver);
+            item.removeEventListener('drop', handleDrop);
+            item.removeEventListener('dragenter', handleDragEnter);
+            item.removeEventListener('dragleave', handleDragLeave);
+        });
+        
+        showToast('Режим перетаскивания выключен', 'info');
+    }
+    
+    let draggedItem = null;
+    
+    function handleDragStart(e) {
+        draggedItem = this;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', this.innerHTML);
+        this.classList.add('opacity-50');
+    }
+    
+    function handleDragOver(e) {
+        if (e.preventDefault) {
+            e.preventDefault();
+        }
+        e.dataTransfer.dropEffect = 'move';
+        return false;
+    }
+    
+    function handleDragEnter(e) {
+        this.classList.add('drag-over');
+    }
+    
+    function handleDragLeave(e) {
+        this.classList.remove('drag-over');
+    }
+    
+    function handleDrop(e) {
+        if (e.stopPropagation) {
+            e.stopPropagation();
+        }
+        
+        if (draggedItem !== this) {
+            // Swap the elements
+            const temp = this.innerHTML;
+            this.innerHTML = draggedItem.innerHTML;
+            draggedItem.innerHTML = temp;
+            
+            // Show success feedback
+            this.classList.add('bg-success', 'bg-opacity-10');
+            draggedItem.classList.add('bg-success', 'bg-opacity-10');
+            
+            setTimeout(() => {
+                this.classList.remove('bg-success', 'bg-opacity-10');
+                draggedItem.classList.remove('bg-success', 'bg-opacity-10');
+            }, 1000);
+            
+            showToast('Порядок задач изменен', 'success');
+        }
+        
+        return false;
+    }
+    
+    // Enhanced bulk actions with confirmation
+    const bulkActionForm = document.getElementById('bulk-actions-form');
+    if (bulkActionForm) {
+        bulkActionForm.addEventListener('submit', function(e) {
+            const action = bulkActionForm.querySelector('select[name="action"]').value;
+            const checkedCount = document.querySelectorAll('.task-checkbox:checked').length;
+            
+            if (checkedCount === 0) {
+                e.preventDefault();
+                showToast('Пожалуйста, выберите хотя бы одну задачу', 'warning');
+                return;
+            }
+            
+            if (action === 'delete') {
+                if (!confirm(`Вы уверены, что хотите удалить ${checkedCount} задач(и)? Это действие нельзя отменить.`)) {
+                    e.preventDefault();
+                }
+            } else if (action) {
+                showToast(`Выполняется действие: ${getActionName(action)} для ${checkedCount} задач(и)...`, 'info');
+            }
+        });
+    }
+    
+    function getActionName(action) {
+        const actions = {
+            'mark_completed': 'Отметить как выполненные',
+            'mark_in_progress': 'Отметить как в процессе',
+            'mark_pending': 'Отметить как ожидаемые',
+            'set_priority_high': 'Установить высокий приоритет',
+            'set_priority_medium': 'Установить средний приоритет',
+            'set_priority_low': 'Установить низкий приоритет',
+            'assign_tag': 'Назначить теги',
+            'delete': 'Удалить'
+        };
+        return actions[action] || action;
+    }
     const selectAllCheckbox = document.getElementById('select-all-tasks');
     const taskCheckboxes = document.querySelectorAll('.task-checkbox');
     const bulkActionsContainer = document.getElementById('bulk-actions-container');
