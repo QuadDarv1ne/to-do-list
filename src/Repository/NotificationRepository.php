@@ -45,3 +45,23 @@ class NotificationRepository extends ServiceEntityRepository
             ->getResult();
     }
 }
+    /**
+     * Get notifications created after a specific date for a user (optimized for SSE)
+     *
+     * @return Notification[]
+     */
+    public function findUnreadForUserSince(\DateTimeInterface $date, $user): array
+    {
+        return $this->createQueryBuilder('n')
+            ->andWhere('n.user = :user')
+            ->andWhere('n.isRead = :isRead')
+            ->andWhere('n.createdAt > :date')
+            ->setParameter('user', $user)
+            ->setParameter('isRead', false)
+            ->setParameter('date', $date)
+            ->orderBy('n.createdAt', 'ASC')
+            ->setMaxResults(10)
+            ->getQuery()
+            ->getResult();
+    }
+}

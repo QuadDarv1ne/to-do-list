@@ -123,7 +123,8 @@ class NotificationService
 
             $lastCheck = new \DateTime();
             $heartbeatInterval = 30; // seconds
-            $checkInterval = 10; // seconds - увеличил интервал проверки
+            $checkInterval = 10; // seconds - increased interval to reduce load
+            $iterationCount = 0;
             
             while (true) {
                 // Check for new notifications
@@ -146,16 +147,28 @@ class NotificationService
                 }
 
                 // Send heartbeat to keep connection alive
-                static $counter = 0;
-                if (++$counter % $heartbeatInterval === 0) {
+                $iterationCount++;
+                if ($iterationCount % $heartbeatInterval === 0) {
                     echo "event: heartbeat\n";
                     echo "data: " . json_encode(['time' => date('c')]) . "\n\n";
                     flush();
                 }
 
-                sleep($checkInterval);
+                // Break the sleep into smaller chunks to allow for quicker response to connection abort
+                $remainingSleep = $checkInterval;
+                $chunkSize = 2; // 2 second chunks
+                while ($remainingSleep > 0 && !connection_aborted()) {
+                    $sleepChunk = min($chunkSize, $remainingSleep);
+                    sleep($sleepChunk);
+                    $remainingSleep -= $sleepChunk;
+                    
+                    // Check periodically if connection is still alive
+                    if (connection_aborted()) {
+                        break;
+                    }
+                }
                 
-                // Check if connection is still alive
+                // Final check if connection is still alive
                 if (connection_aborted()) {
                     break;
                 }
@@ -184,6 +197,7 @@ class NotificationService
             ->setParameter('user', $user)
             ->setParameter('since', $sinceImmutable)
             ->orderBy('n.createdAt', 'ASC')
+            ->setMaxResults(10) // Limit results to prevent excessive data transfer
             ->getQuery()
             ->getResult();
     }
