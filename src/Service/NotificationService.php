@@ -122,8 +122,8 @@ class NotificationService
             flush();
 
             $lastCheck = new \DateTime();
-            $heartbeatInterval = 25; // seconds
-            $checkInterval = 5; // seconds
+            $heartbeatInterval = 30; // seconds
+            $checkInterval = 10; // seconds - увеличил интервал проверки
             
             while (true) {
                 // Check for new notifications
@@ -175,12 +175,14 @@ class NotificationService
      */
     private function getNewNotifications(User $user, \DateTime $since): array
     {
+        $sinceImmutable = \DateTimeImmutable::createFromMutable($since);
+        
         return $this->notificationRepository->createQueryBuilder('n')
             ->where('n.user = :user')
             ->andWhere('n.createdAt > :since')
             ->andWhere('n.isRead = false')
             ->setParameter('user', $user)
-            ->setParameter('since', \DateTimeImmutable::createFromMutable($since))
+            ->setParameter('since', $sinceImmutable)
             ->orderBy('n.createdAt', 'ASC')
             ->getQuery()
             ->getResult();
@@ -270,7 +272,7 @@ class NotificationService
         ]);
         $today = $this->notificationRepository->count([
             'user' => $user,
-            'createdAt' => new \DateTime('today')
+            'createdAt' => \DateTimeImmutable::createFromMutable(new \DateTime('today'))
         ]);
 
         return [
