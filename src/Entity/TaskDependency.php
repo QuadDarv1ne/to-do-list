@@ -19,7 +19,7 @@ class TaskDependency
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private Task $dependentTask;
 
-    #[ORM\ManyToOne(targetEntity: Task::class)]
+    #[ORM\ManyToOne(targetEntity: Task::class, inversedBy: 'dependents')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private Task $dependencyTask;
 

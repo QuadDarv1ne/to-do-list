@@ -1,0 +1,74 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Статус двухфакторной аутентификации{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-shield-alt me-2"></i>
+                        Двухфакторная аутентификация
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {% if status.enabled %}
+                        <div class="alert alert-success">
+                            <h5><i class="fas fa-check-circle me-2"></i>Активна</h5>
+                            <p class="mb-0">Двухфакторная аутентификация включена для вашего аккаунта.</p>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Активирована</h6>
+                                        <p class="card-text">{{ status.enabled_at|date('d.m.Y H:i') }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Резервные коды</h6>
+                                        <p class="card-text">{{ status.backup_codes_count }} кодов доступно</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <a href="{{ path('app_2fa_backup_codes') }}" class="btn btn-primary">
+                                <i class="fas fa-key me-2"></i>Просмотреть резервные коды
+                            </a>
+                            <a href="{{ path('app_2fa_recovery') }}" class="btn btn-warning">
+                                <i class="fas fa-question-circle me-2"></i>Информация о восстановлении
+                            </a>
+                            
+                            <form method="post" action="{{ path('app_2fa_disable') }}" class="d-inline" 
+                                  onsubmit="return confirm('Вы уверены, что хотите отключить двухфакторную аутентификацию?')">
+                                <button type="submit" class="btn btn-danger w-100">
+                                    <i class="fas fa-times me-2"></i>Отключить 2FA
+                                </button>
+                            </form>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <h5><i class="fas fa-exclamation-triangle me-2"></i>Не активна</h5>
+                            <p class="mb-0">Двухфакторная аутентификация не включена для вашего аккаунта.</p>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <a href="{{ path('app_2fa_setup') }}" class="btn btn-success">
+                                <i class="fas fa-plus me-2"></i>Активировать двухфакторную аутентификацию
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

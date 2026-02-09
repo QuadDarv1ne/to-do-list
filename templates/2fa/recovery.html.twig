@@ -1,0 +1,170 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Восстановление доступа 2FA{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-question-circle me-2"></i>
+                        Восстановление доступа при двухфакторной аутентификации
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-info-circle me-2"></i>Если вы потеряли доступ к Google Authenticator</h5>
+                        <p class="mb-0">Используйте один из следующих способов для восстановления доступа к вашему аккаунту:</p>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-key me-2"></i>
+                                        Резервные коды
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <p>Если вы сохранили резервные коды при настройке 2FA, вы можете использовать любой из них для входа в систему.</p>
+                                    <p><strong>Важно:</strong> Каждый резервный код можно использовать только один раз.</p>
+                                    
+                                    {% if status.has_backup_codes %}
+                                        <a href="{{ path('app_2fa_backup_codes') }}" class="btn btn-primary">
+                                            <i class="fas fa-eye me-2"></i>Просмотреть резервные коды
+                                        </a>
+                                    {% else %}
+                                        <div class="alert alert-warning">
+                                            <small>У вас нет резервных кодов. Сгенерируйте их в настройках 2FA.</small>
+                                        </div>
+                                        <a href="{{ path('app_2fa_status') }}" class="btn btn-warning">
+                                            <i class="fas fa-cog me-2"></i>Настройки 2FA
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header bg-warning text-dark">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-envelope me-2"></i>
+                                        Контакт с администратором
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <p>Если у вас нет резервных кодов, свяжитесь с администратором системы для сброса двухфакторной аутентификации.</p>
+                                    <p>Администратор может временно отключить 2FA для вашего аккаунта.</p>
+                                    
+                                    <div class="mt-3">
+                                        <button class="btn btn-outline-warning" onclick="showContactInfo()">
+                                            <i class="fas fa-phone me-2"></i>Показать контакты
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-shield-alt me-2"></i>
+                                Советы по предотвращению потери доступа
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    Сохраните резервные коды в нескольких безопасных местах
+                                </li>
+                                <li class="list-group-item">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    Сделайте резервную копию конфигурации Google Authenticator
+                                </li>
+                                <li class="list-group-item">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    Не храните резервные коды на том же устройстве, где установлен Authenticator
+                                </li>
+                                <li class="list-group-item">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    Регулярно обновляйте резервные коды
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-between mt-4">
+                        <a href="{{ path('app_2fa_status') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Назад к настройкам 2FA
+                        </a>
+                        <a href="{{ path('app_dashboard') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-home me-2"></i>Перейти к дашборду
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Contact Modal -->
+<div class="modal fade" id="contactModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-phone me-2"></i>
+                    Контактная информация
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Важно!</h6>
+                    <p class="mb-0">Для сброса 2FA потребуется подтверждение вашей личности.</p>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label"><strong>Email администратора:</strong></label>
+                    <div class="form-control-plaintext">admin@todolist.local</div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label"><strong>Телефон поддержки:</strong></label>
+                    <div class="form-control-plaintext">+7 (XXX) XXX-XXXX</div>
+                </div>
+                
+                <div class="alert alert-info">
+                    <small>
+                        При обращении подготовьте следующую информацию:
+                        <ul class="mb-0 mt-2">
+                            <li>Ваше имя пользователя или email</li>
+                            <li>Дата последнего входа в систему</li>
+                            <li>Причина потери доступа</li>
+                        </ul>
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        function showContactInfo() {
+            const modal = new bootstrap.Modal(document.getElementById('contactModal'));
+            modal.show();
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,159 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Резервные коды 2FA{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-key me-2"></i>
+                        Резервные коды восстановления
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <h5><i class="fas fa-exclamation-triangle me-2"></i>Важно!</h5>
+                        <p class="mb-0">
+                            Эти резервные коды могут быть использованы для входа в систему, 
+                            если вы потеряете доступ к Google Authenticator. Каждый код можно использовать только один раз.
+                        </p>
+                    </div>
+
+                    {% if backup_codes|length > 0 %}
+                        <div class="row mb-4">
+                            {% for code in backup_codes %}
+                                <div class="col-md-6 col-lg-4 mb-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center py-3">
+                                            <code class="fs-4 fw-bold">{{ code }}</code>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-between">
+                            <button class="btn btn-primary" onclick="printBackupCodes()">
+                                <i class="fas fa-print me-2"></i>Распечатать коды
+                            </button>
+                            
+                            <form method="post" action="{{ path('app_2fa_regenerate_backup_codes') }}" class="d-inline"
+                                  onsubmit="return confirm('Вы уверены? Это удалит все текущие резервные коды.')">
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="fas fa-redo me-2"></i>Сгенерировать новые коды
+                                </button>
+                            </form>
+                            
+                            <a href="{{ path('app_2fa_status') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Назад
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <h5><i class="fas fa-info-circle me-2"></i>Нет резервных кодов</h5>
+                            <p class="mb-0">У вас пока нет резервных кодов. Сгенерируйте их сейчас.</p>
+                        </div>
+                        
+                        <form method="post" action="{{ path('app_2fa_regenerate_backup_codes') }}" class="d-inline">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Сгенерировать резервные коды
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        function printBackupCodes() {
+            const codes = {{ backup_codes|json_encode|raw }};
+            const printWindow = window.open('', '_blank');
+            
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Резервные коды 2FA</title>
+                    <style>
+                        body { 
+                            font-family: Arial, sans-serif; 
+                            padding: 20px; 
+                            max-width: 800px;
+                            margin: 0 auto;
+                        }
+                        .header {
+                            text-align: center;
+                            margin-bottom: 30px;
+                            border-bottom: 2px solid #333;
+                            padding-bottom: 20px;
+                        }
+                        .warning {
+                            background: #fff3cd;
+                            border: 1px solid #ffeaa7;
+                            padding: 15px;
+                            margin: 20px 0;
+                            border-radius: 5px;
+                        }
+                        .codes-grid {
+                            display: grid;
+                            grid-template-columns: repeat(3, 1fr);
+                            gap: 15px;
+                            margin: 30px 0;
+                        }
+                        .code-card {
+                            border: 1px solid #ccc;
+                            padding: 15px;
+                            text-align: center;
+                            font-family: monospace;
+                            font-size: 24px;
+                            font-weight: bold;
+                            background: #f8f9fa;
+                        }
+                        .footer {
+                            margin-top: 30px;
+                            text-align: center;
+                            color: #666;
+                            font-size: 14px;
+                            border-top: 1px solid #eee;
+                            padding-top: 20px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>Резервные коды двухфакторной аутентификации</h1>
+                        <p>Сохраните эти коды в безопасном месте</p>
+                    </div>
+                    
+                    <div class="warning">
+                        <h3>⚠️ ВАЖНО</h3>
+                        <p>Каждый код может быть использован только один раз. Храните эти коды в безопасном месте.</p>
+                        <p>Дата генерации: ${new Date().toLocaleString('ru-RU')}</p>
+                    </div>
+                    
+                    <div class="codes-grid">
+                        ${codes.map(code => `
+                            <div class="code-card">${code}</div>
+                        `).join('')}
+                    </div>
+                    
+                    <div class="footer">
+                        <p>Сгенерировано системой управления задачами</p>
+                        <p>Не передавайте эти коды третьим лицам</p>
+                    </div>
+                </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+            printWindow.print();
+        }
+    </script>
+{% endblock %}
