@@ -202,13 +202,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setPassword(string $password): static
     {
-        // For new users or when explicitly validating (empty password means new user)
-        if (empty($this->password) || strpos(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10)[1]['file'] ?? '', 'UserType.php') !== false) {
-            if (!$this->isStrongPassword($password)) {
-                throw new \InvalidArgumentException('Пароль должен содержать не менее 8 символов, включая заглавную букву, строчную букву, цифру и специальный символ.');
-            }
-        }
-        
         $this->password = $password;
 
         return $this;
