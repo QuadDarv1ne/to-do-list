@@ -13,15 +13,14 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: TaskRepository::class)]
 #[ORM\HasLifecycleCallbacks]
-#[ORM\Table(name: 'tasks', indexes: [
-    new ORM\Index(name: 'idx_task_user', columns: ['user_id']),
-    new ORM\Index(name: 'idx_task_status', columns: ['status']),
-    new ORM\Index(name: 'idx_task_priority', columns: ['priority']),
-    new ORM\Index(name: 'idx_task_due_date', columns: ['due_date']),
-    new ORM\Index(name: 'idx_task_created_at', columns: ['created_at']),
-    new ORM\Index(name: 'idx_task_assigned_user', columns: ['assigned_user_id']),
-    new ORM\Index(name: 'idx_task_category', columns: ['category_id'])
-])]
+#[ORM\Table(name: 'tasks')]
+#[ORM\Index(columns: ['user_id'], name: 'idx_task_user')]
+#[ORM\Index(columns: ['status'], name: 'idx_task_status')]
+#[ORM\Index(columns: ['priority'], name: 'idx_task_priority')]
+#[ORM\Index(columns: ['due_date'], name: 'idx_task_due_date')]
+#[ORM\Index(columns: ['created_at'], name: 'idx_task_created_at')]
+#[ORM\Index(columns: ['assigned_user_id'], name: 'idx_task_assigned_user')]
+#[ORM\Index(columns: ['category_id'], name: 'idx_task_category')]
 class Task
 {
     #[ORM\Id]

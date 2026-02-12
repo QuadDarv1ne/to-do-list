@@ -81,11 +81,11 @@ export default class extends Controller {
         event.dataTransfer.setDragImage(ghost, 0, 0);
         
         // Remove ghost after a frame
-        setTimeout(() => {
+        requestAnimationFrame(() => {
             if (ghost.parentNode) {
                 ghost.parentNode.removeChild(ghost);
             }
-        }, 0);
+        });
     }
 
     handleDragOver(event) {
