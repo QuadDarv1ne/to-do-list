@@ -13,7 +13,7 @@ class PerformanceMonitorService
     private LoggerInterface $logger;
     private ParameterBagInterface $parameterBag;
     private array $metrics = [];
-    private ?DebugStack $dbLogger = null;
+    private array $slowQueries = [];
 
     public function __construct(LoggerInterface $logger, ParameterBagInterface $parameterBag)
     {
@@ -21,9 +21,14 @@ class PerformanceMonitorService
         $this->parameterBag = $parameterBag;
     }
     
-    public function setDbLogger(DebugStack $dbLogger = null): void
+    public function getSlowQueries(): array
     {
-        $this->dbLogger = $dbLogger;
+        return $this->slowQueries;
+    }
+    
+    public function clearSlowQueries(): void
+    {
+        $this->slowQueries = [];
     }
 
     /**
