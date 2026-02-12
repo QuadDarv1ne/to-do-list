@@ -213,7 +213,7 @@ class TaskRepository extends ServiceEntityRepository
     public function findByUserAndStatus(User $user, string $status, \DateTime $fromDate, \DateTime $toDate): array
     {
         return $this->createQueryBuilder('t')
-            ->andWhere('(t.assignedUser = :user OR t.createdBy = :user)')
+            ->andWhere('(t.assignedUser = :user OR t.user = :user)')
             ->andWhere('t.status = :status')
             ->andWhere('t.createdAt BETWEEN :fromDate AND :toDate')
             ->setParameter('user', $user)
