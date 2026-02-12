@@ -45,6 +45,61 @@ class AnalyticsService
     }
 
     /**
+     * Get dashboard-specific analytics data with caching
+     */
+    public function getDashboardData(User $user): array
+    {
+        // Get quick stats from task repository
+        $quickStats = $this->taskRepository->getQuickStats($user);
+        
+        // Get basic overview for dashboard
+        $overview = $this->getOverviewStats($user);
+        $completionRates = $this->getCompletionRates($user);
+        $productivityTrends = $this->getProductivityTrends($user);
+        $priorityAnalysis = $this->getPriorityAnalysis($user);
+        $categoryAnalysis = $this->getCategoryAnalysis($user);
+        $dependencyAnalysis = $this->getDependencyAnalysis($user);
+        $timeAnalysis = $this->getTimeAnalysis($user);
+        $performanceMetrics = $this->getPerformanceMetrics($user);
+        $predictionAnalysis = $this->getPredictionAnalysis($user);
+        
+        // Create dummy data for missing methods
+        $tagAnalysis = [
+            'tag_distribution' => [],
+            'tag_completion_rates' => []
+        ];
+        $recentActivity = [
+            'recent_tasks' => []
+        ];
+        
+        return [
+            'quickStats' => $quickStats,
+            'overview' => $overview,
+            'completionRates' => $completionRates,
+            'productivityTrends' => $productivityTrends,
+            'priorityAnalysis' => $priorityAnalysis,
+            'categoryAnalysis' => $categoryAnalysis,
+            'dependencyAnalysis' => $dependencyAnalysis,
+            'timeAnalysis' => $timeAnalysis,
+            'performanceMetrics' => $performanceMetrics,
+            'predictionAnalysis' => $predictionAnalysis,
+            'tag_stats' => $tagAnalysis['tag_distribution'] ?? [],
+            'tag_completion_rates' => $tagAnalysis['tag_completion_rates'] ?? [],
+            'categories' => $categoryAnalysis['categories'] ?? [],
+            'recent_tasks' => $quickStats['recent_tasks'] ?? [],
+            'recent_activity' => $recentActivity,
+            'user_activity_stats' => [
+                'total_tasks_created' => 0,
+                'recent_activities' => []
+            ],
+            'platform_activity_stats' => [
+                'total_users' => 0,
+                'active_today' => 0
+            ]
+        ];
+    }
+
+    /**
      * Get basic overview statistics
      */
     private function getOverviewStats(User $user): array

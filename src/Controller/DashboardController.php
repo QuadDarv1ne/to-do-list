@@ -1,18 +1,9 @@
 <?php
-// src/Controller/DashboardController.php
 
 namespace App\Controller;
 
-use App\Entity\Task;
 use App\Repository\TaskRepository;
-use App\Repository\UserRepository;
-use App\Repository\CommentRepository;
-use App\Repository\ActivityLogRepository;
-use App\Repository\TaskRecurrenceRepository;
-use App\Repository\TaskNotificationRepository;
-use App\Repository\TaskCategoryRepository;
-use App\Repository\TagRepository;
-use App\Service\UserActivityService;
+use App\Service\AnalyticsService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -23,218 +14,29 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class DashboardController extends AbstractController
 {
     #[Route('/', name: 'app_dashboard', methods: ['GET'])]
-    public function index(TaskRepository $taskRepository, UserRepository $userRepository, CommentRepository $commentRepository, ActivityLogRepository $activityLogRepository, TaskRecurrenceRepository $taskRecurrenceRepository, TaskNotificationRepository $taskNotificationRepository, TaskCategoryRepository $categoryRepository, TagRepository $tagRepository, UserActivityService $userActivityService): Response
-    {
+    public function index(
+        TaskRepository $taskRepository,
+        AnalyticsService $analyticsService
+    ): Response {
         $user = $this->getUser();
         
-        // Получаем статистику для текущего пользователя
-        if ($this->isGranted('ROLE_ADMIN')) {
-            // Администратор видит общую статистику
-            $totalTasks = $taskRepository->count([]);
-            $completedTasks = $taskRepository->count(['status' => 'completed']);
-            $inProgressTasks = $taskRepository->count(['status' => 'in_progress']);
-            $pendingTasks = $taskRepository->count(['status' => 'pending']);
-            
-            // Дополнительная статистика для администратора
-            $totalUsers = $userRepository->count([]);
-            $activeUsers = $userRepository->count(['isActive' => true]);
-            $totalComments = $commentRepository->count([]);
-            
-            // Статистика по приоритетам
-            $lowPriorityTasks = $taskRepository->count(['priority' => 'low']);
-            $mediumPriorityTasks = $taskRepository->count(['priority' => 'medium']);
-            $highPriorityTasks = $taskRepository->count(['priority' => 'high']);
-            
-            // Статистика по пользователям
-            $userStats = $userRepository->getStatistics();
-            
-            // Статистика по завершенности
-            $completionRate = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100, 2) : 0;
-            
-            // Получаем задачи всех пользователей (лимитируем для производительности)
-            $recentTasks = $taskRepository->findBy([], ['createdAt' => 'DESC'], 5);
-            
-            // Получаем недавнюю активность (лимитируем для производительности)
-            $recentActivity = $activityLogRepository->findRecent(10);
-            
-            // Get platform activity stats
-            $platformActivityStats = $userActivityService->getPlatformActivityStats();
-            
-            // Статистика по статусам для диаграммы
-            $taskStats = [
-                'total' => $totalTasks,
-                'completed' => $completedTasks,
-                'in_progress' => $inProgressTasks,
-                'pending' => $pendingTasks,
-                'low_priority' => $lowPriorityTasks,
-                'medium_priority' => $mediumPriorityTasks,
-                'high_priority' => $highPriorityTasks,
-                'users' => $totalUsers,
-                'active_users' => $activeUsers,
-                'comments' => $totalComments,
-                'completion_rate' => $completionRate,
-            ];
-        } else {
-            // Обычный пользователь видит только свою статистику
-            $totalTasks = $taskRepository->countByStatus($user);
-            $completedTasks = $taskRepository->countByStatus($user, true);
-            $inProgressTasks = $taskRepository->countByStatus($user, null, 'in_progress');
-            $pendingTasks = $taskRepository->countByStatus($user, false);
-            
-            // Дополнительная статистика для пользователя
-            $userCompletionRate = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100, 2) : 0;
-            $recentComments = $commentRepository->findByAuthor($user);
-            
-            // Получаем последние задачи пользователя
-            $recentTasks = $taskRepository->findBy(['assignedUser' => $user], ['createdAt' => 'DESC'], 5);
-            
-            // Получаем недавнюю активность пользователя
-            $recentActivity = $activityLogRepository->findByUser($user);
-            
-            // Get user activity stats
-            $userActivityStats = $userActivityService->getUserActivityStats($user);
-            
-            $userStats = null;
-            
-            // Статистика по статусам для диаграммы
-            $taskStats = [
-                'total' => $totalTasks,
-                'completed' => $completedTasks,
-                'in_progress' => $inProgressTasks,
-                'pending' => $pendingTasks,
-                'completion_rate' => $userCompletionRate,
-                'recent_comments' => $recentComments,
-            ];
-        }
+        // Get quick stats from repository with caching
+        $taskStats = $taskRepository->getQuickStats($user);
         
-        // Get task completion trends (лимитируем для производительности)
-        $completionTrends = $this->getTaskCompletionTrends($taskRepository, $user);
-        
-        // Get upcoming recurring tasks
-        $upcomingRecurringTasks = [];
-        if ($this->isGranted('ROLE_ADMIN')) {
-            $upcomingRecurringTasks = $taskRecurrenceRepository->findAllRecurrences();
-            // Limit to first 5 upcoming recurring tasks
-            $upcomingRecurringTasks = array_slice($upcomingRecurringTasks, 0, 5);
-        } else {
-            $upcomingRecurringTasks = $taskRecurrenceRepository->findUpcomingForUser($user, 5);
-        }
-        
-        // Get unread notifications count
-        $unreadNotificationsCount = 0;
-        if ($this->isGranted('ROLE_ADMIN')) {
-            $unreadNotificationsCount = $taskNotificationRepository->count(['isRead' => false]);
-        } else {
-            $unreadNotificationsCount = $taskNotificationRepository->count([
-                'recipient' => $user,
-                'isRead' => false
-            ]);
-        }
-        
-        // Get recent notifications (лимитируем для производительности)
-        $recentNotifications = [];
-        if ($this->isGranted('ROLE_ADMIN')) {
-            $recentNotifications = $taskNotificationRepository->findBy([], ['createdAt' => 'DESC'], 5);
-        } else {
-            $recentNotifications = $taskNotificationRepository->findBy([
-                'recipient' => $user
-            ], ['createdAt' => 'DESC'], 5);
-        };
-
-        // Get user's categories
-        $categories = $categoryRepository->findByUser($user);
-        
-        // Get tag statistics (лимитируем для производительности)
-        $tagStats = $tagRepository->getTagUsageStats();
-        
-        // Get tag completion rates (лимитируем для производительности)
-        $tagCompletionRates = $tagRepository->getTagCompletionRates();
+        // Get analytics data
+        $analyticsData = $analyticsService->getDashboardData($user);
         
         return $this->render('dashboard/index.html.twig', [
-            'user' => $user,
             'task_stats' => $taskStats,
-            'recent_tasks' => $recentTasks,
-            'user_stats' => $userStats,
-            'recent_activity' => $recentActivity,
-            'completion_trends' => $completionTrends,
-            'upcoming_recurring_tasks' => $upcomingRecurringTasks,
-            'unread_notifications_count' => $unreadNotificationsCount,
-            'recent_notifications' => $recentNotifications,
-            'categories' => $categories,
-            'tag_stats' => $tagStats,
-            'tag_completion_rates' => $tagCompletionRates,
-            'platform_activity_stats' => $platformActivityStats ?? null,
-            'user_activity_stats' => $userActivityStats ?? null,
-        ]);
-    }
-    
-    private function getTaskCompletionTrends(TaskRepository $taskRepository, $user)
-    {
-        // Use the optimized method that processes data in the database
-        $trends = $taskRepository->getTaskCompletionTrendsByDate($user);
-        
-        // Format data for chart
-        $labels = [];
-        $totalData = [];
-        $completedData = [];
-        
-        foreach ($trends as $trend) {
-            $labels[] = $trend['date'];
-            $totalData[] = (int)$trend['total'];
-            $completedData[] = (int)$trend['completed'];
-        }
-        
-        return [
-            'labels' => array_reverse($labels),
-            'datasets' => [
-                [
-                    'label' => 'Всего задач',
-                    'data' => array_reverse($totalData),
-                    'borderColor' => 'rgb(54, 162, 235)',
-                    'backgroundColor' => 'rgba(54, 162, 235, 0.2)',
-                ],
-                [
-                    'label' => 'Выполнено',
-                    'data' => array_reverse($completedData),
-                    'borderColor' => 'rgb(75, 192, 192)',
-                    'backgroundColor' => 'rgba(75, 192, 192, 0.2)',
-                ],
-            ],
-        ];
-    }
-    
-    #[Route('/api/completion-stats-by-priority', name: 'app_dashboard_completion_stats_by_priority', methods: ['GET'])]
-    public function getCompletionStatsByPriority(TaskRepository $taskRepository): Response
-    {
-        $user = $this->getUser();
-        
-        $stats = $taskRepository->getCompletionStatsByPriority();
-        
-        return $this->json($stats);
-    }
-    
-    #[Route('/api/average-completion-time', name: 'app_dashboard_average_completion_time', methods: ['GET'])]
-    public function getAverageCompletionTime(TaskRepository $taskRepository): Response
-    {
-        $user = $this->getUser();
-        
-        $stats = $taskRepository->getAverageCompletionTimeByPriority();
-        
-        return $this->json($stats);
-    }
-    
-    #[Route('/api/user-stats', name: 'app_dashboard_user_stats', methods: ['GET'])]
-    #[IsGranted('ROLE_USER')]
-    public function getUserStats(): Response
-    {
-        $user = $this->getUser();
-        
-        return $this->json([
-            'success' => true,
-            'data' => [
-                'username' => $user->getUserIdentifier(),
-                'roles' => $user->getRoles(),
-            ],
+            'analytics_data' => $analyticsData,
+            // Pass tag stats if available
+            'tag_stats' => $analyticsData['tag_stats'] ?? [],
+            'tag_completion_rates' => $analyticsData['tag_completion_rates'] ?? [],
+            'categories' => $analyticsData['categories'] ?? [],
+            'recent_tasks' => $analyticsData['recent_tasks'] ?? [],
+            // Pass activity stats if user is admin
+            'platform_activity_stats' => $analyticsData['platform_activity_stats'] ?? null,
+            'user_activity_stats' => $analyticsData['user_activity_stats'] ?? null,
         ]);
     }
 }

@@ -593,6 +593,9 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Load quick stats via AJAX
+    loadQuickStats();
+    
     // Simulate loading state for demonstration
     const recentTasksLoading = document.getElementById('recent-tasks-loading');
     const recentTasksContent = document.getElementById('recent-tasks-content');
@@ -641,17 +644,117 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+    
+    // Load chart data asynchronously
+    loadChartData();
+    
+    // Refresh data every 30 seconds
+    setInterval(() => {
+        loadQuickStats();
+        loadChartData();
+    }, 30000);
+});
+
+function loadQuickStats() {
+    fetch('/api/task/stats')
+        .then(response => response.json())
+        .then(stats => {
+            // Update stat numbers with smooth transitions
+            updateStatNumber('total-tasks', stats.total);
+            updateStatNumber('pending-tasks', stats.pending);
+            updateStatNumber('in_progress-tasks', stats.in_progress || stats.pending); // Fallback for compatibility
+            updateStatNumber('completed-tasks', stats.completed);
+            
+            // Update completion rate
+            const completionRate = stats.completion_rate || 0;
+            updateStatNumber('completion-rate', completionRate + '%');
+            
+            // Update progress bars
+            updateProgressBar('progress-bar.bg-success', completionRate);
+            updateProgressBar('progress-bar.bg-warning', stats.pending / stats.total * 100);
+            updateProgressBar('progress-bar.bg-info', stats.in_progress / stats.total * 100);
+        })
+        .catch(error => {
+            console.error('Error loading quick stats:', error);
+        });
+}
+
+function updateStatNumber(elementId, newValue) {
+    const element = document.querySelector(`#${elementId}, .stat-number.${elementId}`);
+    if (element) {
+        // Animate the number change
+        const currentValue = parseFloat(element.textContent.replace('%', '')) || 0;
+        animateValue(element, currentValue, newValue, 1000);
+    }
+}
+
+function updateProgressBar(selector, percentage) {
+    const progressBar = document.querySelector(selector);
+    if (progressBar) {
+        // Animate the width change
+        const currentWidth = parseFloat(progressBar.style.width) || 0;
+        animateValue(progressBar, currentWidth, percentage, 1000, (value) => {
+            progressBar.style.width = value + '%';
+            progressBar.setAttribute('aria-valuenow', value);
+        });
+    }
+}
+
+function animateValue(element, start, end, duration, callback) {
+    let startTime = null;
+    
+    const step = (timestamp) => {
+        if (!startTime) startTime = timestamp;
+        const progress = Math.min((timestamp - startTime) / duration, 1);
+        
+        const current = start + (end - start) * progress;
+        
+        if (callback) {
+            callback(current);
+        } else {
+            if (element.textContent.includes('%')) {
+                element.textContent = Math.round(current) + '%';
+            } else {
+                element.textContent = Math.round(current);
+            }
+        }
+        
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        }
+    };
+    
+    window.requestAnimationFrame(step);
+}
+
+function loadChartData() {
+    fetch('/api/analytics/dashboard')
+        .then(response => response.json())
+        .then(data => {
+            renderCharts(data);
+        })
+        .catch(error => {
+            console.error('Error loading analytics:', error);
+        });
+}
+
+function renderCharts(data) {
+    // Destroy existing charts to prevent memory leaks
+    if (window.statusChart) window.statusChart.destroy();
+    if (window.priorityChart) window.priorityChart.destroy();
+    if (window.tagChart) window.tagChart.destroy();
+    
     // Task Status Distribution Chart
     const statusCtx = document.getElementById('statusChart').getContext('2d');
-    const statusChart = new Chart(statusCtx, {
+    window.statusChart = new Chart(statusCtx, {
         type: 'pie',
         data: {
             labels: ['Завершено', 'В процессе', 'В ожидании'],
             datasets: [{
                 data: [
-                    {{ task_stats.completed }},
-                    {{ task_stats.in_progress }},
-                    {{ task_stats.pending }}
+                    data.quickStats?.completed || 0,
+                    data.quickStats?.in_progress || 0,
+                    data.quickStats?.pending || 0
                 ],
                 backgroundColor: [
                     'rgba(40, 167, 69, 0.8)', // green for completed
@@ -708,16 +811,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Task Priority Distribution Chart
     const priorityCtx = document.getElementById('priorityChart').getContext('2d');
-    const priorityChart = new Chart(priorityCtx, {
+    window.priorityChart = new Chart(priorityCtx, {
         type: 'bar',
         data: {
             labels: ['Низкий', 'Средний', 'Высокий'],
             datasets: [{
                 label: 'Количество задач',
                 data: [
-                    {{ task_stats.low_priority|default(0) }},
-                    {{ task_stats.medium_priority|default(0) }},
-                    {{ task_stats.high_priority|default(0) }}
+                    data.quickStats?.low_priority || 0,
+                    data.quickStats?.medium_priority || 0,
+                    data.quickStats?.high_priority || 0
                 ],
                 backgroundColor: [
                     'rgba(40, 167, 69, 0.8)',  // green for low
@@ -773,78 +876,63 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Task Tag Distribution Chart
-    {% if tag_stats is defined and tag_stats is not empty %}
-    const tagCtx = document.getElementById('tagChart').getContext('2d');
-    const tagChart = new Chart(tagCtx, {
-        type: 'doughnut',
-        data: {
-            labels: [
-                {% for tag_stat in tag_stats|slice(0, 10) %}
-                    '{{ tag_stat.name }}',
-                {% endfor %}
-            ],
-            datasets: [{
-                data: [
-                    {% for tag_stat in tag_stats|slice(0, 10) %}
-                        {{ tag_stat.taskCount }},
-                    {% endfor %}
-                ],
-                backgroundColor: [
-                    {% for tag_stat in tag_stats|slice(0, 10) %}
-                        '{{ tag_stat.color }}',
-                    {% endfor %}
-                ],
-                borderColor: [
-                    {% for tag_stat in tag_stats|slice(0, 10) %}
-                        'rgba(255, 255, 255, 1)',
-                    {% endfor %}
-                ],
-                borderWidth: 2,
-                hoverOffset: 10
-            }]
-        },
-        options: {
-            responsive: true,
-            cutout: '60%',
-            animation: {
-                animateRotate: true,
-                animateScale: true,
-                duration: 1200
+    if (typeof tag_stats !== 'undefined' && tag_stats.length > 0) {
+        const tagCtx = document.getElementById('tagChart').getContext('2d');
+        window.tagChart = new Chart(tagCtx, {
+            type: 'doughnut',
+            data: {
+                labels: tag_stats.slice(0, 10).map(tag => tag.name),
+                datasets: [{
+                    data: tag_stats.slice(0, 10).map(tag => tag.taskCount),
+                    backgroundColor: tag_stats.slice(0, 10).map(tag => tag.color),
+                    borderColor: tag_stats.slice(0, 10).map(() => 'rgba(255, 255, 255, 1)'),
+                    borderWidth: 2,
+                    hoverOffset: 10
+                }]
             },
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 20,
-                        usePointStyle: true,
-                        pointStyle: 'circle',
-                        font: {
-                            size: 12
-                        }
-                    }
+            options: {
+                responsive: true,
+                cutout: '60%',
+                animation: {
+                    animateRotate: true,
+                    animateScale: true,
+                    duration: 1200
                 },
-                tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    titleFont: {
-                        size: 14,
-                        weight: 'bold'
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            font: {
+                                size: 12
+                            }
+                        }
                     },
-                    bodyFont: {
-                        size: 13
-                    },
-                    callbacks: {
-                        label: function(context) {
-                            const label = context.label || '';
-                            const value = context.raw || 0;
-                            const total = context.chart.getDatasetMeta(0).total;
-                            const percentage = Math.round((value / total) * 100);
-                            return `${label}: ${value} задач (${percentage}%)`;
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const total = context.chart.getDatasetMeta(0).total;
+                                const percentage = Math.round((value / total) * 100);
+                                return `${label}: ${value} задач (${percentage}%)`;
+                            }
                         }
                     }
                 }
             }
-        }
-    });
+        });
+    }
     
     // Add click interaction to charts
     statusChart.canvas.onclick = function(evt) {
@@ -881,38 +969,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
     
-    {% if tag_stats is defined and tag_stats is not empty %}
-    tagChart.canvas.onclick = function(evt) {
-        const activePoints = tagChart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
-        if (activePoints.length > 0) {
-            const firstPoint = activePoints[0];
-            const label = tagChart.data.labels[firstPoint.index];
-            // Find tag ID by name (you'd need to pass tag IDs to the template)
-            showToast(`Фильтрация по тегу: ${label}`, 'info');
-        }
-    };
-    {% endif %}
-    
-    // Add chart legends with better styling
-    const chartCards = document.querySelectorAll('.card-header h5 i');
-    chartCards.forEach(icon => {
-        icon.style.cursor = 'pointer';
-        icon.addEventListener('click', function() {
-            const chartContainer = this.closest('.card').querySelector('canvas');
-            if (chartContainer) {
-                chartContainer.style.animation = 'bounce 0.6s';
-                setTimeout(() => {
-                    chartContainer.style.animation = '';
-                }, 600);
-            }
-        });
-    });
-    
     // Initialize dependency visualization
     loadDependencyVisualization();
-    
-    {% endif %}
-});
+}
 
 // Dependency Visualization Functions
 async function loadDependencyVisualization() {
@@ -925,13 +984,6 @@ async function loadDependencyVisualization() {
             // Look for tasks that either depend on others or block others
             return task.id; // We'll check dependencies separately
         });
-        
-        // Load dependencies for each task
-        for (const task of tasksWithDeps) {
-            const depResponse = await fetch(`/api/tasks/${task.id}/dependencies`);
-            const dependencies = await depResponse.json();
-            task.dependencies = dependencies;
-        }
         
         // Calculate dependency statistics
         let blockingTasks = 0;
@@ -957,59 +1009,16 @@ async function loadDependencyVisualization() {
 }
 
 function updateDependencyStats(blockingTasks, blockedTasks, totalTasks) {
-    // Create a dependency summary card if it doesn't exist
-    const existingCard = document.getElementById('dependency-summary-card');
-    if (existingCard) return; // Don't duplicate
+    // Update dependency stats in existing elements
+    const totalDepEl = document.getElementById('total-dependencies');
+    const blockingDepEl = document.getElementById('blocking-dependencies');
+    const satisfiedDepEl = document.getElementById('satisfied-dependencies');
+    const unsatisfiedDepEl = document.getElementById('unsatisfied-dependencies');
     
-    // Insert dependency summary after the statistics row
-    const statsRow = document.getElementById('stats-row');
-    if (!statsRow) return;
-    
-    const dependencyCard = document.createElement('div');
-    dependencyCard.id = 'dependency-summary-card';
-    dependencyCard.className = 'col-12 mb-4';
-    dependencyCard.innerHTML = `
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white">
-                <h5 class="mb-0">
-                    <i class="fas fa-code-branch me-2 text-info"></i>
-                    Зависимости задач
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row text-center">
-                    <div class="col-md-4">
-                        <div class="rounded-circle bg-info bg-opacity-10 p-3 d-inline-block mb-2">
-                            <i class="fas fa-tasks fa-2x text-info"></i>
-                        </div>
-                        <h4 class="text-info mb-1">${totalTasks}</h4>
-                        <p class="text-muted mb-0">Всего задач</p>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="rounded-circle bg-warning bg-opacity-10 p-3 d-inline-block mb-2">
-                            <i class="fas fa-exclamation-circle fa-2x text-warning"></i>
-                        </div>
-                        <h4 class="text-warning mb-1">${blockedTasks}</h4>
-                        <p class="text-muted mb-0">Заблокировано</p>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="rounded-circle bg-danger bg-opacity-10 p-3 d-inline-block mb-2">
-                            <i class="fas fa-lock fa-2x text-danger"></i>
-                        </div>
-                        <h4 class="text-danger mb-1">${blockingTasks}</h4>
-                        <p class="text-muted mb-0">Блокирует другие</p>
-                    </div>
-                </div>
-                <div class="mt-3">
-                    <a href="{{ path('app_task_index') }}?has_dependencies=1" class="btn btn-outline-info w-100">
-                        <i class="fas fa-filter me-2"></i>Показать задачи с зависимостями
-                    </a>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    statsRow.parentNode.insertBefore(dependencyCard, statsRow.nextSibling);
+    if (totalDepEl) totalDepEl.textContent = totalTasks;
+    if (blockingDepEl) blockingDepEl.textContent = blockingTasks;
+    if (satisfiedDepEl) satisfiedDepEl.textContent = blockedTasks - blockingTasks;
+    if (unsatisfiedDepEl) unsatisfiedDepEl.textContent = blockingTasks;
 }
 </script>
 

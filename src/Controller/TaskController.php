@@ -910,4 +910,15 @@ class TaskController extends AbstractController
         
         return $this->redirectToRoute('app_task_index');
     }
+    
+    #[Route('/api/stats', name: 'app_task_stats', methods: ['GET'])]
+    public function getStats(TaskRepository $taskRepository): Response
+    {
+        $user = $this->getUser();
+        
+        // Get quick stats from repository with caching
+        $stats = $taskRepository->getQuickStats($user);
+        
+        return $this->json($stats);
+    }
 }
