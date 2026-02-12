@@ -24,8 +24,27 @@ services:
             - '../src/Kernel.php'
 
     # Configure repository services to inject QueryCacheService
-    App\Repository\:
-        resource: '../src/Repository/*'
+    App\Repository\TaskRepository:
+        calls:
+            - method: 'setCacheService'
+              arguments: ['@App\Service\QueryCacheService']
+    App\Repository\UserRepository:
+        calls:
+            - method: 'setCacheService'
+              arguments: ['@App\Service\QueryCacheService']
+    App\Repository\CommentRepository:
+        calls:
+            - method: 'setCacheService'
+              arguments: ['@App\Service\QueryCacheService']
+    App\Repository\TagRepository:
+        calls:
+            - method: 'setCacheService'
+              arguments: ['@App\Service\QueryCacheService']
+    App\Repository\TaskCategoryRepository:
+        calls:
+            - method: 'setCacheService'
+              arguments: ['@App\Service\QueryCacheService']
+    App\Repository\TaskNotificationRepository:
         calls:
             - method: 'setCacheService'
               arguments: ['@App\Service\QueryCacheService']
