@@ -3,6 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\TaskDependency;
+use App\Repository\Traits\CachedRepositoryTrait;
+use App\Service\QueryCacheService;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -11,9 +13,16 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class TaskDependencyRepository extends ServiceEntityRepository
 {
+    use CachedRepositoryTrait;
+    
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, TaskDependency::class);
+    }
+
+    public function setCacheService(QueryCacheService $cacheService): void
+    {
+        $this->cacheService = $cacheService;
     }
 
     /**

@@ -48,6 +48,26 @@ services:
         calls:
             - method: 'setCacheService'
               arguments: ['@App\Service\QueryCacheService']
+    App\Repository\NotificationRepository:
+        calls:
+            - method: 'setCacheService'
+              arguments: ['@App\Service\QueryCacheService']
+    App\Repository\TaskDependencyRepository:
+        calls:
+            - method: 'setCacheService'
+              arguments: ['@App\Service\QueryCacheService']
+    App\Repository\TaskRecurrenceRepository:
+        calls:
+            - method: 'setCacheService'
+              arguments: ['@App\Service\QueryCacheService']
+    App\Repository\TaskTimeTrackingRepository:
+        calls:
+            - method: 'setCacheService'
+              arguments: ['@App\Service\QueryCacheService']
+    App\Repository\ActivityLogRepository:
+        calls:
+            - method: 'setCacheService'
+              arguments: ['@App\Service\QueryCacheService']
 
     # Configure services that need PerformanceMonitorService
     App\Service\AnalyticsService:
