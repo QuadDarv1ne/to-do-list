@@ -301,4 +301,123 @@ class PerformanceMonitorService
             'load_avg_15min' => $load[2] ?? 0,
         ];
     }
+    
+    /**
+     * Monitor service method performance with automatic timing
+     */
+    public function monitorServiceCall(string $serviceName, string $methodName, callable $callback, array $params = [])
+    {
+        $operationName = "service_{$serviceName}_{$methodName}";
+        
+        $this->startTimer($operationName);
+        
+        try {
+            $result = $callback();
+            
+            $metrics = $this->stopTimer($operationName);
+            
+            // Log performance data
+            $this->logger->info("Service call performance", [
+                'service' => $serviceName,
+                'method' => $methodName,
+                'execution_time_ms' => $metrics['execution_time'],
+                'memory_used_bytes' => $metrics['memory_used_bytes'],
+                'params_count' => count($params)
+            ]);
+            
+            return $result;
+        } catch (\Exception $e) {
+            $metrics = $this->stopTimer($operationName);
+            
+            // Log error with performance data
+            $this->logger->error("Service call failed", [
+                'service' => $serviceName,
+                'method' => $methodName,
+                'execution_time_ms' => $metrics['execution_time'],
+                'memory_used_bytes' => $metrics['memory_used_bytes'],
+                'error' => $e->getMessage()
+            ]);
+            
+            throw $e;
+        }
+    }
+    
+    /**
+     * Monitor repository method performance
+     */
+    public function monitorRepositoryCall(string $repositoryName, string $methodName, callable $callback, array $criteria = [])
+    {
+        $operationName = "repo_{$repositoryName}_{$methodName}";
+        
+        $this->startTimer($operationName);
+        
+        try {
+            $result = $callback();
+            
+            $metrics = $this->stopTimer($operationName);
+            
+            // Log performance data
+            $this->logger->info("Repository call performance", [
+                'repository' => $repositoryName,
+                'method' => $methodName,
+                'execution_time_ms' => $metrics['execution_time'],
+                'memory_used_bytes' => $metrics['memory_used_bytes'],
+                'criteria_count' => count($criteria)
+            ]);
+            
+            return $result;
+        } catch (\Exception $e) {
+            $metrics = $this->stopTimer($operationName);
+            
+            // Log error with performance data
+            $this->logger->error("Repository call failed", [
+                'repository' => $repositoryName,
+                'method' => $methodName,
+                'execution_time_ms' => $metrics['execution_time'],
+                'memory_used_bytes' => $metrics['memory_used_bytes'],
+                'error' => $e->getMessage()
+            ]);
+            
+            throw $e;
+        }
+    }
+    
+    /**
+     * Monitor controller action performance
+     */
+    public function monitorControllerAction(string $controllerName, string $actionName, callable $callback)
+    {
+        $operationName = "controller_{$controllerName}_{$actionName}";
+        
+        $this->startTimer($operationName);
+        
+        try {
+            $result = $callback();
+            
+            $metrics = $this->stopTimer($operationName);
+            
+            // Log performance data
+            $this->logger->info("Controller action performance", [
+                'controller' => $controllerName,
+                'action' => $actionName,
+                'execution_time_ms' => $metrics['execution_time'],
+                'memory_used_bytes' => $metrics['memory_used_bytes']
+            ]);
+            
+            return $result;
+        } catch (\Exception $e) {
+            $metrics = $this->stopTimer($operationName);
+            
+            // Log error with performance data
+            $this->logger->error("Controller action failed", [
+                'controller' => $controllerName,
+                'action' => $actionName,
+                'execution_time_ms' => $metrics['execution_time'],
+                'memory_used_bytes' => $metrics['memory_used_bytes'],
+                'error' => $e->getMessage()
+            ]);
+            
+            throw $e;
+        }
+    }
 }
