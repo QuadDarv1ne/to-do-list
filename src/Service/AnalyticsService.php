@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\User;
 use App\Entity\Task;
 use App\Repository\TaskRepository;
+use App\Service\PerformanceMonitorService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 
@@ -13,15 +14,18 @@ class AnalyticsService
     private EntityManagerInterface $entityManager;
     private LoggerInterface $logger;
     private TaskRepository $taskRepository;
+    private PerformanceMonitorService $performanceMonitor;
 
     public function __construct(
         EntityManagerInterface $entityManager,
         LoggerInterface $logger,
-        TaskRepository $taskRepository
+        TaskRepository $taskRepository,
+        PerformanceMonitorService $performanceMonitor
     ) {
         $this->entityManager = $entityManager;
         $this->logger = $logger;
         $this->taskRepository = $taskRepository;
+        $this->performanceMonitor = $performanceMonitor;
     }
 
     /**
@@ -827,5 +831,13 @@ class AnalyticsService
             'top_dependent_tasks' => $topDependentTasks,
             'top_blocking_tasks' => $topBlockingTasks
         ];
+    }
+    
+    /**
+     * Get system performance metrics
+     */
+    public function getSystemPerformanceMetrics(): array
+    {
+        return $this->performanceMonitor->getPerformanceReport();
     }
 }

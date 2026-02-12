@@ -1,0 +1,151 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Performance Metrics{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1>Performance Metrics Dashboard</h1>
+            <hr>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Environment</h5>
+                    <p class="card-text">{{ performance_data.environment }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Current Memory</h5>
+                    <p class="card-text">{{ performance_data.current_memory_usage }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Peak Memory</h5>
+                    <p class="card-text">{{ performance_data.peak_memory_usage }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <h5 class="card-title">Uptime</h5>
+                    <p class="card-text">{{ performance_data.uptime }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Server Information</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <strong>PHP Version:</strong> {{ performance_data.server_info.php_version }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>OS Family:</strong> {{ performance_data.server_info.os }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Server Software:</strong> {{ performance_data.server_info.server_software }}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Cache Information</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <strong>Cache Status:</strong> 
+                            {% if performance_data.cache_info.cache_enabled %}
+                                <span class="badge bg-success">Enabled</span>
+                            {% else %}
+                                <span class="badge bg-warning">Disabled</span>
+                            {% endif %}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Data Collected:</strong> {{ performance_data.collection_timestamp }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Report Type:</strong> {{ performance_data.report_type }}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Health Status</h5>
+                </div>
+                <div class="card-body">
+                    <div id="health-status" class="alert alert-info">
+                        Checking health status...
+                    </div>
+                    <button class="btn btn-primary" onclick="checkHealth()">Refresh Health Status</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function checkHealth() {
+    const healthDiv = document.getElementById('health-status');
+    healthDiv.innerHTML = 'Checking...';
+    healthDiv.className = 'alert alert-info';
+    
+    try {
+        const response = await fetch('{{ path('app_performance_health') }}');
+        const data = await response.json();
+        
+        let statusClass = 'alert-info';
+        if (data.status === 'healthy') {
+            statusClass = 'alert-success';
+        } else if (data.status === 'warning') {
+            statusClass = 'alert-warning';
+        } else if (data.status === 'critical') {
+            statusClass = 'alert-danger';
+        }
+        
+        healthDiv.innerHTML = `
+            <strong>Status:</strong> ${data.status}<br>
+            <strong>Timestamp:</strong> ${data.timestamp}<br>
+            <strong>Memory Check:</strong> ${data.checks.memory_usage_normal ? 'OK' : 'HIGH'}<br>
+            <strong>Environment:</strong> ${data.checks.environment}
+        `;
+        healthDiv.className = `alert ${statusClass}`;
+    } catch (error) {
+        healthDiv.innerHTML = 'Error checking health status: ' + error.message;
+        healthDiv.className = 'alert alert-danger';
+    }
+}
+
+// Initial health check
+document.addEventListener('DOMContentLoaded', function() {
+    checkHealth();
+});
+</script>
+{% endblock %}

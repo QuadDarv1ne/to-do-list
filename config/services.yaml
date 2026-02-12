@@ -30,5 +30,10 @@ services:
             - method: 'setCacheService'
               arguments: ['@App\Service\QueryCacheService']
 
+    # Configure services that need PerformanceMonitorService
+    App\Service\AnalyticsService:
+        arguments:
+            $performanceMonitor: '@App\Service\PerformanceMonitorService'
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
