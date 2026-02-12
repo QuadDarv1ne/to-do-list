@@ -319,6 +319,14 @@ php bin/console make:controller
 php bin/console make:form
 ```
 
+**📋 Доступные команды:**
+
+```bash
+php bin/console app:optimize-full-performance   # Полная оптимизация
+php bin/console app:performance-test            # Тест производительности
+php bin/console app:generate-performance-report # Генерация отчета
+```
+
 ## 🤝 Вклад в развитие
 
 1. Форкните репозиторий

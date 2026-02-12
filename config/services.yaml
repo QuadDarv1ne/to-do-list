@@ -107,6 +107,12 @@ services:
             $performanceMonitor: '@App\Service\PerformanceMonitorService'
             $queryCacheService: '@App\Service\QueryCacheService'
 
+    App\Command\FullPerformanceOptimizeCommand:
+        arguments:
+            $taskOptimizer: '@App\Service\TaskPerformanceOptimizerService'
+            $performanceMonitor: '@App\Service\PerformanceMonitorService'
+            $queryCacheService: '@App\Service\QueryCacheService'
+
     # Register cache warmers
     App\CacheWarmer\PerformanceCacheWarmer:
         tags: ['kernel.cache_warmer']
@@ -117,6 +123,9 @@ services:
     
     App\Service\LoggingService:
         arguments: ['@logger', '@request_stack', '@security.token_storage']
+
+    App\Service\TaskPerformanceOptimizerService:
+        arguments: ['@cache.app', '@App\Repository\TaskRepository', '@App\Repository\UserRepository', '@App\Repository\TaskCategoryRepository', '@logger', '@App\Service\QueryCacheService']
 
 
     # add more service definitions when explicit configuration is needed
