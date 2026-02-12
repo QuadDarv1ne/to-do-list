@@ -62,5 +62,14 @@ services:
         arguments:
             $performanceMonitor: '@App\Service\PerformanceMonitorService'
 
+    App\Command\OptimizePerformanceCommand:
+        arguments:
+            $performanceMonitor: '@App\Service\PerformanceMonitorService'
+            $queryCacheService: '@App\Service\QueryCacheService'
+
+    # Register cache warmers
+    App\CacheWarmer\PerformanceCacheWarmer:
+        tags: ['kernel.cache_warmer']
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

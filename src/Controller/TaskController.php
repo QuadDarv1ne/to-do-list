@@ -174,7 +174,7 @@ class TaskController extends AbstractController
             
             // Send notification to assigned user
             if ($task->getAssignedUser() && $task->getAssignedUser() !== $this->getUser()) {
-                $notificationService->notifyTaskAssignment($task, $this->getUser());
+                $notificationService->sendTaskAssignmentNotification($task->getAssignedUser(), $this->getUser(), $task->getId(), $task->getName());
             }
 
             $this->addFlash('success', 'Задача успешно создана');
@@ -249,22 +249,22 @@ class TaskController extends AbstractController
             if ($originalAssignedUser !== $task->getAssignedUser() && 
                 $task->getAssignedUser() && 
                 $task->getAssignedUser() !== $this->getUser()) {
-                $notificationService->notifyTaskReassignment($task, $this->getUser());
+                $notificationService->sendTaskAssignmentNotification($task->getAssignedUser(), $this->getUser(), $task->getId(), $task->getName());
             }
             
             // Send notification if status changed
             if ($originalStatus !== $task->getStatus()) {
-                $notificationService->notifyTaskStatusChange($task, $this->getUser());
+                $notificationService->sendTaskCompletionNotification($task->getUser(), $this->getUser(), $task->getId(), $task->getName());
             }
             
             // Send notification if priority changed
             if ($originalPriority !== $task->getPriority()) {
-                $notificationService->notifyTaskPriorityChange($task, $this->getUser());
+                // Priority change notifications not implemented in NotificationService
             }
             
             // Send notification if due date changed
             if (($originalDueDate?->format('Y-m-d') ?? null) !== ($task->getDueDate()?->format('Y-m-d') ?? null)) {
-                $notificationService->notifyTaskDueDateChange($task, $this->getUser());
+                // Due date change notifications not implemented in NotificationService
             }
             
             $entityManager->flush();
@@ -291,10 +291,10 @@ class TaskController extends AbstractController
         
     #[Route('/{id}/clone', name: 'app_task_clone', methods: ['POST'])]
     public function cloneTask(Task $task, EntityManagerInterface $entityManager, NotificationService $notificationService, ?PerformanceMonitorService $performanceMonitor = null): Response {
-            if ($performanceMonitor) {
-                $performanceMonitor->startTimer('task_controller_clone');
-            }
-    {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('task_controller_clone');
+        }
+        
         $this->denyAccessUnlessGranted('TASK_VIEW', $task);
             
         // Create a new task with the same properties
@@ -947,37 +947,37 @@ class TaskController extends AbstractController
                     
                 case 'mark_completed':
                     $task->setStatus('completed');
-                    $notificationService->notifyTaskStatusChange($task, $currentUser);
+                    $notificationService->sendTaskCompletionNotification($task->getUser(), $currentUser, $task->getId(), $task->getName());
                     $successfulOperations++;
                     break;
                     
                 case 'mark_in_progress':
                     $task->setStatus('in_progress');
-                    $notificationService->notifyTaskStatusChange($task, $currentUser);
+                    // Status change notifications not implemented in NotificationService for in-progress
                     $successfulOperations++;
                     break;
                     
                 case 'mark_pending':
                     $task->setStatus('pending');
-                    $notificationService->notifyTaskStatusChange($task, $currentUser);
+                    // Status change notifications not implemented in NotificationService for pending
                     $successfulOperations++;
                     break;
                     
                 case 'set_priority_high':
                     $task->setPriority('high');
-                    $notificationService->notifyTaskPriorityChange($task, $currentUser);
+                    // Priority change notifications not implemented in NotificationService
                     $successfulOperations++;
                     break;
                     
                 case 'set_priority_medium':
                     $task->setPriority('medium');
-                    $notificationService->notifyTaskPriorityChange($task, $currentUser);
+                    // Priority change notifications not implemented in NotificationService
                     $successfulOperations++;
                     break;
                     
                 case 'set_priority_low':
                     $task->setPriority('low');
-                    $notificationService->notifyTaskPriorityChange($task, $currentUser);
+                    // Priority change notifications not implemented in NotificationService
                     $successfulOperations++;
                     break;
                     

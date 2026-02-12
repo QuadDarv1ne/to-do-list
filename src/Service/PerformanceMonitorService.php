@@ -14,6 +14,7 @@ class PerformanceMonitorService
     private ParameterBagInterface $parameterBag;
     private array $metrics = [];
     private array $slowQueries = [];
+    private array $aggregateMetrics = []; // Track aggregate metrics over time
 
     public function __construct(LoggerInterface $logger, ParameterBagInterface $parameterBag)
     {
@@ -68,10 +69,61 @@ class PerformanceMonitorService
             'memory_used_bytes' => $result['memory_used_bytes']
         ]);
 
+        // Store aggregate metrics for analysis
+        $this->recordAggregateMetric($operation, $result);
+
         // Clean up timer
         unset($this->metrics[$operation]);
 
         return $result;
+    }
+
+    /**
+     * Record aggregate metrics for performance analysis
+     */
+    private function recordAggregateMetric(string $operation, array $result): void
+    {
+        if (!isset($this->aggregateMetrics[$operation])) {
+            $this->aggregateMetrics[$operation] = [
+                'count' => 0,
+                'total_execution_time' => 0,
+                'average_execution_time' => 0,
+                'min_execution_time' => PHP_FLOAT_MAX,
+                'max_execution_time' => 0,
+                'total_memory_used' => 0,
+                'average_memory_used' => 0,
+                'min_memory_used' => PHP_INT_MAX,
+                'max_memory_used' => 0,
+            ];
+        }
+
+        $metric = &$this->aggregateMetrics[$operation];
+        $metric['count']++;
+        $metric['total_execution_time'] += $result['execution_time'];
+        $metric['average_execution_time'] = $metric['total_execution_time'] / $metric['count'];
+        $metric['min_execution_time'] = min($metric['min_execution_time'], $result['execution_time']);
+        $metric['max_execution_time'] = max($metric['max_execution_time'], $result['execution_time']);
+        
+        $metric['total_memory_used'] += $result['memory_used_bytes'];
+        $metric['average_memory_used'] = $metric['total_memory_used'] / $metric['count'];
+        $metric['min_memory_used'] = min($metric['min_memory_used'], $result['memory_used_bytes']);
+        $metric['max_memory_used'] = max($metric['max_memory_used'], $result['memory_used_bytes']);
+    }
+
+    /**
+     * Get aggregate metrics for analysis
+     */
+    public function getAggregateMetrics(): array
+    {
+        return $this->aggregateMetrics;
+    }
+
+    /**
+     * Reset aggregate metrics
+     */
+    public function resetAggregateMetrics(): void
+    {
+        $this->aggregateMetrics = [];
     }
 
     /**
@@ -186,6 +238,7 @@ class PerformanceMonitorService
         return array_merge($metrics, [
             'cache_info' => $cacheInfo,
             'slow_queries' => $this->getSlowQueries(),
+            'aggregate_metrics' => $this->getAggregateMetrics(),
             'collection_timestamp' => date('Y-m-d H:i:s'),
             'report_type' => 'performance'
         ]);
