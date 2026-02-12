@@ -765,7 +765,7 @@ class AnalyticsService
         $totalDependencies = $qb->select('COUNT(td.id)')
             ->from('App\\Entity\\TaskDependency', 'td')
             ->join('td.dependentTask', 'dt')
-            ->where('dt.assignedTo = :user OR dt.createdBy = :user')
+            ->where('dt.assignedUser = :user OR dt.user = :user')
             ->setParameter('user', $user)
             ->getQuery()
             ->getSingleScalarResult();
