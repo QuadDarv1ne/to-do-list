@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Repository\TaskRepository;
 use App\Service\AnalyticsService;
 use App\Service\QueryCacheService;
+use App\Service\PerformanceMonitorService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -17,7 +18,8 @@ class DashboardController extends AbstractController
     #[Route('/', name: 'app_dashboard', methods: ['GET'])]
     public function index(
         TaskRepository $taskRepository,
-        AnalyticsService $analyticsService
+        AnalyticsService $analyticsService,
+        ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         $user = $this->getUser();
         
@@ -27,9 +29,21 @@ class DashboardController extends AbstractController
         // Get analytics data
         $analyticsData = $analyticsService->getDashboardData($user);
         
+        // Get performance metrics if user is admin and service is available
+        $performanceMetrics = null;
+        if ($this->isGranted('ROLE_ADMIN') && $performanceMonitor) {
+            try {
+                $performanceMetrics = $performanceMonitor->getPerformanceReport();
+            } catch (\Exception $e) {
+                // Log error but don't break the dashboard
+                error_log('Error getting performance metrics: ' . $e->getMessage());
+            }
+        }
+        
         return $this->render('dashboard/index.html.twig', [
             'task_stats' => $taskStats,
             'analytics_data' => $analyticsData,
+            'performance_metrics' => $performanceMetrics,
             // Pass tag stats if available
             'tag_stats' => $analyticsData['tag_stats'] ?? [],
             'tag_completion_rates' => $analyticsData['tag_completion_rates'] ?? [],
