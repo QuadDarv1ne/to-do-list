@@ -134,14 +134,24 @@ class NotificationService
                 
                 if (!empty($newNotifications)) {
                     foreach ($newNotifications as $notification) {
+                        // Handle both object and array formats for backward compatibility
+                        $id = is_object($notification) ? $notification->getId() : $notification['id'];
+                        $title = is_object($notification) ? $notification->getTitle() : $notification['title'];
+                        $message = is_object($notification) ? $notification->getMessage() : $notification['message'];
+                        $createdAt = is_object($notification) ? $notification->getCreatedAt() : new \DateTime($notification['createdAt']);
+                        $taskId = is_object($notification) ? ($notification->getTask() ? $notification->getTask()->getId() : null) : ($notification['taskId'] ?? null);
+                        
                         echo "event: notification\n";
                         echo "data: " . json_encode([
-                            'id' => $notification->getId(),
-                            'title' => $notification->getTitle(),
-                            'message' => $notification->getMessage(),
-                            'task_id' => $notification->getTask() ? $notification->getTask()->getId() : null,
-                            'created_at' => $notification->getCreatedAt()->format('c')
+                            'id' => $id,
+                            'title' => $title,
+                            'message' => $message,
+                            'task_id' => $taskId,
+                            'created_at' => $createdAt->format('c')
                         ]) . "\n\n";
+                        if (ob_get_level()) {
+                            ob_flush();
+                        }
                         flush();
                     }
                     
@@ -200,16 +210,19 @@ class NotificationService
     {
         $sinceImmutable = \DateTimeImmutable::createFromMutable($since);
         
+        // More optimized query with explicit field selection to reduce memory usage
         return $this->notificationRepository->createQueryBuilder('n')
+            ->select('n.id, n.title, n.message, n.createdAt, n.isRead, t.id as taskId')
             ->where('n.user = :user')
             ->andWhere('n.createdAt > :since')
             ->andWhere('n.isRead = false')
+            ->leftJoin('n.task', 't') // Use left join to include task id if exists
             ->setParameter('user', $user)
             ->setParameter('since', $sinceImmutable)
             ->orderBy('n.createdAt', 'ASC')
             ->setMaxResults(10) // Limit results to prevent excessive data transfer
             ->getQuery()
-            ->getResult();
+            ->getArrayResult(); // Use array result to reduce object instantiation overhead
     }
 
     /**
