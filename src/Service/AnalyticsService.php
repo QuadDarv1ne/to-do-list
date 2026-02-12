@@ -774,7 +774,7 @@ class AnalyticsService
         $blockingDependencies = $qb->select('COUNT(td.id)')
             ->from('App\\Entity\\TaskDependency', 'td')
             ->join('td.dependentTask', 'dt')
-            ->where('dt.assignedTo = :user OR dt.createdBy = :user')
+            ->where('dt.assignedUser = :user OR dt.user = :user')
             ->andWhere('td.type = :type')
             ->setParameter('user', $user)
             ->setParameter('type', 'blocking')
