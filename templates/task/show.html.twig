@@ -118,6 +118,35 @@
                         </div>
                     </div>
                     {% endif %}
+                    
+                    <!-- Dependencies Section -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-light py-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h5 class="card-title mb-0">
+                                            <i class="fas fa-link me-2 text-primary"></i>Зависимости задач
+                                        </h5>
+                                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addDependencyModal">
+                                            <i class="fas fa-plus me-1"></i>Добавить
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div id="dependencies-container">
+                                        <!-- Dependencies will be loaded here -->
+                                        <div class="text-center py-4">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Загрузка...</span>
+                                            </div>
+                                            <p class="mt-2 text-muted">Загрузка зависимостей...</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                                     
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <a href="{{ path('app_task_index') }}" class="btn btn-outline-secondary me-md-2">
@@ -163,4 +192,223 @@
         </div>
     </div>
 </div>
+
+<!-- Add Dependency Modal -->
+<div class="modal fade" id="addDependencyModal" tabindex="-1" aria-labelledby="addDependencyModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addDependencyModalLabel">Добавить зависимость</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addDependencyForm">
+                    <div class="mb-3">
+                        <label for="dependencyTaskSelect" class="form-label">Выберите задачу</label>
+                        <select class="form-select" id="dependencyTaskSelect" required>
+                            <option value="">Выберите задачу...</option>
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="dependencyType" class="form-label">Тип зависимости</label>
+                        <select class="form-select" id="dependencyType" required>
+                            <option value="blocking">Блокирующая</option>
+                            <option value="related">Связанная</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary" id="saveDependencyBtn">
+                    <i class="fas fa-save me-1"></i>Сохранить
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const taskId = {{ task.id }};
+            
+            // Load dependencies
+            loadDependencies(taskId);
+            
+            // Load available tasks for dependency selection
+            loadAvailableTasks(taskId);
+            
+            // Bind events
+            document.getElementById('saveDependencyBtn').addEventListener('click', function() {
+                addDependency(taskId);
+            });
+        });
+        
+        function loadDependencies(taskId) {
+            fetch(`/api/tasks/${taskId}/dependencies`)
+                .then(response => response.json())
+                .then(data => {
+                    displayDependencies(data);
+                })
+                .catch(error => {
+                    console.error('Error loading dependencies:', error);
+                    document.getElementById('dependencies-container').innerHTML = 
+                        '<div class="alert alert-danger">Ошибка загрузки зависимостей</div>';
+                });
+        }
+        
+        function displayDependencies(dependencies) {
+            const container = document.getElementById('dependencies-container');
+            
+            if (dependencies.length === 0) {
+                container.innerHTML = '<div class="text-center py-4 text-muted">Нет зависимостей</div>';
+                return;
+            }
+            
+            let html = '<div class="list-group">';
+            
+            dependencies.forEach(dep => {
+                const statusClass = dep.is_satisfied ? 'success' : 'warning';
+                const statusText = dep.is_satisfied ? 'Выполнена' : 'Не выполнена';
+                const typeText = dep.type === 'blocking' ? 'Блокирующая' : 'Связанная';
+                
+                html += `
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">${dep.dependency_task_name}</h6>
+                            <small class="text-muted">
+                                <span class="badge bg-secondary me-2">${typeText}</span>
+                                <span class="badge bg-${statusClass}">${statusText}</span>
+                            </small>
+                        </div>
+                        <button class="btn btn-sm btn-danger" onclick="removeDependency(${dep.id}, ${taskId})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+        
+        function loadAvailableTasks(currentTaskId) {
+            fetch('/api/tasks')
+                .then(response => response.json())
+                .then(data => {
+                    const select = document.getElementById('dependencyTaskSelect');
+                    select.innerHTML = '<option value="">Выберите задачу...</option>';
+                    
+                    data.forEach(task => {
+                        if (task.id != currentTaskId) {
+                            const option = document.createElement('option');
+                            option.value = task.id;
+                            option.textContent = task.title;
+                            select.appendChild(option);
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading tasks:', error);
+                });
+        }
+        
+        function addDependency(taskId) {
+            const dependencyTaskId = document.getElementById('dependencyTaskSelect').value;
+            const type = document.getElementById('dependencyType').value;
+            
+            if (!dependencyTaskId) {
+                showToast('Выберите задачу для зависимости', 'warning');
+                return;
+            }
+            
+            const btn = document.getElementById('saveDependencyBtn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Сохранение...';
+            btn.disabled = true;
+            
+            fetch(`/api/tasks/${taskId}/dependencies`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    dependency_task_id: dependencyTaskId,
+                    type: type
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    showToast(data.error, 'error');
+                } else {
+                    showToast('Зависимость добавлена', 'success');
+                    document.getElementById('addDependencyModal').querySelector('.btn-close').click();
+                    loadDependencies(taskId);
+                    document.getElementById('addDependencyForm').reset();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Ошибка при добавлении зависимости', 'error');
+            })
+            .finally(() => {
+                btn.innerHTML = '<i class="fas fa-save me-1"></i>Сохранить';
+                btn.disabled = false;
+            });
+        }
+        
+        function removeDependency(dependencyId, taskId) {
+            if (!confirm('Вы уверены, что хотите удалить эту зависимость?')) {
+                return;
+            }
+            
+            fetch(`/api/tasks/${taskId}/dependencies/${dependencyId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Зависимость удалена', 'success');
+                    loadDependencies(taskId);
+                } else {
+                    showToast('Ошибка при удалении зависимости', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Ошибка при удалении зависимости', 'error');
+            });
+        }
+        
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white bg-${type === 'error' ? 'danger' : type} border-0`;
+            toast.setAttribute('role', 'alert');
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            `;
+            
+            document.querySelector('.toast-container').appendChild(toast);
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+            
+            toast.addEventListener('hidden.bs.toast', () => {
+                toast.remove();
+            });
+        }
+    </script>
 {% endblock %}

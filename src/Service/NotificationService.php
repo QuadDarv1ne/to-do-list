@@ -106,6 +106,7 @@ class NotificationService
 
     /**
      * Server-Sent Events stream for real-time notifications
+     * Fixed to prevent infinite loops and page lag
      */
     public function createNotificationStream(User $user): StreamedResponse
     {
@@ -125,8 +126,9 @@ class NotificationService
             $heartbeatInterval = 30; // seconds
             $checkInterval = 10; // seconds - increased interval to reduce load
             $iterationCount = 0;
+            $maxIterations = 300; // Maximum iterations to prevent indefinite running (300 * 10s = 50 minutes)
             
-            while (true) {
+            while ($iterationCount < $maxIterations && !connection_aborted()) {
                 // Check for new notifications
                 $newNotifications = $this->getNewNotifications($user, $lastCheck);
                 
@@ -147,7 +149,6 @@ class NotificationService
                 }
 
                 // Send heartbeat to keep connection alive
-                $iterationCount++;
                 if ($iterationCount % $heartbeatInterval === 0) {
                     echo "event: heartbeat\n";
                     echo "data: " . json_encode(['time' => date('c')]) . "\n\n";
@@ -157,22 +158,31 @@ class NotificationService
                 // Break the sleep into smaller chunks to allow for quicker response to connection abort
                 $remainingSleep = $checkInterval;
                 $chunkSize = 2; // 2 second chunks
-                while ($remainingSleep > 0 && !connection_aborted()) {
+                $continueLoop = true;
+                
+                while ($remainingSleep > 0 && $continueLoop && !connection_aborted()) {
                     $sleepChunk = min($chunkSize, $remainingSleep);
-                    sleep($sleepChunk);
+                    usleep($sleepChunk * 1000000); // usleep takes microseconds, not seconds
                     $remainingSleep -= $sleepChunk;
                     
                     // Check periodically if connection is still alive
                     if (connection_aborted()) {
-                        break;
+                        $continueLoop = false;
                     }
                 }
+                
+                $iterationCount++;
                 
                 // Final check if connection is still alive
                 if (connection_aborted()) {
                     break;
                 }
             }
+            
+            // Send disconnect event before closing
+            echo "event: disconnected\n";
+            echo "data: " . json_encode(['status' => 'disconnected', 'reason' => 'timeout or client disconnect']) . "\n\n";
+            flush();
         });
 
         $response->headers->set('Content-Type', 'text/event-stream');

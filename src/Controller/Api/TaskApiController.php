@@ -3,6 +3,7 @@
 namespace App\Controller\Api;
 
 use App\Entity\Task;
+use App\Entity\User;
 use App\Repository\TaskRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -73,7 +74,7 @@ class TaskApiController extends AbstractController
             ], 400);
         }
     }
-    
+
     #[Route('/categories', name: 'app_api_categories', methods: ['GET'])]
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
     public function getCategories(): JsonResponse
@@ -167,5 +168,52 @@ class TaskApiController extends AbstractController
                 'message' => 'Failed to create task: ' . $e->getMessage()
             ], 500);
         }
+    }
+    
+    #[Route('/all', name: 'app_api_tasks_all', methods: ['GET'])]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    public function getAllTasks(TaskRepository $taskRepository): JsonResponse
+    {
+        $user = $this->getUser();
+        
+        // Get all tasks assigned to the user or created by the user
+        $tasks = $taskRepository->findBy([
+            'user' => $user
+        ]);
+        
+        $tasksCreatedByUser = $taskRepository->findBy([
+            'assignedUser' => $user
+        ]);
+        
+        // Merge and deduplicate tasks
+        $allTasks = [];
+        $taskIds = [];
+        
+        foreach ($tasks as $task) {
+            if (!in_array($task->getId(), $taskIds)) {
+                $allTasks[] = $task;
+                $taskIds[] = $task->getId();
+            }
+        }
+        
+        foreach ($tasksCreatedByUser as $task) {
+            if (!in_array($task->getId(), $taskIds)) {
+                $allTasks[] = $task;
+                $taskIds[] = $task->getId();
+            }
+        }
+        
+        $data = [];
+        foreach ($allTasks as $task) {
+            $data[] = [
+                'id' => $task->getId(),
+                'title' => $task->getTitle(),
+                'status' => $task->getStatus(),
+                'priority' => $task->getPriority(),
+                'createdAt' => $task->getCreatedAt()->format('c')
+            ];
+        }
+        
+        return $this->json($data);
     }
 }

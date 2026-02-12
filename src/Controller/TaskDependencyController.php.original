@@ -256,213 +256,25 @@ class TaskDependencyController extends AbstractController
         ]);
     }
 
-    #[Route('/bulk/add', name: 'app_task_dependency_bulk_add', methods: ['POST'])]
-    public function bulkAdd(
-        int $taskId,
-        Request $request,
-        TaskRepository $taskRepository,
-        TaskDependencyRepository $dependencyRepository,
-        EntityManagerInterface $entityManager
-    ): JsonResponse {
-        $task = $taskRepository->find($taskId);
-        
-        if (!$task) {
-            return new JsonResponse(['error' => 'Task not found'], 404);
-        }
-
-        // Check if user can modify this task
-        if ($task->getAssignedTo() !== $this->getUser() && $task->getCreatedBy() !== $this->getUser()) {
-            return new JsonResponse(['error' => 'Access denied'], 403);
-        }
-
-        $data = json_decode($request->getContent(), true);
-        $dependencyTaskIds = $data['dependency_task_ids'] ?? [];
-        $type = $data['type'] ?? 'blocking';
-        
-        if (empty($dependencyTaskIds) || !is_array($dependencyTaskIds)) {
-            return new JsonResponse(['error' => 'Dependency task IDs are required and must be an array'], 400);
-        }
-
-        $results = [];
-        $errors = [];
-        
-        foreach ($dependencyTaskIds as $dependencyTaskId) {
-            $dependencyTask = $taskRepository->find($dependencyTaskId);
-            if (!$dependencyTask) {
-                $errors[] = ['task_id' => $dependencyTaskId, 'error' => 'Dependency task not found'];
-                continue;
-            }
-
-            // Prevent circular dependencies
-            if ($dependencyTaskId == $taskId) {
-                $errors[] = ['task_id' => $dependencyTaskId, 'error' => 'Cannot create dependency on the same task'];
-                continue;
-            }
-
-            // Check for circular dependency
-            if ($this->wouldCreateCircularDependency($task, $dependencyTask, $dependencyRepository)) {
-                $errors[] = ['task_id' => $dependencyTaskId, 'error' => 'This would create a circular dependency'];
-                continue;
-            }
-
-            // Check if dependency already exists
-            if ($dependencyRepository->dependencyExists($task, $dependencyTask)) {
-                $errors[] = ['task_id' => $dependencyTaskId, 'error' => 'Dependency already exists'];
-                continue;
-            }
-
-            // Create the dependency
-            $dependency = new TaskDependency();
-            $dependency->setDependentTask($task);
-            $dependency->setDependencyTask($dependencyTask);
-            $dependency->setType($type);
-            
-            $entityManager->persist($dependency);
-            
-            $results[] = [
-                'task_id' => $dependencyTaskId,
-                'status' => 'created',
-                'dependency_id' => null // Will be set after flush
-            ];
-        }
-
-        if (!empty($results)) {
-            $entityManager->flush();
-            
-            // Now update the results with actual dependency IDs
-            foreach ($results as &$result) {
-                // Find the dependency to get its ID
-                $dependencyTask = $taskRepository->find($result['task_id']);
-                $dependency = $dependencyRepository->findOneBy([
-                    'dependentTask' => $task,
-                    'dependencyTask' => $dependencyTask
-                ]);
-                if ($dependency) {
-                    $result['dependency_id'] = $dependency->getId();
-                }
-            }
-        }
-
-        return $this->json([
-            'results' => $results,
-            'errors' => $errors,
-            'created_count' => count($results),
-            'error_count' => count($errors)
-        ]);
-    }
-    
-    #[Route('/bulk/remove', name: 'app_task_dependency_bulk_remove', methods: ['DELETE'])]
-    public function bulkRemove(
-        int $taskId,
-        Request $request,
-        TaskRepository $taskRepository,
-        TaskDependencyRepository $dependencyRepository,
-        EntityManagerInterface $entityManager
-    ): JsonResponse {
-        $task = $taskRepository->find($taskId);
-        
-        if (!$task) {
-            return new JsonResponse(['error' => 'Task not found'], 404);
-        }
-
-        // Check if user can modify this task
-        if ($task->getAssignedTo() !== $this->getUser() && $task->getCreatedBy() !== $this->getUser()) {
-            return new JsonResponse(['error' => 'Access denied'], 403);
-        }
-
-        $data = json_decode($request->getContent(), true);
-        $dependencyIds = $data['dependency_ids'] ?? [];
-        
-        if (empty($dependencyIds) || !is_array($dependencyIds)) {
-            return new JsonResponse(['error' => 'Dependency IDs are required and must be an array'], 400);
-        }
-
-        $results = [];
-        $errors = [];
-        
-        foreach ($dependencyIds as $dependencyId) {
-            $dependency = $dependencyRepository->find($dependencyId);
-            
-            if (!$dependency) {
-                $errors[] = ['dependency_id' => $dependencyId, 'error' => 'Dependency not found'];
-                continue;
-            }
-            
-            // Ensure this dependency belongs to the task we're modifying
-            if ($dependency->getDependentTask()->getId() !== $taskId) {
-                $errors[] = ['dependency_id' => $dependencyId, 'error' => 'Dependency does not belong to this task'];
-                continue;
-            }
-            
-            $entityManager->remove($dependency);
-            $results[] = [
-                'dependency_id' => $dependencyId,
-                'status' => 'removed'
-            ];
-        }
-        
-        if (!empty($results)) {
-            $entityManager->flush();
-        }
-
-        return $this->json([
-            'results' => $results,
-            'errors' => $errors,
-            'removed_count' => count($results),
-            'error_count' => count($errors)
-        ]);
-    }
-
     /**
      * Check if adding a dependency would create a circular dependency
-     * Uses DFS algorithm to detect cycles in the dependency graph
      */
     private function wouldCreateCircularDependency(
         Task $task,
         Task $dependencyTask,
         TaskDependencyRepository $dependencyRepository
     ): bool {
-        // If the dependency task is the same as the current task, it's a circular dependency
-        if ($task->getId() === $dependencyTask->getId()) {
-            return true;
-        }
+        // Simple circular dependency check
+        // In a real implementation, you'd want a more sophisticated algorithm
         
-        // Use DFS to check if there's a path from dependencyTask to task
-        $visited = [];
-        return $this->dfsCheckCircular($dependencyTask, $task, $dependencyRepository, $visited);
-    }
-    
-    /**
-     * Depth-first search to check for circular dependencies
-     */
-    private function dfsCheckCircular(
-        Task $currentTask,
-        Task $targetTask,
-        TaskDependencyRepository $dependencyRepository,
-        array &$visited
-    ): bool {
-        // Mark current task as visited
-        $visited[$currentTask->getId()] = true;
-        
-        // Get all dependencies of the current task
-        $dependencies = $dependencyRepository->findDependenciesForTask($currentTask);
-        
-        foreach ($dependencies as $dependency) {
-            $dependencyTask = $dependency->getDependencyTask();
-            
-            // If we found the target task, it's a circular dependency
-            if ($dependencyTask->getId() === $targetTask->getId()) {
+        // Check if the dependency task already depends on the current task
+        $dependenciesOfDependency = $dependencyRepository->findDependenciesForTask($dependencyTask);
+        foreach ($dependenciesOfDependency as $dep) {
+            if ($dep->getDependencyTask()->getId() == $task->getId()) {
                 return true;
             }
-            
-            // If this task hasn't been visited yet, check its dependencies
-            if (!isset($visited[$dependencyTask->getId()])) {
-                if ($this->dfsCheckCircular($dependencyTask, $targetTask, $dependencyRepository, $visited)) {
-                    return true;
-                }
-            }
         }
-        
+
         return false;
     }
 }

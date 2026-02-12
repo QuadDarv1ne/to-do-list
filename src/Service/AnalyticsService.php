@@ -37,7 +37,8 @@ class AnalyticsService
             'priority_analysis' => $this->getPriorityAnalysis($user),
             'time_analysis' => $this->getTimeAnalysis($user),
             'performance_metrics' => $this->getPerformanceMetrics($user),
-            'prediction_analysis' => $this->getPredictionAnalysis($user)
+            'prediction_analysis' => $this->getPredictionAnalysis($user),
+            'dependency_analysis' => $this->getDependencyAnalysis($user)
         ];
 
         return $stats;
@@ -692,5 +693,84 @@ class AnalyticsService
         $csv .= "Оставшиеся задачи,{$analytics['prediction_analysis']['remaining_tasks']}\n";
         
         return $csv;
+    }
+    
+    /**
+     * Get dependency-related analytics
+     */
+    public function getDependencyAnalysis(User $user): array
+    {
+        $qb = $this->entityManager->createQueryBuilder();
+        
+        // Count total dependencies for user's tasks
+        $totalDependencies = $qb->select('COUNT(td.id)')
+            ->from('App\\Entity\\TaskDependency', 'td')
+            ->join('td.dependentTask', 'dt')
+            ->where('dt.assignedTo = :user OR dt.createdBy = :user')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleScalarResult();
+        
+        // Count blocking dependencies
+        $blockingDependencies = $qb->select('COUNT(td.id)')
+            ->from('App\\Entity\\TaskDependency', 'td')
+            ->join('td.dependentTask', 'dt')
+            ->where('dt.assignedTo = :user OR dt.createdBy = :user')
+            ->andWhere('td.type = :type')
+            ->setParameter('user', $user)
+            ->setParameter('type', 'blocking')
+            ->getQuery()
+            ->getSingleScalarResult();
+        
+        // Count dependencies on completed tasks
+        $completedDependencies = $qb->select('COUNT(td.id)')
+            ->from('App\\Entity\\TaskDependency', 'td')
+            ->join('td.dependencyTask', 'dtt')
+            ->where('dtt.status = :status')
+            ->setParameter('status', 'completed')
+            ->getQuery()
+            ->getSingleScalarResult();
+        
+        // Count unsatisfied dependencies
+        $unsatisfiedDependencies = $qb->select('COUNT(td.id)')
+            ->from('App\\Entity\\TaskDependency', 'td')
+            ->join('td.dependencyTask', 'dtt')
+            ->where('dtt.status != :status')
+            ->setParameter('status', 'completed')
+            ->getQuery()
+            ->getSingleScalarResult();
+        
+        // Get tasks with the most dependencies
+        $topDependentTasks = $qb->select('dt.id, dt.title, COUNT(td.id) as dependency_count')
+            ->from('App\\Entity\\TaskDependency', 'td')
+            ->join('td.dependentTask', 'dt')
+            ->where('dt.assignedTo = :user OR dt.createdBy = :user')
+            ->groupBy('dt.id, dt.title')
+            ->orderBy('dependency_count', 'DESC')
+            ->setMaxResults(5)
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getArrayResult();
+        
+        // Get tasks that block the most other tasks
+        $topBlockingTasks = $qb->select('dtt.id, dtt.title, COUNT(td.id) as blocked_count')
+            ->from('App\\Entity\\TaskDependency', 'td')
+            ->join('td.dependencyTask', 'dtt')
+            ->where('dtt.assignedTo = :user OR dtt.createdBy = :user')
+            ->groupBy('dtt.id, dtt.title')
+            ->orderBy('blocked_count', 'DESC')
+            ->setMaxResults(5)
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getArrayResult();
+        
+        return [
+            'total_dependencies' => (int) $totalDependencies,
+            'blocking_dependencies' => (int) $blockingDependencies,
+            'completed_dependencies' => (int) $completedDependencies,
+            'unsatisfied_dependencies' => (int) $unsatisfiedDependencies,
+            'top_dependent_tasks' => $topDependentTasks,
+            'top_blocking_tasks' => $topBlockingTasks
+        ];
     }
 }

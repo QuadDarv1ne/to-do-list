@@ -475,6 +475,24 @@
                                                 </span>
                                             {% endif %}
                                         {% endif %}
+                                        
+                                        <!-- Dependencies Indicator -->
+                                        {% set dependencies = task.dependencies %}
+                                        {% set dependents = task.dependents %}
+                                        {% if dependencies|length > 0 or dependents|length > 0 %}
+                                            <span class="mx-2">•</span>
+                                            <i class="fas fa-code-branch text-info" data-bs-toggle="tooltip" title="Зависимости: {{ dependencies|length }}, Блокирует: {{ dependents|length }}"></i>
+                                            {% if dependencies|length > 0 %}
+                                                <span class="badge bg-info" data-bs-toggle="tooltip" title="Зависит от {{ dependencies|length }} задач(и)">
+                                                    <i class="fas fa-arrow-up"></i>{{ dependencies|length }}
+                                                </span>
+                                            {% endif %}
+                                            {% if dependents|length > 0 %}
+                                                <span class="badge bg-warning text-dark" data-bs-toggle="tooltip" title="Блокирует {{ dependents|length }} задач(и)">
+                                                    <i class="fas fa-arrow-down"></i>{{ dependents|length }}
+                                                </span>
+                                            {% endif %}
+                                        {% endif %}
                                     </div>
                                     
                                     {% if task.description %}
