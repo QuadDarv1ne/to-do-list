@@ -10,6 +10,7 @@ use App\Repository\TaskCategoryRepository;
 use App\Repository\TagRepository;
 use App\Repository\UserRepository;
 use App\Service\NotificationService;
+use App\Service\PerformanceMonitorService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,8 +27,13 @@ class TaskController extends AbstractController
         Request $request, 
         TaskRepository $taskRepository, 
         TaskCategoryRepository $categoryRepository,
-        TagRepository $tagRepository
+        TagRepository $tagRepository,
+        ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('task_controller_index');
+        }
+        
         $user = $this->getUser();
         
         // Get filter parameters
@@ -125,15 +131,21 @@ class TaskController extends AbstractController
         // Get all tags for filter dropdown
         $tags = $tagRepository->findAll();
         
-        return $this->render('task/index.html.twig', [
-            'tasks' => $tasks,
-            'categories' => $categories,
-            'tags' => $tags,
-            'currentPage' => $page,
-            'totalPages' => $totalPages,
-            'totalTasks' => $totalTasks,
-            'searchQuery' => $search,
-        ]);
+        try {
+            return $this->render('task/index.html.twig', [
+                'tasks' => $tasks,
+                'categories' => $categories,
+                'tags' => $tags,
+                'currentPage' => $page,
+                'totalPages' => $totalPages,
+                'totalTasks' => $totalTasks,
+                'searchQuery' => $search,
+            ]);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('task_controller_index');
+            }
+        }
     }
 
     #[Route('/new', name: 'app_task_new', methods: ['GET', 'POST'])]
@@ -141,8 +153,13 @@ class TaskController extends AbstractController
         Request $request, 
         EntityManagerInterface $entityManager,
         TaskCategoryRepository $categoryRepository,
-        NotificationService $notificationService
+        NotificationService $notificationService,
+        ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('task_controller_new');
+        }
+        
         $task = new Task();
         $task->setUser($this->getUser());
         $task->setStatus('pending');
@@ -168,24 +185,40 @@ class TaskController extends AbstractController
         // Get user's categories for form
         $categories = $categoryRepository->findByUser($this->getUser());
         
-        return $this->render('task/new.html.twig', [
-            'task' => $task,
-            'form' => $form,
-            'categories' => $categories,
-        ]);
+        try {
+            return $this->render('task/new.html.twig', [
+                'task' => $task,
+                'form' => $form,
+                'categories' => $categories,
+            ]);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('task_controller_new');
+            }
+        }
     }
 
     #[Route('/{id}', name: 'app_task_show', methods: ['GET'])]
-    public function show(Task $task, TaskCategoryRepository $categoryRepository): Response
+    public function show(Task $task, TaskCategoryRepository $categoryRepository, ?PerformanceMonitorService $performanceMonitor = null): Response
     {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('task_controller_show');
+        }
+        
         $this->denyAccessUnlessGranted('TASK_VIEW', $task);
         
         $categories = $categoryRepository->findByUser($this->getUser());
         
-        return $this->render('task/show.html.twig', [
-            'task' => $task,
-            'categories' => $categories,
-        ]);
+        try {
+            return $this->render('task/show.html.twig', [
+                'task' => $task,
+                'categories' => $categories,
+            ]);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('task_controller_show');
+            }
+        }
     }
 
     #[Route('/{id}/edit', name: 'app_task_edit', methods: ['GET', 'POST'])]
@@ -194,8 +227,13 @@ class TaskController extends AbstractController
         Task $task, 
         EntityManagerInterface $entityManager,
         TaskCategoryRepository $categoryRepository,
-        NotificationService $notificationService
+        NotificationService $notificationService,
+        ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('task_controller_edit');
+        }
+        
         $this->denyAccessUnlessGranted('TASK_EDIT', $task);
         
         $originalAssignedUser = $task->getAssignedUser();
@@ -238,15 +276,24 @@ class TaskController extends AbstractController
 
         $categories = $categoryRepository->findByUser($this->getUser());
         
-        return $this->render('task/edit.html.twig', [
-            'task' => $task,
-            'form' => $form,
-            'categories' => $categories,
-        ]);
+        try {
+            return $this->render('task/edit.html.twig', [
+                'task' => $task,
+                'form' => $form,
+                'categories' => $categories,
+            ]);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('task_controller_edit');
+            }
+        }
     }
         
     #[Route('/{id}/clone', name: 'app_task_clone', methods: ['POST'])]
-    public function cloneTask(Task $task, EntityManagerInterface $entityManager, NotificationService $notificationService): Response
+    public function cloneTask(Task $task, EntityManagerInterface $entityManager, NotificationService $notificationService, ?PerformanceMonitorService $performanceMonitor = null): Response {
+            if ($performanceMonitor) {
+                $performanceMonitor->startTimer('task_controller_clone');
+            }
     {
         $this->denyAccessUnlessGranted('TASK_VIEW', $task);
             
@@ -272,12 +319,21 @@ class TaskController extends AbstractController
             
         $this->addFlash('success', 'Задача успешно скопирована');
             
-        return $this->redirectToRoute('app_task_show', ['id' => $clonedTask->getId()]);
+        try {
+            return $this->redirectToRoute('app_task_show', ['id' => $clonedTask->getId()]);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('task_controller_clone');
+            }
+        }
     }
         
     #[Route('/api/categories', name: 'app_api_categories', methods: ['GET'])]
-    public function apiCategories(TaskCategoryRepository $categoryRepository): Response
+    public function apiCategories(TaskCategoryRepository $categoryRepository, ?PerformanceMonitorService $performanceMonitor = null): Response
     {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('task_controller_api_categories');
+        }
         $user = $this->getUser();
         $categories = $categoryRepository->findByUser($user);
             
@@ -289,12 +345,21 @@ class TaskController extends AbstractController
             ];
         }
             
-        return $this->json($data);
+        try {
+            return $this->json($data);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('task_controller_api_categories');
+            }
+        }
     }
         
     #[Route('/api/tags', name: 'app_api_tags', methods: ['GET'])]
-    public function apiTags(TagRepository $tagRepository): Response
+    public function apiTags(TagRepository $tagRepository, ?PerformanceMonitorService $performanceMonitor = null): Response
     {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('task_controller_api_tags');
+        }
         $tags = $tagRepository->findAll();
             
         $data = [];
@@ -305,12 +370,21 @@ class TaskController extends AbstractController
             ];
         }
             
-        return $this->json($data);
+        try {
+            return $this->json($data);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('task_controller_api_tags');
+            }
+        }
     }
         
     #[Route('/api/users', name: 'app_api_users', methods: ['GET'])]
-    public function apiUsers(UserRepository $userRepository): Response
+    public function apiUsers(UserRepository $userRepository, ?PerformanceMonitorService $performanceMonitor = null): Response
     {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('task_controller_api_users');
+        }
         $user = $this->getUser();
         // Get all users except the current user (for assignment purposes)
         $users = $userRepository->findAll();
@@ -326,12 +400,21 @@ class TaskController extends AbstractController
             }
         }
             
-        return $this->json($data);
+        try {
+            return $this->json($data);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('task_controller_api_users');
+            }
+        }
     }
         
     #[Route('/{id}', name: 'app_task_delete', methods: ['POST'])]
-    public function delete(Request $request, Task $task, EntityManagerInterface $entityManager): Response
+    public function delete(Request $request, Task $task, EntityManagerInterface $entityManager, ?PerformanceMonitorService $performanceMonitor = null): Response
     {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('task_controller_delete');
+        }
         $this->denyAccessUnlessGranted('TASK_DELETE', $task);
         
         if ($this->isCsrfTokenValid('delete'.$task->getId(), $request->request->get('_token'))) {
@@ -341,7 +424,13 @@ class TaskController extends AbstractController
             $this->addFlash('success', 'Задача успешно удалена');
         }
 
-        return $this->redirectToRoute('app_task_index', [], Response::HTTP_SEE_OTHER);
+        try {
+            return $this->redirectToRoute('app_task_index', [], Response::HTTP_SEE_OTHER);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('task_controller_delete');
+            }
+        }
     }
     
     #[Route('/search', name: 'app_task_search', methods: ['GET'])]
@@ -349,8 +438,12 @@ class TaskController extends AbstractController
         Request $request, 
         TaskRepository $taskRepository, 
         TaskCategoryRepository $categoryRepository,
-        TagRepository $tagRepository
+        TagRepository $tagRepository,
+        ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('task_controller_search');
+        }
         $user = $this->getUser();
         
         // Get search parameters with validation
@@ -486,31 +579,37 @@ class TaskController extends AbstractController
         // Get all tags for filter dropdown
         $tags = $tagRepository->findAll();
         
-        return $this->render('task/index.html.twig', [
-            'tasks' => $tasks,
-            'categories' => $categories,
-            'tags' => $tags,
-            'searchQuery' => $search,
-            'currentFilters' => [
-                'status' => $status,
-                'priority' => $priority,
-                'category' => $categoryId,
-                'tag' => $tagId,
-                'start_date' => $startDate,
-                'end_date' => $endDate,
-                'created_after' => $createdAfter,
-                'created_before' => $createdBefore,
-                'assigned_to_me' => $assignedToMe,
-                'created_by_me' => $createdByMe,
-                'overdue' => $overdue,
-                'sort_by' => $sortBy,
-                'sort_direction' => $sortDirection
-            ],
-            'currentPage' => $page,
-            'totalPages' => $totalPages,
-            'totalTasks' => $totalCount,
-            'limit' => $limit
-        ]);
+        try {
+            return $this->render('task/index.html.twig', [
+                'tasks' => $tasks,
+                'categories' => $categories,
+                'tags' => $tags,
+                'searchQuery' => $search,
+                'currentFilters' => [
+                    'status' => $status,
+                    'priority' => $priority,
+                    'category' => $categoryId,
+                    'tag' => $tagId,
+                    'start_date' => $startDate,
+                    'end_date' => $endDate,
+                    'created_after' => $createdAfter,
+                    'created_before' => $createdBefore,
+                    'assigned_to_me' => $assignedToMe,
+                    'created_by_me' => $createdByMe,
+                    'overdue' => $overdue,
+                    'sort_by' => $sortBy,
+                    'sort_direction' => $sortDirection
+                ],
+                'currentPage' => $page,
+                'totalPages' => $totalPages,
+                'totalTasks' => $totalCount,
+                'limit' => $limit
+            ]);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('task_controller_search');
+            }
+        }
     }
     
     #[Route('/export', name: 'app_task_export', methods: ['GET'])]
@@ -683,8 +782,11 @@ class TaskController extends AbstractController
     }
     
     #[Route('/quick-create', name: 'app_task_quick_create', methods: ['POST'])]
-    public function quickCreate(Request $request, EntityManagerInterface $entityManager): Response
+    public function quickCreate(Request $request, EntityManagerInterface $entityManager, ?PerformanceMonitorService $performanceMonitor = null): Response
     {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('task_controller_quick_create');
+        }
         $data = json_decode($request->getContent(), true);
         $title = trim($data['title'] ?? '');
         
@@ -737,27 +839,37 @@ class TaskController extends AbstractController
         $entityManager->persist($task);
         $entityManager->flush();
         
-        return $this->json([
-            'success' => true,
-            'message' => 'Задача успешно создана',
-            'task' => [
-                'id' => $task->getId(),
-                'title' => $task->getTitle(),
-                'description' => $task->getDescription(),
-                'status' => $task->getStatus(),
-                'priority' => $task->getPriority(),
-                'createdAt' => $task->getCreatedAt()->format('Y-m-d H:i:s'),
-                'dueDate' => $task->getDueDate() ? $task->getDueDate()->format('Y-m-d') : null
-            ]
-        ]);
+        try {
+            return $this->json([
+                'success' => true,
+                'message' => 'Задача успешно создана',
+                'task' => [
+                    'id' => $task->getId(),
+                    'title' => $task->getTitle(),
+                    'description' => $task->getDescription(),
+                    'status' => $task->getStatus(),
+                    'priority' => $task->getPriority(),
+                    'createdAt' => $task->getCreatedAt()->format('Y-m-d H:i:s'),
+                    'dueDate' => $task->getDueDate() ? $task->getDueDate()->format('Y-m-d') : null
+                ]
+            ]);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('task_controller_quick_create');
+            }
+        }
     }
     
     #[Route('/{id}/recurrence', name: 'app_task_recurrence', methods: ['GET', 'POST'])]
     public function recurrence(
         Request $request,
         Task $task,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('task_controller_recurrence');
+        }
         $this->denyAccessUnlessGranted('TASK_EDIT', $task);
         
         // Check if task already has a recurrence
@@ -783,10 +895,16 @@ class TaskController extends AbstractController
             return $this->redirectToRoute('app_task_show', ['id' => $task->getId()]);
         }
         
-        return $this->render('task/recurrence.html.twig', [
-            'task' => $task,
-            'form' => $form,
-        ]);
+        try {
+            return $this->render('task/recurrence.html.twig', [
+                'task' => $task,
+                'form' => $form,
+            ]);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('task_controller_recurrence');
+            }
+        }
     }
     
     #[Route('/bulk-action', name: 'app_task_bulk_action', methods: ['POST'])]
@@ -794,8 +912,12 @@ class TaskController extends AbstractController
         Request $request,
         TaskRepository $taskRepository,
         EntityManagerInterface $entityManager,
-        NotificationService $notificationService
+        NotificationService $notificationService,
+        ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('task_controller_bulk_action');
+        }
         $action = $request->request->get('action');
         $taskIds = $request->request->get('task_ids', []);
         
@@ -908,17 +1030,32 @@ class TaskController extends AbstractController
             $this->addFlash('warning', 'Не удалось выполнить операцию ни для одной задачи (возможно, нет прав).');
         }
         
-        return $this->redirectToRoute('app_task_index');
+        try {
+            return $this->redirectToRoute('app_task_index');
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('task_controller_bulk_action');
+            }
+        }
     }
     
     #[Route('/api/stats', name: 'app_task_stats', methods: ['GET'])]
-    public function getStats(TaskRepository $taskRepository): Response
+    public function getStats(TaskRepository $taskRepository, ?PerformanceMonitorService $performanceMonitor = null): Response
     {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('task_controller_api_stats');
+        }
         $user = $this->getUser();
         
         // Get quick stats from repository with caching
         $stats = $taskRepository->getQuickStats($user);
         
-        return $this->json($stats);
+        try {
+            return $this->json($stats);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('task_controller_api_stats');
+            }
+        }
     }
 }

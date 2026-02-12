@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Service\AnalyticsService;
+use App\Service\PerformanceMonitorService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,28 +16,58 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class AnalyticsController extends AbstractController
 {
     #[Route('/', name: 'app_analytics_dashboard')]
-    public function dashboard(AnalyticsService $analyticsService): Response
-    {
+    public function dashboard(
+        AnalyticsService $analyticsService, 
+        ?PerformanceMonitorService $performanceMonitor = null
+    ): Response {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('analytics_controller_dashboard');
+        }
+        
         $user = $this->getUser();
         $analytics = $analyticsService->getUserTaskAnalytics($user);
 
-        return $this->render('analytics/dashboard.html.twig', [
-            'analytics' => $analytics
-        ]);
+        try {
+            return $this->render('analytics/dashboard.html.twig', [
+                'analytics' => $analytics
+            ]);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('analytics_controller_dashboard');
+            }
+        }
     }
 
     #[Route('/api/data', name: 'app_analytics_data', methods: ['GET'])]
-    public function getAnalyticsData(AnalyticsService $analyticsService): JsonResponse
-    {
+    public function getAnalyticsData(
+        AnalyticsService $analyticsService, 
+        ?PerformanceMonitorService $performanceMonitor = null
+    ): JsonResponse {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('analytics_controller_get_data');
+        }
+        
         $user = $this->getUser();
         $analytics = $analyticsService->getUserTaskAnalytics($user);
 
-        return $this->json($analytics);
+        try {
+            return $this->json($analytics);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('analytics_controller_get_data');
+            }
+        }
     }
 
     #[Route('/export/csv', name: 'app_analytics_export_csv', methods: ['GET'])]
-    public function exportCsv(AnalyticsService $analyticsService): Response
-    {
+    public function exportCsv(
+        AnalyticsService $analyticsService, 
+        ?PerformanceMonitorService $performanceMonitor = null
+    ): Response {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('analytics_controller_export_csv');
+        }
+        
         $user = $this->getUser();
         $csvData = $analyticsService->exportAnalyticsToCsv($user);
 
@@ -44,51 +75,104 @@ class AnalyticsController extends AbstractController
         $response->headers->set('Content-Type', 'text/csv');
         $response->headers->set('Content-Disposition', 'attachment; filename="analytics-export.csv"');
 
-        return $response;
+        try {
+            return $response;
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('analytics_controller_export_csv');
+            }
+        }
     }
 
     #[Route('/api/completion-trend', name: 'app_analytics_completion_trend', methods: ['GET'])]
-    public function getCompletionTrend(AnalyticsService $analyticsService): JsonResponse
-    {
+    public function getCompletionTrend(
+        AnalyticsService $analyticsService, 
+        ?PerformanceMonitorService $performanceMonitor = null
+    ): JsonResponse {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('analytics_controller_completion_trend');
+        }
+        
         $user = $this->getUser();
         $analytics = $analyticsService->getUserTaskAnalytics($user);
 
-        return $this->json([
-            'daily_completion' => $analytics['productivity_trends']['daily_completion'],
-            'weekly_completion' => $analytics['productivity_trends']['weekly_completion'],
-            'trend' => $analytics['productivity_trends']['trend_analysis']
-        ]);
+        try {
+            return $this->json([
+                'daily_completion' => $analytics['productivity_trends']['daily_completion'],
+                'weekly_completion' => $analytics['productivity_trends']['weekly_completion'],
+                'trend' => $analytics['productivity_trends']['trend_analysis']
+            ]);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('analytics_controller_completion_trend');
+            }
+        }
     }
 
     #[Route('/api/category-breakdown', name: 'app_analytics_category_breakdown', methods: ['GET'])]
-    public function getCategoryBreakdown(AnalyticsService $analyticsService): JsonResponse
-    {
+    public function getCategoryBreakdown(
+        AnalyticsService $analyticsService, 
+        ?PerformanceMonitorService $performanceMonitor = null
+    ): JsonResponse {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('analytics_controller_category_breakdown');
+        }
+        
         $user = $this->getUser();
         $analytics = $analyticsService->getUserTaskAnalytics($user);
 
-        return $this->json($analytics['category_analysis']);
+        try {
+            return $this->json($analytics['category_analysis']);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('analytics_controller_category_breakdown');
+            }
+        }
     }
 
     #[Route('/api/priority-analysis', name: 'app_analytics_priority_analysis', methods: ['GET'])]
-    public function getPriorityAnalysis(AnalyticsService $analyticsService): JsonResponse
-    {
+    public function getPriorityAnalysis(
+        AnalyticsService $analyticsService, 
+        ?PerformanceMonitorService $performanceMonitor = null
+    ): JsonResponse {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('analytics_controller_priority_analysis');
+        }
+        
         $user = $this->getUser();
         $analytics = $analyticsService->getUserTaskAnalytics($user);
 
-        return $this->json($analytics['priority_analysis']);
+        try {
+            return $this->json($analytics['priority_analysis']);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('analytics_controller_priority_analysis');
+            }
+        }
     }
 
     #[Route('/compare-periods', name: 'app_analytics_compare_periods', methods: ['GET'])]
     public function comparePeriods(
         Request $request,
-        AnalyticsService $analyticsService
+        AnalyticsService $analyticsService,
+        ?PerformanceMonitorService $performanceMonitor = null
     ): JsonResponse {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('analytics_controller_compare_periods');
+        }
+        
         $user = $this->getUser();
         $period1 = $request->query->get('period1', 'this_month');
         $period2 = $request->query->get('period2', 'last_month');
 
         $comparison = $analyticsService->getPeriodComparison($user, $period1, $period2);
 
-        return $this->json($comparison);
+        try {
+            return $this->json($comparison);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('analytics_controller_compare_periods');
+            }
+        }
     }
 }

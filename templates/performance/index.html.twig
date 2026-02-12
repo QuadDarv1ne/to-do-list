@@ -13,7 +13,7 @@
 
     <div class="row mb-4">
         <div class="col-md-3">
-            <div class="card bg-primary text-white">
+            <div class="card card-enhanced bg-primary text-white">
                 <div class="card-body">
                     <h5 class="card-title">Environment</h5>
                     <p class="card-text">{{ performance_data.environment }}</p>
@@ -21,7 +21,7 @@
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-success text-white">
+            <div class="card card-enhanced bg-success text-white">
                 <div class="card-body">
                     <h5 class="card-title">Current Memory</h5>
                     <p class="card-text">{{ performance_data.current_memory_usage }}</p>
@@ -29,7 +29,7 @@
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-info text-white">
+            <div class="card card-enhanced bg-info text-white">
                 <div class="card-body">
                     <h5 class="card-title">Peak Memory</h5>
                     <p class="card-text">{{ performance_data.peak_memory_usage }}</p>
@@ -37,7 +37,7 @@
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-warning text-dark">
+            <div class="card card-enhanced bg-warning text-dark">
                 <div class="card-body">
                     <h5 class="card-title">Uptime</h5>
                     <p class="card-text">{{ performance_data.uptime }}</p>
@@ -48,7 +48,7 @@
 
     <div class="row">
         <div class="col-md-6">
-            <div class="card">
+            <div class="card card-enhanced">
                 <div class="card-header">
                     <h5>Server Information</h5>
                 </div>
@@ -68,7 +68,7 @@
             </div>
         </div>
         <div class="col-md-6">
-            <div class="card">
+            <div class="card card-enhanced">
                 <div class="card-header">
                     <h5>Cache Information</h5>
                 </div>
@@ -96,7 +96,7 @@
 
     <div class="row mt-4">
         <div class="col-12">
-            <div class="card">
+            <div class="card card-enhanced">
                 <div class="card-header">
                     <h5>Health Status</h5>
                 </div>
@@ -104,7 +104,7 @@
                     <div id="health-status" class="alert alert-info">
                         Checking health status...
                     </div>
-                    <button class="btn btn-primary" onclick="checkHealth()">Refresh Health Status</button>
+                    <button class="btn btn-primary btn-enhanced" onclick="checkHealth()">Refresh Health Status</button>
                 </div>
             </div>
         </div>
@@ -112,10 +112,10 @@
 
     <div class="row mt-4">
         <div class="col-12">
-            <div class="card">
+            <div class="card card-enhanced">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5>Slow Queries</h5>
-                    <button class="btn btn-sm btn-warning" onclick="clearSlowQueries()">Clear Slow Queries</button>
+                    <button class="btn btn-sm btn-warning btn-enhanced" onclick="clearSlowQueries()">Clear Slow Queries</button>
                 </div>
                 <div class="card-body">
                     <div id="slow-queries-list">
@@ -128,7 +128,7 @@
 
     <div class="row mt-4">
         <div class="col-12">
-            <div class="card">
+            <div class="card card-enhanced">
                 <div class="card-header">
                     <h5>Detailed Metrics</h5>
                 </div>
@@ -229,7 +229,7 @@ async function loadDetailedMetrics() {
         if (data.system_load) {
             html += `<div class="row mb-3">
                 <div class="col-md-4">
-                    <div class="card bg-light">
+                    <div class="card card-enhanced bg-light">
                         <div class="card-body">
                             <h6 class="card-title">Load Average (1 min)</h6>
                             <p class="card-text">${data.system_load.load_avg_1min}</p>
@@ -237,7 +237,7 @@ async function loadDetailedMetrics() {
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="card bg-light">
+                    <div class="card card-enhanced bg-light">
                         <div class="card-body">
                             <h6 class="card-title">Load Average (5 min)</h6>
                             <p class="card-text">${data.system_load.load_avg_5min}</p>
@@ -245,7 +245,7 @@ async function loadDetailedMetrics() {
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="card bg-light">
+                    <div class="card card-enhanced bg-light">
                         <div class="card-body">
                             <h6 class="card-title">Load Average (15 min)</h6>
                             <p class="card-text">${data.system_load.load_avg_15min}</p>
@@ -259,10 +259,10 @@ async function loadDetailedMetrics() {
         if (data.database_info) {
             html += `<div class="row mb-3">
                 <div class="col-md-6">
-                    <div class="card">
+                    <div class="card card-enhanced">
                         <div class="card-header">Database Info</div>
                         <div class="card-body">
-                            <p class="mb-1">Slow Queries: <span class="badge bg-warning">${data.database_info.slow_query_count}</span></p>
+                            <p class="mb-1">Slow Queries: <span class="badge badge-animated bg-warning">${data.database_info.slow_query_count}</span></p>
                             <p class="mb-1">Threshold: ${data.database_info.slow_query_threshold}</p>
                         </div>
                     </div>
@@ -274,7 +274,7 @@ async function loadDetailedMetrics() {
         if (data.request_info) {
             html += `<div class="row">
                 <div class="col-md-6">
-                    <div class="card">
+                    <div class="card card-enhanced">
                         <div class="card-header">Request Info</div>
                         <div class="card-body">
                             <p class="mb-1">Method: <code>${data.request_info.method}</code></p>

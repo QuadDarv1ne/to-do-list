@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Form\ChangePasswordType;
+use App\Service\PerformanceMonitorService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,8 +20,13 @@ class ProfileController extends AbstractController
     public function changePassword(
         Request $request, 
         UserPasswordHasherInterface $passwordHasher, 
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('profile_controller_change_password');
+        }
+        
         $user = $this->getUser();
         $form = $this->createForm(ChangePasswordType::class);
         $form->handleRequest($request);
@@ -36,27 +42,56 @@ class ProfileController extends AbstractController
             
             $this->addFlash('success', 'Пароль успешно изменен');
             
-            return $this->redirectToRoute('app_dashboard');
+            try {
+                return $this->redirectToRoute('app_dashboard');
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTimer('profile_controller_change_password');
+                }
+            }
         }
 
-        return $this->render('profile/change_password.html.twig', [
-            'form' => $form->createView(),
-        ]);
+        try {
+            return $this->render('profile/change_password.html.twig', [
+                'form' => $form->createView(),
+            ]);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('profile_controller_change_password');
+            }
+        }
     }
     
     #[Route('/', name: 'app_profile_show', methods: ['GET'])]
-    public function show(): Response
+    public function show(?PerformanceMonitorService $performanceMonitor = null): Response
     {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('profile_controller_show');
+        }
+        
         $user = $this->getUser();
         
-        return $this->render('profile/show.html.twig', [
-            'user' => $user,
-        ]);
+        try {
+            return $this->render('profile/show.html.twig', [
+                'user' => $user,
+            ]);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('profile_controller_show');
+            }
+        }
     }
     
     #[Route('/edit', name: 'app_profile_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, EntityManagerInterface $entityManager): Response
-    {
+    public function edit(
+        Request $request, 
+        EntityManagerInterface $entityManager,
+        ?PerformanceMonitorService $performanceMonitor = null
+    ): Response {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('profile_controller_edit');
+        }
+        
         $user = $this->getUser();
         $originalEmail = $user->getEmail();
         
@@ -72,7 +107,13 @@ class ProfileController extends AbstractController
                 
                 if ($existingUser && $existingUser->getId() !== $user->getId()) {
                     $this->addFlash('error', 'Пользователь с таким email уже существует');
-                    return $this->redirectToRoute('app_profile_edit');
+                    try {
+                        return $this->redirectToRoute('app_profile_edit');
+                    } finally {
+                        if ($performanceMonitor) {
+                            $performanceMonitor->stopTimer('profile_controller_edit');
+                        }
+                    }
                 }
             }
             
@@ -80,12 +121,24 @@ class ProfileController extends AbstractController
             
             $this->addFlash('success', 'Профиль успешно обновлен');
             
-            return $this->redirectToRoute('app_profile_show');
+            try {
+                return $this->redirectToRoute('app_profile_show');
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTimer('profile_controller_edit');
+                }
+            }
         }
 
-        return $this->render('profile/edit.html.twig', [
-            'user' => $user,
-            'form' => $form->createView(),
-        ]);
+        try {
+            return $this->render('profile/edit.html.twig', [
+                'user' => $user,
+                'form' => $form->createView(),
+            ]);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('profile_controller_edit');
+            }
+        }
     }
 }

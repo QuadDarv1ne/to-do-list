@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Form\UserType;
 use App\Repository\UserRepository;
+use App\Service\PerformanceMonitorService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,20 +19,37 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class UserController extends AbstractController
 {
     #[Route('/', name: 'app_user_index', methods: ['GET'])]
-    public function index(UserRepository $userRepository): Response
-    {
-        return $this->render('user/index.html.twig', [
-            'users' => $userRepository->findAll(),
-            'statistics' => $userRepository->getStatistics(),
-        ]);
+    public function index(
+        UserRepository $userRepository,
+        ?PerformanceMonitorService $performanceMonitor = null
+    ): Response {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('user_controller_index');
+        }
+        
+        try {
+            return $this->render('user/index.html.twig', [
+                'users' => $userRepository->findAll(),
+                'statistics' => $userRepository->getStatistics(),
+            ]);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('user_controller_index');
+            }
+        }
     }
 
     #[Route('/new', name: 'app_user_new', methods: ['GET', 'POST'])]
     public function new(
         Request $request,
         EntityManagerInterface $entityManager,
-        UserPasswordHasherInterface $passwordHasher
+        UserPasswordHasherInterface $passwordHasher,
+        ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('user_controller_new');
+        }
+        
         $user = new User();
         $form = $this->createForm(UserType::class, $user, ['is_new' => true]);
         $form->handleRequest($request);
@@ -49,21 +67,45 @@ class UserController extends AbstractController
 
             $this->addFlash('success', 'Пользователь успешно создан');
 
-            return $this->redirectToRoute('app_user_index');
+            try {
+                return $this->redirectToRoute('app_user_index');
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTimer('user_controller_new');
+                }
+            }
         }
 
-        return $this->render('user/new.html.twig', [
-            'user' => $user,
-            'form' => $form->createView(),
-        ]);
+        try {
+            return $this->render('user/new.html.twig', [
+                'user' => $user,
+                'form' => $form->createView(),
+            ]);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('user_controller_new');
+            }
+        }
     }
 
     #[Route('/{id}', name: 'app_user_show', methods: ['GET'])]
-    public function show(User $user): Response
-    {
-        return $this->render('user/show.html.twig', [
-            'user' => $user,
-        ]);
+    public function show(
+        User $user,
+        ?PerformanceMonitorService $performanceMonitor = null
+    ): Response {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('user_controller_show');
+        }
+        
+        try {
+            return $this->render('user/show.html.twig', [
+                'user' => $user,
+            ]);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('user_controller_show');
+            }
+        }
     }
 
     #[Route('/{id}/edit', name: 'app_user_edit', methods: ['GET', 'POST'])]
@@ -71,8 +113,13 @@ class UserController extends AbstractController
         Request $request,
         User $user,
         EntityManagerInterface $entityManager,
-        UserPasswordHasherInterface $passwordHasher
+        UserPasswordHasherInterface $passwordHasher,
+        ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('user_controller_edit');
+        }
+        
         $form = $this->createForm(UserType::class, $user, ['is_new' => false]);
         $form->handleRequest($request);
 
@@ -90,26 +137,50 @@ class UserController extends AbstractController
 
             $this->addFlash('success', 'Пользователь успешно обновлен');
 
-            return $this->redirectToRoute('app_user_index');
+            try {
+                return $this->redirectToRoute('app_user_index');
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTimer('user_controller_edit');
+                }
+            }
         }
 
-        return $this->render('user/edit.html.twig', [
-            'user' => $user,
-            'form' => $form->createView(),
-        ]);
+        try {
+            return $this->render('user/edit.html.twig', [
+                'user' => $user,
+                'form' => $form->createView(),
+            ]);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('user_controller_edit');
+            }
+        }
     }
 
     #[Route('/{id}', name: 'app_user_delete', methods: ['POST'])]
     public function delete(
         Request $request,
         User $user,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('user_controller_delete');
+        }
+        
         if ($this->isCsrfTokenValid('delete'.$user->getId(), $request->request->get('_token'))) {
             // Не удаляем администратора системы
             if ($user->getUsername() === 'admin') {
                 $this->addFlash('error', 'Нельзя удалить системного администратора');
-                return $this->redirectToRoute('app_user_index');
+                
+                try {
+                    return $this->redirectToRoute('app_user_index');
+                } finally {
+                    if ($performanceMonitor) {
+                        $performanceMonitor->stopTimer('user_controller_delete');
+                    }
+                }
             }
 
             $entityManager->remove($user);
@@ -118,15 +189,26 @@ class UserController extends AbstractController
             $this->addFlash('success', 'Пользователь успешно удален');
         }
 
-        return $this->redirectToRoute('app_user_index');
+        try {
+            return $this->redirectToRoute('app_user_index');
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('user_controller_delete');
+            }
+        }
     }
 
     #[Route('/{id}/toggle-active', name: 'app_user_toggle_active', methods: ['POST'])]
     public function toggleActive(
         Request $request,
         User $user,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('user_controller_toggle_active');
+        }
+        
         if ($this->isCsrfTokenValid('toggle-active'.$user->getId(), $request->request->get('_token'))) {
             $user->setIsActive(!$user->isActive());
             $entityManager->flush();
@@ -135,20 +217,37 @@ class UserController extends AbstractController
             $this->addFlash('success', "Пользователь {$status}");
         }
 
-        return $this->redirectToRoute('app_user_index');
+        try {
+            return $this->redirectToRoute('app_user_index');
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('user_controller_toggle_active');
+            }
+        }
     }
 
     #[Route('/{id}/unlock', name: 'app_user_unlock', methods: ['POST'])]
     public function unlock(
         Request $request,
         User $user,
-        UserRepository $userRepository
+        UserRepository $userRepository,
+        ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('user_controller_unlock');
+        }
+        
         if ($this->isCsrfTokenValid('unlock'.$user->getId(), $request->request->get('_token'))) {
             $userRepository->unlockUser($user);
             $this->addFlash('success', 'Пользователь разблокирован');
         }
 
-        return $this->redirectToRoute('app_user_index');
+        try {
+            return $this->redirectToRoute('app_user_index');
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('user_controller_unlock');
+            }
+        }
     }
 }
