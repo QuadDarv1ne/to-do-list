@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Repository\TaskRepository;
 use App\Service\AnalyticsService;
+use App\Service\QueryCacheService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -38,5 +39,17 @@ class DashboardController extends AbstractController
             'platform_activity_stats' => $analyticsData['platform_activity_stats'] ?? null,
             'user_activity_stats' => $analyticsData['user_activity_stats'] ?? null,
         ]);
+    }
+    
+    #[Route('/cache/clear', name: 'app_cache_clear', methods: ['POST'])]
+    public function clearCache(QueryCacheService $cacheService): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        
+        $cacheService->clear();
+        
+        $this->addFlash('success', 'Cache cleared successfully!');
+        
+        return $this->redirectToRoute('app_dashboard');
     }
 }

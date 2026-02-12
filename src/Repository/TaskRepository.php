@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Task;
 use App\Entity\User;
 use App\Repository\Traits\CachedRepositoryTrait;
+use App\Service\QueryCacheService;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -18,7 +19,12 @@ class TaskRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Task::class);
     }
-
+    
+    public function setCacheService(QueryCacheService $cacheService): void
+    {
+        $this->cacheService = $cacheService;
+    }
+    
     /**
      * Count tasks by status and optionally by user
      */
