@@ -551,39 +551,39 @@ class AnalyticsService
     {
         $periodRanges = $this->getPeriodDateRanges($period1, $period2);
         
-        $qb = $this->entityManager->createQueryBuilder();
-        
         // Get analytics for period 1
-        $period1Stats = $qb->select(
-            'COUNT(t.id) as total_tasks',
-            'SUM(CASE WHEN t.status = :completed THEN 1 ELSE 0 END) as completed_tasks',
-            'AVG(TIMESTAMPDIFF(HOUR, t.createdAt, t.updatedAt)) as avg_completion_time'
-        )
-        ->from(Task::class, 't')
-        ->where('(t.assignedUser = :user OR t.user = :user)')
-        ->andWhere('t.createdAt BETWEEN :start1 AND :end1')
-        ->setParameter('user', $user)
-        ->setParameter('completed', 'completed')
-        ->setParameter('start1', $periodRanges['period1']['start'])
-        ->setParameter('end1', $periodRanges['period1']['end'])
-        ->getQuery()
-        ->getSingleResult();
+        $period1Stats = $this->entityManager->createQueryBuilder()
+            ->select(
+                'COUNT(t.id) as total_tasks',
+                'SUM(CASE WHEN t.status = :completed THEN 1 ELSE 0 END) as completed_tasks',
+                'AVG(TIMESTAMPDIFF(HOUR, t.createdAt, t.updatedAt)) as avg_completion_time'
+            )
+            ->from(Task::class, 't')
+            ->where('(t.assignedUser = :user OR t.user = :user)')
+            ->andWhere('t.createdAt BETWEEN :start1 AND :end1')
+            ->setParameter('user', $user)
+            ->setParameter('completed', 'completed')
+            ->setParameter('start1', $periodRanges['period1']['start'])
+            ->setParameter('end1', $periodRanges['period1']['end'])
+            ->getQuery()
+            ->getSingleResult();
         
         // Get analytics for period 2
-        $period2Stats = $qb->select(
-            'COUNT(t.id) as total_tasks',
-            'SUM(CASE WHEN t.status = :completed THEN 1 ELSE 0 END) as completed_tasks',
-            'AVG(TIMESTAMPDIFF(HOUR, t.createdAt, t.updatedAt)) as avg_completion_time'
-        )
-        ->from(Task::class, 't')
-        ->where('(t.assignedUser = :user OR t.user = :user)')
-        ->andWhere('t.createdAt BETWEEN :start2 AND :end2')
-        ->setParameter('user', $user)
-        ->setParameter('completed', 'completed')
-        ->setParameter('start2', $periodRanges['period2']['start'])
-        ->setParameter('end2', $periodRanges['period2']['end'])
-        ->getQuery()
-        ->getSingleResult();
+        $period2Stats = $this->entityManager->createQueryBuilder()
+            ->select(
+                'COUNT(t.id) as total_tasks',
+                'SUM(CASE WHEN t.status = :completed THEN 1 ELSE 0 END) as completed_tasks',
+                'AVG(TIMESTAMPDIFF(HOUR, t.createdAt, t.updatedAt)) as avg_completion_time'
+            )
+            ->from(Task::class, 't')
+            ->where('(t.assignedUser = :user OR t.user = :user)')
+            ->andWhere('t.createdAt BETWEEN :start2 AND :end2')
+            ->setParameter('user', $user)
+            ->setParameter('completed', 'completed')
+            ->setParameter('start2', $periodRanges['period2']['start'])
+            ->setParameter('end2', $periodRanges['period2']['end'])
+            ->getQuery()
+            ->getSingleResult();
         
         // Calculate completion rates
         $period1Rate = $period1Stats['total_tasks'] > 0 ? 
@@ -803,7 +803,7 @@ class AnalyticsService
         $topDependentTasks = $qb->select('dt.id, dt.title, COUNT(td.id) as dependency_count')
             ->from('App\\Entity\\TaskDependency', 'td')
             ->join('td.dependentTask', 'dt')
-            ->where('dt.assignedTo = :user OR dt.createdBy = :user')
+            ->where('dt.assignedUser = :user OR dt.user = :user')
             ->groupBy('dt.id, dt.title')
             ->orderBy('dependency_count', 'DESC')
             ->setMaxResults(5)
@@ -815,7 +815,7 @@ class AnalyticsService
         $topBlockingTasks = $qb->select('dtt.id, dtt.title, COUNT(td.id) as blocked_count')
             ->from('App\\Entity\\TaskDependency', 'td')
             ->join('td.dependencyTask', 'dtt')
-            ->where('dtt.assignedTo = :user OR dtt.createdBy = :user')
+            ->where('dtt.assignedUser = :user OR dtt.user = :user')
             ->groupBy('dtt.id, dtt.title')
             ->orderBy('blocked_count', 'DESC')
             ->setMaxResults(5)

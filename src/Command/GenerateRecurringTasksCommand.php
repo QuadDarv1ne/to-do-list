@@ -29,8 +29,8 @@ class GenerateRecurringTasksCommand extends Command
     {
         $output->writeln('<info>Starting recurring task generation...</info>');
 
-        // Find all tasks with recurrence settings
-        $recurrences = $this->taskRecurrenceRepository->findAll(); // We'll use findAll for now, but in production you might want to filter by active users
+        // Find all active tasks with recurrence settings
+        $recurrences = $this->taskRecurrenceRepository->findActiveRecurrences(); // Only process active recurrences
         
         $progressBar = new ProgressBar($output, count($recurrences));
         $progressBar->start();

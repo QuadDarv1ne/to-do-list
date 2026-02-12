@@ -5,36 +5,55 @@ namespace App\Service;
 use App\Entity\Task;
 use App\Entity\TaskDependency;
 use App\Entity\TaskNotification;
-use App\Repository\TaskNotificationRepository;
+use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Email;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Twig\Environment;
+use Psr\Log\LoggerInterface;
 
 class TaskDependencyNotificationService
 {
     private EntityManagerInterface $entityManager;
-    private MailerInterface $mailer;
-    private UrlGeneratorInterface $urlGenerator;
-    private Environment $twig;
+    private LoggerInterface $logger;
 
     public function __construct(
         EntityManagerInterface $entityManager,
-        MailerInterface $mailer,
-        UrlGeneratorInterface $urlGenerator,
-        Environment $twig
+        LoggerInterface $logger
     ) {
         $this->entityManager = $entityManager;
-        $this->mailer = $mailer;
-        $this->urlGenerator = $urlGenerator;
-        $this->twig = $twig;
+        $this->logger = $logger;
     }
 
     /**
-     * Notify when a task dependency is created
+     * Create notification for a task dependency event
      */
-    public function notifyOnDependencyCreated(TaskDependency $dependency): void
+    public function createDependencyNotification(
+        User $recipient,
+        User $sender,
+        Task $task,
+        string $type,
+        string $subject,
+        string $message
+    ): TaskNotification {
+        $notification = new TaskNotification();
+        $notification->setRecipient($recipient);
+        $notification->setSender($sender);
+        $notification->setTask($task);
+        $notification->setType($type);
+        $notification->setSubject($subject);
+        $notification->setMessage($message);
+        $notification->setIsSent(false);
+
+        $this->entityManager->persist($notification);
+        $this->entityManager->flush();
+
+        $this->logger->info("Created dependency notification for user {$recipient->getId()}: {$subject}");
+
+        return $notification;
+    }
+
+    /**
+     * Send notification when a dependency is created
+     */
+    public function sendDependencyCreatedNotification(TaskDependency $dependency): void
     {
         $dependentTask = $dependency->getDependentTask();
         $dependencyTask = $dependency->getDependencyTask();
@@ -42,40 +61,28 @@ class TaskDependencyNotificationService
         // Notify the assigned user of the dependent task
         $assignedUser = $dependentTask->getAssignedUser();
         if ($assignedUser) {
-            $notification = new TaskNotification();
-            $notification->setTask($dependentTask);
-            $notification->setRecipient($assignedUser);
-            $notification->setSender($dependentTask->getUser() ?: $assignedUser); // Use task creator as sender, fallback to assignee
-            $notification->setType('info');
-            $notification->setSubject("Новая зависимость для задачи {$dependentTask->getTitle()}");
-            $notification->setMessage(
-                "Задача '{$dependentTask->getTitle()}' теперь зависит от задачи '{$dependencyTask->getTitle()}'. " .
-                "Зависимая задача должна быть завершена перед началом этой задачи."
+            $subject = 'Добавлена новая зависимость';
+            $message = sprintf(
+                'Задача "%s" теперь зависит от задачи "%s". Необходимо дождаться выполнения зависимости перед началом работы.',
+                $dependentTask->getTitle(),
+                $dependencyTask->getTitle()
             );
-            $notification->setIsRead(false);
-            $notification->setIsSent(false);
 
-            $this->entityManager->persist($notification);
-            $this->entityManager->flush();
-
-            // Also send email notification
-            $this->sendEmailNotification(
+            $this->createDependencyNotification(
                 $assignedUser,
-                "Новая зависимость для задачи {$dependentTask->getTitle()}",
-                $this->twig->render('emails/task_dependency_created.html.twig', [
-                    'user' => $assignedUser,
-                    'dependentTask' => $dependentTask,
-                    'dependencyTask' => $dependencyTask,
-                    'dependency' => $dependency
-                ])
+                $assignedUser, // Using assigned user as sender for now
+                $dependentTask,
+                'dependency_created',
+                $subject,
+                $message
             );
         }
     }
 
     /**
-     * Notify when a task dependency is removed
+     * Send notification when a dependency is removed
      */
-    public function notifyOnDependencyRemoved(TaskDependency $dependency): void
+    public function sendDependencyRemovedNotification(TaskDependency $dependency): void
     {
         $dependentTask = $dependency->getDependentTask();
         $dependencyTask = $dependency->getDependencyTask();
@@ -83,135 +90,118 @@ class TaskDependencyNotificationService
         // Notify the assigned user of the dependent task
         $assignedUser = $dependentTask->getAssignedUser();
         if ($assignedUser) {
-            $notification = new TaskNotification();
-            $notification->setTask($dependentTask);
-            $notification->setRecipient($assignedUser);
-            $notification->setSender($dependentTask->getUser() ?: $assignedUser); // Use task creator as sender, fallback to assignee
-            $notification->setType('warning');
-            $notification->setSubject("Удалена зависимость для задачи {$dependentTask->getTitle()}");
-            $notification->setMessage(
-                "Зависимость задачи '{$dependentTask->getTitle()}' от задачи '{$dependencyTask->getTitle()}' была удалена."
+            $subject = 'Зависимость удалена';
+            $message = sprintf(
+                'Зависимость задачи "%s" от задачи "%s" была удалена.',
+                $dependentTask->getTitle(),
+                $dependencyTask->getTitle()
             );
-            $notification->setIsRead(false);
-            $notification->setIsSent(false);
 
-            $this->entityManager->persist($notification);
-            $this->entityManager->flush();
-
-            // Also send email notification
-            $this->sendEmailNotification(
+            $this->createDependencyNotification(
                 $assignedUser,
-                "Удалена зависимость для задачи {$dependentTask->getTitle()}",
-                $this->twig->render('emails/task_dependency_removed.html.twig', [
-                    'user' => $assignedUser,
-                    'dependentTask' => $dependentTask,
-                    'dependencyTask' => $dependencyTask,
-                    'dependency' => $dependency
-                ])
+                $assignedUser, // Using assigned user as sender for now
+                $dependentTask,
+                'dependency_removed',
+                $subject,
+                $message
             );
         }
     }
 
     /**
-     * Notify when a dependency task is completed (unblocking dependent tasks)
+     * Send notification when a dependency is satisfied (completed)
      */
-    public function notifyOnDependencySatisfied(TaskDependency $dependency): void
+    public function sendDependencySatisfiedNotification(TaskDependency $dependency): void
     {
         $dependentTask = $dependency->getDependentTask();
         $dependencyTask = $dependency->getDependencyTask();
         
-        // Check if dependent task can now be started
-        if ($dependentTask->canStart()) {
-            $assignedUser = $dependentTask->getAssignedUser();
-            if ($assignedUser) {
-                $notification = new TaskNotification();
-                $notification->setTask($dependentTask);
-                $notification->setRecipient($assignedUser);
-                $notification->setSender($dependentTask->getUser() ?: $assignedUser); // Use task creator as sender, fallback to assignee
-                $notification->setType('success');
-                $notification->setSubject("Можно начать задачу {$dependentTask->getTitle()}");
-                $notification->setMessage(
-                    "Зависимая задача '{$dependencyTask->getTitle()}' завершена! Теперь можно начать работу над задачей '{$dependentTask->getTitle()}'."
-                );
-                $notification->setIsRead(false);
-                $notification->setIsSent(false);
+        // Notify the assigned user of the dependent task that they can now start
+        $assignedUser = $dependentTask->getAssignedUser();
+        if ($assignedUser) {
+            $subject = 'Зависимость выполнена - можно начинать работу';
+            $message = sprintf(
+                'Зависимость "%s" выполнена. Теперь вы можете начать работу над задачей "%s".',
+                $dependencyTask->getTitle(),
+                $dependentTask->getTitle()
+            );
 
-                $this->entityManager->persist($notification);
-                $this->entityManager->flush();
-
-                // Also send email notification
-                $this->sendEmailNotification(
-                    $assignedUser,
-                    "Можно начать задачу {$dependentTask->getTitle()}",
-                    $this->twig->render('emails/task_can_start.html.twig', [
-                        'user' => $assignedUser,
-                        'dependentTask' => $dependentTask,
-                        'dependencyTask' => $dependencyTask,
-                        'dependency' => $dependency
-                    ])
-                );
-            }
+            $this->createDependencyNotification(
+                $assignedUser,
+                $dependencyTask->getAssignedUser() ?? $dependencyTask->getUser(), // Use creator of dependency task as sender
+                $dependentTask,
+                'dependency_satisfied',
+                $subject,
+                $message
+            );
         }
     }
 
     /**
-     * Notify when a dependency task is reopened (blocking dependent tasks again)
+     * Send notification when a task becomes blocked due to dependencies
      */
-    public function notifyOnDependencyUnsatisfied(TaskDependency $dependency): void
+    public function sendTaskBlockedNotification(Task $task): void
     {
-        $dependentTask = $dependency->getDependentTask();
-        $dependencyTask = $dependency->getDependencyTask();
-        
-        // Check if dependent task can no longer be started
-        if (!$dependentTask->canStart()) {
-            $assignedUser = $dependentTask->getAssignedUser();
-            if ($assignedUser) {
-                $notification = new TaskNotification();
-                $notification->setTask($dependentTask);
-                $notification->setRecipient($assignedUser);
-                $notification->setSender($dependentTask->getUser() ?: $assignedUser); // Use task creator as sender, fallback to assignee
-                $notification->setType('warning');
-                $notification->setSubject("Задача {$dependentTask->getTitle()} заблокирована");
-                $notification->setMessage(
-                    "Зависимая задача '{$dependencyTask->getTitle()}' снова открыта. Задача '{$dependentTask->getTitle()}' заблокирована до завершения зависимости."
-                );
-                $notification->setIsRead(false);
-                $notification->setIsSent(false);
+        $assignedUser = $task->getAssignedUser();
+        if (!$assignedUser) {
+            return;
+        }
 
-                $this->entityManager->persist($notification);
-                $this->entityManager->flush();
-
-                // Also send email notification
-                $this->sendEmailNotification(
-                    $assignedUser,
-                    "Задача {$dependentTask->getTitle()} заблокирована",
-                    $this->twig->render('emails/task_blocked.html.twig', [
-                        'user' => $assignedUser,
-                        'dependentTask' => $dependentTask,
-                        'dependencyTask' => $dependencyTask,
-                        'dependency' => $dependency
-                    ])
-                );
+        // Get blocking dependencies
+        $blockingDependencies = [];
+        foreach ($task->getDependencies() as $dependency) {
+            if ($dependency->getType() === 'blocking' && !$dependency->isSatisfied()) {
+                $blockingDependencies[] = $dependency->getDependencyTask();
             }
         }
+
+        if (empty($blockingDependencies)) {
+            return;
+        }
+
+        $dependencyTitles = array_map(fn($dep) => $dep->getTitle(), $blockingDependencies);
+        $dependencyList = implode(', ', $dependencyTitles);
+
+        $subject = 'Задача заблокирована';
+        $message = sprintf(
+            'Задача "%s" заблокирована из-за невыполненных зависимостей: %s. Работа над задачей может начаться после выполнения зависимостей.',
+            $task->getTitle(),
+            $dependencyList
+        );
+
+        $this->createDependencyNotification(
+            $assignedUser,
+            $assignedUser, // Using assigned user as sender for now
+            $task,
+            'task_blocked',
+            $subject,
+            $message
+        );
     }
 
     /**
-     * Send email notification
+     * Send notification when a task is unblocked (dependencies satisfied)
      */
-    private function sendEmailNotification($user, string $subject, string $htmlContent): void
+    public function sendTaskUnblockedNotification(Task $task): void
     {
-        $email = (new Email())
-            ->from($_ENV['MAILER_FROM'] ?? 'noreply@example.com')
-            ->to($user->getEmail())
-            ->subject($subject)
-            ->html($htmlContent);
-
-        try {
-            $this->mailer->send($email);
-        } catch (\Exception $e) {
-            // Log the error but don't interrupt the process
-            error_log("Failed to send email notification: " . $e->getMessage());
+        $assignedUser = $task->getAssignedUser();
+        if (!$assignedUser) {
+            return;
         }
+
+        $subject = 'Задача разблокирована - можно начинать работу';
+        $message = sprintf(
+            'Задача "%s" разблокирована. Все зависимости выполнены, теперь можно начинать работу.',
+            $task->getTitle()
+        );
+
+        $this->createDependencyNotification(
+            $assignedUser,
+            $assignedUser, // Using assigned user as sender for now
+            $task,
+            'task_unblocked',
+            $subject,
+            $message
+        );
     }
 }

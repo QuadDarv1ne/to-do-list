@@ -40,6 +40,18 @@ class TaskRecurrenceRepository extends ServiceEntityRepository
     }
     
     /**
+     * Find active recurrences that need to be processed (have not reached their end date or have no end date)
+     */
+    public function findActiveRecurrences()
+    {
+        return $this->createQueryBuilder('tr')
+            ->where('tr.endDate IS NULL OR tr.endDate >= :today')
+            ->setParameter('today', new \DateTimeImmutable())
+            ->getQuery()
+            ->getResult();
+    }
+    
+    /**
      * Find upcoming recurring tasks for a specific user
      */
     public function findUpcomingForUser($user, $limit = 5)

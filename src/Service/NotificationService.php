@@ -38,8 +38,9 @@ class NotificationService
     ): Notification {
         $notification = new Notification();
         $notification->setUser($user);
-        $notification->setTitle($title);
-        $notification->setMessage($message);
+        // XSS protection: escape HTML characters in title and message
+        $notification->setTitle(htmlspecialchars($title, ENT_QUOTES, 'UTF-8'));
+        $notification->setMessage(htmlspecialchars($message, ENT_QUOTES, 'UTF-8'));
         $notification->setIsRead(false);
         if ($task) {
             $notification->setTask($task);
@@ -65,7 +66,7 @@ class NotificationService
     ): Notification {
         // For now, we'll create a basic notification
         // In a real implementation, you might want to extend the Notification entity
-        return $this->createNotification($user, $title, $message, null);
+        return $this->createNotification($user, htmlspecialchars($title, ENT_QUOTES, 'UTF-8'), htmlspecialchars($message, ENT_QUOTES, 'UTF-8'), null);
     }
 
     /**
@@ -136,8 +137,8 @@ class NotificationService
                     foreach ($newNotifications as $notification) {
                         // Handle both object and array formats for backward compatibility
                         $id = is_object($notification) ? $notification->getId() : $notification['id'];
-                        $title = is_object($notification) ? $notification->getTitle() : $notification['title'];
-                        $message = is_object($notification) ? $notification->getMessage() : $notification['message'];
+                        $title = is_object($notification) ? htmlspecialchars($notification->getTitle(), ENT_QUOTES, 'UTF-8') : htmlspecialchars($notification['title'], ENT_QUOTES, 'UTF-8');
+                        $message = is_object($notification) ? htmlspecialchars($notification->getMessage(), ENT_QUOTES, 'UTF-8') : htmlspecialchars($notification['message'], ENT_QUOTES, 'UTF-8');
                         $createdAt = is_object($notification) ? $notification->getCreatedAt() : new \DateTime($notification['createdAt']);
                         $taskId = is_object($notification) ? ($notification->getTask() ? $notification->getTask()->getId() : null) : ($notification['taskId'] ?? null);
                         
