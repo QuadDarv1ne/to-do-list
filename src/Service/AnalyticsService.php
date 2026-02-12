@@ -120,10 +120,9 @@ class AnalyticsService
     {
         $this->performanceMonitor->startTimer('analytics_service_get_overview_stats');
         try {
-            $qb = $this->entityManager->createQueryBuilder();
-            
             // Total tasks
-            $totalTasks = $qb->select('COUNT(t.id)')
+            $totalTasks = $this->entityManager->createQueryBuilder()
+                ->select('COUNT(t.id)')
                 ->from(Task::class, 't')
                 ->where('t.assignedUser = :user OR t.user = :user')
                 ->setParameter('user', $user)
@@ -131,7 +130,8 @@ class AnalyticsService
                 ->getSingleScalarResult();
 
             // Completed tasks
-            $completedTasks = $qb->select('COUNT(t.id)')
+            $completedTasks = $this->entityManager->createQueryBuilder()
+                ->select('COUNT(t.id)')
                 ->from(Task::class, 't')
                 ->where('(t.assignedUser = :user OR t.user = :user)')
                 ->andWhere('t.status = :status')
@@ -141,7 +141,8 @@ class AnalyticsService
                 ->getSingleScalarResult();
 
             // Overdue tasks
-            $overdueTasks = $qb->select('COUNT(t.id)')
+            $overdueTasks = $this->entityManager->createQueryBuilder()
+                ->select('COUNT(t.id)')
                 ->from(Task::class, 't')
                 ->where('(t.assignedUser = :user OR t.user = :user)')
                 ->andWhere('t.dueDate IS NOT NULL')
@@ -154,7 +155,8 @@ class AnalyticsService
                 ->getSingleScalarResult();
 
             // Pending tasks
-            $pendingTasks = $qb->select('COUNT(t.id)')
+            $pendingTasks = $this->entityManager->createQueryBuilder()
+                ->select('COUNT(t.id)')
                 ->from(Task::class, 't')
                 ->where('(t.assignedUser = :user OR t.user = :user)')
                 ->andWhere('t.status = :status')
@@ -234,8 +236,8 @@ class AnalyticsService
         $this->performanceMonitor->startTimer('analytics_service_get_productivity_trends');
         try {
             // Last 30 days daily completion
-            $qb = $this->entityManager->createQueryBuilder();
-            $dailyData = $qb->select('DATE(t.updatedAt) as date, COUNT(t.id) as count')
+            $dailyData = $this->entityManager->createQueryBuilder()
+                ->select('DATE(t.updatedAt) as date, COUNT(t.id) as count')
                 ->from(Task::class, 't')
                 ->where('(t.assignedUser = :user OR t.user = :user)')
                 ->andWhere('t.status = :status')
@@ -249,7 +251,8 @@ class AnalyticsService
                 ->getArrayResult();
 
             // Weekly averages
-            $weeklyData = $qb->select('YEARWEEK(t.updatedAt) as week, COUNT(t.id) as count')
+            $weeklyData = $this->entityManager->createQueryBuilder()
+                ->select('YEARWEEK(t.updatedAt) as week, COUNT(t.id) as count')
                 ->from(Task::class, 't')
                 ->where('(t.assignedUser = :user OR t.user = :user)')
                 ->andWhere('t.status = :status')
@@ -420,10 +423,10 @@ class AnalyticsService
     {
         $this->performanceMonitor->startTimer('analytics_service_get_time_analysis');
         try {
-            $qb = $this->entityManager->createQueryBuilder();
             
             // Average completion time
-            $avgCompletionTime = $qb->select('AVG(TIMESTAMPDIFF(HOUR, t.createdAt, t.updatedAt)) as avg_hours')
+            $avgCompletionTime = $this->entityManager->createQueryBuilder()
+                ->select('AVG(TIMESTAMPDIFF(HOUR, t.createdAt, t.updatedAt)) as avg_hours')
                 ->from(Task::class, 't')
                 ->where('(t.assignedUser = :user OR t.user = :user)')
                 ->andWhere('t.status = :status')
@@ -434,7 +437,8 @@ class AnalyticsService
                 ->getSingleScalarResult();
 
             // Tasks by hour of day
-            $hourlyDistribution = $qb->select('HOUR(t.createdAt) as hour, COUNT(t.id) as count')
+            $hourlyDistribution = $this->entityManager->createQueryBuilder()
+                ->select('HOUR(t.createdAt) as hour, COUNT(t.id) as count')
                 ->from(Task::class, 't')
                 ->where('(t.assignedUser = :user OR t.user = :user)')
                 ->groupBy('hour')

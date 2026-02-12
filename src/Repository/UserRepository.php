@@ -91,35 +91,39 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
 
     public function getStatistics(): array
     {
-        $qb = $this->createQueryBuilder('u');
+        $totalUsers = $this->createQueryBuilder('u')
+            ->select('COUNT(u.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
         
-        $totalUsers = $qb->select('COUNT(u.id)')->getQuery()->getSingleScalarResult();
-        
-        $activeUsers = $qb->select('COUNT(u.id)')
+        $activeUsers = $this->createQueryBuilder('u')
+            ->select('COUNT(u.id)')
             ->andWhere('u.isActive = :active')
             ->setParameter('active', true)
             ->getQuery()
             ->getSingleScalarResult();
             
-        $adminUsers = $qb->select('COUNT(u.id)')
+        $adminUsers = $this->createQueryBuilder('u')
+            ->select('COUNT(u.id)')
             ->andWhere('u.roles LIKE :admin_role')
             ->setParameter('admin_role', '%ROLE_ADMIN%')
             ->getQuery()
             ->getSingleScalarResult();
                 
-        $managerUsers = $qb->select('COUNT(u.id)')
+        $managerUsers = $this->createQueryBuilder('u')
+            ->select('COUNT(u.id)')
             ->andWhere('u.roles LIKE :manager_role')
             ->setParameter('manager_role', '%ROLE_MANAGER%')
             ->getQuery()
             ->getSingleScalarResult();
         
         // Get users who logged in today
-        $todayQb = $this->createQueryBuilder('u');
         $today = new \DateTime();
         $todayStart = $today->format('Y-m-d 00:00:00');
         $todayEnd = $today->format('Y-m-d 23:59:59');
         
-        $activeToday = $todayQb->select('COUNT(u.id)')
+        $activeToday = $this->createQueryBuilder('u')
+            ->select('COUNT(u.id)')
             ->where('u.lastLoginAt BETWEEN :start AND :end')
             ->setParameter('start', $todayStart)
             ->setParameter('end', $todayEnd)

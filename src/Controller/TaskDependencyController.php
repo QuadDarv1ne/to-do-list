@@ -348,10 +348,10 @@ class TaskDependencyController extends AbstractController
         $user = $this->getUser();
         
         // Get dependency statistics for the user's tasks
-        $qb = $this->entityManager->createQueryBuilder();
         
         // Total dependencies for user's tasks
-        $totalDependencies = $qb->select('COUNT(td.id)')
+        $totalDependencies = $this->entityManager->createQueryBuilder()
+            ->select('COUNT(td.id)')
             ->from(TaskDependency::class, 'td')
             ->join('td.dependentTask', 'dt')
             ->where('dt.assignedUser = :user OR dt.user = :user')
@@ -360,7 +360,8 @@ class TaskDependencyController extends AbstractController
             ->getSingleScalarResult();
         
         // Blocking dependencies
-        $blockingDependencies = $qb->select('COUNT(td.id)')
+        $blockingDependencies = $this->entityManager->createQueryBuilder()
+            ->select('COUNT(td.id)')
             ->from(TaskDependency::class, 'td')
             ->join('td.dependentTask', 'dt')
             ->where('dt.assignedUser = :user OR dt.user = :user')
@@ -371,7 +372,8 @@ class TaskDependencyController extends AbstractController
             ->getSingleScalarResult();
         
         // Satisfied dependencies (dependencies on completed tasks)
-        $satisfiedDependencies = $qb->select('COUNT(td.id)')
+        $satisfiedDependencies = $this->entityManager->createQueryBuilder()
+            ->select('COUNT(td.id)')
             ->from(TaskDependency::class, 'td')
             ->join('td.dependencyTask', 'dtt')
             ->where('dtt.status = :status')
@@ -380,7 +382,8 @@ class TaskDependencyController extends AbstractController
             ->getSingleScalarResult();
         
         // Unsatisfied dependencies (dependencies on incomplete tasks)
-        $unsatisfiedDependencies = $qb->select('COUNT(td.id)')
+        $unsatisfiedDependencies = $this->entityManager->createQueryBuilder()
+            ->select('COUNT(td.id)')
             ->from(TaskDependency::class, 'td')
             ->join('td.dependencyTask', 'dtt')
             ->where('dtt.status != :status')
