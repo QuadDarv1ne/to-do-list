@@ -13,11 +13,17 @@ class PerformanceMonitorService
     private LoggerInterface $logger;
     private ParameterBagInterface $parameterBag;
     private array $metrics = [];
+    private ?DebugStack $dbLogger = null;
 
     public function __construct(LoggerInterface $logger, ParameterBagInterface $parameterBag)
     {
         $this->logger = $logger;
         $this->parameterBag = $parameterBag;
+    }
+    
+    public function setDbLogger(DebugStack $dbLogger = null): void
+    {
+        $this->dbLogger = $dbLogger;
     }
 
     /**
