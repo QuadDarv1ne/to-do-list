@@ -2,23 +2,41 @@
 
 namespace App\Service;
 
+use App\Service\PerformanceMonitorService;
+
 class SanitizationService
 {
+    private ?PerformanceMonitorService $performanceMonitor;
+
+    public function __construct(?PerformanceMonitorService $performanceMonitor = null)
+    {
+        $this->performanceMonitor = $performanceMonitor;
+    }
+
     /**
      * Sanitize user input to prevent XSS attacks
      */
     public function sanitizeInput(string $input): string
     {
-        // Remove HTML tags
-        $sanitized = strip_tags($input);
-        
-        // Convert special characters to HTML entities
-        $sanitized = htmlspecialchars($sanitized, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        
-        // Remove potentially dangerous characters
-        $sanitized = preg_replace('/[^\p{L}\p{N}\s\-_\.@]/u', '', $sanitized);
-        
-        return trim($sanitized);
+        if ($this->performanceMonitor) {
+            $this->performanceMonitor->startTimer('sanitization_service_sanitize_input');
+        }
+        try {
+            // Remove HTML tags
+            $sanitized = strip_tags($input);
+            
+            // Convert special characters to HTML entities
+            $sanitized = htmlspecialchars($sanitized, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            
+            // Remove potentially dangerous characters
+            $sanitized = preg_replace('/[^\p{L}\p{N}\s\-_\.@]/u', '', $sanitized);
+            
+            return trim($sanitized);
+        } finally {
+            if ($this->performanceMonitor) {
+                $this->performanceMonitor->stopTimer('sanitization_service_sanitize_input');
+            }
+        }
     }
 
     /**
@@ -26,17 +44,26 @@ class SanitizationService
      */
     public function sanitizeRichText(string $html): string
     {
-        // Use HTML Purifier or similar library in production
-        // This is a basic example
-        $allowedTags = '<p><br><strong><em><u><ol><ul><li><h1><h2><h3><h4><h5><h6>';
-        $sanitized = strip_tags($html, $allowedTags);
-        
-        // Remove dangerous attributes
-        $sanitized = preg_replace('/(<[^>]+) on[a-z]+\s*=\s*"[^"]*"/i', '$1', $sanitized);
-        $sanitized = preg_replace("/(<[^>]+) on[a-z]+\s*=\s*'[^']*'/i", '$1', $sanitized);
-        $sanitized = preg_replace('/(<[^>]+) javascript:/i', '$1', $sanitized);
-        
-        return $sanitized;
+        if ($this->performanceMonitor) {
+            $this->performanceMonitor->startTimer('sanitization_service_sanitize_rich_text');
+        }
+        try {
+            // Use HTML Purifier or similar library in production
+            // This is a basic example
+            $allowedTags = '<p><br><strong><em><u><ol><ul><li><h1><h2><h3><h4><h5><h6>';
+            $sanitized = strip_tags($html, $allowedTags);
+            
+            // Remove dangerous attributes
+            $sanitized = preg_replace('/(<[^>]+) on[a-z]+\s*=\s*"[^"]*"/i', '$1', $sanitized);
+            $sanitized = preg_replace("/(<[^>]+) on[a-z]+\s*=\s*'[^']*'/i", '$1', $sanitized);
+            $sanitized = preg_replace('/(<[^>]+) javascript:/i', '$1', $sanitized);
+            
+            return $sanitized;
+        } finally {
+            if ($this->performanceMonitor) {
+                $this->performanceMonitor->stopTimer('sanitization_service_sanitize_rich_text');
+            }
+        }
     }
 
     /**
@@ -44,8 +71,17 @@ class SanitizationService
      */
     public function sanitizeEmail(string $email): string
     {
-        $email = filter_var(trim($email), FILTER_SANITIZE_EMAIL);
-        return filter_var($email, FILTER_VALIDATE_EMAIL) ? $email : '';
+        if ($this->performanceMonitor) {
+            $this->performanceMonitor->startTimer('sanitization_service_sanitize_email');
+        }
+        try {
+            $email = filter_var(trim($email), FILTER_SANITIZE_EMAIL);
+            return filter_var($email, FILTER_VALIDATE_EMAIL) ? $email : '';
+        } finally {
+            if ($this->performanceMonitor) {
+                $this->performanceMonitor->stopTimer('sanitization_service_sanitize_email');
+            }
+        }
     }
 
     /**
@@ -53,8 +89,17 @@ class SanitizationService
      */
     public function sanitizeUrl(string $url): string
     {
-        $url = filter_var(trim($url), FILTER_SANITIZE_URL);
-        return filter_var($url, FILTER_VALIDATE_URL) ? $url : '';
+        if ($this->performanceMonitor) {
+            $this->performanceMonitor->startTimer('sanitization_service_sanitize_url');
+        }
+        try {
+            $url = filter_var(trim($url), FILTER_SANITIZE_URL);
+            return filter_var($url, FILTER_VALIDATE_URL) ? $url : '';
+        } finally {
+            if ($this->performanceMonitor) {
+                $this->performanceMonitor->stopTimer('sanitization_service_sanitize_url');
+            }
+        }
     }
 
     /**
@@ -62,10 +107,19 @@ class SanitizationService
      */
     public function sanitizeNumber($input): ?float
     {
-        if (is_numeric($input)) {
-            return (float) $input;
+        if ($this->performanceMonitor) {
+            $this->performanceMonitor->startTimer('sanitization_service_sanitize_number');
         }
-        return null;
+        try {
+            if (is_numeric($input)) {
+                return (float) $input;
+            }
+            return null;
+        } finally {
+            if ($this->performanceMonitor) {
+                $this->performanceMonitor->stopTimer('sanitization_service_sanitize_number');
+            }
+        }
     }
 
     /**
@@ -73,16 +127,25 @@ class SanitizationService
      */
     public function sanitizeArray(array $inputs): array
     {
-        $sanitized = [];
-        foreach ($inputs as $key => $value) {
-            if (is_array($value)) {
-                $sanitized[$key] = $this->sanitizeArray($value);
-            } elseif (is_string($value)) {
-                $sanitized[$key] = $this->sanitizeInput($value);
-            } else {
-                $sanitized[$key] = $value;
+        if ($this->performanceMonitor) {
+            $this->performanceMonitor->startTimer('sanitization_service_sanitize_array');
+        }
+        try {
+            $sanitized = [];
+            foreach ($inputs as $key => $value) {
+                if (is_array($value)) {
+                    $sanitized[$key] = $this->sanitizeArray($value);
+                } elseif (is_string($value)) {
+                    $sanitized[$key] = $this->sanitizeInput($value);
+                } else {
+                    $sanitized[$key] = $value;
+                }
+            }
+            return $sanitized;
+        } finally {
+            if ($this->performanceMonitor) {
+                $this->performanceMonitor->stopTimer('sanitization_service_sanitize_array');
             }
         }
-        return $sanitized;
     }
 }

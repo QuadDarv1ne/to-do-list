@@ -90,6 +90,10 @@ services:
         arguments:
             $performanceMonitor: '@App\Service\PerformanceMonitorService'
 
+    App\Service\SanitizationService:
+        arguments:
+            $performanceMonitor: '@App\Service\PerformanceMonitorService'
+
     App\Command\PerformanceTestCommand:
         arguments:
             $performanceMonitor: '@App\Service\PerformanceMonitorService'
