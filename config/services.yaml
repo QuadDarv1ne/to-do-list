@@ -82,6 +82,14 @@ services:
         arguments:
             $performanceMonitor: '@App\Service\PerformanceMonitorService'
 
+    App\Service\EventStreamManager:
+        arguments:
+            $performanceMonitor: '@App\Service\PerformanceMonitorService'
+
+    App\Service\RateLimitingService:
+        arguments:
+            $performanceMonitor: '@App\Service\PerformanceMonitorService'
+
     App\Command\PerformanceTestCommand:
         arguments:
             $performanceMonitor: '@App\Service\PerformanceMonitorService'

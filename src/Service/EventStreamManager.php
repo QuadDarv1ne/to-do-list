@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\User;
 use App\Repository\NotificationRepository;
+use App\Service\PerformanceMonitorService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 
@@ -15,6 +16,7 @@ class EventStreamManager
     private NotificationRepository $notificationRepository;
     private EntityManagerInterface $entityManager;
     private LoggerInterface $logger;
+    private ?PerformanceMonitorService $performanceMonitor;
     
     // Store last notification check times per user to reduce database queries
     private array $lastCheckTimes = [];
@@ -22,11 +24,13 @@ class EventStreamManager
     public function __construct(
         NotificationRepository $notificationRepository,
         EntityManagerInterface $entityManager,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        ?PerformanceMonitorService $performanceMonitor = null
     ) {
         $this->notificationRepository = $notificationRepository;
         $this->entityManager = $entityManager;
         $this->logger = $logger;
+        $this->performanceMonitor = $performanceMonitor;
     }
     
     /**
@@ -34,24 +38,33 @@ class EventStreamManager
      */
     public function getNewNotifications(User $user, \DateTime $since): array
     {
-        // Use a more efficient query with proper indexing
-        $qb = $this->notificationRepository->createQueryBuilder('n');
-        
-        $result = $qb
-            ->where('n.user = :user')
-            ->andWhere('n.createdAt > :since')
-            ->andWhere('n.isRead = false')
-            ->setParameter('user', $user)
-            ->setParameter('since', $since)
-            ->orderBy('n.createdAt', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult();
+        if ($this->performanceMonitor) {
+            $this->performanceMonitor->startTimer('event_stream_manager_get_new_notifications');
+        }
+        try {
+            // Use a more efficient query with proper indexing
+            $qb = $this->notificationRepository->createQueryBuilder('n');
             
-        // Update the last check time for this user
-        $this->lastCheckTimes[$user->getId()] = new \DateTime();
-        
-        return $result;
+            $result = $qb
+                ->where('n.user = :user')
+                ->andWhere('n.createdAt > :since')
+                ->andWhere('n.isRead = false')
+                ->setParameter('user', $user)
+                ->setParameter('since', $since)
+                ->orderBy('n.createdAt', 'ASC')
+                ->setMaxResults(10)
+                ->getQuery()
+                ->getResult();
+                
+            // Update the last check time for this user
+            $this->lastCheckTimes[$user->getId()] = new \DateTime();
+            
+            return $result;
+        } finally {
+            if ($this->performanceMonitor) {
+                $this->performanceMonitor->stopTimer('event_stream_manager_get_new_notifications');
+            }
+        }
     }
     
     /**
@@ -59,17 +72,26 @@ class EventStreamManager
      */
     public function hasNewNotifications(User $user, \DateTime $since): bool
     {
-        $count = $this->notificationRepository->createQueryBuilder('n')
-            ->select('COUNT(n.id)')
-            ->where('n.user = :user')
-            ->andWhere('n.createdAt > :since')
-            ->andWhere('n.isRead = false')
-            ->setParameter('user', $user)
-            ->setParameter('since', $since)
-            ->getQuery()
-            ->getSingleScalarResult();
-            
-        return $count > 0;
+        if ($this->performanceMonitor) {
+            $this->performanceMonitor->startTimer('event_stream_manager_has_new_notifications');
+        }
+        try {
+            $count = $this->notificationRepository->createQueryBuilder('n')
+                ->select('COUNT(n.id)')
+                ->where('n.user = :user')
+                ->andWhere('n.createdAt > :since')
+                ->andWhere('n.isRead = false')
+                ->setParameter('user', $user)
+                ->setParameter('since', $since)
+                ->getQuery()
+                ->getSingleScalarResult();
+                
+            return $count > 0;
+        } finally {
+            if ($this->performanceMonitor) {
+                $this->performanceMonitor->stopTimer('event_stream_manager_has_new_notifications');
+            }
+        }
     }
     
     /**
@@ -77,7 +99,16 @@ class EventStreamManager
      */
     public function getLastCheckTime(int $userId): ?\DateTime
     {
-        return $this->lastCheckTimes[$userId] ?? null;
+        if ($this->performanceMonitor) {
+            $this->performanceMonitor->startTimer('event_stream_manager_get_last_check_time');
+        }
+        try {
+            return $this->lastCheckTimes[$userId] ?? null;
+        } finally {
+            if ($this->performanceMonitor) {
+                $this->performanceMonitor->stopTimer('event_stream_manager_get_last_check_time');
+            }
+        }
     }
     
     /**
@@ -85,7 +116,16 @@ class EventStreamManager
      */
     public function setLastCheckTime(int $userId, \DateTime $dateTime): void
     {
-        $this->lastCheckTimes[$userId] = $dateTime;
+        if ($this->performanceMonitor) {
+            $this->performanceMonitor->startTimer('event_stream_manager_set_last_check_time');
+        }
+        try {
+            $this->lastCheckTimes[$userId] = $dateTime;
+        } finally {
+            if ($this->performanceMonitor) {
+                $this->performanceMonitor->stopTimer('event_stream_manager_set_last_check_time');
+            }
+        }
     }
     
     /**
@@ -93,11 +133,20 @@ class EventStreamManager
      */
     public function cleanup(): void
     {
-        // Remove entries older than 1 hour from memory
-        $cutoff = new \DateTime('-1 hour');
-        foreach ($this->lastCheckTimes as $userId => $dateTime) {
-            if ($dateTime < $cutoff) {
-                unset($this->lastCheckTimes[$userId]);
+        if ($this->performanceMonitor) {
+            $this->performanceMonitor->startTimer('event_stream_manager_cleanup');
+        }
+        try {
+            // Remove entries older than 1 hour from memory
+            $cutoff = new \DateTime('-1 hour');
+            foreach ($this->lastCheckTimes as $userId => $dateTime) {
+                if ($dateTime < $cutoff) {
+                    unset($this->lastCheckTimes[$userId]);
+                }
+            }
+        } finally {
+            if ($this->performanceMonitor) {
+                $this->performanceMonitor->stopTimer('event_stream_manager_cleanup');
             }
         }
     }
