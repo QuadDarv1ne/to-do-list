@@ -14,14 +14,24 @@ class HomeController extends AbstractController
     #[Route('/', name: 'app_home')]
     public function index(
         AuthenticationUtils $authenticationUtils,
-        ?PerformanceMonitorService $performanceMonitor = null
+        ?PerformanceMonitorService $performanceMonitor = null,
+        ?LoggingService $loggingService = null
     ): Response {
         if ($performanceMonitor) {
             $performanceMonitor->startTimer('home_controller_index');
         }
         
+        // Log home page access
+        if ($loggingService) {
+            $loggingService->logInfo('Home page accessed');
+        }
+        
         // If user is already logged in, redirect to dashboard
         if ($this->getUser()) {
+            if ($loggingService) {
+                $loggingService->logUserActivity('Redirected from home to dashboard');
+            }
+            
             try {
                 return $this->redirectToRoute('app_dashboard');
             } finally {
@@ -32,6 +42,10 @@ class HomeController extends AbstractController
         }
 
         // Otherwise, redirect to login
+        if ($loggingService) {
+            $loggingService->logUserActivity('Redirected from home to login');
+        }
+        
         try {
             return $this->redirectToRoute('app_login');
         } finally {
