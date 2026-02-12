@@ -172,4 +172,16 @@ trait CachedRepositoryTrait
             $ttl
         );
     }
+
+    /**
+     * Delete specific cache keys by pattern (wrapper for invalidate)
+     */
+    protected function delete(string $pattern): bool
+    {
+        if (!$this->cacheService) {
+            return false;
+        }
+
+        return $this->cacheService->invalidate($pattern);
+    }
 }

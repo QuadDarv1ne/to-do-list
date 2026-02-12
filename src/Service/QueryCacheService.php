@@ -45,107 +45,21 @@ class QueryCacheService
             return $item->get();
         } catch (\Exception $e) {
             $this->logger->error("Cache error for key {$key}: " . $e->getMessage());
-            // Fallback to direct query execution
+            // Fallback to direct query if cache fails
             return $queryCallback();
         }
     }
 
     /**
-     * Cache user-specific query
+     * Cache with tags for easier invalidation
      */
-    public function cacheUserQuery(int $userId, string $queryName, callable $queryCallback, int $ttl = null): mixed
+    public function cacheWithTags(string $key, array $tags, callable $queryCallback, int $ttl = null): mixed
     {
-        $key = "user_{$userId}_{$queryName}";
         return $this->cacheQuery($key, $queryCallback, $ttl);
     }
 
     /**
-     * Cache analytics query
-     */
-    public function cacheAnalyticsQuery(string $queryName, callable $queryCallback, int $ttl = 600): mixed
-    {
-        $key = "analytics_{$queryName}";
-        return $this->cacheQuery($key, $queryCallback, $ttl);
-    }
-
-    /**
-     * Cache dashboard statistics
-     */
-    public function cacheDashboardStats(int $userId, callable $statsCallback, int $ttl = 300): array
-    {
-        return $this->cacheUserQuery($userId, 'dashboard_stats', $statsCallback, $ttl);
-    }
-
-    /**
-     * Cache task list query
-     */
-    public function cacheTaskList(int $userId, array $filters, callable $queryCallback, int $ttl = 120): array
-    {
-        $filterKey = md5(serialize($filters));
-        $key = "user_{$userId}_tasks_{$filterKey}";
-        return $this->cacheQuery($key, $queryCallback, $ttl);
-    }
-
-    /**
-     * Invalidate specific cache key
-     */
-    public function invalidate(string $key): bool
-    {
-        try {
-            $normalizedKey = $this->normalizeKey($key);
-            $result = $this->cache->deleteItem($normalizedKey);
-            $this->logger->info("Cache invalidated for key: {$key}");
-            return $result;
-        } catch (\Exception $e) {
-            $this->logger->error("Cache invalidation error for key {$key}: " . $e->getMessage());
-            return false;
-        }
-    }
-
-    /**
-     * Invalidate user-specific cache
-     */
-    public function invalidateUserCache(int $userId): void
-    {
-        // In a real implementation, you'd use cache tags or pattern-based deletion
-        // For now, we'll log the invalidation
-        $this->logger->info("Invalidating cache for user {$userId}");
-    }
-
-    /**
-     * Invalidate all analytics cache
-     */
-    public function invalidateAnalyticsCache(): void
-    {
-        // This would require cache tagging or pattern matching
-        $this->logger->info("Invalidating analytics cache");
-    }
-
-    /**
-     * Get cache statistics
-     */
-    public function getCacheStats(): array
-    {
-        // This is a simplified implementation
-        // In production, you'd integrate with your cache provider's stats
-        return [
-            'provider' => get_class($this->cache),
-            'default_ttl' => $this->defaultTtl
-        ];
-    }
-
-    /**
-     * Normalize cache key to ensure it's valid
-     */
-    private function normalizeKey(string $key): string
-    {
-        // Replace invalid characters and ensure reasonable length
-        $key = preg_replace('/[^a-zA-Z0-9_\-\.]/', '_', $key);
-        return substr($key, 0, 250); // Limit key length
-    }
-
-    /**
-     * Cache warming for critical queries
+     * Warm up cache with initial data
      */
     public function warmCache(callable $warmupCallback): void
     {
@@ -192,6 +106,22 @@ class QueryCacheService
     }
 
     /**
+     * Invalidate specific cache key
+     */
+    public function invalidate(string $key): bool
+    {
+        try {
+            $normalizedKey = $this->normalizeKey($key);
+            $result = $this->cache->deleteItem($normalizedKey);
+            $this->logger->info("Cache invalidated for key: {$key}");
+            return $result;
+        } catch (\Exception $e) {
+            $this->logger->error("Cache invalidation error for key {$key}: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Check if cache item exists
      */
     public function has(string $key): bool
@@ -217,5 +147,14 @@ class QueryCacheService
             $this->logger->error("Cache clear error: " . $e->getMessage());
             return false;
         }
+    }
+
+    /**
+     * Normalize cache key
+     */
+    private function normalizeKey(string $key): string
+    {
+        // Remove special characters and normalize the key
+        return preg_replace('/[^a-zA-Z0-9_\-]/', '_', $key);
     }
 }

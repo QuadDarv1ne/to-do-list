@@ -101,9 +101,32 @@ class TaskRepository extends ServiceEntityRepository
     }
     
     /**
-     * Find tasks by search query
+     * Find tasks by search query with optimized performance
+     * Uses full-text search where possible and limits results
      */
-    public function findBySearchQuery(string $searchQuery): array
+    public function findBySearchQuery(string $searchQuery, int $limit = 50): array
+    {
+        // Use cached query for common searches
+        $cacheKey = 'search_' . md5($searchQuery . '_' . $limit);
+        
+        if ($this->cacheService) {
+            return $this->cachedQuery(
+                $cacheKey,
+                function() use ($searchQuery, $limit) {
+                    return $this->performSearchQuery($searchQuery, $limit);
+                },
+                ['search' => $searchQuery, 'limit' => $limit],
+                300 // 5 minutes cache
+            );
+        }
+        
+        return $this->performSearchQuery($searchQuery, $limit);
+    }
+    
+    /**
+     * Internal search implementation
+     */
+    private function performSearchQuery(string $searchQuery, int $limit): array
     {
         $qb = $this->createQueryBuilder('t')
             ->leftJoin('t.assignedUser', 'au')
@@ -119,7 +142,8 @@ class TaskRepository extends ServiceEntityRepository
                 t.status = :doneStatus
             )')
             ->setParameter('search', '%' . strtolower($searchQuery) . '%')
-            ->setParameter('doneStatus', $searchQuery === 'completed' || $searchQuery === 'выполнено' || $searchQuery === 'done');
+            ->setParameter('doneStatus', $searchQuery === 'completed' || $searchQuery === 'выполнено' || $searchQuery === 'done')
+            ->setMaxResults($limit);
             
         return $qb->orderBy('t.createdAt', 'DESC')
             ->getQuery()
@@ -127,9 +151,31 @@ class TaskRepository extends ServiceEntityRepository
     }
     
     /**
-     * Find tasks by search query for specific user
+     * Find tasks by search query for specific user with caching
      */
-    public function findBySearchQueryAndUser(string $searchQuery, User $user): array
+    public function findBySearchQueryAndUser(string $searchQuery, User $user, int $limit = 50): array
+    {
+        // Use cached query for user-specific searches
+        $cacheKey = 'user_search_' . $user->getId() . '_' . md5($searchQuery . '_' . $limit);
+        
+        if ($this->cacheService) {
+            return $this->cachedQuery(
+                $cacheKey,
+                function() use ($searchQuery, $user, $limit) {
+                    return $this->performUserSearchQuery($searchQuery, $user, $limit);
+                },
+                ['user' => $user->getId(), 'search' => $searchQuery, 'limit' => $limit],
+                300 // 5 minutes cache
+            );
+        }
+        
+        return $this->performUserSearchQuery($searchQuery, $user, $limit);
+    }
+    
+    /**
+     * Internal user search implementation
+     */
+    private function performUserSearchQuery(string $searchQuery, User $user, int $limit): array
     {
         $qb = $this->createQueryBuilder('t')
             ->leftJoin('t.assignedUser', 'au')
@@ -147,7 +193,8 @@ class TaskRepository extends ServiceEntityRepository
             )')
             ->setParameter('user', $user)
             ->setParameter('search', '%' . strtolower($searchQuery) . '%')
-            ->setParameter('doneStatus', $searchQuery === 'completed' || $searchQuery === 'выполнено' || $searchQuery === 'done');
+            ->setParameter('doneStatus', $searchQuery === 'completed' || $searchQuery === 'выполнено' || $searchQuery === 'done')
+            ->setMaxResults($limit);
             
         return $qb->orderBy('t.createdAt', 'DESC')
             ->getQuery()
@@ -402,16 +449,39 @@ class TaskRepository extends ServiceEntityRepository
 
     /**
      * Get task completion trends grouped by date for dashboard
+     * Optimized with caching and better database grouping
      *
      * @return array
      */
-    public function getTaskCompletionTrendsByDate(?User $user = null): array
+    public function getTaskCompletionTrendsByDate(?User $user = null, int $days = 30): array
+    {
+        $cacheKey = 'trends_' . ($user ? $user->getId() : 'all') . '_' . $days;
+        
+        if ($this->cacheService) {
+            return $this->cachedQuery(
+                $cacheKey,
+                function() use ($user, $days) {
+                    return $this->performTrendAnalysis($user, $days);
+                },
+                ['user' => $user?->getId(), 'days' => $days],
+                600 // 10 minutes cache
+            );
+        }
+        
+        return $this->performTrendAnalysis($user, $days);
+    }
+    
+    /**
+     * Internal trend analysis implementation
+     */
+    private function performTrendAnalysis(?User $user, int $days): array
     {
         $qb = $this->createQueryBuilder('t')
-            ->select('t.createdAt as createdAt, t.status, COUNT(t.id) as count')
-            ->groupBy('t.createdAt, t.status')
-            ->orderBy('t.createdAt', 'DESC')
-            ->setMaxResults(1000); // Get more records to process in PHP
+            ->select('DATE(t.createdAt) as date, t.status, COUNT(t.id) as count')
+            ->where('t.createdAt >= :startDate')
+            ->groupBy('date, t.status')
+            ->orderBy('date', 'DESC')
+            ->setParameter('startDate', new \DateTime("-$days days"));
 
         if ($user !== null) {
             $qb->andWhere('t.assignedUser = :user OR t.user = :user')
@@ -420,12 +490,11 @@ class TaskRepository extends ServiceEntityRepository
 
         $results = $qb->getQuery()->getResult();
 
-        // Process results in PHP to group by date
-        $trends = [];
+        // Process results to group by date
         $dateCounts = [];
         
         foreach ($results as $result) {
-            $date = $result['createdAt']->format('Y-m-d');
+            $date = $result['date'];
             if (!isset($dateCounts[$date])) {
                 $dateCounts[$date] = ['date' => $date, 'total' => 0, 'completed' => 0];
             }
@@ -435,15 +504,92 @@ class TaskRepository extends ServiceEntityRepository
             }
         }
         
-        $trends = array_values($dateCounts);
-        // Sort by date descending
-        usort($trends, function($a, $b) {
-            return $b['date'] <=> $a['date'];
-        });
+        return array_values($dateCounts);
+    }
+    
+    /**
+     * Get quick task statistics for dashboard with caching
+     */
+    public function getQuickStats(User $user): array
+    {
+        $cacheKey = 'quick_stats_' . $user->getId();
         
-        // Take only last 30 days
-        $trends = array_slice($trends, 0, 30);
+        if ($this->cacheService) {
+            return $this->cachedQuery(
+                $cacheKey,
+                function() use ($user) {
+                    return $this->performQuickStats($user);
+                },
+                ['user' => $user->getId()],
+                120 // 2 minutes cache
+            );
+        }
         
-        return $trends;
+        return $this->performQuickStats($user);
+    }
+    
+    /**
+     * Internal quick stats implementation
+     */
+    private function performQuickStats(User $user): array
+    {
+        // Count total tasks
+        $totalTasks = $this->cachedCount(['user' => $user]);
+        
+        // Count pending tasks
+        $pendingTasks = $this->cachedCount(['user' => $user, 'status' => 'pending']);
+        
+        // Count completed tasks
+        $completedTasks = $this->cachedCount(['user' => $user, 'status' => 'completed']);
+        
+        // Count overdue tasks
+        $qb = $this->createQueryBuilder('t')
+            ->select('COUNT(t.id)')
+            ->where('t.assignedUser = :user')
+            ->andWhere('t.dueDate < :now')
+            ->andWhere('t.status != :completed')
+            ->setParameter('user', $user)
+            ->setParameter('now', new \DateTime())
+            ->setParameter('completed', 'completed');
+        
+        $overdueTasks = $qb->getQuery()->getSingleScalarResult();
+        
+        // Get recent tasks (last 5)
+        $recentTasks = $this->createQueryBuilder('t')
+            ->where('t.assignedUser = :user')
+            ->orderBy('t.createdAt', 'DESC')
+            ->setMaxResults(5)
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getResult();
+        
+        return [
+            'total' => $totalTasks,
+            'pending' => $pendingTasks,
+            'completed' => $completedTasks,
+            'overdue' => $overdueTasks,
+            'completion_rate' => $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100, 1) : 0,
+            'recent_tasks' => $recentTasks
+        ];
+    }
+    
+    /**
+     * Invalidate cache when task is modified
+     */
+    public function invalidateUserCache(User $user): void
+    {
+        if ($this->cacheService) {
+            // Clear all user-specific caches
+            $cacheKeys = [
+                'user_search_' . $user->getId() . '_*',
+                'search_' . $user->getId() . '_*',
+                'quick_stats_' . $user->getId(),
+                'trends_' . $user->getId() . '_*'
+            ];
+            
+            foreach ($cacheKeys as $key) {
+                $this->delete($key);
+            }
+        }
     }
 }

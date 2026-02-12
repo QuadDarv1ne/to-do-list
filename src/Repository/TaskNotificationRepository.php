@@ -3,14 +3,22 @@
 namespace App\Repository;
 
 use App\Entity\TaskNotification;
+use App\Repository\Traits\CachedRepositoryTrait;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @extends ServiceEntityRepository<TaskNotification>
+ *
+ * @method TaskNotification|null find($id, $lockMode = null, $lockVersion = null)
+ * @method TaskNotification|null findOneBy(array $criteria, array $orderBy = null)
+ * @method TaskNotification[]    findAll()
+ * @method TaskNotification[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class TaskNotificationRepository extends ServiceEntityRepository
 {
+    use CachedRepositoryTrait;
+    
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, TaskNotification::class);

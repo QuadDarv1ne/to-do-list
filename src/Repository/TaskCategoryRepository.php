@@ -3,14 +3,22 @@
 namespace App\Repository;
 
 use App\Entity\TaskCategory;
+use App\Repository\Traits\CachedRepositoryTrait;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @extends ServiceEntityRepository<TaskCategory>
+ *
+ * @method TaskCategory|null find($id, $lockMode = null, $lockVersion = null)
+ * @method TaskCategory|null findOneBy(array $criteria, array $orderBy = null)
+ * @method TaskCategory[]    findAll()
+ * @method TaskCategory[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class TaskCategoryRepository extends ServiceEntityRepository
 {
+    use CachedRepositoryTrait;
+    
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, TaskCategory::class);
