@@ -98,7 +98,7 @@ class TaskRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('t')
             ->leftJoin('t.assignedUser', 'au')
-            ->leftJoin('t.createdBy', 'cu')
+            ->leftJoin('t.user', 'cu')
             ->andWhere('au = :user OR cu = :user')
             ->setParameter('user', $user)
             ->orderBy('t.createdAt', 'DESC')
@@ -136,7 +136,7 @@ class TaskRepository extends ServiceEntityRepository
     {
         $qb = $this->createQueryBuilder('t')
             ->leftJoin('t.assignedUser', 'au')
-            ->leftJoin('t.createdBy', 'cu')
+            ->leftJoin('t.user', 'cu')
             ->where('(
                 LOWER(t.title) LIKE :search OR
                 LOWER(t.description) LIKE :search OR
@@ -185,7 +185,7 @@ class TaskRepository extends ServiceEntityRepository
     {
         $qb = $this->createQueryBuilder('t')
             ->leftJoin('t.assignedUser', 'au')
-            ->leftJoin('t.createdBy', 'cu')
+            ->leftJoin('t.user', 'cu')
             ->andWhere('(au = :user OR cu = :user)')
             ->andWhere('(
                 LOWER(t.title) LIKE :search OR

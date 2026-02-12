@@ -214,7 +214,7 @@ class TaskDependencyController extends AbstractController
         $totalDependencies = $qb->select('COUNT(td.id)')
             ->from(TaskDependency::class, 'td')
             ->join('td.dependentTask', 'dt')
-            ->where('dt.assignedTo = :user OR dt.createdBy = :user')
+            ->where('dt.assignedUser = :user OR dt.user = :user')
             ->setParameter('user', $user)
             ->getQuery()
             ->getSingleScalarResult();
@@ -223,7 +223,7 @@ class TaskDependencyController extends AbstractController
         $blockingDependencies = $qb->select('COUNT(td.id)')
             ->from(TaskDependency::class, 'td')
             ->join('td.dependentTask', 'dt')
-            ->where('dt.assignedTo = :user OR dt.createdBy = :user')
+            ->where('dt.assignedUser = :user OR dt.user = :user')
             ->andWhere('td.type = :type')
             ->setParameter('user', $user)
             ->setParameter('type', 'blocking')

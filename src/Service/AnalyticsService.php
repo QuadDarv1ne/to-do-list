@@ -113,7 +113,7 @@ class AnalyticsService
         // Total tasks
         $totalTasks = $qb->select('COUNT(t.id)')
             ->from(Task::class, 't')
-            ->where('t.assignedTo = :user OR t.createdBy = :user')
+            ->where('t.assignedUser = :user OR t.user = :user')
             ->setParameter('user', $user)
             ->getQuery()
             ->getSingleScalarResult();
@@ -121,7 +121,7 @@ class AnalyticsService
         // Completed tasks
         $completedTasks = $qb->select('COUNT(t.id)')
             ->from(Task::class, 't')
-            ->where('(t.assignedTo = :user OR t.createdBy = :user)')
+            ->where('(t.assignedUser = :user OR t.user = :user)')
             ->andWhere('t.status = :status')
             ->setParameter('user', $user)
             ->setParameter('status', 'completed')
@@ -131,7 +131,7 @@ class AnalyticsService
         // Overdue tasks
         $overdueTasks = $qb->select('COUNT(t.id)')
             ->from(Task::class, 't')
-            ->where('(t.assignedTo = :user OR t.createdBy = :user)')
+            ->where('(t.assignedUser = :user OR t.user = :user)')
             ->andWhere('t.dueDate IS NOT NULL')
             ->andWhere('t.dueDate < :now')
             ->andWhere('t.status != :status')
@@ -144,7 +144,7 @@ class AnalyticsService
         // Pending tasks
         $pendingTasks = $qb->select('COUNT(t.id)')
             ->from(Task::class, 't')
-            ->where('(t.assignedTo = :user OR t.createdBy = :user)')
+            ->where('(t.assignedUser = :user OR t.user = :user)')
             ->andWhere('t.status = :status')
             ->setParameter('user', $user)
             ->setParameter('status', 'pending')
@@ -178,7 +178,7 @@ class AnalyticsService
             
             $total = $qb->select('COUNT(t.id)')
                 ->from(Task::class, 't')
-                ->where('(t.assignedTo = :user OR t.createdBy = :user)')
+                ->where('(t.assignedUser = :user OR t.user = :user)')
                 ->andWhere('t.createdAt >= :start_date')
                 ->setParameter('user', $user)
                 ->setParameter('start_date', $startDate)
@@ -187,7 +187,7 @@ class AnalyticsService
 
             $completed = $qb->select('COUNT(t.id)')
                 ->from(Task::class, 't')
-                ->where('(t.assignedTo = :user OR t.createdBy = :user)')
+                ->where('(t.assignedUser = :user OR t.user = :user)')
                 ->andWhere('t.status = :status')
                 ->andWhere('t.updatedAt >= :start_date')
                 ->setParameter('user', $user)
@@ -215,7 +215,7 @@ class AnalyticsService
         $qb = $this->entityManager->createQueryBuilder();
         $dailyData = $qb->select('DATE(t.updatedAt) as date, COUNT(t.id) as count')
             ->from(Task::class, 't')
-            ->where('(t.assignedTo = :user OR t.createdBy = :user)')
+            ->where('(t.assignedUser = :user OR t.user = :user)')
             ->andWhere('t.status = :status')
             ->andWhere('t.updatedAt >= :start_date')
             ->groupBy('date')
@@ -229,7 +229,7 @@ class AnalyticsService
         // Weekly averages
         $weeklyData = $qb->select('YEARWEEK(t.updatedAt) as week, COUNT(t.id) as count')
             ->from(Task::class, 't')
-            ->where('(t.assignedTo = :user OR t.createdBy = :user)')
+            ->where('(t.assignedUser = :user OR t.user = :user)')
             ->andWhere('t.status = :status')
             ->andWhere('t.updatedAt >= :start_date')
             ->groupBy('week')
@@ -333,7 +333,7 @@ class AnalyticsService
         $priorities = $qb->select('t.priority, COUNT(t.id) as count, 
                                    SUM(CASE WHEN t.status = :completed THEN 1 ELSE 0 END) as completed')
             ->from(Task::class, 't')
-            ->where('(t.assignedTo = :user OR t.createdBy = :user)')
+            ->where('(t.assignedUser = :user OR t.user = :user)')
             ->groupBy('t.priority')
             ->orderBy('t.priority', 'ASC')
             ->setParameter('user', $user)
@@ -364,7 +364,7 @@ class AnalyticsService
         // Average completion time
         $avgCompletionTime = $qb->select('AVG(TIMESTAMPDIFF(HOUR, t.createdAt, t.updatedAt)) as avg_hours')
             ->from(Task::class, 't')
-            ->where('(t.assignedTo = :user OR t.createdBy = :user)')
+            ->where('(t.assignedUser = :user OR t.user = :user)')
             ->andWhere('t.status = :status')
             ->andWhere('t.updatedAt IS NOT NULL')
             ->setParameter('user', $user)
@@ -375,7 +375,7 @@ class AnalyticsService
         // Tasks by hour of day
         $hourlyDistribution = $qb->select('HOUR(t.createdAt) as hour, COUNT(t.id) as count')
             ->from(Task::class, 't')
-            ->where('(t.assignedTo = :user OR t.createdBy = :user)')
+            ->where('(t.assignedUser = :user OR t.user = :user)')
             ->groupBy('hour')
             ->orderBy('hour', 'ASC')
             ->setParameter('user', $user)
@@ -485,7 +485,7 @@ class AnalyticsService
         $fourWeeksAgo = new \DateTime('-4 weeks');
         $weeklyCompletions = $qb->select('YEARWEEK(t.updatedAt) as week, COUNT(t.id) as completions')
             ->from(Task::class, 't')
-            ->where('(t.assignedTo = :user OR t.createdBy = :user)')
+            ->where('(t.assignedUser = :user OR t.user = :user)')
             ->andWhere('t.status = :status')
             ->andWhere('t.updatedAt >= :start_date')
             ->groupBy('week')
@@ -506,7 +506,7 @@ class AnalyticsService
         // Count remaining tasks
         $remainingTasksQuery = $qb->select('COUNT(t.id)')
             ->from(Task::class, 't')
-            ->where('(t.assignedTo = :user OR t.createdBy = :user)')
+            ->where('(t.assignedUser = :user OR t.user = :user)')
             ->andWhere('t.status != :completed_status')
             ->setParameter('user', $user)
             ->setParameter('completed_status', 'completed')
@@ -560,7 +560,7 @@ class AnalyticsService
             'AVG(TIMESTAMPDIFF(HOUR, t.createdAt, t.updatedAt)) as avg_completion_time'
         )
         ->from(Task::class, 't')
-        ->where('(t.assignedTo = :user OR t.createdBy = :user)')
+        ->where('(t.assignedUser = :user OR t.user = :user)')
         ->andWhere('t.createdAt BETWEEN :start1 AND :end1')
         ->setParameter('user', $user)
         ->setParameter('completed', 'completed')
@@ -576,7 +576,7 @@ class AnalyticsService
             'AVG(TIMESTAMPDIFF(HOUR, t.createdAt, t.updatedAt)) as avg_completion_time'
         )
         ->from(Task::class, 't')
-        ->where('(t.assignedTo = :user OR t.createdBy = :user)')
+        ->where('(t.assignedUser = :user OR t.user = :user)')
         ->andWhere('t.createdAt BETWEEN :start2 AND :end2')
         ->setParameter('user', $user)
         ->setParameter('completed', 'completed')
