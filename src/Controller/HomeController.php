@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Service\LoggingService;
 use App\Service\PerformanceMonitorService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;

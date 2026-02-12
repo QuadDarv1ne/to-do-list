@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Form\RegistrationFormType;
+use App\Service\PerformanceMonitorService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,8 +16,12 @@ use Symfony\Component\Routing\Attribute\Route;
 class RegistrationController extends AbstractController
 {
     #[Route('/', name: 'app_register')]
-    public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $entityManager): Response
+    public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $entityManager, ?PerformanceMonitorService $performanceMonitor = null): Response
     {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('registration_controller_register');
+        }
+        
         // Rate limiting: Check if too many registrations from same IP recently
         $session = $request->getSession();
         $lastRegistration = $session->get('last_registration_attempt', 0);
@@ -25,7 +30,14 @@ class RegistrationController extends AbstractController
         // Prevent registration attempts within 30 seconds of last attempt
         if ($currentTime - $lastRegistration < 30) {
             $this->addFlash('error', 'Пожалуйста, подождите перед повторной попыткой регистрации.');
-            return $this->redirectToRoute('app_register');
+            
+            try {
+                return $this->redirectToRoute('app_register');
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTimer('registration_controller_register');
+                }
+            }
         }
         
         $user = new User();
@@ -49,11 +61,23 @@ class RegistrationController extends AbstractController
 
             $this->addFlash('success', 'Регистрация прошла успешно!');
 
-            return $this->redirectToRoute('app_login');
+            try {
+                return $this->redirectToRoute('app_login');
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTimer('registration_controller_register');
+                }
+            }
         }
 
-        return $this->render('registration/register.html.twig', [
-            'registration_form' => $form->createView(),
-        ]);
+        try {
+            return $this->render('registration/register.html.twig', [
+                'registration_form' => $form->createView(),
+            ]);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('registration_controller_register');
+            }
+        }
     }
 }

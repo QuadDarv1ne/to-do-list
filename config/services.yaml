@@ -110,6 +110,14 @@ services:
     # Register cache warmers
     App\CacheWarmer\PerformanceCacheWarmer:
         tags: ['kernel.cache_warmer']
+    
+    App\CacheWarmer\DataCacheWarmer:
+        arguments: ['@App\Service\QueryCacheService', '@App\Repository\TaskRepository', '@App\Repository\UserRepository']
+        tags: ['kernel.cache_warmer']
+    
+    App\Service\LoggingService:
+        arguments: ['@logger', '@request_stack', '@security.token_storage']
+
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

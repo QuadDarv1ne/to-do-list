@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Service\PerformanceMonitorService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,11 +14,22 @@ use Symfony\Component\HttpFoundation\Session\SessionInterface;
 class SecurityController extends AbstractController
 {
     #[Route('/login', name: 'app_login')]
-    public function login(AuthenticationUtils $authenticationUtils, Request $request, ActivityLogRepository $activityLogRepository): Response
+    public function login(AuthenticationUtils $authenticationUtils, Request $request, ActivityLogRepository $activityLogRepository, ?PerformanceMonitorService $performanceMonitor = null): Response
     {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('security_controller_login');
+        }
+        
         // Если пользователь уже авторизован, перенаправляем на главную
         if ($this->getUser()) {
-            return $this->redirectToRoute('app_dashboard');
+            
+            try {
+                return $this->redirectToRoute('app_dashboard');
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTimer('security_controller_login');
+                }
+            }
         }
 
         // Получаем ошибку входа, если есть
@@ -29,11 +41,17 @@ class SecurityController extends AbstractController
         // Проверяем, был ли редирект после истечения сессии
         $sessionExpired = $request->query->getBoolean('expired');
 
-        return $this->render('security/login.html.twig', [
-            'last_username' => $lastUsername,
-            'error' => $error,
-            'session_expired' => $sessionExpired,
-        ]);
+        try {
+            return $this->render('security/login.html.twig', [
+                'last_username' => $lastUsername,
+                'error' => $error,
+                'session_expired' => $sessionExpired,
+            ]);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('security_controller_login');
+            }
+        }
     }
 
     #[Route('/logout', name: 'app_logout')]
@@ -44,8 +62,18 @@ class SecurityController extends AbstractController
     }
 
     #[Route('/access-denied', name: 'app_access_denied')]
-    public function accessDenied(): Response
+    public function accessDenied(?PerformanceMonitorService $performanceMonitor = null): Response
     {
-        return $this->render('security/access_denied.html.twig', [], new Response('Доступ запрещен', 403));
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('security_controller_access_denied');
+        }
+        
+        try {
+            return $this->render('security/access_denied.html.twig', [], new Response('Доступ запрещен', 403));
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('security_controller_access_denied');
+            }
+        }
     }
 }
