@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Service\PerformanceMonitorService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -10,14 +11,32 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 class HomeController extends AbstractController
 {
     #[Route('/', name: 'app_home')]
-    public function index(AuthenticationUtils $authenticationUtils): Response
-    {
+    public function index(
+        AuthenticationUtils $authenticationUtils,
+        ?PerformanceMonitorService $performanceMonitor = null
+    ): Response {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('home_controller_index');
+        }
+        
         // If user is already logged in, redirect to dashboard
         if ($this->getUser()) {
-            return $this->redirectToRoute('app_dashboard');
+            try {
+                return $this->redirectToRoute('app_dashboard');
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTimer('home_controller_index');
+                }
+            }
         }
 
         // Otherwise, redirect to login
-        return $this->redirectToRoute('app_login');
+        try {
+            return $this->redirectToRoute('app_login');
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('home_controller_index');
+            }
+        }
     }
 }

@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Repository\TaskRepository;
 use App\Repository\TaskCategoryRepository;
+use App\Service\PerformanceMonitorService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,22 +18,38 @@ class CalendarController extends AbstractController
     #[Route('/', name: 'app_calendar_index')]
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
     public function index(
-        TaskCategoryRepository $categoryRepository
+        TaskCategoryRepository $categoryRepository,
+        ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('calendar_controller_index');
+        }
+        
         $user = $this->getUser();
         $categories = $user->getTaskCategories();
         
-        return $this->render('calendar/index.html.twig', [
-            'categories' => $categories,
-        ]);
+        try {
+            return $this->render('calendar/index.html.twig', [
+                'categories' => $categories,
+            ]);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('calendar_controller_index');
+            }
+        }
     }
     
     #[Route('/api/events', name: 'app_api_calendar_events', methods: ['GET'])]
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
     public function getEvents(
         Request $request,
-        TaskRepository $taskRepository
+        TaskRepository $taskRepository,
+        ?PerformanceMonitorService $performanceMonitor = null
     ): JsonResponse {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('calendar_controller_get_events');
+        }
+        
         $user = $this->getUser();
         $start = $request->query->get('start');
         $end = $request->query->get('end');
@@ -116,6 +133,12 @@ class CalendarController extends AbstractController
             $events[] = $event;
         }
         
-        return $this->json($events);
+        try {
+            return $this->json($events);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('calendar_controller_get_events');
+            }
+        }
     }
 }

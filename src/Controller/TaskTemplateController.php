@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Task;
+use App\Service\PerformanceMonitorService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,8 +16,11 @@ class TaskTemplateController extends AbstractController
 {
     #[Route('/', name: 'app_task_template_index')]
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
-    public function index(): Response
+    public function index(?PerformanceMonitorService $performanceMonitor = null): Response
     {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('task_template_controller_index');
+        }
         
         // Predefined task templates
         $templates = [
@@ -59,9 +63,15 @@ class TaskTemplateController extends AbstractController
             ]
         ];
 
-        return $this->render('task_template/index.html.twig', [
-            'templates' => $templates
-        ]);
+        try {
+            return $this->render('task_template/index.html.twig', [
+                'templates' => $templates
+            ]);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('task_template_controller_index');
+            }
+        }
     }
 
     #[Route('/apply/{templateIndex}', name: 'app_task_template_apply')]
@@ -69,8 +79,13 @@ class TaskTemplateController extends AbstractController
     public function applyTemplate(
         int $templateIndex,
         Request $request,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
+
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('task_template_controller_apply');
+        }
 
         // Predefined templates
         $templates = [
@@ -111,7 +126,14 @@ class TaskTemplateController extends AbstractController
 
         if (!isset($templates[$templateIndex])) {
             $this->addFlash('error', 'Шаблон не найден');
-            return $this->redirectToRoute('app_task_template_index');
+            
+            try {
+                return $this->redirectToRoute('app_task_template_index');
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTimer('task_template_controller_apply');
+                }
+            }
         }
 
         $template = $templates[$templateIndex];
@@ -136,15 +158,26 @@ class TaskTemplateController extends AbstractController
 
         $this->addFlash('success', sprintf('Создано %d задач из шаблона "%s"', count($createdTasks), $template['name']));
 
-        return $this->redirectToRoute('app_task_index');
+        try {
+            return $this->redirectToRoute('app_task_index');
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('task_template_controller_apply');
+            }
+        }
     }
 
     #[Route('/custom', name: 'app_task_template_custom')]
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
     public function customTemplate(
         Request $request,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
+
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('task_template_controller_custom');
+        }
 
         if ($request->isMethod('POST')) {
             $templateName = $request->request->get('template_name');
@@ -154,7 +187,14 @@ class TaskTemplateController extends AbstractController
 
             if (!$templateName || empty(array_filter($taskTitles))) {
                 $this->addFlash('error', 'Пожалуйста, заполните название шаблона и хотя бы одну задачу');
-                return $this->render('task_template/custom.html.twig');
+                
+                try {
+                    return $this->render('task_template/custom.html.twig');
+                } finally {
+                    if ($performanceMonitor) {
+                        $performanceMonitor->stopTimer('task_template_controller_custom');
+                    }
+                }
             }
 
             $user = $this->getUser();
@@ -179,10 +219,23 @@ class TaskTemplateController extends AbstractController
             if (!empty($createdTasks)) {
                 $entityManager->flush();
                 $this->addFlash('success', sprintf('Создано %d задач из пользовательского шаблона "%s"', count($createdTasks), $templateName));
-                return $this->redirectToRoute('app_task_index');
+                
+                try {
+                    return $this->redirectToRoute('app_task_index');
+                } finally {
+                    if ($performanceMonitor) {
+                        $performanceMonitor->stopTimer('task_template_controller_custom');
+                    }
+                }
             }
         }
 
-        return $this->render('task_template/custom.html.twig');
+        try {
+            return $this->render('task_template/custom.html.twig');
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('task_template_controller_custom');
+            }
+        }
     }
 }

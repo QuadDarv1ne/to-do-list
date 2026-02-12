@@ -6,6 +6,7 @@ use App\Entity\Task;
 use App\Entity\TaskDependency;
 use App\Repository\TaskDependencyRepository;
 use App\Repository\TaskRepository;
+use App\Service\PerformanceMonitorService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -28,17 +29,34 @@ class TaskDependencyController extends AbstractController
     public function list(
         int $taskId,
         TaskRepository $taskRepository,
-        TaskDependencyRepository $dependencyRepository
+        TaskDependencyRepository $dependencyRepository,
+        ?PerformanceMonitorService $performanceMonitor = null
     ): JsonResponse {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('task_dependency_controller_list');
+        }
+        
         $task = $taskRepository->find($taskId);
         
         if (!$task) {
-            return new JsonResponse(['error' => 'Task not found'], 404);
+            try {
+                return new JsonResponse(['error' => 'Task not found'], 404);
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTimer('task_dependency_controller_list');
+                }
+            }
         }
 
         // Check if user can access this task
         if ($task->getAssignedTo() !== $this->getUser() && $task->getCreatedBy() !== $this->getUser()) {
-            return new JsonResponse(['error' => 'Access denied'], 403);
+            try {
+                return new JsonResponse(['error' => 'Access denied'], 403);
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTimer('task_dependency_controller_list');
+                }
+            }
         }
 
         $dependencies = $dependencyRepository->findDependenciesForTask($task);
@@ -56,7 +74,13 @@ class TaskDependencyController extends AbstractController
             ];
         }
 
-        return $this->json($data);
+        try {
+            return $this->json($data);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('task_dependency_controller_list');
+            }
+        }
     }
 
     #[Route('', name: 'app_task_dependency_create', methods: ['POST'])]
@@ -65,17 +89,34 @@ class TaskDependencyController extends AbstractController
         Request $request,
         TaskRepository $taskRepository,
         TaskDependencyRepository $dependencyRepository,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        ?PerformanceMonitorService $performanceMonitor = null
     ): JsonResponse {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('task_dependency_controller_add');
+        }
+        
         $task = $taskRepository->find($taskId);
         
         if (!$task) {
-            return new JsonResponse(['error' => 'Task not found'], 404);
+            try {
+                return new JsonResponse(['error' => 'Task not found'], 404);
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTimer('task_dependency_controller_add');
+                }
+            }
         }
 
         // Check if user can modify this task
         if ($task->getAssignedTo() !== $this->getUser() && $task->getCreatedBy() !== $this->getUser()) {
-            return new JsonResponse(['error' => 'Access denied'], 403);
+            try {
+                return new JsonResponse(['error' => 'Access denied'], 403);
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTimer('task_dependency_controller_add');
+                }
+            }
         }
 
         $data = json_decode($request->getContent(), true);
@@ -83,27 +124,57 @@ class TaskDependencyController extends AbstractController
         $type = $data['type'] ?? 'blocking';
 
         if (!$dependencyTaskId) {
-            return new JsonResponse(['error' => 'Dependency task ID is required'], 400);
+            try {
+                return new JsonResponse(['error' => 'Dependency task ID is required'], 400);
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTimer('task_dependency_controller_add');
+                }
+            }
         }
 
         $dependencyTask = $taskRepository->find($dependencyTaskId);
         if (!$dependencyTask) {
-            return new JsonResponse(['error' => 'Dependency task not found'], 404);
+            try {
+                return new JsonResponse(['error' => 'Dependency task not found'], 404);
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTimer('task_dependency_controller_add');
+                }
+            }
         }
 
         // Prevent circular dependencies
         if ($dependencyTaskId == $taskId) {
-            return new JsonResponse(['error' => 'Cannot create dependency on the same task'], 400);
+            try {
+                return new JsonResponse(['error' => 'Cannot create dependency on the same task'], 400);
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTimer('task_dependency_controller_add');
+                }
+            }
         }
 
         // Check for circular dependency
         if ($this->wouldCreateCircularDependency($task, $dependencyTask, $dependencyRepository)) {
-            return new JsonResponse(['error' => 'This would create a circular dependency'], 400);
+            try {
+                return new JsonResponse(['error' => 'This would create a circular dependency'], 400);
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTimer('task_dependency_controller_add');
+                }
+            }
         }
 
         // Check if dependency already exists
         if ($dependencyRepository->dependencyExists($task, $dependencyTask)) {
-            return new JsonResponse(['error' => 'Dependency already exists'], 400);
+            try {
+                return new JsonResponse(['error' => 'Dependency already exists'], 400);
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTimer('task_dependency_controller_add');
+                }
+            }
         }
 
         $dependency = new TaskDependency();
@@ -114,15 +185,21 @@ class TaskDependencyController extends AbstractController
         $entityManager->persist($dependency);
         $entityManager->flush();
 
-        return $this->json([
-            'id' => $dependency->getId(),
-            'dependent_task_id' => $dependency->getDependentTask()->getId(),
-            'dependency_task_id' => $dependency->getDependencyTask()->getId(),
-            'dependency_task_name' => $dependency->getDependencyTask()->getName(),
-            'type' => $dependency->getType(),
-            'is_satisfied' => $dependency->isSatisfied(),
-            'created_at' => $dependency->getCreatedAt()->format('c')
-        ], 201);
+        try {
+            return $this->json([
+                'id' => $dependency->getId(),
+                'dependent_task_id' => $dependency->getDependentTask()->getId(),
+                'dependency_task_id' => $dependency->getDependencyTask()->getId(),
+                'dependency_task_name' => $dependency->getDependencyTask()->getName(),
+                'type' => $dependency->getType(),
+                'is_satisfied' => $dependency->isSatisfied(),
+                'created_at' => $dependency->getCreatedAt()->format('c')
+            ], 201);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('task_dependency_controller_add');
+            }
+        }
     }
 
     #[Route('/{dependencyId}', name: 'app_task_dependency_remove', methods: ['DELETE'])]
@@ -131,50 +208,102 @@ class TaskDependencyController extends AbstractController
         int $dependencyId,
         TaskRepository $taskRepository,
         TaskDependencyRepository $dependencyRepository,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        ?PerformanceMonitorService $performanceMonitor = null
     ): JsonResponse {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('task_dependency_controller_remove');
+        }
+        
         $task = $taskRepository->find($taskId);
         
         if (!$task) {
-            return new JsonResponse(['error' => 'Task not found'], 404);
+            try {
+                return new JsonResponse(['error' => 'Task not found'], 404);
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTimer('task_dependency_controller_remove');
+                }
+            }
         }
 
         // Check if user can modify this task
         if ($task->getAssignedTo() !== $this->getUser() && $task->getCreatedBy() !== $this->getUser()) {
-            return new JsonResponse(['error' => 'Access denied'], 403);
+            try {
+                return new JsonResponse(['error' => 'Access denied'], 403);
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTimer('task_dependency_controller_remove');
+                }
+            }
         }
 
         $dependency = $dependencyRepository->find($dependencyId);
         if (!$dependency || $dependency->getDependentTask()->getId() != $taskId) {
-            return new JsonResponse(['error' => 'Dependency not found'], 404);
+            try {
+                return new JsonResponse(['error' => 'Dependency not found'], 404);
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTimer('task_dependency_controller_remove');
+                }
+            }
         }
 
         $entityManager->remove($dependency);
         $entityManager->flush();
 
-        return $this->json(['success' => true]);
+        try {
+            return $this->json(['success' => true]);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('task_dependency_controller_remove');
+            }
+        }
     }
 
     #[Route('/check-start', name: 'app_task_dependency_check_start', methods: ['GET'])]
     public function checkCanStart(
         Request $request,
         TaskRepository $taskRepository,
-        TaskDependencyRepository $dependencyRepository
+        TaskDependencyRepository $dependencyRepository,
+        ?PerformanceMonitorService $performanceMonitor = null
     ): JsonResponse {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('task_dependency_controller_check_can_start');
+        }
+        
         $taskId = (int) $request->query->get('taskId');
         if (!$taskId) {
-            return new JsonResponse(['error' => 'Task ID is required'], 400);
+            try {
+                return new JsonResponse(['error' => 'Task ID is required'], 400);
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTimer('task_dependency_controller_check_can_start');
+                }
+            }
         }
 
         $task = $taskRepository->find($taskId);
         
         if (!$task) {
-            return new JsonResponse(['error' => 'Task not found'], 404);
+            try {
+                return new JsonResponse(['error' => 'Task not found'], 404);
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTimer('task_dependency_controller_check_can_start');
+                }
+            }
         }
 
         // Check if user can access this task
         if ($task->getAssignedTo() !== $this->getUser() && $task->getCreatedBy() !== $this->getUser()) {
-            return new JsonResponse(['error' => 'Access denied'], 403);
+            try {
+                return new JsonResponse(['error' => 'Access denied'], 403);
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTimer('task_dependency_controller_check_can_start');
+                }
+            }
         }
 
         $canStart = $task->canStart();
@@ -194,17 +323,28 @@ class TaskDependencyController extends AbstractController
             }
         }
 
-        return $this->json([
-            'can_start' => $canStart,
-            'unsatisfied_dependencies' => $unsatisfiedDependencies
-        ]);
+        try {
+            return $this->json([
+                'can_start' => $canStart,
+                'unsatisfied_dependencies' => $unsatisfiedDependencies
+            ]);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('task_dependency_controller_check_can_start');
+            }
+        }
     }
 
     #[Route('/stats', name: 'app_task_dependency_stats', methods: ['GET'])]
     public function getDependencyStats(
         TaskRepository $taskRepository,
-        TaskDependencyRepository $dependencyRepository
+        TaskDependencyRepository $dependencyRepository,
+        ?PerformanceMonitorService $performanceMonitor = null
     ): JsonResponse {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('task_dependency_controller_get_stats');
+        }
+        
         $user = $this->getUser();
         
         // Get dependency statistics for the user's tasks
@@ -248,12 +388,18 @@ class TaskDependencyController extends AbstractController
             ->getQuery()
             ->getSingleScalarResult();
         
-        return $this->json([
-            'total_dependencies' => (int) $totalDependencies,
-            'blocking_dependencies' => (int) $blockingDependencies,
-            'satisfied_dependencies' => (int) $satisfiedDependencies,
-            'unsatisfied_dependencies' => (int) $unsatisfiedDependencies
-        ]);
+        try {
+            return $this->json([
+                'total_dependencies' => (int) $totalDependencies,
+                'blocking_dependencies' => (int) $blockingDependencies,
+                'satisfied_dependencies' => (int) $satisfiedDependencies,
+                'unsatisfied_dependencies' => (int) $unsatisfiedDependencies
+            ]);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('task_dependency_controller_get_stats');
+            }
+        }
     }
 
     #[Route('/bulk/add', name: 'app_task_dependency_bulk_add', methods: ['POST'])]
@@ -262,17 +408,34 @@ class TaskDependencyController extends AbstractController
         Request $request,
         TaskRepository $taskRepository,
         TaskDependencyRepository $dependencyRepository,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        ?PerformanceMonitorService $performanceMonitor = null
     ): JsonResponse {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('task_dependency_controller_bulk_add');
+        }
+        
         $task = $taskRepository->find($taskId);
         
         if (!$task) {
-            return new JsonResponse(['error' => 'Task not found'], 404);
+            try {
+                return new JsonResponse(['error' => 'Task not found'], 404);
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTimer('task_dependency_controller_bulk_add');
+                }
+            }
         }
 
         // Check if user can modify this task
         if ($task->getAssignedTo() !== $this->getUser() && $task->getCreatedBy() !== $this->getUser()) {
-            return new JsonResponse(['error' => 'Access denied'], 403);
+            try {
+                return new JsonResponse(['error' => 'Access denied'], 403);
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTimer('task_dependency_controller_bulk_add');
+                }
+            }
         }
 
         $data = json_decode($request->getContent(), true);
@@ -280,7 +443,13 @@ class TaskDependencyController extends AbstractController
         $type = $data['type'] ?? 'blocking';
         
         if (empty($dependencyTaskIds) || !is_array($dependencyTaskIds)) {
-            return new JsonResponse(['error' => 'Dependency task IDs are required and must be an array'], 400);
+            try {
+                return new JsonResponse(['error' => 'Dependency task IDs are required and must be an array'], 400);
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTimer('task_dependency_controller_bulk_add');
+                }
+            }
         }
 
         $results = [];
@@ -343,12 +512,18 @@ class TaskDependencyController extends AbstractController
             }
         }
 
-        return $this->json([
-            'results' => $results,
-            'errors' => $errors,
-            'created_count' => count($results),
-            'error_count' => count($errors)
-        ]);
+        try {
+            return $this->json([
+                'results' => $results,
+                'errors' => $errors,
+                'created_count' => count($results),
+                'error_count' => count($errors)
+            ]);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('task_dependency_controller_bulk_add');
+            }
+        }
     }
     
     #[Route('/bulk/remove', name: 'app_task_dependency_bulk_remove', methods: ['DELETE'])]
@@ -357,24 +532,47 @@ class TaskDependencyController extends AbstractController
         Request $request,
         TaskRepository $taskRepository,
         TaskDependencyRepository $dependencyRepository,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        ?PerformanceMonitorService $performanceMonitor = null
     ): JsonResponse {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('task_dependency_controller_bulk_remove');
+        }
+        
         $task = $taskRepository->find($taskId);
         
         if (!$task) {
-            return new JsonResponse(['error' => 'Task not found'], 404);
+            try {
+                return new JsonResponse(['error' => 'Task not found'], 404);
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTimer('task_dependency_controller_bulk_remove');
+                }
+            }
         }
 
         // Check if user can modify this task
         if ($task->getAssignedTo() !== $this->getUser() && $task->getCreatedBy() !== $this->getUser()) {
-            return new JsonResponse(['error' => 'Access denied'], 403);
+            try {
+                return new JsonResponse(['error' => 'Access denied'], 403);
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTimer('task_dependency_controller_bulk_remove');
+                }
+            }
         }
 
         $data = json_decode($request->getContent(), true);
         $dependencyIds = $data['dependency_ids'] ?? [];
         
         if (empty($dependencyIds) || !is_array($dependencyIds)) {
-            return new JsonResponse(['error' => 'Dependency IDs are required and must be an array'], 400);
+            try {
+                return new JsonResponse(['error' => 'Dependency IDs are required and must be an array'], 400);
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTimer('task_dependency_controller_bulk_remove');
+                }
+            }
         }
 
         $results = [];
@@ -405,12 +603,18 @@ class TaskDependencyController extends AbstractController
             $entityManager->flush();
         }
 
-        return $this->json([
-            'results' => $results,
-            'errors' => $errors,
-            'removed_count' => count($results),
-            'error_count' => count($errors)
-        ]);
+        try {
+            return $this->json([
+                'results' => $results,
+                'errors' => $errors,
+                'removed_count' => count($results),
+                'error_count' => count($errors)
+            ]);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('task_dependency_controller_bulk_remove');
+            }
+        }
     }
 
     /**
