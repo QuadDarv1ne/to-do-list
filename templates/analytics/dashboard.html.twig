@@ -251,43 +251,95 @@
     <div class="row">
         <div class="col-12">
             <div class="card shadow">
-                <div class="card-header py-3">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
                     <h6 class="m-0 font-weight-bold text-primary">
                         <i class="fas fa-balance-scale me-2"></i>
                         Сравнение периодов
                     </h6>
+                    <div class="d-flex gap-2">
+                        <select id="period1Selector" class="form-select form-select-sm" style="width: auto;">
+                            <option value="this_month" selected>Этот месяц</option>
+                            <option value="last_month">Прошлый месяц</option>
+                            <option value="this_week">Эта неделя</option>
+                            <option value="last_week">Прошлая неделя</option>
+                            <option value="this_year">Этот год</option>
+                            <option value="last_year">Прошлый год</option>
+                        </select>
+                        <span class="align-self-center">vs</span>
+                        <select id="period2Selector" class="form-select form-select-sm" style="width: auto;">
+                            <option value="last_month" selected>Прошлый месяц</option>
+                            <option value="this_month">Этот месяц</option>
+                            <option value="last_week">Прошлая неделя</option>
+                            <option value="this_week">Эта неделя</option>
+                            <option value="last_year">Прошлый год</option>
+                            <option value="this_year">Этот год</option>
+                        </select>
+                        <button id="comparePeriodsBtn" class="btn btn-primary btn-sm">
+                            <i class="fas fa-sync-alt me-1"></i>Сравнить
+                        </button>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <h6>Текущий период</h6>
+                            <h6 id="period1Title">Этот месяц</h6>
                             <div class="table-responsive">
                                 <table class="table table-sm">
                                     <thead>
                                         <tr>
-                                            <th>Период</th>
-                                            <th>Завершено</th>
-                                            <th>Всего</th>
-                                            <th>%</th>
+                                            <th>Метрика</th>
+                                            <th>Значение</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        {% for period, data in analytics.completion_rates %}
-                                            <tr>
-                                                <td>{{ period|capitalize|replace({'_': ' '}) }}</td>
-                                                <td>{{ data.completed }}</td>
-                                                <td>{{ data.total }}</td>
-                                                <td>{{ data.rate }}%</td>
-                                            </tr>
-                                        {% endfor %}
+                                    <tbody id="period1Data">
+                                        <tr><td>Всего задач</td><td id="period1TotalTasks">-</td></tr>
+                                        <tr><td>Завершено</td><td id="period1CompletedTasks">-</td></tr>
+                                        <tr><td>Процент завершения</td><td id="period1CompletionRate">-</td></tr>
+                                        <tr><td>Среднее время завершения</td><td id="period1AvgTime">-</td></tr>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="alert alert-light text-center">
-                                <i class="fas fa-info-circle fa-2x text-info mb-3"></i>
-                                <p class="mb-0">Функция сравнения периодов будет доступна в следующих обновлениях</p>
+                            <h6 id="period2Title">Прошлый месяц</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Метрика</th>
+                                            <th>Значение</th>
+                                            <th>Разница</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="period2Data">
+                                        <tr>
+                                            <td>Всего задач</td>
+                                            <td id="period2TotalTasks">-</td>
+                                            <td id="diffTotalTasks" class="fw-bold">-</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Завершено</td>
+                                            <td id="period2CompletedTasks">-</td>
+                                            <td id="diffCompletedTasks" class="fw-bold">-</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Процент завершения</td>
+                                            <td id="period2CompletionRate">-</td>
+                                            <td id="diffCompletionRate" class="fw-bold">-</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Среднее время завершения</td>
+                                            <td id="period2AvgTime">-</td>
+                                            <td id="diffAvgTime" class="fw-bold">-</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="mt-3">
+                                <div class="alert alert-info">
+                                    <strong>Тренд: </strong>
+                                    <span id="comparisonTrend">-</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -484,5 +536,132 @@
                 toast.remove();
             });
         }
+        
+        // Initialize and bind comparison functionality
+        function initializeComparison() {
+            const compareBtn = document.getElementById('comparePeriodsBtn');
+            if (compareBtn) {
+                compareBtn.addEventListener('click', performComparison);
+                
+                // Load default comparison on page load
+                performComparison();
+            }
+        }
+        
+        function performComparison() {
+            const period1 = document.getElementById('period1Selector').value;
+            const period2 = document.getElementById('period2Selector').value;
+            
+            // Update titles
+            document.getElementById('period1Title').textContent = getPeriodLabel(period1);
+            document.getElementById('period2Title').textContent = getPeriodLabel(period2);
+            
+            // Show loading state
+            const btn = document.getElementById('comparePeriodsBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Сравнение...';
+            btn.disabled = true;
+            
+            fetch(`/analytics/compare-periods?period1=${period1}&period2=${period2}`)
+                .then(response => response.json())
+                .then(data => {
+                    updateComparisonData(data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('Ошибка при сравнении периодов', 'error');
+                })
+                .finally(() => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                });
+        }
+        
+        function updateComparisonData(data) {
+            // Update period 1 data
+            document.getElementById('period1TotalTasks').textContent = data.period1.total_tasks;
+            document.getElementById('period1CompletedTasks').textContent = data.period1.completed_tasks;
+            document.getElementById('period1CompletionRate').textContent = `${data.period1.completion_rate}%`;
+            document.getElementById('period1AvgTime').textContent = `${data.period1.avg_completion_time} ч`;
+            
+            // Update period 2 data
+            document.getElementById('period2TotalTasks').textContent = data.period2.total_tasks;
+            document.getElementById('period2CompletedTasks').textContent = data.period2.completed_tasks;
+            document.getElementById('period2CompletionRate').textContent = `${data.period2.completion_rate}%`;
+            document.getElementById('period2AvgTime').textContent = `${data.period2.avg_completion_time} ч`;
+            
+            // Update differences
+            updateDifferenceCell('diffTotalTasks', data.differences.total_tasks_diff);
+            updateDifferenceCell('diffCompletedTasks', data.differences.completed_tasks_diff);
+            updateDifferenceCell('diffCompletionRate', data.differences.completion_rate_diff, '%');
+            updateDifferenceCell('diffAvgTime', data.differences.avg_completion_time_diff, ' ч');
+            
+            // Update trend indicator
+            const trendElement = document.getElementById('comparisonTrend');
+            trendElement.textContent = getTrendLabel(data.trend);
+            trendElement.className = getTrendClass(data.trend);
+        }
+        
+        function updateDifferenceCell(elementId, value, suffix = '') {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = value > 0 ? `+${value}${suffix}` : `${value}${suffix}`;
+                element.className = value > 0 ? 'text-success fw-bold' : (value < 0 ? 'text-danger fw-bold' : 'fw-bold');
+            }
+        }
+        
+        function getTrendLabel(trend) {
+            const labels = {
+                'improving': 'Улучшающийся',
+                'declining': 'Ухудшающийся',
+                'stable': 'Стабильный'
+            };
+            return labels[trend] || trend;
+        }
+        
+        function getTrendClass(trend) {
+            const classes = {
+                'improving': 'text-success',
+                'declining': 'text-danger',
+                'stable': 'text-warning'
+            };
+            return classes[trend] || 'text-info';
+        }
+        
+        function getPeriodLabel(period) {
+            const labels = {
+                'today': 'Сегодня',
+                'yesterday': 'Вчера',
+                'this_week': 'Эта неделя',
+                'last_week': 'Прошлая неделя',
+                'this_month': 'Этот месяц',
+                'last_month': 'Прошлый месяц',
+                'this_year': 'Этот год',
+                'last_year': 'Прошлый год'
+            };
+            return labels[period] || period;
+        }
+        
+        // Initialize comparison when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize charts
+            initializeCharts();
+            
+            // Initialize comparison functionality
+            initializeComparison();
+            
+            // Bind events
+            document.getElementById('refreshAnalytics').addEventListener('click', refreshAnalytics);
+            document.getElementById('exportCsv').addEventListener('click', exportCsv);
+            
+            // Period buttons
+            document.querySelectorAll('[data-period]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('[data-period]').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    updateCompletionChart(this.dataset.period);
+                });
+            });
+        });
     </script>
 {% endblock %}

@@ -36,7 +36,8 @@ class AnalyticsService
             'category_analysis' => $this->getCategoryAnalysis($user),
             'priority_analysis' => $this->getPriorityAnalysis($user),
             'time_analysis' => $this->getTimeAnalysis($user),
-            'performance_metrics' => $this->getPerformanceMetrics($user)
+            'performance_metrics' => $this->getPerformanceMetrics($user),
+            'prediction_analysis' => $this->getPredictionAnalysis($user)
         ];
 
         return $stats;
@@ -240,11 +241,12 @@ class AnalyticsService
     private function getCategoryAnalysis(User $user): array
     {
         $qb = $this->entityManager->createQueryBuilder();
-        $categories = $qb->select('c.name, COUNT(t.id) as task_count, 
-                                  SUM(CASE WHEN t.status = :completed THEN 1 ELSE 0 END) as completed_count')
-            ->from('App\Entity\Category', 'c')
+        $categories = $qb->select('c.name, c.id, COUNT(t.id) as task_count, 
+                                  SUM(CASE WHEN t.status = :completed THEN 1 ELSE 0 END) as completed_count,
+                                  AVG(TIMESTAMPDIFF(HOUR, t.createdAt, t.updatedAt)) as avg_completion_time')
+            ->from('App\Entity\TaskCategory', 'c')
             ->leftJoin('c.tasks', 't')
-            ->where('t.assignedTo = :user OR t.createdBy = :user')
+            ->where('c.user = :user')
             ->groupBy('c.id')
             ->orderBy('task_count', 'DESC')
             ->setParameter('user', $user)
@@ -255,6 +257,8 @@ class AnalyticsService
         foreach ($categories as &$category) {
             $category['completion_rate'] = $category['task_count'] > 0 ? 
                 round(($category['completed_count'] / $category['task_count']) * 100, 1) : 0;
+            $category['avg_completion_time'] = $category['avg_completion_time'] ? 
+                round((float)$category['avg_completion_time'], 1) : 0;
         }
 
         return $categories;
@@ -410,6 +414,267 @@ class AnalyticsService
     }
 
     /**
+     * Get prediction analysis for future task completion
+     */
+    private function getPredictionAnalysis(User $user): array
+    {
+        // Calculate average completion rate per week
+        $qb = $this->entityManager->createQueryBuilder();
+        
+        // Get completion rate for the last 4 weeks
+        $fourWeeksAgo = new \DateTime('-4 weeks');
+        $weeklyCompletions = $qb->select('YEARWEEK(t.updatedAt) as week, COUNT(t.id) as completions')
+            ->from(Task::class, 't')
+            ->where('(t.assignedTo = :user OR t.createdBy = :user)')
+            ->andWhere('t.status = :status')
+            ->andWhere('t.updatedAt >= :start_date')
+            ->groupBy('week')
+            ->orderBy('week', 'ASC')
+            ->setParameter('user', $user)
+            ->setParameter('status', 'completed')
+            ->setParameter('start_date', $fourWeeksAgo)
+            ->getQuery()
+            ->getArrayResult();
+        
+        // Calculate average weekly completion rate
+        $avgWeeklyCompletion = 0;
+        if (!empty($weeklyCompletions)) {
+            $totalCompletions = array_sum(array_column($weeklyCompletions, 'completions'));
+            $avgWeeklyCompletion = $totalCompletions / max(1, count($weeklyCompletions));
+        }
+        
+        // Count remaining tasks
+        $remainingTasksQuery = $qb->select('COUNT(t.id)')
+            ->from(Task::class, 't')
+            ->where('(t.assignedTo = :user OR t.createdBy = :user)')
+            ->andWhere('t.status != :completed_status')
+            ->setParameter('user', $user)
+            ->setParameter('completed_status', 'completed')
+            ->getQuery()
+            ->getSingleScalarResult();
+        
+        $remainingTasks = (int)$remainingTasksQuery;
+        
+        // Predict how many weeks it will take to complete remaining tasks
+        $predictedWeeks = $avgWeeklyCompletion > 0 ? $remainingTasks / $avgWeeklyCompletion : 0;
+        
+        // Analyze productivity trend
+        $productivityTrend = 'stable';
+        if (count($weeklyCompletions) >= 2) {
+            $recentCompletions = array_slice($weeklyCompletions, -2);
+            if (count($recentCompletions) >= 2) {
+                $prevWeek = $recentCompletions[0]['completions'];
+                $currWeek = $recentCompletions[1]['completions'];
+                
+                if ($currWeek > $prevWeek * 1.1) {
+                    $productivityTrend = 'improving';
+                } elseif ($currWeek < $prevWeek * 0.9) {
+                    $productivityTrend = 'declining';
+                }
+            }
+        }
+        
+        return [
+            'average_weekly_completion' => round($avgWeeklyCompletion, 1),
+            'remaining_tasks' => $remainingTasks,
+            'predicted_weeks_to_complete' => round($predictedWeeks, 1),
+            'productivity_trend' => $productivityTrend,
+            'estimated_completion_date' => $predictedWeeks > 0 ? 
+                (new \DateTime())->modify("+" . ceil($predictedWeeks) . " weeks")->format('Y-m-d') : null
+        ];
+    }
+    
+    /**
+     * Get comparative analytics between two time periods
+     */
+    public function getPeriodComparison(User $user, string $period1 = 'this_month', string $period2 = 'last_month'): array
+    {
+        $periodRanges = $this->getPeriodDateRanges($period1, $period2);
+        
+        $qb = $this->entityManager->createQueryBuilder();
+        
+        // Get analytics for period 1
+        $period1Stats = $qb->select(
+            'COUNT(t.id) as total_tasks',
+            'SUM(CASE WHEN t.status = :completed THEN 1 ELSE 0 END) as completed_tasks',
+            'AVG(TIMESTAMPDIFF(HOUR, t.createdAt, t.updatedAt)) as avg_completion_time'
+        )
+        ->from(Task::class, 't')
+        ->where('(t.assignedTo = :user OR t.createdBy = :user)')
+        ->andWhere('t.createdAt BETWEEN :start1 AND :end1')
+        ->setParameter('user', $user)
+        ->setParameter('completed', 'completed')
+        ->setParameter('start1', $periodRanges['period1']['start'])
+        ->setParameter('end1', $periodRanges['period1']['end'])
+        ->getQuery()
+        ->getSingleResult();
+        
+        // Get analytics for period 2
+        $period2Stats = $qb->select(
+            'COUNT(t.id) as total_tasks',
+            'SUM(CASE WHEN t.status = :completed THEN 1 ELSE 0 END) as completed_tasks',
+            'AVG(TIMESTAMPDIFF(HOUR, t.createdAt, t.updatedAt)) as avg_completion_time'
+        )
+        ->from(Task::class, 't')
+        ->where('(t.assignedTo = :user OR t.createdBy = :user)')
+        ->andWhere('t.createdAt BETWEEN :start2 AND :end2')
+        ->setParameter('user', $user)
+        ->setParameter('completed', 'completed')
+        ->setParameter('start2', $periodRanges['period2']['start'])
+        ->setParameter('end2', $periodRanges['period2']['end'])
+        ->getQuery()
+        ->getSingleResult();
+        
+        // Calculate completion rates
+        $period1Rate = $period1Stats['total_tasks'] > 0 ? 
+            round(($period1Stats['completed_tasks'] / $period1Stats['total_tasks']) * 100, 1) : 0;
+        $period2Rate = $period2Stats['total_tasks'] > 0 ? 
+            round(($period2Stats['completed_tasks'] / $period2Stats['total_tasks']) * 100, 1) : 0;
+        
+        // Calculate differences
+        $differences = [
+            'total_tasks_diff' => (int)$period1Stats['total_tasks'] - (int)$period2Stats['total_tasks'],
+            'completed_tasks_diff' => (int)$period1Stats['completed_tasks'] - (int)$period2Stats['completed_tasks'],
+            'completion_rate_diff' => $period1Rate - $period2Rate,
+            'avg_completion_time_diff' => ((float)$period1Stats['avg_completion_time'] ?: 0) - 
+                                         ((float)$period2Stats['avg_completion_time'] ?: 0)
+        ];
+        
+        return [
+            'period1' => [
+                'name' => $period1,
+                'total_tasks' => (int)$period1Stats['total_tasks'],
+                'completed_tasks' => (int)$period1Stats['completed_tasks'],
+                'completion_rate' => $period1Rate,
+                'avg_completion_time' => round(((float)$period1Stats['avg_completion_time'] ?: 0), 1)
+            ],
+            'period2' => [
+                'name' => $period2,
+                'total_tasks' => (int)$period2Stats['total_tasks'],
+                'completed_tasks' => (int)$period2Stats['completed_tasks'],
+                'completion_rate' => $period2Rate,
+                'avg_completion_time' => round(((float)$period2Stats['avg_completion_time'] ?: 0), 1)
+            ],
+            'differences' => $differences,
+            'trend' => $this->getComparisonTrend($differences)
+        ];
+    }
+    
+    /**
+     * Helper to get date ranges for different periods
+     */
+    private function getPeriodDateRanges(string $period1, string $period2): array
+    {
+        $ranges = [];
+        
+        // Process period 1
+        switch ($period1) {
+            case 'today':
+                $start1 = new \DateTime('today');
+                $end1 = new \DateTime('tomorrow');
+                break;
+            case 'yesterday':
+                $start1 = new \DateTime('yesterday');
+                $end1 = new \DateTime('today');
+                break;
+            case 'this_week':
+                $start1 = new \DateTime('monday this week');
+                $end1 = new \DateTime('monday next week');
+                break;
+            case 'last_week':
+                $start1 = new \DateTime('monday last week');
+                $end1 = new \DateTime('monday this week');
+                break;
+            case 'this_month':
+                $start1 = new \DateTime('first day of this month');
+                $end1 = new \DateTime('first day of next month');
+                break;
+            case 'last_month':
+                $start1 = new \DateTime('first day of last month');
+                $end1 = new \DateTime('first day of this month');
+                break;
+            case 'this_year':
+                $start1 = new \DateTime('first day of january this year');
+                $end1 = new \DateTime('first day of january next year');
+                break;
+            case 'last_year':
+                $start1 = new \DateTime('first day of january last year');
+                $end1 = new \DateTime('first day of january this year');
+                break;
+            default:
+                // Default to this month
+                $start1 = new \DateTime('first day of this month');
+                $end1 = new \DateTime('first day of next month');
+        }
+        
+        // Process period 2
+        switch ($period2) {
+            case 'today':
+                $start2 = new \DateTime('today');
+                $end2 = new \DateTime('tomorrow');
+                break;
+            case 'yesterday':
+                $start2 = new \DateTime('yesterday');
+                $end2 = new \DateTime('today');
+                break;
+            case 'this_week':
+                $start2 = new \DateTime('monday this week');
+                $end2 = new \DateTime('monday next week');
+                break;
+            case 'last_week':
+                $start2 = new \DateTime('monday last week');
+                $end2 = new \DateTime('monday this week');
+                break;
+            case 'this_month':
+                $start2 = new \DateTime('first day of this month');
+                $end2 = new \DateTime('first day of next month');
+                break;
+            case 'last_month':
+                $start2 = new \DateTime('first day of last month');
+                $end2 = new \DateTime('first day of this month');
+                break;
+            case 'this_year':
+                $start2 = new \DateTime('first day of january this year');
+                $end2 = new \DateTime('first day of january next year');
+                break;
+            case 'last_year':
+                $start2 = new \DateTime('first day of january last year');
+                $end2 = new \DateTime('first day of january this year');
+                break;
+            default:
+                // Default to last month
+                $start2 = new \DateTime('first day of last month');
+                $end2 = new \DateTime('first day of this month');
+        }
+        
+        return [
+            'period1' => ['start' => $start1, 'end' => $end1],
+            'period2' => ['start' => $start2, 'end' => $end2]
+        ];
+    }
+    
+    /**
+     * Determine trend from comparison differences
+     */
+    private function getComparisonTrend(array $differences): string
+    {
+        // Positive changes in completed tasks and completion rate indicate improvement
+        $positiveFactors = 0;
+        $negativeFactors = 0;
+        
+        if ($differences['completed_tasks_diff'] > 0) $positiveFactors++;
+        else if ($differences['completed_tasks_diff'] < 0) $negativeFactors++;
+        
+        if ($differences['completion_rate_diff'] > 0) $positiveFactors++;
+        else if ($differences['completion_rate_diff'] < 0) $negativeFactors++;
+        
+        if ($positiveFactors > $negativeFactors) return 'improving';
+        if ($negativeFactors > $positiveFactors) return 'declining';
+        
+        return 'stable';
+    }
+    
+    /**
      * Export analytics data to CSV
      */
     public function exportAnalyticsToCsv(User $user): string
@@ -423,6 +688,8 @@ class AnalyticsService
         $csv .= "В ожидании,{$analytics['overview']['pending_tasks']}\n";
         $csv .= "Процент завершения,{$analytics['overview']['completion_rate']}%\n";
         $csv .= "Эффективность,{$analytics['performance_metrics']['efficiency_score']}/100\n";
+        $csv .= "Среднее завершение в неделю,{$analytics['prediction_analysis']['average_weekly_completion']}\n";
+        $csv .= "Оставшиеся задачи,{$analytics['prediction_analysis']['remaining_tasks']}\n";
         
         return $csv;
     }

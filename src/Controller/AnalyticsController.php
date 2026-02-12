@@ -87,13 +87,8 @@ class AnalyticsController extends AbstractController
         $period1 = $request->query->get('period1', 'this_month');
         $period2 = $request->query->get('period2', 'last_month');
 
-        // This would require extending the AnalyticsService to handle custom periods
-        // For now, return the standard analytics
-        $analytics = $analyticsService->getUserTaskAnalytics($user);
+        $comparison = $analyticsService->getPeriodComparison($user, $period1, $period2);
 
-        return $this->json([
-            'current_period' => $analytics['completion_rates'],
-            'comparison_available' => false
-        ]);
+        return $this->json($comparison);
     }
 }

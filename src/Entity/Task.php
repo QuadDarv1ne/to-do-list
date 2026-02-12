@@ -607,4 +607,79 @@ class Task
         }
         return $tasks;
     }
+    
+    /**
+     * Calculate the time taken to complete this task (in hours)
+     */
+    public function getCompletionTimeInHours(): ?float
+    {
+        if (!$this->isCompleted() || !$this->getCompletedAt()) {
+            return null;
+        }
+        
+        $interval = $this->getCreatedAt()->diff($this->getCompletedAt());
+        $hours = $interval->days * 24 + $interval->h + ($interval->i / 60.0);
+        
+        return round($hours, 2);
+    }
+    
+    /**
+     * Calculate the number of days between creation and completion
+     */
+    public function getCompletionTimeInDays(): ?int
+    {
+        if (!$this->isCompleted() || !$this->getCompletedAt()) {
+            return null;
+        }
+        
+        $interval = $this->getCreatedAt()->diff($this->getCompletedAt());
+        return $interval->days;
+    }
+    
+    /**
+     * Check if the task was completed late (after its due date)
+     */
+    public function isCompletedLate(): bool
+    {
+        if (!$this->isCompleted() || !$this->getCompletedAt() || !$this->getDueDate()) {
+            return false;
+        }
+        
+        return $this->getCompletedAt() > $this->getDueDate();
+    }
+    
+    /**
+     * Get the number of days the task was overdue (if completed late)
+     */
+    public function getOverdueDays(): ?int
+    {
+        if (!$this->isCompletedLate()) {
+            return null;
+        }
+        
+        $interval = $this->getDueDate()->diff($this->getCompletedAt());
+        return $interval->days;
+    }
+    
+    /**
+     * Get the total time spent on this task through time tracking
+     * Returns the sum of all tracked time in hours
+     */
+    public function getTotalTimeSpent(): float
+    {
+        $totalTime = 0;
+        foreach ($this->getTimeTrackings() as $tracking) {
+            // Convert time spent (DateTimeImmutable) to hours
+            // The timeSpent field stores time in HH:MM:SS format, so we need to extract hours
+            $timeSpent = $tracking->getTimeSpent();
+            if ($timeSpent) {
+                $hours = $timeSpent->format('H');
+                $minutes = $timeSpent->format('i');
+                $seconds = $timeSpent->format('s');
+                
+                $totalTime += $hours + ($minutes / 60.0) + ($seconds / 3600.0);
+            }
+        }
+        return $totalTime;
+    }
 }
