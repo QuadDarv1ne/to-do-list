@@ -35,5 +35,13 @@ services:
         arguments:
             $performanceMonitor: '@App\Service\PerformanceMonitorService'
 
+    App\Command\PerformanceTestCommand:
+        arguments:
+            $performanceMonitor: '@App\Service\PerformanceMonitorService'
+
+    App\Command\GeneratePerformanceReportCommand:
+        arguments:
+            $performanceMonitor: '@App\Service\PerformanceMonitorService'
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
