@@ -78,6 +78,10 @@ services:
         arguments:
             $performanceMonitor: '@App\Service\PerformanceMonitorService'
 
+    App\Service\EmailNotificationService:
+        arguments:
+            $performanceMonitor: '@App\Service\PerformanceMonitorService'
+
     App\Command\PerformanceTestCommand:
         arguments:
             $performanceMonitor: '@App\Service\PerformanceMonitorService'
