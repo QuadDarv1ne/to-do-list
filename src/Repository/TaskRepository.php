@@ -343,6 +343,94 @@ class TaskRepository extends ServiceEntityRepository
     }
     
     /**
+     * Count tasks by various criteria for pagination
+     */
+    public function countSearchTasks(array $criteria = []): int
+    {
+        $qb = $this->createQueryBuilder('t')
+            ->select('COUNT(t.id)')
+            ->leftJoin('t.user', 'u')
+            ->leftJoin('t.assignedUser', 'au')
+            ->leftJoin('t.category', 'c');
+
+        if (!empty($criteria['user'])) {
+            $qb->andWhere('t.user = :user OR t.assignedUser = :user')
+               ->setParameter('user', $criteria['user']);
+        }
+
+        if (!empty($criteria['search'])) {
+            $qb->andWhere('t.title LIKE :search OR t.description LIKE :search')
+               ->setParameter('search', '%' . $criteria['search'] . '%');
+        }
+
+        if (!empty($criteria['status'])) {
+            $qb->andWhere('t.status = :status')
+               ->setParameter('status', $criteria['status']);
+        }
+
+        if (!empty($criteria['priority'])) {
+            $qb->andWhere('t.priority = :priority')
+               ->setParameter('priority', $criteria['priority']);
+        }
+
+        if (!empty($criteria['category'])) {
+            $qb->andWhere('t.category = :category')
+               ->setParameter('category', $criteria['category']);
+        }
+
+        if (!empty($criteria['startDate'])) {
+            $qb->andWhere('t.dueDate >= :startDate')
+               ->setParameter('startDate', $criteria['startDate']);
+        }
+
+        if (!empty($criteria['endDate'])) {
+            $qb->andWhere('t.dueDate <= :endDate')
+               ->setParameter('endDate', $criteria['endDate']);
+        }
+        
+        // Advanced filtering options
+        if (!empty($criteria['createdAfter'])) {
+            $qb->andWhere('t.createdAt >= :createdAfter')
+               ->setParameter('createdAfter', $criteria['createdAfter']);
+        }
+        
+        if (!empty($criteria['createdBefore'])) {
+            $qb->andWhere('t.createdAt <= :createdBefore')
+               ->setParameter('createdBefore', $criteria['createdBefore']);
+        }
+        
+        if (!empty($criteria['assignedToMe']) && $criteria['assignedToMe']) {
+            $qb->andWhere('t.assignedUser = :currentUser')
+               ->setParameter('currentUser', $criteria['assignedToMe']);
+        }
+        
+        if (!empty($criteria['createdByMe']) && $criteria['createdByMe']) {
+            $qb->andWhere('t.user = :currentUser')
+               ->setParameter('currentUser', $criteria['createdByMe']);
+        }
+        
+        if (!empty($criteria['overdue']) && $criteria['overdue']) {
+            $qb->andWhere('t.dueDate < :now AND t.status != :completed')
+               ->setParameter('now', new \DateTime())
+               ->setParameter('completed', 'completed');
+        }
+        
+        if (!empty($criteria['tag'])) {
+            $qb->join('t.tags', 'jt')
+               ->andWhere('jt.id = :tagId')
+               ->setParameter('tagId', $criteria['tag']);
+        }
+        
+        if (!empty($criteria['hideCompleted']) && $criteria['hideCompleted']) {
+            $qb->andWhere('t.status != :completedStatus')
+               ->setParameter('completedStatus', 'completed');
+        }
+
+        return (int) $qb->getQuery()
+                         ->getSingleScalarResult();
+    }
+    
+    /**
      * Find tasks by tag
      */
     public function findByTag(int $tagId): array
