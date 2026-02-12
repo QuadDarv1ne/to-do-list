@@ -51,6 +51,30 @@ class PerformanceController extends AbstractController
         return $this->json($systemMetrics);
     }
 
+    #[Route('/detailed', name: 'app_performance_detailed', methods: ['GET'])]
+    public function getDetailedMetrics(): JsonResponse
+    {
+        $detailedMetrics = $this->performanceMonitor->getDetailedMetrics();
+        
+        return $this->json($detailedMetrics);
+    }
+
+    #[Route('/slow-queries', name: 'app_performance_slow_queries', methods: ['GET'])]
+    public function getSlowQueries(): JsonResponse
+    {
+        $slowQueries = $this->performanceMonitor->getSlowQueries();
+        
+        return $this->json($slowQueries);
+    }
+
+    #[Route('/clear-slow-queries', name: 'app_performance_clear_slow_queries', methods: ['POST'])]
+    public function clearSlowQueries(): JsonResponse
+    {
+        $this->performanceMonitor->clearSlowQueries();
+        
+        return $this->json(['success' => true, 'message' => 'Slow queries cleared']);
+    }
+
     #[Route('/health', name: 'app_performance_health', methods: ['GET'])]
     public function healthCheck(): JsonResponse
     {

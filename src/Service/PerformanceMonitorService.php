@@ -140,12 +140,24 @@ class PerformanceMonitorService
             
             // Log slow queries (threshold: 100ms)
             if ($metrics['execution_time'] > 100) {
-                $this->logger->warning("Slow query detected", [
+                $slowQueryData = [
                     'query' => $query,
                     'source' => $source,
                     'execution_time_ms' => $metrics['execution_time'],
-                    'memory_used_bytes' => $metrics['memory_used_bytes']
-                ]);
+                    'memory_used_bytes' => $metrics['memory_used_bytes'],
+                    'timestamp' => date('Y-m-d H:i:s'),
+                    'trace' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10)
+                ];
+                
+                $this->logger->warning("Slow query detected", $slowQueryData);
+                
+                // Store slow query for reporting
+                $this->slowQueries[] = $slowQueryData;
+                
+                // Keep only the last 50 slow queries to prevent memory issues
+                if (count($this->slowQueries) > 50) {
+                    $this->slowQueries = array_slice($this->slowQueries, -50);
+                }
             }
             
             return $result;
@@ -173,8 +185,67 @@ class PerformanceMonitorService
         
         return array_merge($metrics, [
             'cache_info' => $cacheInfo,
+            'slow_queries' => $this->getSlowQueries(),
             'collection_timestamp' => date('Y-m-d H:i:s'),
             'report_type' => 'performance'
         ]);
+    }
+    
+    /**
+     * Get detailed performance metrics including database and cache statistics
+     */
+    public function getDetailedMetrics(): array
+    {
+        $basicMetrics = $this->collectMetrics();
+        
+        // Add additional metrics
+        $additionalMetrics = [
+            'database_info' => $this->getDatabaseMetrics(),
+            'cache_info' => $this->getCacheMetrics(),
+            'request_info' => $this->getRequestMetrics(),
+            'system_load' => $this->getSystemLoad()
+        ];
+        
+        return array_merge($basicMetrics, $additionalMetrics);
+    }
+    
+    private function getDatabaseMetrics(): array
+    {
+        // Return basic database metrics
+        return [
+            'slow_query_count' => count($this->slowQueries),
+            'slow_query_threshold' => '100ms',
+        ];
+    }
+    
+    private function getCacheMetrics(): array
+    {
+        // Return basic cache metrics
+        return [
+            'enabled' => true,
+            'adapter' => 'symfony_cache',
+        ];
+    }
+    
+    private function getRequestMetrics(): array
+    {
+        // Return request-related metrics
+        return [
+            'method' => $_SERVER['REQUEST_METHOD'] ?? 'CLI',
+            'uri' => $_SERVER['REQUEST_URI'] ?? 'console',
+            'ip' => $_SERVER['REMOTE_ADDR'] ?? 'localhost',
+        ];
+    }
+    
+    private function getSystemLoad(): array
+    {
+        // Return system load information
+        $load = function_exists('sys_getloadavg') ? sys_getloadavg() : [0, 0, 0];
+        
+        return [
+            'load_avg_1min' => $load[0] ?? 0,
+            'load_avg_5min' => $load[1] ?? 0,
+            'load_avg_15min' => $load[2] ?? 0,
+        ];
     }
 }
