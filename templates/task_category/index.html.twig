@@ -15,7 +15,7 @@
                     <p class="text-muted mb-0">Управляйте категориями для организации ваших задач</p>
                 </div>
                 <div>
-                    <a href="{{ path('app_task_category_new') }}" class="btn btn-primary btn-lg">
+                    <a href="{{ path('app_task_category_new') }}" class="btn btn-primary btn-lg btn-enhanced">
                         <i class="fas fa-plus me-2"></i>
                         Создать категорию
                     </a>
@@ -28,12 +28,12 @@
     <div class="row">
         {% for category in categories %}
         <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card border-0 shadow-sm h-100">
+            <div class="card card-enhanced border-0 shadow-sm h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <h5 class="card-title mb-0">{{ category.name }}</h5>
                         <div class="dropdown">
-                            <button class="btn btn-light btn-sm" type="button" data-bs-toggle="dropdown">
+                            <button class="btn btn-light btn-sm btn-enhanced" type="button" data-bs-toggle="dropdown">
                                 <i class="fas fa-ellipsis-v"></i>
                             </button>
                             <ul class="dropdown-menu">
@@ -81,7 +81,7 @@
                 <i class="fas fa-tags mb-3"></i>
                 <h4 class="mb-3">Нет категорий</h4>
                 <p class="mb-4">Создайте первую категорию для организации ваших задач</p>
-                <a href="{{ path('app_task_category_new') }}" class="btn btn-primary btn-lg">
+                <a href="{{ path('app_task_category_new') }}" class="btn btn-primary btn-lg btn-enhanced">
                     <i class="fas fa-plus me-2"></i>Создать категорию
                 </a>
             </div>

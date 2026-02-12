@@ -8,7 +8,7 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card border-0 shadow-sm">
+            <div class="card card-enhanced border-0 shadow-sm">
                 <div class="card-header bg-white">
                     <h3 class="card-title mb-0">
                         <i class="fas fa-plus me-2 text-primary"></i>Создать новую задачу
@@ -41,9 +41,9 @@
                         <div class="col-md-12 mb-3">
                             {{ form_row(form.tags) }}
                             <div class="d-flex align-items-center mt-2">
-                                <input type="text" id="quick-tag-input" class="form-control me-2" placeholder="Введите название нового тега...">
-                                <input type="color" id="quick-tag-color" class="form-control form-control-color" value="#007bff" title="Выберите цвет тега">
-                                <button type="button" class="btn btn-outline-primary ms-2" id="create-quick-tag-btn">
+                                <input type="text" id="quick-tag-input" class="form-control form-control-enhanced me-2" placeholder="Введите название нового тега...">
+                                <input type="color" id="quick-tag-color" class="form-control form-control-enhanced form-control-color" value="#007bff" title="Выберите цвет тега">
+                                <button type="button" class="btn btn-outline-primary btn-enhanced ms-2" id="create-quick-tag-btn">
                                     <i class="fas fa-plus"></i> Создать тег
                                 </button>
                             </div>
@@ -52,10 +52,10 @@
                     </div>
                     
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <a href="{{ path('app_task_index') }}" class="btn btn-outline-secondary me-md-2">
+                        <a href="{{ path('app_task_index') }}" class="btn btn-outline-secondary btn-enhanced me-md-2">
                             <i class="fas fa-arrow-left me-2"></i>Назад
                         </a>
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn btn-primary btn-enhanced">
                             <i class="fas fa-save me-2"></i>Сохранить
                         </button>
                     </div>

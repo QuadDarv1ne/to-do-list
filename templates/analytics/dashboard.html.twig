@@ -10,10 +10,10 @@
             Аналитика и Отчеты
         </h1>
         <div class="btn-group">
-            <button class="btn btn-outline-primary" id="refreshAnalytics">
+            <button class="btn btn-outline-primary btn-enhanced" id="refreshAnalytics">
                 <i class="fas fa-sync-alt me-2"></i>Обновить
             </button>
-            <button class="btn btn-success" id="exportCsv">
+            <button class="btn btn-success btn-enhanced" id="exportCsv">
                 <i class="fas fa-file-csv me-2"></i>Экспорт CSV
             </button>
         </div>
@@ -22,7 +22,7 @@
     <!-- Overview Cards -->
     <div class="row mb-4">
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card card-enhanced border-left-primary shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
@@ -42,7 +42,7 @@
         </div>
 
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
+            <div class="card card-enhanced border-left-success shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
@@ -65,7 +65,7 @@
         </div>
 
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card card-enhanced border-left-warning shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
@@ -85,7 +85,7 @@
         </div>
 
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card card-enhanced border-left-danger shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
@@ -108,7 +108,7 @@
     <!-- Efficiency Score and Insights -->
     <div class="row mb-4">
         <div class="col-lg-4">
-            <div class="card shadow mb-4">
+            <div class="card card-enhanced shadow mb-4">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">
                         <i class="fas fa-tachometer-alt me-2"></i>
@@ -130,7 +130,7 @@
         </div>
 
         <div class="col-lg-8">
-            <div class="card shadow mb-4">
+            <div class="card card-enhanced shadow mb-4">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">
                         <i class="fas fa-lightbulb me-2"></i>
@@ -167,15 +167,15 @@
     <!-- Charts Section -->
     <div class="row mb-4">
         <div class="col-lg-8">
-            <div class="card shadow mb-4">
+            <div class="card card-enhanced shadow mb-4">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
                     <h6 class="m-0 font-weight-bold text-primary">
                         <i class="fas fa-chart-bar me-2"></i>
                         Завершение задач по дням
                     </h6>
                     <div class="btn-group btn-group-sm">
-                        <button class="btn btn-outline-primary btn-sm active" data-period="30">30 дней</button>
-                        <button class="btn btn-outline-primary btn-sm" data-period="7">7 дней</button>
+                        <button class="btn btn-outline-primary btn-enhanced btn-sm active" data-period="30">30 дней</button>
+                        <button class="btn btn-outline-primary btn-enhanced btn-sm" data-period="7">7 дней</button>
                     </div>
                 </div>
                 <div class="card-body">
@@ -185,7 +185,7 @@
         </div>
 
         <div class="col-lg-4">
-            <div class="card shadow mb-4">
+            <div class="card card-enhanced shadow mb-4">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">
                         <i class="fas fa-chart-pie me-2"></i>
@@ -202,7 +202,7 @@
     <!-- Category Analysis -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card shadow mb-4">
+            <div class="card card-enhanced shadow mb-4">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">
                         <i class="fas fa-tags me-2"></i>
@@ -250,14 +250,14 @@
     <!-- Period Comparison -->
     <div class="row">
         <div class="col-12">
-            <div class="card shadow">
+            <div class="card card-enhanced shadow">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
                     <h6 class="m-0 font-weight-bold text-primary">
                         <i class="fas fa-balance-scale me-2"></i>
                         Сравнение периодов
                     </h6>
                     <div class="d-flex gap-2">
-                        <select id="period1Selector" class="form-select form-select-sm" style="width: auto;">
+                        <select id="period1Selector" class="form-select form-select-enhanced form-select-sm" style="width: auto;">
                             <option value="this_month" selected>Этот месяц</option>
                             <option value="last_month">Прошлый месяц</option>
                             <option value="this_week">Эта неделя</option>
@@ -266,7 +266,7 @@
                             <option value="last_year">Прошлый год</option>
                         </select>
                         <span class="align-self-center">vs</span>
-                        <select id="period2Selector" class="form-select form-select-sm" style="width: auto;">
+                        <select id="period2Selector" class="form-select form-select-enhanced form-select-sm" style="width: auto;">
                             <option value="last_month" selected>Прошлый месяц</option>
                             <option value="this_month">Этот месяц</option>
                             <option value="last_week">Прошлая неделя</option>
@@ -274,7 +274,7 @@
                             <option value="last_year">Прошлый год</option>
                             <option value="this_year">Этот год</option>
                         </select>
-                        <button id="comparePeriodsBtn" class="btn btn-primary btn-sm">
+                        <button id="comparePeriodsBtn" class="btn btn-primary btn-enhanced btn-sm">
                             <i class="fas fa-sync-alt me-1"></i>Сравнить
                         </button>
                     </div>

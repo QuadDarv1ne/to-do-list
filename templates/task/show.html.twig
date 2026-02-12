@@ -8,7 +8,7 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card border-0 shadow-sm">
+            <div class="card card-enhanced border-0 shadow-sm">
                 <div class="card-header d-flex justify-content-between align-items-center bg-white">
                     <h3 class="card-title mb-0">
                         <i class="fas fa-tasks me-2 text-primary"></i>{{ task.title }}
@@ -122,13 +122,13 @@
                     <!-- Dependencies Section -->
                     <div class="row mb-4">
                         <div class="col-12">
-                            <div class="card border-0 shadow-sm">
+                            <div class="card card-enhanced border-0 shadow-sm">
                                 <div class="card-header bg-light py-3">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <h5 class="card-title mb-0">
                                             <i class="fas fa-link me-2 text-primary"></i>Зависимости задач
                                         </h5>
-                                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addDependencyModal">
+                                        <button class="btn btn-primary btn-enhanced btn-sm" data-bs-toggle="modal" data-bs-target="#addDependencyModal">
                                             <i class="fas fa-plus me-1"></i>Добавить
                                         </button>
                                     </div>
@@ -149,10 +149,10 @@
                     </div>
                                     
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <a href="{{ path('app_task_index') }}" class="btn btn-outline-secondary me-md-2">
+                        <a href="{{ path('app_task_index') }}" class="btn btn-outline-secondary btn-enhanced me-md-2">
                             <i class="fas fa-arrow-left me-2"></i>Назад
                         </a>
-                        <a href="{{ path('app_task_edit', {'id': task.id}) }}" class="btn btn-warning me-md-2">
+                        <a href="{{ path('app_task_edit', {'id': task.id}) }}" class="btn btn-warning btn-enhanced me-md-2">
                             <i class="fas fa-edit me-2"></i>Редактировать
                         </a>
                         {% if task.status != 'completed' %}
@@ -160,7 +160,7 @@
                                   method="post" 
                                   class="d-inline">
                                 <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ task.id) }}">
-                                <button type="submit" class="btn btn-success">
+                                <button type="submit" class="btn btn-success btn-enhanced">
                                     <i class="fas fa-check me-2"></i>Отметить выполненным
                                 </button>
                             </form>
@@ -169,7 +169,7 @@
                                   method="post" 
                                   class="d-inline">
                                 <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ task.id) }}">
-                                <button type="submit" class="btn btn-secondary">
+                                <button type="submit" class="btn btn-secondary btn-enhanced">
                                     <i class="fas fa-redo me-2"></i>Вернуть в работу
                                 </button>
                             </form>
@@ -178,12 +178,12 @@
                               method="post" 
                               class="d-inline">
                             <input type="hidden" name="_token" value="{{ csrf_token('clone' ~ task.id) }}">
-                            <button type="submit" class="btn btn-info" 
+                            <button type="submit" class="btn btn-info btn-enhanced" 
                                     onclick="return confirm('Вы уверены, что хотите скопировать эту задачу?')">
                                 <i class="fas fa-copy me-2"></i>Клонировать
                             </button>
                         </form>
-                        <a href="{{ path('app_task_recurrence', {'id': task.id}) }}" class="btn btn-primary">
+                        <a href="{{ path('app_task_recurrence', {'id': task.id}) }}" class="btn btn-primary btn-enhanced">
                             <i class="fas fa-sync-alt me-2"></i>Повторение
                         </a>
                     </div>
@@ -205,14 +205,14 @@
                 <form id="addDependencyForm">
                     <div class="mb-3">
                         <label for="dependencyTaskSelect" class="form-label">Выберите задачу</label>
-                        <select class="form-select" id="dependencyTaskSelect" required>
+                        <select class="form-select form-select-enhanced" id="dependencyTaskSelect" required>
                             <option value="">Выберите задачу...</option>
                             <!-- Options will be populated by JavaScript -->
                         </select>
                     </div>
                     <div class="mb-3">
                         <label for="dependencyType" class="form-label">Тип зависимости</label>
-                        <select class="form-select" id="dependencyType" required>
+                        <select class="form-select form-select-enhanced" id="dependencyType" required>
                             <option value="blocking">Блокирующая</option>
                             <option value="related">Связанная</option>
                         </select>
@@ -220,8 +220,8 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                <button type="button" class="btn btn-primary" id="saveDependencyBtn">
+                <button type="button" class="btn btn-secondary btn-enhanced" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary btn-enhanced" id="saveDependencyBtn">
                     <i class="fas fa-save me-1"></i>Сохранить
                 </button>
             </div>
@@ -286,7 +286,7 @@
                                 <span class="badge bg-${statusClass}">${statusText}</span>
                             </small>
                         </div>
-                        <button class="btn btn-sm btn-danger" onclick="removeDependency(${dep.id}, ${taskId})">
+                        <button class="btn btn-danger btn-enhanced btn-sm" onclick="removeDependency(${dep.id}, ${taskId})">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
