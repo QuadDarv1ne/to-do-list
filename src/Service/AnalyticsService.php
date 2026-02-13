@@ -120,56 +120,33 @@ class AnalyticsService
     {
         $this->performanceMonitor->startTimer('analytics_service_get_overview_stats');
         try {
-            // Total tasks
-            $totalTasks = $this->entityManager->createQueryBuilder()
-                ->select('COUNT(t.id)')
+            // Single query to get all stats at once for better performance
+            $results = $this->entityManager->createQueryBuilder()
+                ->select(
+                    'COUNT(t.id) as total_tasks',
+                    'SUM(CASE WHEN t.status = :completed_status THEN 1 ELSE 0 END) as completed_tasks',
+                    'SUM(CASE WHEN t.dueDate IS NOT NULL AND t.dueDate < :now AND t.status != :completed_status THEN 1 ELSE 0 END) as overdue_tasks',
+                    'SUM(CASE WHEN t.status = :pending_status THEN 1 ELSE 0 END) as pending_tasks'
+                )
                 ->from(Task::class, 't')
                 ->where('t.assignedUser = :user OR t.user = :user')
                 ->setParameter('user', $user)
-                ->getQuery()
-                ->getSingleScalarResult();
-
-            // Completed tasks
-            $completedTasks = $this->entityManager->createQueryBuilder()
-                ->select('COUNT(t.id)')
-                ->from(Task::class, 't')
-                ->where('(t.assignedUser = :user OR t.user = :user)')
-                ->andWhere('t.status = :status')
-                ->setParameter('user', $user)
-                ->setParameter('status', 'completed')
-                ->getQuery()
-                ->getSingleScalarResult();
-
-            // Overdue tasks
-            $overdueTasks = $this->entityManager->createQueryBuilder()
-                ->select('COUNT(t.id)')
-                ->from(Task::class, 't')
-                ->where('(t.assignedUser = :user OR t.user = :user)')
-                ->andWhere('t.dueDate IS NOT NULL')
-                ->andWhere('t.dueDate < :now')
-                ->andWhere('t.status != :status')
-                ->setParameter('user', $user)
+                ->setParameter('completed_status', 'completed')
+                ->setParameter('pending_status', 'pending')
                 ->setParameter('now', new \DateTime())
-                ->setParameter('status', 'completed')
                 ->getQuery()
-                ->getSingleScalarResult();
+                ->getSingleResult();
 
-            // Pending tasks
-            $pendingTasks = $this->entityManager->createQueryBuilder()
-                ->select('COUNT(t.id)')
-                ->from(Task::class, 't')
-                ->where('(t.assignedUser = :user OR t.user = :user)')
-                ->andWhere('t.status = :status')
-                ->setParameter('user', $user)
-                ->setParameter('status', 'pending')
-                ->getQuery()
-                ->getSingleScalarResult();
+            $totalTasks = (int) $results['total_tasks'];
+            $completedTasks = (int) $results['completed_tasks'];
+            $overdueTasks = (int) $results['overdue_tasks'];
+            $pendingTasks = (int) $results['pending_tasks'];
 
             return [
-                'total_tasks' => (int) $totalTasks,
-                'completed_tasks' => (int) $completedTasks,
-                'overdue_tasks' => (int) $overdueTasks,
-                'pending_tasks' => (int) $pendingTasks,
+                'total_tasks' => $totalTasks,
+                'completed_tasks' => $completedTasks,
+                'overdue_tasks' => $overdueTasks,
+                'pending_tasks' => $pendingTasks,
                 'completion_rate' => $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100, 1) : 0
             ];
         } finally {
