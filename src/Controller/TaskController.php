@@ -199,10 +199,16 @@ class TaskController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_task_show', methods: ['GET'])]
-    public function show(Task $task, TaskCategoryRepository $categoryRepository, ?PerformanceMonitorService $performanceMonitor = null): Response
+    public function show(int $id, TaskRepository $taskRepository, TaskCategoryRepository $categoryRepository, ?PerformanceMonitorService $performanceMonitor = null): Response
     {
         if ($performanceMonitor) {
             $performanceMonitor->startTimer('task_controller_show');
+        }
+        
+        $task = $taskRepository->findTaskWithRelations($id);
+        
+        if (!$task) {
+            throw $this->createNotFoundException('Task not found');
         }
         
         $this->denyAccessUnlessGranted('TASK_VIEW', $task);
@@ -626,8 +632,13 @@ class TaskController extends AbstractController
         $startDate = $request->query->get('start_date');
         $endDate = $request->query->get('end_date');
         
-        // Build query
+        // Build query with eager loading of tags to prevent N+1 queries
         $qb = $taskRepository->createQueryBuilder('t')
+            ->select('t, tg') // Select tasks and tags
+            ->leftJoin('t.user', 'u')
+            ->leftJoin('t.assignedUser', 'au')
+            ->leftJoin('t.category', 'c')
+            ->leftJoin('t.tags', 'tg') // Left join to include tags
             ->andWhere('t.user = :user OR t.assignedUser = :user')
             ->setParameter('user', $user)
             ->orderBy('t.createdAt', 'DESC');
@@ -664,7 +675,7 @@ class TaskController extends AbstractController
         $csvContent = "ID,Название,Описание,Статус,Приоритет,Дата создания,Срок выполнения,Категория,Назначен пользователю,Теги\n";
         
         foreach ($tasks as $task) {
-            // Collect tag names
+            // Since we eager-loaded the tags, we can directly access them
             $tagNames = [];
             foreach ($task->getTags() as $tag) {
                 $tagNames[] = $tag->getName();
@@ -782,13 +793,16 @@ class TaskController extends AbstractController
     }
     
     #[Route('/quick-create', name: 'app_task_quick_create', methods: ['POST'])]
-    public function quickCreate(Request $request, EntityManagerInterface $entityManager, ?PerformanceMonitorService $performanceMonitor = null): Response
+    public function quickCreate(Request $request, EntityManagerInterface $entityManager, ?PerformanceMonitorService $performanceMonitor = null, ?SanitizationService $sanitizationService = null): Response
     {
         if ($performanceMonitor) {
             $performanceMonitor->startTimer('task_controller_quick_create');
         }
         $data = json_decode($request->getContent(), true);
-        $title = trim($data['title'] ?? '');
+        
+        // Sanitize inputs to prevent XSS
+        $rawTitle = $data['title'] ?? '';
+        $title = $sanitizationService ? $sanitizationService->sanitizeInput($rawTitle) : htmlspecialchars(trim($rawTitle), ENT_QUOTES, 'UTF-8');
         
         if (empty($title)) {
             return $this->json([
@@ -799,21 +813,38 @@ class TaskController extends AbstractController
         
         $task = new Task();
         $task->setTitle($title);
-        $task->setDescription($data['description'] ?? '');
+        
+        // Sanitize description
+        $rawDescription = $data['description'] ?? '';
+        $description = $sanitizationService ? $sanitizationService->sanitizeInput($rawDescription) : htmlspecialchars($rawDescription, ENT_QUOTES, 'UTF-8');
+        $task->setDescription($description);
+        
         $task->setUser($this->getUser());
         $task->setStatus('pending');
-        $task->setPriority($data['priority'] ?? 'medium');
+        
+        // Sanitize priority
+        $rawPriority = $data['priority'] ?? 'medium';
+        $allowedPriorities = ['low', 'medium', 'high', 'urgent'];
+        $priority = in_array($rawPriority, $allowedPriorities) ? $rawPriority : 'medium';
+        $task->setPriority($priority);
+        
         $task->setCreatedAt(new \DateTimeImmutable());
         
         // Set default due date to next week if not specified
         if (!empty($data['dueDate'])) {
-            $task->setDueDate(new \DateTime($data['dueDate']));
+            // Validate date format
+            try {
+                $dueDate = new \DateTime($data['dueDate']);
+                $task->setDueDate($dueDate);
+            } catch (\Exception $e) {
+                // Invalid date format, skip setting due date
+            }
         }
         
         // Assign to a category if provided
         if (!empty($data['category'])) {
             $category = $entityManager->find(\App\Entity\TaskCategory::class, (int)$data['category']);
-            if ($category) {
+            if ($category && $category->getUser()->getId() === $this->getUser()->getId()) { // Ensure user owns the category
                 $task->setCategory($category);
             }
         }

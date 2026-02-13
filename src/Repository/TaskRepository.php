@@ -686,4 +686,28 @@ class TaskRepository extends ServiceEntityRepository
             }
         }
     }
+    
+    /**
+     * Find task by ID with all relations to avoid N+1 queries
+     */
+    public function findTaskWithRelations(int $id): ?Task
+    {
+        return $this->createQueryBuilder('t')
+            ->leftJoin('t.user', 'u')
+            ->leftJoin('t.assignedUser', 'au')
+            ->leftJoin('t.category', 'c')
+            ->leftJoin('t.tags', 'tg')
+            ->leftJoin('t.comments', 'cm')
+            ->leftJoin('t.activityLogs', 'al')
+            ->leftJoin('t.notifications', 'nt')
+            ->leftJoin('t.dependencies', 'dep')
+            ->leftJoin('t.dependents', 'dt')
+            ->leftJoin('t.timeTrackings', 'tt')
+            ->leftJoin('t.recurrence', 'r')
+            ->addSelect('u', 'au', 'c', 'tg', 'cm', 'al', 'nt', 'dep', 'dt', 'tt', 'r')
+            ->where('t.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }
