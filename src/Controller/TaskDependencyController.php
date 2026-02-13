@@ -59,18 +59,18 @@ class TaskDependencyController extends AbstractController
             }
         }
 
-        $dependencies = $dependencyRepository->findDependenciesForTask($task);
+        $dependencies = $dependencyRepository->findDependenciesForTaskMinimal($task);
         
         $data = [];
         foreach ($dependencies as $dependency) {
             $data[] = [
-                'id' => $dependency->getId(),
-                'dependent_task_id' => $dependency->getDependentTask()->getId(),
-                'dependency_task_id' => $dependency->getDependencyTask()->getId(),
-                'dependency_task_name' => $dependency->getDependencyTask()->getName(),
-                'type' => $dependency->getType(),
-                'is_satisfied' => $dependency->isSatisfied(),
-                'created_at' => $dependency->getCreatedAt()->format('c')
+                'id' => $dependency['id'],
+                'dependent_task_id' => $dependency['dependent_task_id'],
+                'dependency_task_id' => $dependency['dependency_task_id'],
+                'dependency_task_name' => $dependency['dependency_task_name'],
+                'type' => $dependency['type'],
+                'is_satisfied' => $dependency['is_satisfied'],
+                'created_at' => (new \DateTimeImmutable($dependency['created_at']))->format('c')
             ];
         }
 

@@ -111,7 +111,7 @@ class NotificationController extends AbstractController
         }
         
         $user = $this->getUser();
-        $unreadCount = count($notificationRepository->findByUserUnread($user));
+        $unreadCount = $notificationRepository->countUnreadByUser($user);
         
         try {
             return new JsonResponse(['count' => $unreadCount]);

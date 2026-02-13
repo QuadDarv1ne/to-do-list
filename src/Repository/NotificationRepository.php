@@ -53,7 +53,22 @@ class NotificationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-
+        
+    /**
+     * Count unread notifications for a user (optimized query)
+     */
+    public function countUnreadByUser($user): int
+    {
+        return $this->createQueryBuilder('n')
+            ->select('COUNT(n.id)')
+            ->andWhere('n.user = :user')
+            ->andWhere('n.isRead = :isRead')
+            ->setParameter('user', $user)
+            ->setParameter('isRead', false)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+        
     /**
      * Get notifications created after a specific date for a user (optimized for SSE)
      *

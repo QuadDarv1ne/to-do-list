@@ -24,18 +24,45 @@ class TaskDependencyRepository extends ServiceEntityRepository
     {
         $this->cacheService = $cacheService;
     }
-
+        
     /**
-     * Find dependencies for a task
+     * Find dependencies for a task with optimized query including related entities
      */
     public function findDependenciesForTask($task): array
     {
         return $this->createQueryBuilder('td')
+            ->leftJoin('td.dependentTask', 'depTask')
+            ->leftJoin('td.dependencyTask', 'dtTask')
             ->andWhere('td.dependentTask = :task')
             ->setParameter('task', $task)
             ->orderBy('td.createdAt', 'ASC')
             ->getQuery()
             ->getResult();
+    }
+        
+    /**
+     * Find dependencies for a task with minimal data for API responses
+     */
+    public function findDependenciesForTaskMinimal($task): array
+    {
+        return $this->createQueryBuilder('td')
+            ->select([
+                'td.id as id',
+                'td.type as type',
+                'td.createdAt as created_at',
+                'td.satisfied as is_satisfied',
+                'depTask.id as dependent_task_id',
+                'dtTask.id as dependency_task_id',
+                'dtTask.title as dependency_task_name',
+                'dtTask.status as dependency_task_status'
+            ])
+            ->leftJoin('td.dependentTask', 'depTask')
+            ->leftJoin('td.dependencyTask', 'dtTask')
+            ->andWhere('td.dependentTask = :task')
+            ->setParameter('task', $task)
+            ->orderBy('td.createdAt', 'ASC')
+            ->getQuery()
+            ->getArrayResult();
     }
 
     /**
