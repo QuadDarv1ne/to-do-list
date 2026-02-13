@@ -51,6 +51,33 @@ class TaskRepository extends ServiceEntityRepository
                   ->getQuery()
                   ->getSingleScalarResult();
     }
+    
+    /**
+     * Count tasks by priority and optionally by user
+     */
+    public function countByPriority(?User $user = null, ?bool $isDone = null, ?string $priority = null): int
+    {
+        $qb = $this->createQueryBuilder('t');
+        
+        if ($user !== null) {
+            $qb->andWhere('t.assignedUser = :user OR t.user = :user')
+               ->setParameter('user', $user);
+        }
+        
+        if ($isDone !== null) {
+            $qb->andWhere('t.status = :statusValue')
+               ->setParameter('statusValue', $isDone ? 'completed' : 'pending');
+        }
+        
+        if ($priority !== null) {
+            $qb->andWhere('t.priority = :priority')
+               ->setParameter('priority', $priority);
+        }
+        
+        return $qb->select('COUNT(t.id)')
+                  ->getQuery()
+                  ->getSingleScalarResult();
+    }
 
     /**
      * Find tasks assigned to a specific user

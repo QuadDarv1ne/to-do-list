@@ -165,7 +165,7 @@ class TaskController extends AbstractController
         $task->setStatus('pending');
         $task->setPriority('medium');
         
-        $form = $this->createForm(TaskType::class, $task);
+        $form = $this->createForm(TaskType::class, $task, ['user' => $this->getUser()]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -247,7 +247,7 @@ class TaskController extends AbstractController
         $originalPriority = $task->getPriority();
         $originalDueDate = $task->getDueDate();
         
-        $form = $this->createForm(TaskType::class, $task);
+        $form = $this->createForm(TaskType::class, $task, ['user' => $this->getUser()]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -952,116 +952,69 @@ class TaskController extends AbstractController
         }
         $action = $request->request->get('action');
         $taskIds = $request->request->get('task_ids', []);
-        
+        $currentUser = $this->getUser();
+            
         if (empty($taskIds) || !is_array($taskIds)) {
             $this->addFlash('error', 'Не выбраны задачи для выполнения операции.');
             return $this->redirectToRoute('app_task_index');
         }
-        
-        $tasks = $taskRepository->findBy(['id' => $taskIds]);
-        $currentUser = $this->getUser();
-        $successfulOperations = 0;
-        
-        foreach ($tasks as $task) {
-            // Check permissions for each task
-            if (!$this->isGranted('TASK_EDIT', $task)) {
-                continue; // Skip unauthorized tasks
-            }
             
+        // Use the new BulkTaskOperationService for better performance
+        $bulkTaskOperationService = $this->container->get(BulkTaskOperationService::class);
+            
+        $result = match($action) {
+            'delete' => $bulkTaskOperationService->bulkDelete($taskIds, $currentUser),
+            'mark_completed' => $bulkTaskOperationService->bulkUpdateStatus($taskIds, 'completed', $currentUser),
+            'mark_in_progress' => $bulkTaskOperationService->bulkUpdateStatus($taskIds, 'in_progress', $currentUser),
+            'mark_pending' => $bulkTaskOperationService->bulkUpdateStatus($taskIds, 'pending', $currentUser),
+            'set_priority_high' => $bulkTaskOperationService->bulkUpdatePriority($taskIds, 'high', $currentUser),
+            'set_priority_medium' => $bulkTaskOperationService->bulkUpdatePriority($taskIds, 'medium', $currentUser),
+            'set_priority_low' => $bulkTaskOperationService->bulkUpdatePriority($taskIds, 'low', $currentUser),
+            'assign_tag' => $this->handleBulkTagAssignment($taskIds, $request, $entityManager, $currentUser),
+            default => ['success' => false, 'updated_count' => 0, 'failed_tasks' => []]
+        };
+            
+        // Handle results
+        $updatedCount = $result['updated_count'] ?? 0;
+        $failedTasks = $result['failed_tasks'] ?? [];
+            
+        if ($updatedCount > 0) {
             switch ($action) {
                 case 'delete':
-                    // Check delete permission
-                    if ($this->isGranted('TASK_DELETE', $task)) {
-                        $entityManager->remove($task);
-                        $successfulOperations++;
-                    }
+                    $this->addFlash('success', "Успешно удалено {$updatedCount} задач(и).");
                     break;
-                    
                 case 'mark_completed':
-                    $task->setStatus('completed');
-                    $notificationService->sendTaskCompletionNotification($task->getUser(), $currentUser, $task->getId(), $task->getName());
-                    $successfulOperations++;
+                    $this->addFlash('success', "{$updatedCount} задач(и) отмечены как выполненные.");
                     break;
-                    
                 case 'mark_in_progress':
-                    $task->setStatus('in_progress');
-                    // Status change notifications not implemented in NotificationService for in-progress
-                    $successfulOperations++;
+                    $this->addFlash('success', "{$updatedCount} задач(и) отмечены как в процессе выполнения.");
                     break;
-                    
                 case 'mark_pending':
-                    $task->setStatus('pending');
-                    // Status change notifications not implemented in NotificationService for pending
-                    $successfulOperations++;
+                    $this->addFlash('success', "{$updatedCount} задач(и) отмечены как ожидающие.");
                     break;
-                    
                 case 'set_priority_high':
-                    $task->setPriority('high');
-                    // Priority change notifications not implemented in NotificationService
-                    $successfulOperations++;
+                    $this->addFlash('success', "{$updatedCount} задач(и) получили высокий приоритет.");
                     break;
-                    
                 case 'set_priority_medium':
-                    $task->setPriority('medium');
-                    // Priority change notifications not implemented in NotificationService
-                    $successfulOperations++;
+                    $this->addFlash('success', "{$updatedCount} задач(и) получили средний приоритет.");
                     break;
-                    
                 case 'set_priority_low':
-                    $task->setPriority('low');
-                    // Priority change notifications not implemented in NotificationService
-                    $successfulOperations++;
+                    $this->addFlash('success', "{$updatedCount} задач(и) получили низкий приоритет.");
                     break;
-                    
                 case 'assign_tag':
-                    $tagIds = $request->request->get('tag_ids', []);
-                    if (!empty($tagIds) && is_array($tagIds)) {
-                        foreach ($tagIds as $tagId) {
-                            $tag = $entityManager->find(\App\Entity\Tag::class, (int)$tagId);
-                            if ($tag) {
-                                $task->addTag($tag);
-                            }
-                        }
-                        $successfulOperations++;
-                    }
+                    $this->addFlash('success', "Теги успешно добавлены к {$updatedCount} задач(и).");
                     break;
             }
         }
-        
-        if ($successfulOperations > 0) {
-            $entityManager->flush();
             
-            switch ($action) {
-                case 'delete':
-                    $this->addFlash('success', "Успешно удалено {$successfulOperations} задач(и).");
-                    break;
-                case 'mark_completed':
-                    $this->addFlash('success', "{$successfulOperations} задач(и) отмечены как выполненные.");
-                    break;
-                case 'mark_in_progress':
-                    $this->addFlash('success', "{$successfulOperations} задач(и) отмечены как в процессе выполнения.");
-                    break;
-                case 'mark_pending':
-                    $this->addFlash('success', "{$successfulOperations} задач(и) отмечены как ожидающие.");
-                    break;
-                case 'set_priority_high':
-                    $this->addFlash('success', "{$successfulOperations} задач(и) получили высокий приоритет.");
-                    break;
-                case 'set_priority_medium':
-                    $this->addFlash('success', "{$successfulOperations} задач(и) получили средний приоритет.");
-                    break;
-                case 'set_priority_low':
-                    $this->addFlash('success', "{$successfulOperations} задач(и) получили низкий приоритет.");
-                    break;
-                    
-                case 'assign_tag':
-                    $this->addFlash('success', "Теги успешно назначены для {$successfulOperations} задач(и).");
-                    break;
-            }
-        } else {
-            $this->addFlash('warning', 'Не удалось выполнить операцию ни для одной задачи (возможно, нет прав).');
+        if (!empty($failedTasks)) {
+            $this->addFlash('warning', 'Не удалось выполнить операцию для ' . count($failedTasks) . ' задач(и) (возможно, нет прав).');
         }
-        
+            
+        if ($updatedCount === 0 && empty($failedTasks)) {
+            $this->addFlash('warning', 'Не удалось выполнить операцию ни для одной задачи.');
+        }
+            
         try {
             return $this->redirectToRoute('app_task_index');
         } finally {
@@ -1069,6 +1022,20 @@ class TaskController extends AbstractController
                 $performanceMonitor->stopTimer('task_controller_bulk_action');
             }
         }
+    }
+        
+    private function handleBulkTagAssignment(array $taskIds, Request $request, EntityManagerInterface $entityManager, \App\Entity\User $currentUser): array
+    {
+        $tagIds = $request->request->get('tag_ids', []);
+            
+        if (empty($tagIds) || !is_array($tagIds)) {
+            return ['success' => true, 'updated_count' => 0, 'failed_tasks' => []];
+        }
+            
+        // Get the BulkTaskOperationService
+        $bulkTaskOperationService = $this->container->get(BulkTaskOperationService::class);
+            
+        return $bulkTaskOperationService->bulkAddTags($taskIds, $tagIds, $currentUser);
     }
     
     #[Route('/api/stats', name: 'app_task_stats', methods: ['GET'])]
@@ -1087,6 +1054,30 @@ class TaskController extends AbstractController
         } finally {
             if ($performanceMonitor) {
                 $performanceMonitor->stopTimer('task_controller_api_stats');
+            }
+        }
+    }
+    
+    #[Route('/api/insights', name: 'app_task_insights', methods: ['GET'])]
+    public function getInsights(
+        TaskRepository $taskRepository,
+        \App\Service\TaskInsightsService $taskInsightsService,
+        ?PerformanceMonitorService $performanceMonitor = null
+    ): Response {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTimer('task_controller_api_insights');
+        }
+        
+        $user = $this->getUser();
+        
+        // Get comprehensive insights
+        $insights = $taskInsightsService->getDashboardInsights($user);
+        
+        try {
+            return $this->json($insights);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTimer('task_controller_api_insights');
             }
         }
     }

@@ -5,6 +5,7 @@ namespace App\Form;
 use App\Entity\Tag;
 use App\Entity\TaskCategory;
 use App\Entity\User;
+use App\Repository\TagRepository;
 use App\Repository\TaskCategoryRepository;
 use App\Repository\UserRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
@@ -24,7 +25,8 @@ class TaskType extends AbstractType
 {
     public function __construct(
         private UserRepository $userRepository,
-        private TaskCategoryRepository $categoryRepository
+        private TaskCategoryRepository $categoryRepository,
+        private TagRepository $tagRepository
     ) {}
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -145,9 +147,16 @@ class TaskType extends AbstractType
                     'class' => 'form-select',
                     'data-placeholder' => 'Выберите теги...'
                 ],
-                'query_builder' => function(\Doctrine\ORM\EntityRepository $er) {
-                    return $er->createQueryBuilder('t')
+                'query_builder' => function(\Doctrine\ORM\EntityRepository $er) use ($options) {
+                    $qb = $er->createQueryBuilder('t')
                         ->orderBy('t.name', 'ASC');
+                    
+                    if (isset($options['user']) && $options['user']) {
+                        $qb->andWhere('t.user = :user')
+                           ->setParameter('user', $options['user']);
+                    }
+                    
+                    return $qb;
                 }
             ])
         ;
