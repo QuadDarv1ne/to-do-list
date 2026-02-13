@@ -23,8 +23,12 @@ class Tag
         max: 50,
         maxMessage: 'Название тега не может быть длиннее {{ limit }} символов'
     )]
-    #[ORM\Column(length: 50, unique: true)]
+    #[ORM\Column(length: 50)]
     private ?string $name = null;
+
+    #[ORM\ManyToOne(inversedBy: 'tags')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $user = null;
 
     #[Assert\Length(
         max: 255,
@@ -67,6 +71,18 @@ class Tag
     public function setName(string $name): static
     {
         $this->name = $name;
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
 
         return $this;
     }

@@ -129,7 +129,7 @@ class TaskController extends AbstractController
         $categories = $categoryRepository->findByUser($user);
         
         // Get all tags for filter dropdown
-        $tags = $tagRepository->findAll();
+        $tags = $tagRepository->findByUser($user);
         
         try {
             return $this->render('task/index.html.twig', [
@@ -366,7 +366,8 @@ class TaskController extends AbstractController
         if ($performanceMonitor) {
             $performanceMonitor->startTimer('task_controller_api_tags');
         }
-        $tags = $tagRepository->findAll();
+        $user = $this->getUser();
+        $tags = $tagRepository->findByUser($user);
             
         $data = [];
         foreach ($tags as $tag) {
@@ -583,7 +584,7 @@ class TaskController extends AbstractController
         $categories = $categoryRepository->findByUser($user);
         
         // Get all tags for filter dropdown
-        $tags = $tagRepository->findAll();
+        $tags = $tagRepository->findByUser($user);
         
         try {
             return $this->render('task/index.html.twig', [

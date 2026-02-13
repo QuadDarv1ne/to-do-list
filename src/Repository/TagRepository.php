@@ -100,4 +100,32 @@ class TagRepository extends ServiceEntityRepository
         
         return $result;
     }
+    
+    public function findByUser($user): array
+    {
+        $cacheKey = 'tags_by_user_' . $user->getId();
+        
+        if ($this->cacheService) {
+            return $this->cachedQuery(
+                $cacheKey,
+                function() use ($user) {
+                    return $this->createQueryBuilder('t')
+                        ->andWhere('t.user = :user')
+                        ->setParameter('user', $user)
+                        ->orderBy('t.name', 'ASC')
+                        ->getQuery()
+                        ->getResult();
+                },
+                ['user_id' => $user->getId()],
+                300 // 5 minutes cache
+            );
+        }
+        
+        return $this->createQueryBuilder('t')
+            ->andWhere('t.user = :user')
+            ->setParameter('user', $user)
+            ->orderBy('t.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }
