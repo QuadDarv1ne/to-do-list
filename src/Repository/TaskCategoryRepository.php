@@ -26,6 +26,27 @@ class TaskCategoryRepository extends ServiceEntityRepository
 
     public function findByUser($user)
     {
+        $cacheKey = 'task_categories_for_user_' . $user->getId();
+        
+        if ($this->cacheService) {
+            return $this->cachedQuery(
+                $cacheKey,
+                function() use ($user) {
+                    return $this->performFindByUser($user);
+                },
+                ['user_id' => $user->getId()],
+                300 // 5 minutes cache
+            );
+        }
+        
+        return $this->performFindByUser($user);
+    }
+    
+    /**
+     * Internal method to find categories by user
+     */
+    private function performFindByUser($user)
+    {
         return $this->createQueryBuilder('tc')
             ->andWhere('tc.user = :user')
             ->setParameter('user', $user)
@@ -35,6 +56,27 @@ class TaskCategoryRepository extends ServiceEntityRepository
     }
 
     public function findOneByUser($category_id, $user)
+    {
+        $cacheKey = 'task_category_' . $category_id . '_for_user_' . $user->getId();
+        
+        if ($this->cacheService) {
+            return $this->cachedQuery(
+                $cacheKey,
+                function() use ($category_id, $user) {
+                    return $this->performFindOneByUser($category_id, $user);
+                },
+                ['category_id' => $category_id, 'user_id' => $user->getId()],
+                600 // 10 minutes cache
+            );
+        }
+        
+        return $this->performFindOneByUser($category_id, $user);
+    }
+    
+    /**
+     * Internal method to find one category by user
+     */
+    private function performFindOneByUser($category_id, $user)
     {
         return $this->createQueryBuilder('tc')
             ->andWhere('tc.id = :id')

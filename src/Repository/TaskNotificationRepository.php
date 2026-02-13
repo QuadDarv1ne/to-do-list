@@ -42,6 +42,27 @@ class TaskNotificationRepository extends ServiceEntityRepository
      */
     public function findForUser($user)
     {
+        $cacheKey = 'task_notifications_for_user_' . $user->getId();
+        
+        if ($this->cacheService) {
+            return $this->cachedQuery(
+                $cacheKey,
+                function() use ($user) {
+                    return $this->performFindForUser($user);
+                },
+                ['user_id' => $user->getId()],
+                300 // 5 minutes cache
+            );
+        }
+        
+        return $this->performFindForUser($user);
+    }
+    
+    /**
+     * Internal method to find notifications for user
+     */
+    private function performFindForUser($user)
+    {
         return $this->createQueryBuilder('tn')
             ->andWhere('tn.recipient = :user')
             ->setParameter('user', $user)
@@ -54,6 +75,27 @@ class TaskNotificationRepository extends ServiceEntityRepository
      * Count unread notifications for a recipient
      */
     public function countUnreadByRecipient($recipient)
+    {
+        $cacheKey = 'count_unread_notifications_' . $recipient->getId();
+        
+        if ($this->cacheService) {
+            return $this->cachedQuery(
+                $cacheKey,
+                function() use ($recipient) {
+                    return $this->performCountUnreadByRecipient($recipient);
+                },
+                ['recipient_id' => $recipient->getId()],
+                120 // 2 minutes cache
+            );
+        }
+        
+        return $this->performCountUnreadByRecipient($recipient);
+    }
+    
+    /**
+     * Internal method to count unread notifications for a recipient
+     */
+    private function performCountUnreadByRecipient($recipient)
     {
         return $this->createQueryBuilder('tn')
             ->select('COUNT(tn.id)')
