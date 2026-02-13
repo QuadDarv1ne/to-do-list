@@ -40,7 +40,8 @@ class DashboardController extends AbstractController
             }
         }
         
-        return $this->render('dashboard/index.html.twig', [
+        // Prepare dashboard data with defaults
+        $dashboardData = [
             'task_stats' => $taskStats,
             'analytics_data' => $analyticsData,
             'performance_metrics' => $performanceMetrics,
@@ -52,7 +53,12 @@ class DashboardController extends AbstractController
             // Pass activity stats if user is admin
             'platform_activity_stats' => $analyticsData['platform_activity_stats'] ?? null,
             'user_activity_stats' => $analyticsData['user_activity_stats'] ?? null,
-        ]);
+        ];
+        
+        // Add additional data for enhanced user experience
+        $dashboardData['dashboard_refresh_interval'] = 300000; // 5 minutes in milliseconds
+        
+        return $this->render('dashboard/index.html.twig', $dashboardData);
     }
     
     #[Route('/cache/clear', name: 'app_cache_clear', methods: ['POST'])]

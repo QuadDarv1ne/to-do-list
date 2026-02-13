@@ -229,6 +229,28 @@ class TaskRepository extends ServiceEntityRepository
      */
     public function searchTasks(array $criteria = []): array
     {
+        // Create cache key based on criteria
+        $cacheKey = 'search_tasks_' . md5(serialize($criteria));
+        
+        if ($this->cacheService) {
+            return $this->cachedQuery(
+                $cacheKey,
+                function() use ($criteria) {
+                    return $this->performSearchTasks($criteria);
+                },
+                $criteria,
+                300 // 5 minutes cache
+            );
+        }
+        
+        return $this->performSearchTasks($criteria);
+    }
+    
+    /**
+     * Internal search tasks implementation
+     */
+    private function performSearchTasks(array $criteria = []): array
+    {
         $qb = $this->createQueryBuilder('t')
             ->leftJoin('t.user', 'u')
             ->leftJoin('t.assignedUser', 'au')
@@ -346,6 +368,28 @@ class TaskRepository extends ServiceEntityRepository
      * Count tasks by various criteria for pagination
      */
     public function countSearchTasks(array $criteria = []): int
+    {
+        // Create cache key based on criteria
+        $cacheKey = 'count_search_tasks_' . md5(serialize($criteria));
+        
+        if ($this->cacheService) {
+            return $this->cachedQuery(
+                $cacheKey,
+                function() use ($criteria) {
+                    return $this->performCountSearchTasks($criteria);
+                },
+                $criteria,
+                300 // 5 minutes cache
+            );
+        }
+        
+        return $this->performCountSearchTasks($criteria);
+    }
+    
+    /**
+     * Internal count search tasks implementation
+     */
+    private function performCountSearchTasks(array $criteria = []): int
     {
         $qb = $this->createQueryBuilder('t')
             ->select('COUNT(t.id)')
@@ -627,30 +671,30 @@ class TaskRepository extends ServiceEntityRepository
      */
     private function performQuickStats(User $user): array
     {
-        // Count total tasks
-        $totalTasks = $this->cachedCount(['user' => $user]);
-        
-        // Count pending tasks
-        $pendingTasks = $this->cachedCount(['user' => $user, 'status' => 'pending']);
-        
-        // Count completed tasks
-        $completedTasks = $this->cachedCount(['user' => $user, 'status' => 'completed']);
-        
-        // Count overdue tasks
-        $qb = $this->createQueryBuilder('t')
-            ->select('COUNT(t.id)')
-            ->where('t.assignedUser = :user')
-            ->andWhere('t.dueDate < :now')
-            ->andWhere('t.status != :completed')
+        // Single query to get all counts at once for better performance
+        $results = $this->createQueryBuilder('t')
+            ->select(
+                'COUNT(t.id) as total',
+                'SUM(CASE WHEN t.status = :pending_status THEN 1 ELSE 0 END) as pending',
+                'SUM(CASE WHEN t.status = :completed_status THEN 1 ELSE 0 END) as completed',
+                'SUM(CASE WHEN t.dueDate IS NOT NULL AND t.dueDate < :now AND t.status != :completed_status THEN 1 ELSE 0 END) as overdue'
+            )
+            ->where('t.assignedUser = :user OR t.user = :user')
             ->setParameter('user', $user)
+            ->setParameter('pending_status', 'pending')
+            ->setParameter('completed_status', 'completed')
             ->setParameter('now', new \DateTime())
-            ->setParameter('completed', 'completed');
+            ->getQuery()
+            ->getSingleResult();
         
-        $overdueTasks = $qb->getQuery()->getSingleScalarResult();
+        $totalTasks = (int) $results['total'];
+        $pendingTasks = (int) $results['pending'];
+        $completedTasks = (int) $results['completed'];
+        $overdueTasks = (int) $results['overdue'];
         
-        // Get recent tasks (last 5)
+        // Get recent tasks (last 5) - limit to assigned or created by user
         $recentTasks = $this->createQueryBuilder('t')
-            ->where('t.assignedUser = :user')
+            ->where('t.assignedUser = :user OR t.user = :user')
             ->orderBy('t.createdAt', 'DESC')
             ->setMaxResults(5)
             ->setParameter('user', $user)
@@ -691,6 +735,27 @@ class TaskRepository extends ServiceEntityRepository
      * Find task by ID with all relations to avoid N+1 queries
      */
     public function findTaskWithRelations(int $id): ?Task
+    {
+        $cacheKey = 'task_with_relations_' . $id;
+        
+        if ($this->cacheService) {
+            return $this->cachedQuery(
+                $cacheKey,
+                function() use ($id) {
+                    return $this->performFindTaskWithRelations($id);
+                },
+                ['task_id' => $id],
+                300 // 5 minutes cache
+            );
+        }
+        
+        return $this->performFindTaskWithRelations($id);
+    }
+    
+    /**
+     * Internal method to find task with relations
+     */
+    private function performFindTaskWithRelations(int $id): ?Task
     {
         return $this->createQueryBuilder('t')
             ->leftJoin('t.user', 'u')
