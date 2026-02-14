@@ -12,3 +12,27 @@ services:
     # Security management command
     App\Command\SecurityManagementCommand:
         arguments: ['@App\Service\SecurityManagementService']
+
+    # Performance monitoring service
+    App\Service\PerformanceMonitoringService:
+        arguments: ['@logger', '@parameter_bag']
+
+    # Performance monitoring command
+    App\Command\PerformanceMonitorCommand:
+        arguments: ['@App\Service\PerformanceMonitoringService']
+
+    # Data loader optimizer service
+    App\Service\DataLoaderOptimizerService:
+        arguments: ['@doctrine.orm.entity_manager', '@logger', '@parameter_bag']
+
+    # Data loader optimizer command
+    App\Command\DataLoaderOptimizeCommand:
+        arguments: ['@App\Service\DataLoaderOptimizerService']
+
+    # Advanced security service
+    App\Service\AdvancedSecurityService:
+        arguments: ['@logger', '@request_stack', '@security.token_storage', '@security.authorization_checker']
+
+    # Advanced security command
+    App\Command\AdvancedSecurityCommand:
+        arguments: ['@App\Service\AdvancedSecurityService']
