@@ -116,3 +116,11 @@ services:
     # Autoloader optimizer command
     App\Command\AutoloaderOptimizerCommand:
         arguments: ['@App\Service\AutoloaderOptimizerService']
+
+    # Database optimizer service
+    App\Service\DatabaseOptimizerService:
+        arguments: ['@database_connection', '@logger', '@service_container']
+
+    # Database optimizer command
+    App\Command\DatabaseOptimizerCommand:
+        arguments: ['@App\Service\DatabaseOptimizerService']
