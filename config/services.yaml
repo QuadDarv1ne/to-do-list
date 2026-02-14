@@ -92,3 +92,27 @@ services:
     # Session optimizer command
     App\Command\SessionOptimizerCommand:
         arguments: ['@App\Service\SessionOptimizerService']
+
+    # Memory usage monitor service
+    App\Service\MemoryUsageMonitorService:
+        arguments: ['@logger', '@service_container']
+
+    # Memory usage monitor command
+    App\Command\MemoryUsageMonitorCommand:
+        arguments: ['@App\Service\MemoryUsageMonitorService']
+
+    # Image optimizer service
+    App\Service\ImageOptimizerService:
+        arguments: ['@logger', '@service_container']
+
+    # Image optimizer command
+    App\Command\ImageOptimizerCommand:
+        arguments: ['@App\Service\ImageOptimizerService']
+
+    # Autoloader optimizer service
+    App\Service\AutoloaderOptimizerService:
+        arguments: ['@logger', '@service_container']
+
+    # Autoloader optimizer command
+    App\Command\AutoloaderOptimizerCommand:
+        arguments: ['@App\Service\AutoloaderOptimizerService']
