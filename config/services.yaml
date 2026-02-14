@@ -68,3 +68,27 @@ services:
     # Health check command
     App\Command\HealthCheckCommand:
         arguments: ['@App\Service\HealthCheckService']
+
+    # Query performance analyzer service
+    App\Service\QueryPerformanceAnalyzerService:
+        arguments: ['@database_connection', '@logger', '@service_container']
+
+    # Query analysis command
+    App\Command\QueryAnalysisCommand:
+        arguments: ['@App\Service\QueryPerformanceAnalyzerService']
+
+    # API performance monitor service
+    App\Service\ApiPerformanceMonitorService:
+        arguments: ['@logger', '@database_connection', '@service_container']
+
+    # API performance monitor command
+    App\Command\ApiPerformanceMonitorCommand:
+        arguments: ['@App\Service\ApiPerformanceMonitorService']
+
+    # Session optimizer service
+    App\Service\SessionOptimizerService:
+        arguments: ['@logger', '@service_container', '@security.token_storage', '@request_stack']
+
+    # Session optimizer command
+    App\Command\SessionOptimizerCommand:
+        arguments: ['@App\Service\SessionOptimizerService']
