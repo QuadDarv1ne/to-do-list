@@ -60,3 +60,11 @@ services:
     # Data cleanup command
     App\Command\DataCleanupCommand:
         arguments: ['@App\Service\DataCleanupService']
+
+    # Health check service
+    App\Service\HealthCheckService:
+        arguments: ['@database_connection', '@logger', '@service_container', '@kernel', '@request_stack']
+
+    # Health check command
+    App\Command\HealthCheckCommand:
+        arguments: ['@App\Service\HealthCheckService']
