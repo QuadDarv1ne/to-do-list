@@ -10,6 +10,8 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TaskCategoryRepository::class)]
 #[ORM\Table(name: 'task_categories')]
+#[ORM\Index(columns: ['user_id'], name: 'idx_task_categories_user_id')]
+#[ORM\Index(columns: ['created_at'], name: 'idx_task_categories_created_at')]
 class TaskCategory
 {
     #[ORM\Id]

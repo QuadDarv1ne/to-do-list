@@ -11,6 +11,9 @@ use Doctrine\ORM\Mapping\PreUpdate;
 #[ORM\Entity(repositoryClass: CommentRepository::class)]
 #[ORM\Table(name: 'task_comments')]
 #[ORM\HasLifecycleCallbacks]
+#[ORM\Index(columns: ['task_id'], name: 'idx_task_comments_task_id')]
+#[ORM\Index(columns: ['author_id'], name: 'idx_task_comments_author_id')]
+#[ORM\Index(columns: ['created_at'], name: 'idx_task_comments_created_at')]
 class Comment
 {
     #[ORM\Id]

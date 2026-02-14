@@ -21,6 +21,14 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(columns: ['created_at'], name: 'idx_task_created_at')]
 #[ORM\Index(columns: ['assigned_user_id'], name: 'idx_task_assigned_user')]
 #[ORM\Index(columns: ['category_id'], name: 'idx_task_category')]
+#[ORM\Index(columns: ['completed_at'], name: 'idx_task_completed_at')]
+#[ORM\Index(columns: ['updated_at'], name: 'idx_task_updated_at')]
+#[ORM\Index(columns: ['created_at', 'status'], name: 'idx_task_created_at_status')]
+#[ORM\Index(columns: ['user_id', 'status'], name: 'idx_task_user_status')]
+#[ORM\Index(columns: ['user_id', 'priority'], name: 'idx_task_user_priority')]
+#[ORM\Index(columns: ['assigned_user_id', 'status'], name: 'idx_task_assigned_user_status')]
+#[ORM\Index(columns: ['category_id', 'status'], name: 'idx_task_category_status')]
+#[ORM\Index(columns: ['due_date', 'status'], name: 'idx_task_due_date_status')]
 class Task
 {
     #[ORM\Id]

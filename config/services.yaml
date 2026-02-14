@@ -36,3 +36,27 @@ services:
     # Advanced security command
     App\Command\AdvancedSecurityCommand:
         arguments: ['@App\Service\AdvancedSecurityService']
+
+    # Performance audit service
+    App\Service\PerformanceAuditService:
+        arguments: ['@doctrine.orm.entity_manager', '@database_connection', '@logger', '@service_container', '@kernel']
+
+    # Performance audit command
+    App\Command\PerformanceAuditCommand:
+        arguments: ['@App\Service\PerformanceAuditService']
+
+    # Backup service
+    App\Service\BackupService:
+        arguments: ['%kernel.project_dir%', '@logger', '@filesystem']
+
+    # Backup command
+    App\Command\BackupCommand:
+        arguments: ['@App\Service\BackupService']
+
+    # Data cleanup service
+    App\Service\DataCleanupService:
+        arguments: ['@doctrine.orm.entity_manager', '@logger']
+
+    # Data cleanup command
+    App\Command\DataCleanupCommand:
+        arguments: ['@App\Service\DataCleanupService']
