@@ -127,6 +127,21 @@ services:
     App\Service\TaskPerformanceOptimizerService:
         arguments: ['@cache.app', '@App\Repository\TaskRepository', '@App\Repository\UserRepository', '@App\Repository\TaskCategoryRepository', '@logger', '@App\Service\QueryCacheService']
 
+    # Advanced cache service
+    App\Service\AdvancedCacheService:
+        arguments: ['@cache.app', '@cache.app', '@logger']
+
+    # Advanced error handling service
+    App\Service\AdvancedErrorHandlingService:
+        arguments: ['@logger', '@App\Service\PerformanceMonitorService']
+
+    # Cache management command
+    App\Command\CacheManagementCommand:
+        arguments: ['@App\Service\AdvancedCacheService']
+
+    # Error management command
+    App\Command\ErrorManagementCommand:
+        arguments: ['@App\Service\AdvancedErrorHandlingService']
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

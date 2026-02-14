@@ -420,4 +420,80 @@ class PerformanceMonitorService
             throw $e;
         }
     }
+    
+    /**
+     * Log general error
+     */
+    public function logError(array $errorData): void
+    {
+        $this->logger->error("Performance Error Logged", $errorData);
+        
+        // Store error for reporting
+        if (!isset($this->metrics['errors'])) {
+            $this->metrics['errors'] = [];
+        }
+        $this->metrics['errors'][] = $errorData;
+    }
+    
+    /**
+     * Log security event
+     */
+    public function logSecurityEvent(string $eventType, array $context): void
+    {
+        $this->logger->info("Security Event: {$eventType}", $context);
+        
+        // Store security events for reporting
+        if (!isset($this->metrics['security_events'])) {
+            $this->metrics['security_events'] = [];
+        }
+        $this->metrics['security_events'][] = array_merge($context, [
+            'event_type' => $eventType,
+            'timestamp' => microtime(true)
+        ]);
+    }
+    
+    /**
+     * Log performance warning
+     */
+    public function logPerformanceWarning(string $operation, float $executionTime, array $context): void
+    {
+        $this->logger->warning("Performance Warning: {$operation}", array_merge($context, [
+            'operation' => $operation,
+            'execution_time_ms' => $executionTime
+        ]));
+        
+        // Store performance warnings
+        if (!isset($this->metrics['performance_warnings'])) {
+            $this->metrics['performance_warnings'] = [];
+        }
+        $this->metrics['performance_warnings'][] = array_merge($context, [
+            'operation' => $operation,
+            'execution_time_ms' => $executionTime,
+            'timestamp' => microtime(true)
+        ]);
+    }
+    
+    /**
+     * Log cache operation
+     */
+    public function logCacheOperation(string $operation, string $cacheKey, bool $hit, float $executionTime): void
+    {
+        $this->logger->info("Cache Operation: {$operation}", [
+            'cache_key' => $cacheKey,
+            'hit' => $hit,
+            'execution_time_ms' => $executionTime
+        ]);
+        
+        // Store cache statistics
+        if (!isset($this->metrics['cache_operations'])) {
+            $this->metrics['cache_operations'] = [];
+        }
+        $this->metrics['cache_operations'][] = [
+            'operation' => $operation,
+            'cache_key' => $cacheKey,
+            'hit' => $hit,
+            'execution_time_ms' => $executionTime,
+            'timestamp' => microtime(true)
+        ];
+    }
 }
