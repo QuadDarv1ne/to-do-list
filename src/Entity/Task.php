@@ -255,6 +255,15 @@ class Task
         return $this;
     }
 
+    /**
+     * Alias for setDueDate() for backward compatibility
+     */
+    public function setDeadline(?\DateTimeInterface $deadline): static
+    {
+        return $this->setDueDate($deadline);
+    }
+
+
     public function getCompletedAt(): ?\DateTimeInterface
     {
         return $this->completedAt;

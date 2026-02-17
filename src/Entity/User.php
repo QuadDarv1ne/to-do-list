@@ -782,4 +782,80 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         
         return 'U';
     }
+    
+    /**
+     * Check if user is admin
+     */
+    public function isAdmin(): bool
+    {
+        return in_array('ROLE_ADMIN', $this->roles, true) || in_array('ROLE_SUPER_ADMIN', $this->roles, true);
+    }
+    
+    /**
+     * Check if user is manager
+     */
+    public function isManager(): bool
+    {
+        return in_array('ROLE_MANAGER', $this->roles, true) || $this->isAdmin();
+    }
+    
+    /**
+     * Check if user is analyst
+     */
+    public function isAnalyst(): bool
+    {
+        return in_array('ROLE_ANALYST', $this->roles, true) || $this->isManager() || $this->isAdmin();
+    }
+    
+    /**
+     * Get role display name
+     */
+    public function getRoleDisplayName(): string
+    {
+        if ($this->hasRole('ROLE_SUPER_ADMIN')) {
+            return 'Супер Администратор';
+        }
+        if ($this->hasRole('ROLE_ADMIN')) {
+            return 'Администратор';
+        }
+        if ($this->hasRole('ROLE_MANAGER')) {
+            return 'Менеджер';
+        }
+        if ($this->hasRole('ROLE_ANALYST')) {
+            return 'Аналитик';
+        }
+        return 'Пользователь';
+    }
+    
+    /**
+     * Can manage users
+     */
+    public function canManageUsers(): bool
+    {
+        return $this->isAdmin();
+    }
+    
+    /**
+     * Can view reports
+     */
+    public function canViewReports(): bool
+    {
+        return $this->isAnalyst() || $this->isManager() || $this->isAdmin();
+    }
+    
+    /**
+     * Can manage budget
+     */
+    public function canManageBudget(): bool
+    {
+        return $this->isManager() || $this->isAdmin();
+    }
+    
+    /**
+     * Can manage resources
+     */
+    public function canManageResources(): bool
+    {
+        return $this->isManager() || $this->isAdmin();
+    }
 }
