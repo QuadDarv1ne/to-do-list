@@ -37,47 +37,20 @@
     {% endblock %}
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary" role="navigation" aria-label="Основная навигация">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{{ path('app_dashboard') }}" aria-label="Перейти на главную страницу">
-                <i class="fas fa-chart-line" aria-hidden="true"></i> CRM: Анализ продаж
+            <a class="navbar-brand fw-bold" href="{{ path('app_dashboard') }}">
+                CRM
             </a>
-            
-            <!-- Theme Toggle -->
-            <button class="btn btn-outline-light btn-sm theme-toggle me-3" id="themeToggle" 
-                    title="Переключить тему" 
-                    aria-label="Переключить между светлой и темной темой">
-                <i class="fas fa-moon hover-scale" aria-hidden="true"></i>
-            </button>
             
             <button class="navbar-toggler" type="button" 
                     data-bs-toggle="collapse" 
-                    data-bs-target="#navbarNav" 
-                    aria-controls="navbarNav" 
-                    aria-expanded="false" 
-                    aria-label="Переключить навигацию">
+                    data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
-                    <!-- Keyboard Shortcuts Help -->
-                    <li class="nav-item me-2">
-                        <button class="btn btn-outline-light btn-sm btn-icon" 
-                                id="showShortcuts" 
-                                title="Горячие клавиши" 
-                                aria-label="Показать справку по горячим клавишам">
-                            <i class="fas fa-keyboard hover-scale" aria-hidden="true"></i>
-                        </button>
-                    </li>
-                    <li class="nav-item me-2">
-                        <button class="btn btn-outline-light btn-sm btn-icon" 
-                                id="voiceControlBtn" 
-                                title="Голосовое управление" 
-                                aria-label="Включить голосовое управление">
-                            <i class="fas fa-microphone hover-scale" aria-hidden="true"></i>
-                        </button>
-                    </li>
                     {% if app.user %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ path('app_dashboard') }}">Панель</a>
@@ -88,21 +61,9 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{{ path('app_task_category_index') }}">Категории</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_task_template_index') }}">Шаблоны</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_calendar_index') }}">Календарь</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_profile_show') }}">Профиль</a>
-                        </li>
                         {% if app.user.hasRole('ROLE_ADMIN') %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ path('app_user_index') }}">Пользователи</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ path('app_performance_index') }}">Производительность</a>
                             </li>
                         {% endif %}
                     {% endif %}
@@ -110,72 +71,17 @@
                 
                 {% if app.user %}
                 <ul class="navbar-nav">
-                    <!-- Notifications Dropdown -->
-                    <li class="nav-item dropdown me-3">
-                        {% set unreadNotifications = app.user.notifications|filter(n => not n.isRead)|length %}
-                        <a class="nav-link dropdown-toggle position-relative" 
-                           href="#" 
-                           role="button" 
-                           data-bs-toggle="dropdown" 
-                           aria-expanded="false"
-                           aria-label="Уведомления{% if unreadNotifications > 0 %}, {{ unreadNotifications }} непрочитанных{% endif %}">
-                            <i class="fas fa-bell hover-pulse" aria-hidden="true"></i>
-                            {% if unreadNotifications > 0 %}
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger badge-enter" 
-                                      aria-label="{{ unreadNotifications }} непрочитанных уведомлений">
-                                    {{ unreadNotifications }}
-                                </span>
-                            {% endif %}
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end" 
-                            style="min-width: 350px; max-height: 400px; overflow-y: auto;" 
-                            role="menu" 
-                            aria-label="Меню уведомлений">
-                            <li class="dropdown-header">
-                                <i class="fas fa-bell me-2" aria-hidden="true"></i>Уведомления
-                                {% if unreadNotifications > 0 %}
-                                    <span class="badge bg-primary" role="status" aria-live="polite">
-                                        {{ unreadNotifications }} непрочитанных
-                                    </span>
-                                {% endif %}
-                            </li>
-                            {% set notifications = app.user.notifications|slice(0, 10) %}
-                            {% if notifications is empty %}
-                                <li><a class="dropdown-item disabled" href="#">Нет уведомлений</a></li>
-                            {% else %}
-                                {% for notification in notifications %}
-                                    <li>
-                                        <a class="dropdown-item d-flex flex-column {% if not notification.isRead %}fw-bold{% endif %}" href="{{ notification.task ? path('app_task_show', {'id': notification.task.id}) : '#' }}">
-                                            <div class="d-flex justify-content-between">
-                                                <span>{{ notification.title }}</span>
-                                                <small class="text-muted">{{ notification.createdAt|date('d.m.Y H:i') }}</small>
-                                            </div>
-                                            <div class="text-muted small">{{ notification.message|striptags }}</div>
-                                        </a>
-                                    </li>
-                                {% endfor %}
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ path('app_notification_index') }}">Просмотреть все уведомления</a></li>
-                            {% endif %}
-                        </ul>
-                    </li>
-                    
                     <!-- User Dropdown -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" 
                            href="#" 
-                           id="navbarDropdown" 
                            role="button" 
-                           data-bs-toggle="dropdown" 
-                           aria-expanded="false"
-                           aria-label="Меню пользователя {{ app.user.fullName }}">
-                            <i class="fas fa-user" aria-hidden="true"></i> {{ app.user.fullName }}
+                           data-bs-toggle="dropdown">
+                            {{ app.user.fullName }}
                         </a>
-                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="{{ path('app_profile_show') }}"><i class="fas fa-user me-2" aria-hidden="true"></i>Мой профиль</a></li>
-                            <li><a class="dropdown-item" href="{{ path('app_profile_change_password') }}"><i class="fas fa-key me-2" aria-hidden="true"></i>Сменить пароль</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ path('app_logout') }}"><i class="fas fa-sign-out-alt me-2" aria-hidden="true"></i>Выход</a></li>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{{ path('app_profile_show') }}">Профиль</a></li>
+                            <li><a class="dropdown-item" href="{{ path('app_logout') }}">Выход</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -193,57 +99,6 @@
         </div>
     </nav>
     
-    <!-- Offline Indicator -->
-    <div id="offlineIndicator" class="offline-indicator bg-warning text-dark text-center py-2 d-none">
-        <i class="fas fa-wifi me-2"></i>
-        Работает в автономном режиме
-    </div>
-    
-    <!-- PWA Install Prompt -->
-    <div id="installPrompt" class="install-prompt">
-        <div class="d-flex align-items-center">
-            <div class="flex-grow-1">
-                <h6 class="mb-1">Установить приложение?</h6>
-                <p class="mb-0 small text-muted">Добавьте приложение на домашний экран для быстрого доступа</p>
-            </div>
-            <div class="ms-3">
-                <button id="installButton" class="btn btn-primary btn-sm me-2">Установить</button>
-                <button id="dismissInstall" class="btn btn-outline-secondary btn-sm">Позже</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Voice Recognition Indicator -->
-    <div id="voiceIndicator" class="voice-recognition-indicator">
-        <div class="pulse-dot"></div>
-        <span>Говорите команду...</span>
-    </div>
-    
-    <!-- Voice Command Feedback -->
-    <div id="voiceFeedback" class="voice-command-feedback">
-        <span id="voiceFeedbackText"></span>
-    </div>
-    
-    <!-- Global Loading Overlay -->
-    <div id="globalLoadingOverlay" class="loading-overlay d-none">
-        <div class="loading-content">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Загрузка...</span>
-            </div>
-            <p class="mt-3 mb-0 text-primary fw-medium">Загрузка данных...</p>
-        </div>
-    </div>
-    
-    <!-- AJAX Request Indicator -->
-    <div id="ajaxIndicator" class="ajax-indicator d-none">
-        <div class="indicator-content">
-            <div class="loading-spinner"></div>
-            <span class="ms-2">Обработка запроса...</span>
-        </div>
-    </div>
-    
-    <!-- Real-time Notification Toast -->
-    <div id="notificationToastContainer" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
     
     <main class="container-fluid mt-4">
         {% for flash_message in app.session.flashbag.get('success') %}

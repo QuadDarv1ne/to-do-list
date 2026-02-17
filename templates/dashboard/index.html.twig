@@ -9,110 +9,55 @@
 
 {% block body %}
 <div class="container-fluid page-transition">
-    <!-- Welcome Banner with CRM Branding -->
+    <!-- Compact Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="welcome-banner rounded-3 p-4 mb-4 card-hover card-enhanced position-relative overflow-hidden">
-                <div class="banner-bg"></div>
-                <div class="row align-items-center position-relative">
-                    <div class="col-md-8">
-                        <div class="d-flex align-items-center mb-2">
-                            <div class="avatar-circle me-3">
-                                <i class="fas fa-user"></i>
-                            </div>
-                            <div>
-                                <h1 class="mb-1 text-white">
-                                    Добро пожаловать, {{ app.user.firstName }}!
-                                </h1>
-                                <p class="mb-0 text-white-50">
-                                    <i class="fas fa-briefcase me-2"></i>{{ app.user.position ?? 'Менеджер' }}
-                                    {% if app.user.department %}
-                                        <span class="mx-2">•</span>
-                                        <i class="fas fa-building me-2"></i>{{ app.user.department }}
-                                    {% endif %}
-                                </p>
-                            </div>
-                        </div>
-                        <p class="mb-0 lead text-white">
-                            <i class="fas fa-calendar-day me-2"></i>
-                            {{ "now"|date("d.m.Y") }} • {{ "now"|date("l")|trans }}
-                        </p>
-                    </div>
-                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                        <div class="d-flex flex-wrap gap-2 justify-content-md-end">
-                            <a href="{{ path('app_task_new') }}" class="btn btn-light btn-lg btn-enhanced">
-                                <i class="fas fa-plus me-2"></i>Новая сделка
-                            </a>
-                            {% if is_granted('ROLE_ADMIN') %}
-                                <a href="{{ path('app_user_index') }}" class="btn btn-outline-light btn-lg btn-enhanced">
-                                    <i class="fas fa-users me-2"></i>Команда
-                                </a>
-                            {% endif %}
-                        </div>
-                    </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1">{{ app.user.firstName }}</h2>
+                    <p class="text-muted mb-0">{{ "now"|date("d.m.Y") }}</p>
                 </div>
+                <a href="{{ path('app_task_new') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Новая сделка
+                </a>
             </div>
         </div>
     </div>
 
     <!-- Statistics Cards -->
     <div class="row mb-4" id="stats-row">
-        <div class="col-md-3 mb-4">
-            <div class="card dashboard-card dashboard-card-enhanced border-0 shadow-sm h-100 card-hover card-enhanced">
-                <div class="card-body text-center">
-                    <div class="rounded-circle bg-primary bg-opacity-10 p-3 d-inline-block mb-3">
-                        <i class="fas fa-tasks fa-2x text-primary"></i>
-                    </div>
-                    <h3 class="stat-number mb-0 text-primary">{{ task_stats.total }}</h3>
-                    <p class="stat-label mb-0">Всего задач</p>
-                    <div class="progress mt-2" style="height: 5px;">
-                        <div class="progress-bar bg-primary" role="progressbar" style="width: 100%"></div>
-                    </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center py-4">
+                    <h2 class="mb-1">{{ task_stats.total }}</h2>
+                    <p class="text-muted mb-0 small">Всего задач</p>
                 </div>
             </div>
         </div>
         
-        <div class="col-md-3 mb-4">
-            <div class="card dashboard-card dashboard-card-enhanced border-0 shadow-sm h-100 card-hover card-enhanced">
-                <div class="card-body text-center">
-                    <div class="rounded-circle bg-warning bg-opacity-10 p-3 d-inline-block mb-3">
-                        <i class="fas fa-clock fa-2x text-warning"></i>
-                    </div>
-                    <h3 class="stat-number mb-0 text-warning">{{ task_stats.pending }}</h3>
-                    <p class="stat-label mb-0">В ожидании</p>
-                    <div class="progress mt-2" style="height: 5px;">
-                        <div class="progress-bar bg-warning" role="progressbar" style="width: {{ task_stats.total > 0 ? (task_stats.pending / task_stats.total * 100)|round(0) : 0 }}%"></div>
-                    </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center py-4">
+                    <h2 class="mb-1 text-warning">{{ task_stats.pending }}</h2>
+                    <p class="text-muted mb-0 small">В ожидании</p>
                 </div>
             </div>
         </div>
         
-        <div class="col-md-3 mb-4">
-            <div class="card dashboard-card dashboard-card-enhanced border-0 shadow-sm h-100 card-hover card-enhanced">
-                <div class="card-body text-center">
-                    <div class="rounded-circle bg-info bg-opacity-10 p-3 d-inline-block mb-3">
-                        <i class="fas fa-play-circle fa-2x text-info"></i>
-                    </div>
-                    <h3 class="stat-number mb-0 text-info">{{ task_stats.in_progress }}</h3>
-                    <p class="stat-label mb-0">В процессе</p>
-                    <div class="progress mt-2" style="height: 5px;">
-                        <div class="progress-bar bg-info" role="progressbar" style="width: {{ task_stats.total > 0 ? (task_stats.in_progress / task_stats.total * 100)|round(0) : 0 }}%"></div>
-                    </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center py-4">
+                    <h2 class="mb-1 text-info">{{ task_stats.in_progress }}</h2>
+                    <p class="text-muted mb-0 small">В процессе</p>
                 </div>
             </div>
         </div>
         
-        <div class="col-md-3 mb-4">
-            <div class="card dashboard-card dashboard-card-enhanced border-0 shadow-sm h-100 card-hover card-enhanced">
-                <div class="card-body text-center">
-                    <div class="rounded-circle bg-success bg-opacity-10 p-3 d-inline-block mb-3">
-                        <i class="fas fa-check-circle fa-2x text-success"></i>
-                    </div>
-                    <h3 class="stat-number mb-0 text-success">{{ task_stats.completed }}</h3>
-                    <p class="stat-label mb-0">Завершено</p>
-                    <div class="progress mt-2" style="height: 5px;">
-                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ task_stats.total > 0 ? (task_stats.completed / task_stats.total * 100)|round(0) : 0 }}%"></div>
-                    </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center py-4">
+                    <h2 class="mb-1 text-success">{{ task_stats.completed }}</h2>
+                    <p class="text-muted mb-0 small">Завершено</p>
                 </div>
             </div>
         </div>
@@ -123,144 +68,19 @@
         {% include 'dashboard/crm_metrics.html.twig' %}
     {% endif %}
     
-    <!-- Dependency Visualization Section -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm card-enhanced">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-code-branch me-2 text-info"></i>
-                        Зависимости задач
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-md-3">
-                            <div class="rounded-circle bg-info bg-opacity-10 p-3 d-inline-block mb-2">
-                                <i class="fas fa-tasks fa-2x text-info"></i>
-                            </div>
-                            <h4 class="text-info mb-1" id="total-dependencies">0</h4>
-                            <p class="text-muted mb-0">Всего зависимостей</p>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="rounded-circle bg-warning bg-opacity-10 p-3 d-inline-block mb-2">
-                                <i class="fas fa-exclamation-circle fa-2x text-warning"></i>
-                            </div>
-                            <h4 class="text-warning mb-1" id="blocking-dependencies">0</h4>
-                            <p class="text-muted mb-0">Блокирующие зависимости</p>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="rounded-circle bg-success bg-opacity-10 p-3 d-inline-block mb-2">
-                                <i class="fas fa-check-circle fa-2x text-success"></i>
-                            </div>
-                            <h4 class="text-success mb-1" id="satisfied-dependencies">0</h4>
-                            <p class="text-muted mb-0">Удовлетворенные зависимости</p>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="rounded-circle bg-danger bg-opacity-10 p-3 d-inline-block mb-2">
-                                <i class="fas fa-times-circle fa-2x text-danger"></i>
-                            </div>
-                            <h4 class="text-danger mb-1" id="unsatisfied-dependencies">0</h4>
-                            <p class="text-muted mb-0">Неудовлетворенные зависимости</p>
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        <a href="{{ path('app_task_index') }}?has_dependencies=1" class="btn btn-outline-info w-100 btn-enhanced">
-                            <i class="fas fa-filter me-2"></i>Показать задачи с зависимостями
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Charts Section -->
-    <div class="row mb-4">
-        <!-- Task Status Distribution Chart -->
-        <div class="col-lg-6">
-            <div class="card border-0 shadow-sm card-enhanced">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-chart-pie me-2 text-primary"></i>
-                        Распределение задач по статусу
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="statusChart" width="400" height="200"></canvas>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Task Priority Distribution Chart -->
-        <div class="col-lg-6">
-            <div class="card border-0 shadow-sm card-enhanced">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-chart-bar me-2 text-warning"></i>
-                        Распределение задач по приоритету
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="priorityChart" width="400" height="200"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Tag Distribution Chart -->
-    <div class="row mb-4">
-        <div class="col-lg-6">
-            <div class="card border-0 shadow-sm card-enhanced">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-tags me-2 text-success"></i>
-                        Распределение задач по тегам
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="tagChart" width="400" height="200"></canvas>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Tag Cloud -->
-        <div class="col-lg-6">
-            <div class="card border-0 shadow-sm card-enhanced">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-cloud me-2 text-info"></i>
-                        Облако тегов
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% if tag_stats is defined and tag_stats is not empty %}
-                        <div class="tag-cloud">
-                            {% for tag_stat in tag_stats|slice(0, 15) %}
-                                <span class="tag-item" style="font-size: {{ tag_stat.taskCount > 0 ? 14 + (tag_stat.taskCount * 2) : 14 }}px; background-color: {{ tag_stat.color }}; color: white; padding: 5px 10px; margin: 3px; border-radius: 4px; display: inline-block;">
-                                    {{ tag_stat.name }} ({{ tag_stat.taskCount }})
-                                </span>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <p class="text-muted">Нет тегов для отображения</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
+
+
 
     <div class="row">
         <!-- Recent Tasks -->
         <div class="col-lg-8">
-            <div class="card border-0 shadow-sm card-enhanced">
-                <div class="card-header bg-white">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">
-                            <i class="fas fa-history me-2 text-primary"></i>
-                            Последние задачи
-                        </h5>
-                        <a href="{{ path('app_task_index') }}" class="btn btn-outline-primary btn-sm">
-                            <i class="fas fa-eye me-1"></i>Все задачи
+                        <h6 class="mb-0">Последние задачи</h6>
+                        <a href="{{ path('app_task_index') }}" class="btn btn-sm btn-link">
+                            Все задачи
                         </a>
                     </div>
                 </div>
@@ -352,79 +172,34 @@
             </div>
         </div>
 
-        <!-- Quick Actions & Categories -->
+        <!-- Categories -->
         <div class="col-lg-4">
-            <!-- Quick Actions -->
-            <div class="card border-0 shadow-sm mb-4 card-enhanced">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-bolt me-2 text-warning"></i>
-                        Быстрые действия
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a href="{{ path('app_task_new') }}" class="btn btn-primary btn-enhanced">
-                            <i class="fas fa-plus me-2"></i>Новая задача
-                        </a>
-                        <a href="{{ path('app_task_category_new') }}" class="btn btn-outline-secondary btn-enhanced">
-                            <i class="fas fa-folder-plus me-2"></i>Новая категория
-                        </a>
-                        <a href="{{ path('app_profile_change_password') }}" class="btn btn-outline-info btn-enhanced">
-                            <i class="fas fa-key me-2"></i>Сменить пароль
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Categories -->
-            <div class="card border-0 shadow-sm card-enhanced">
-                <div class="card-header bg-white">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">
-                            <i class="fas fa-folder me-2 text-success"></i>
-                            Категории
-                        </h5>
-                        <span class="badge bg-secondary">{{ categories|length }}</span>
+                        <h6 class="mb-0">Категории</h6>
+                        <a href="{{ path('app_task_category_new') }}" class="btn btn-sm btn-link">
+                            <i class="fas fa-plus"></i>
+                        </a>
                     </div>
                 </div>
                 <div class="card-body p-0">
                     {% if categories is not empty %}
                         <div class="list-group list-group-flush">
                             {% for category in categories|slice(0, 5) %}
-                                <div class="list-group-item border-0 px-4 py-3">
+                                <div class="list-group-item border-0 px-3 py-2">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
-                                            <h6 class="mb-1">{{ category.name }}</h6>
-                                            <small class="text-muted">
-                                                {{ category.tasks|length }} задач
-                                            </small>
-                                        </div>
-                                        <div class="dropdown">
-                                            <button class="btn btn-light btn-sm btn-enhanced" type="button" data-bs-toggle="dropdown">
-                                                <i class="fas fa-ellipsis-v"></i>
-                                            </button>
-                                            <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item" href="{{ path('app_task_category_edit', {'id': category.id}) }}">
-                                                    <i class="fas fa-edit me-2"></i>Редактировать
-                                                </a></li>
-                                            </ul>
+                                            <div class="fw-medium">{{ category.name }}</div>
+                                            <small class="text-muted">{{ category.tasks|length }} задач</small>
                                         </div>
                                     </div>
                                 </div>
                             {% endfor %}
                         </div>
-                        {% if categories|length > 5 %}
-                            <div class="card-footer bg-white text-center">
-                                <a href="{{ path('app_task_category_index') }}" class="btn btn-outline-primary btn-sm btn-enhanced">
-                                    <i class="fas fa-eye me-1"></i>Все категории
-                                </a>
-                            </div>
-                        {% endif %}
                     {% else %}
-                        <div class="empty-state py-4">
-                            <i class="fas fa-folder"></i>
-                            <p class="mb-0">Нет категорий</p>
+                        <div class="text-center py-4">
+                            <p class="text-muted mb-0">Нет категорий</p>
                         </div>
                     {% endif %}
                 </div>
@@ -432,103 +207,7 @@
         </div>
     </div>
     
-    <!-- Tag Completion Rates -->
-    <div class="row mb-4">
-        <div class="col-lg-12">
-            <div class="card border-0 shadow-sm card-enhanced">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-percentage me-2 text-info"></i>
-                        Процент выполнения задач по тегам
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% if tag_completion_rates is defined and tag_completion_rates is not empty %}
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Тег</th>
-                                        <th>Цвет</th>
-                                        <th>Всего задач</th>
-                                        <th>Выполнено</th>
-                                        <th>Процент выполнения</th>
-                                        <th>Статус</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for tag_rate in tag_completion_rates|slice(0, 10) %}
-                                        <tr>
-                                            <td>
-                                                <span class="badge" style="background-color: {{ tag_rate.color }}; color: white;">{{ tag_rate.name }}</span>
-                                            </td>
-                                            <td>
-                                                <div style="width: 20px; height: 20px; background-color: {{ tag_rate.color }}; border-radius: 50%; display: inline-block;"></div>
-                                            </td>
-                                            <td>{{ tag_rate.totalTasks }}</td>
-                                            <td>{{ tag_rate.completedTasks }}</td>
-                                            <td>
-                                                <div class="progress" style="height: 20px;">
-                                                    <div class="progress-bar" 
-                                                         role="progressbar" 
-                                                         style="width: {{ tag_rate.completionRate }}%; background-color: {{ tag_rate.color }};"
-                                                         aria-valuenow="{{ tag_rate.completionRate }}"
-                                                         aria-valuemin="0"
-                                                         aria-valuemax="100">
-                                                        {{ tag_rate.completionRate }}%
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                {% if tag_rate.completionRate == 100 %}
-                                                    <span class="badge bg-success">Отлично!</span>
-                                                {% elseif tag_rate.completionRate >= 75 %}
-                                                    <span class="badge bg-primary">Хорошо</span>
-                                                {% elseif tag_rate.completionRate >= 50 %}
-                                                    <span class="badge bg-warning text-dark">Средне</span>
-                                                {% else %}
-                                                    <span class="badge bg-danger">Нуждается в улучшении</span>
-                                                {% endif %}
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <p class="text-muted text-center mb-0">Нет данных о выполнении задач по тегам</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- User Activity Stats (only for non-admin users) -->
-    {% if app.user.hasRole('ROLE_ADMIN') is not same as(true) and user_activity_stats is defined %}
-    <div class="row mb-4">
-        <div class="col-lg-12">
-            <div class="card border-0 shadow-sm card-enhanced">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-user-clock me-2 text-primary"></i>
-                        Ваша активность
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="text-center p-3 bg-light rounded">
-                                <i class="fas fa-sign-in-alt fa-2x text-primary mb-2"></i>
-                                <h4 class="mb-1">{{ user_activity_stats.total_logins }}</h4>
-                                <p class="mb-0 text-muted">Входов в систему</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
+
     
     <!-- Platform Activity Stats (only for admin users) -->
     {% if app.user.hasRole('ROLE_ADMIN') and platform_activity_stats is defined %}
