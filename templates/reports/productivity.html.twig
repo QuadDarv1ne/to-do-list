@@ -1,0 +1,286 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Отчет о продуктивности{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-user-chart me-2"></i>
+                    Отчет о продуктивности
+                </h1>
+                <div>
+                    <a href="{{ path('app_reports_productivity_export', {
+                        start_date: start_date|date('Y-m-d'),
+                        end_date: end_date|date('Y-m-d')
+                    }) }}" class="btn btn-outline-primary">
+                        <i class="fas fa-download me-2"></i>
+                        Экспорт JSON
+                    </a>
+                    <a href="{{ path('app_reports_index') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        Назад
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Date Range Filter -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Дата начала</label>
+                            <input type="date" name="start_date" class="form-control" 
+                                   value="{{ start_date|date('Y-m-d') }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Дата окончания</label>
+                            <input type="date" name="end_date" class="form-control" 
+                                   value="{{ end_date|date('Y-m-d') }}">
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-filter me-2"></i>
+                                Применить
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <i class="fas fa-tasks fa-3x text-primary mb-3"></i>
+                    <h2 class="mb-0">{{ report.summary.total_tasks }}</h2>
+                    <p class="text-muted mb-0">Всего задач</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                    <h2 class="mb-0">{{ report.summary.completed }}</h2>
+                    <p class="text-muted mb-0">Завершено</p>
+                    <small class="text-success">{{ report.summary.completion_rate }}%</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <i class="fas fa-clock fa-3x text-info mb-3"></i>
+                    <h2 class="mb-0">{{ report.summary.avg_completion_time_days|number_format(1) }}</h2>
+                    <p class="text-muted mb-0">Среднее время (дней)</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <i class="fas fa-star fa-3x text-warning mb-3"></i>
+                    <h2 class="mb-0">{{ report.productivity_score }}</h2>
+                    <p class="text-muted mb-0">Оценка продуктивности</p>
+                    <small class="text-muted">из 100</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <!-- Status Distribution -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Распределение по статусам</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Priority Distribution -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Распределение по приоритетам</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="priorityChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tasks by Day of Week -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Активность по дням недели</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="weekdayChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Stats -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Детальная статистика</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <tbody>
+                                <tr>
+                                    <td><strong>Период анализа</strong></td>
+                                    <td>{{ report.period.start }} - {{ report.period.end }} ({{ report.period.days }} дней)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Всего задач</strong></td>
+                                    <td>{{ report.summary.total_tasks }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Завершено</strong></td>
+                                    <td>
+                                        <span class="badge bg-success">{{ report.summary.completed }}</span>
+                                        ({{ report.summary.completion_rate }}%)
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>В процессе</strong></td>
+                                    <td><span class="badge bg-warning">{{ report.summary.in_progress }}</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>В ожидании</strong></td>
+                                    <td><span class="badge bg-secondary">{{ report.summary.pending }}</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Отменено</strong></td>
+                                    <td><span class="badge bg-danger">{{ report.summary.cancelled }}</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Среднее время выполнения</strong></td>
+                                    <td>{{ report.summary.avg_completion_time_days|number_format(2) }} дней</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Оценка продуктивности</strong></td>
+                                    <td>
+                                        <div class="progress" style="height: 25px;">
+                                            <div class="progress-bar 
+                                                {% if report.productivity_score >= 80 %}bg-success
+                                                {% elseif report.productivity_score >= 60 %}bg-info
+                                                {% elseif report.productivity_score >= 40 %}bg-warning
+                                                {% else %}bg-danger{% endif %}" 
+                                                role="progressbar" 
+                                                style="width: {{ report.productivity_score }}%"
+                                                aria-valuenow="{{ report.productivity_score }}" 
+                                                aria-valuemin="0" 
+                                                aria-valuemax="100">
+                                                {{ report.productivity_score }}
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Status Chart
+    new Chart(document.getElementById('statusChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Завершено', 'В процессе', 'В ожидании', 'Отменено'],
+            datasets: [{
+                data: [
+                    {{ report.summary.completed }},
+                    {{ report.summary.in_progress }},
+                    {{ report.summary.pending }},
+                    {{ report.summary.cancelled }}
+                ],
+                backgroundColor: ['#28a745', '#ffc107', '#6c757d', '#dc3545']
+            }]
+        }
+    });
+
+    // Priority Chart
+    new Chart(document.getElementById('priorityChart'), {
+        type: 'bar',
+        data: {
+            labels: ['Низкий', 'Средний', 'Высокий', 'Срочный'],
+            datasets: [{
+                label: 'Количество задач',
+                data: [
+                    {{ report.priority_distribution.low }},
+                    {{ report.priority_distribution.medium }},
+                    {{ report.priority_distribution.high }},
+                    {{ report.priority_distribution.urgent }}
+                ],
+                backgroundColor: ['#17a2b8', '#007bff', '#fd7e14', '#dc3545']
+            }]
+        }
+    });
+
+    // Weekday Chart
+    new Chart(document.getElementById('weekdayChart'), {
+        type: 'line',
+        data: {
+            labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+            datasets: [{
+                label: 'Задач создано',
+                data: [
+                    {{ report.tasks_by_day_of_week[1] }},
+                    {{ report.tasks_by_day_of_week[2] }},
+                    {{ report.tasks_by_day_of_week[3] }},
+                    {{ report.tasks_by_day_of_week[4] }},
+                    {{ report.tasks_by_day_of_week[5] }},
+                    {{ report.tasks_by_day_of_week[6] }},
+                    {{ report.tasks_by_day_of_week[7] }}
+                ],
+                borderColor: '#007bff',
+                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
