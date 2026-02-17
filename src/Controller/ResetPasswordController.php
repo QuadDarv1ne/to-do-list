@@ -34,7 +34,7 @@ class ResetPasswordController extends AbstractController
     public function request(Request $request, ?PerformanceMonitorService $performanceMonitor = null): Response
     {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('reset_password_controller_request');
+            $performanceMonitor->startTiming('reset_password_controller_request');
         }
         
         $form = $this->createForm(ResetPasswordRequestFormType::class);
@@ -48,7 +48,7 @@ class ResetPasswordController extends AbstractController
                 );
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('reset_password_controller_request');
+                    $performanceMonitor->stopTiming('reset_password_controller_request');
                 }
             }
         }
@@ -59,7 +59,7 @@ class ResetPasswordController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('reset_password_controller_request');
+                $performanceMonitor->stopTiming('reset_password_controller_request');
             }
         }
     }
@@ -68,7 +68,7 @@ class ResetPasswordController extends AbstractController
     public function checkEmail(?PerformanceMonitorService $performanceMonitor = null): Response
     {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('reset_password_controller_check_email');
+            $performanceMonitor->startTiming('reset_password_controller_check_email');
         }
         
         try {
@@ -76,7 +76,7 @@ class ResetPasswordController extends AbstractController
             return $this->render('reset_password/check_email.html.twig');
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('reset_password_controller_check_email');
+                $performanceMonitor->stopTiming('reset_password_controller_check_email');
             }
         }
     }
@@ -85,7 +85,7 @@ class ResetPasswordController extends AbstractController
     public function reset(Request $request, UserPasswordHasherInterface $passwordHasher, ?string $token = null, ?PerformanceMonitorService $performanceMonitor = null): Response
     {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('reset_password_controller_reset');
+            $performanceMonitor->startTiming('reset_password_controller_reset');
         }
         
         if ($token === null) {
@@ -93,7 +93,7 @@ class ResetPasswordController extends AbstractController
                 throw $this->redirectToRoute('app_forgot_password_request');
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('reset_password_controller_reset');
+                    $performanceMonitor->stopTiming('reset_password_controller_reset');
                 }
             }
         }
@@ -106,7 +106,7 @@ class ResetPasswordController extends AbstractController
                 throw $this->redirectToRoute('app_forgot_password_request');
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('reset_password_controller_reset');
+                    $performanceMonitor->stopTiming('reset_password_controller_reset');
                 }
             }
         }
@@ -133,7 +133,7 @@ class ResetPasswordController extends AbstractController
                 return $this->redirectToRoute('app_login');
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('reset_password_controller_reset');
+                    $performanceMonitor->stopTiming('reset_password_controller_reset');
                 }
             }
         }
@@ -144,7 +144,7 @@ class ResetPasswordController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('reset_password_controller_reset');
+                $performanceMonitor->stopTiming('reset_password_controller_reset');
             }
         }
     }
@@ -152,7 +152,7 @@ class ResetPasswordController extends AbstractController
     private function processSendingPasswordResetEmail(string $emailFormData, ?PerformanceMonitorService $performanceMonitor = null): RedirectResponse
     {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('reset_password_controller_process_sending_email');
+            $performanceMonitor->startTiming('reset_password_controller_process_sending_email');
         }
         
         $user = $this->entityManager->getRepository(User::class)->findOneBy([
@@ -165,7 +165,7 @@ class ResetPasswordController extends AbstractController
                 return $this->redirectToRoute('app_check_email');
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('reset_password_controller_process_sending_email');
+                    $performanceMonitor->stopTiming('reset_password_controller_process_sending_email');
                 }
             }
         }
@@ -194,7 +194,7 @@ class ResetPasswordController extends AbstractController
             return $this->redirectToRoute('app_check_email');
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('reset_password_controller_process_sending_email');
+                $performanceMonitor->stopTiming('reset_password_controller_process_sending_email');
             }
         }
     }

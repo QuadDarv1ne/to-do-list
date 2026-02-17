@@ -24,7 +24,7 @@ class ProfileController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('profile_controller_change_password');
+            $performanceMonitor->startTiming('profile_controller_change_password');
         }
         
         $user = $this->getUser();
@@ -46,7 +46,7 @@ class ProfileController extends AbstractController
                 return $this->redirectToRoute('app_dashboard');
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('profile_controller_change_password');
+                    $performanceMonitor->stopTiming('profile_controller_change_password');
                 }
             }
         }
@@ -57,7 +57,7 @@ class ProfileController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('profile_controller_change_password');
+                $performanceMonitor->stopTiming('profile_controller_change_password');
             }
         }
     }
@@ -66,7 +66,7 @@ class ProfileController extends AbstractController
     public function show(?PerformanceMonitorService $performanceMonitor = null): Response
     {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('profile_controller_show');
+            $performanceMonitor->startTiming('profile_controller_show');
         }
         
         $user = $this->getUser();
@@ -77,7 +77,7 @@ class ProfileController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('profile_controller_show');
+                $performanceMonitor->stopTiming('profile_controller_show');
             }
         }
     }
@@ -89,7 +89,7 @@ class ProfileController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('profile_controller_edit');
+            $performanceMonitor->startTiming('profile_controller_edit');
         }
         
         $user = $this->getUser();
@@ -111,7 +111,7 @@ class ProfileController extends AbstractController
                         return $this->redirectToRoute('app_profile_edit');
                     } finally {
                         if ($performanceMonitor) {
-                            $performanceMonitor->stopTimer('profile_controller_edit');
+                            $performanceMonitor->stopTiming('profile_controller_edit');
                         }
                     }
                 }
@@ -125,7 +125,7 @@ class ProfileController extends AbstractController
                 return $this->redirectToRoute('app_profile_show');
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('profile_controller_edit');
+                    $performanceMonitor->stopTiming('profile_controller_edit');
                 }
             }
         }
@@ -137,7 +137,7 @@ class ProfileController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('profile_controller_edit');
+                $performanceMonitor->stopTiming('profile_controller_edit');
             }
         }
     }

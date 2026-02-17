@@ -39,7 +39,7 @@ class EventStreamManager
     public function getNewNotifications(User $user, \DateTime $since): array
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('event_stream_manager_get_new_notifications');
+            $this->performanceMonitor->startTiming('event_stream_manager_get_new_notifications');
         }
         try {
             // Use a more efficient query with proper indexing
@@ -62,7 +62,7 @@ class EventStreamManager
             return $result;
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('event_stream_manager_get_new_notifications');
+                $this->performanceMonitor->stopTiming('event_stream_manager_get_new_notifications');
             }
         }
     }
@@ -73,7 +73,7 @@ class EventStreamManager
     public function hasNewNotifications(User $user, \DateTime $since): bool
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('event_stream_manager_has_new_notifications');
+            $this->performanceMonitor->startTiming('event_stream_manager_has_new_notifications');
         }
         try {
             $count = $this->notificationRepository->createQueryBuilder('n')
@@ -89,7 +89,7 @@ class EventStreamManager
             return $count > 0;
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('event_stream_manager_has_new_notifications');
+                $this->performanceMonitor->stopTiming('event_stream_manager_has_new_notifications');
             }
         }
     }
@@ -100,13 +100,13 @@ class EventStreamManager
     public function getLastCheckTime(int $userId): ?\DateTime
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('event_stream_manager_get_last_check_time');
+            $this->performanceMonitor->startTiming('event_stream_manager_get_last_check_time');
         }
         try {
             return $this->lastCheckTimes[$userId] ?? null;
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('event_stream_manager_get_last_check_time');
+                $this->performanceMonitor->stopTiming('event_stream_manager_get_last_check_time');
             }
         }
     }
@@ -117,13 +117,13 @@ class EventStreamManager
     public function setLastCheckTime(int $userId, \DateTime $dateTime): void
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('event_stream_manager_set_last_check_time');
+            $this->performanceMonitor->startTiming('event_stream_manager_set_last_check_time');
         }
         try {
             $this->lastCheckTimes[$userId] = $dateTime;
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('event_stream_manager_set_last_check_time');
+                $this->performanceMonitor->stopTiming('event_stream_manager_set_last_check_time');
             }
         }
     }
@@ -134,7 +134,7 @@ class EventStreamManager
     public function cleanup(): void
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('event_stream_manager_cleanup');
+            $this->performanceMonitor->startTiming('event_stream_manager_cleanup');
         }
         try {
             // Remove entries older than 1 hour from memory
@@ -146,7 +146,7 @@ class EventStreamManager
             }
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('event_stream_manager_cleanup');
+                $this->performanceMonitor->stopTiming('event_stream_manager_cleanup');
             }
         }
     }

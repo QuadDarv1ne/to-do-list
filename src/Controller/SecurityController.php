@@ -17,7 +17,7 @@ class SecurityController extends AbstractController
     public function login(AuthenticationUtils $authenticationUtils, Request $request, ActivityLogRepository $activityLogRepository, ?PerformanceMonitorService $performanceMonitor = null): Response
     {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('security_controller_login');
+            $performanceMonitor->startTiming('security_controller_login');
         }
         
         // Если пользователь уже авторизован, перенаправляем на главную
@@ -27,7 +27,7 @@ class SecurityController extends AbstractController
                 return $this->redirectToRoute('app_dashboard');
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('security_controller_login');
+                    $performanceMonitor->stopTiming('security_controller_login');
                 }
             }
         }
@@ -49,7 +49,7 @@ class SecurityController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('security_controller_login');
+                $performanceMonitor->stopTiming('security_controller_login');
             }
         }
     }
@@ -65,14 +65,14 @@ class SecurityController extends AbstractController
     public function accessDenied(?PerformanceMonitorService $performanceMonitor = null): Response
     {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('security_controller_access_denied');
+            $performanceMonitor->startTiming('security_controller_access_denied');
         }
         
         try {
             return $this->render('security/access_denied.html.twig', [], new Response('Доступ запрещен', 403));
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('security_controller_access_denied');
+                $performanceMonitor->stopTiming('security_controller_access_denied');
             }
         }
     }

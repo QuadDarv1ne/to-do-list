@@ -21,7 +21,7 @@ class NotificationController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('notification_controller_index');
+            $performanceMonitor->startTiming('notification_controller_index');
         }
         
         $user = $this->getUser();
@@ -33,7 +33,7 @@ class NotificationController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('notification_controller_index');
+                $performanceMonitor->stopTiming('notification_controller_index');
             }
         }
     }
@@ -46,7 +46,7 @@ class NotificationController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): JsonResponse {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('notification_controller_mark_as_read');
+            $performanceMonitor->startTiming('notification_controller_mark_as_read');
         }
         
         $notification = $notificationRepository->find($id);
@@ -56,7 +56,7 @@ class NotificationController extends AbstractController
                 return new JsonResponse(['error' => 'Notification not found'], 404);
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('notification_controller_mark_as_read');
+                    $performanceMonitor->stopTiming('notification_controller_mark_as_read');
                 }
             }
         }
@@ -68,7 +68,7 @@ class NotificationController extends AbstractController
             return new JsonResponse(['success' => true]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('notification_controller_mark_as_read');
+                $performanceMonitor->stopTiming('notification_controller_mark_as_read');
             }
         }
     }
@@ -80,7 +80,7 @@ class NotificationController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): JsonResponse {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('notification_controller_mark_all_as_read');
+            $performanceMonitor->startTiming('notification_controller_mark_all_as_read');
         }
         
         $user = $this->getUser();
@@ -96,7 +96,7 @@ class NotificationController extends AbstractController
             return new JsonResponse(['success' => true, 'count' => count($notifications)]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('notification_controller_mark_all_as_read');
+                $performanceMonitor->stopTiming('notification_controller_mark_all_as_read');
             }
         }
     }
@@ -107,7 +107,7 @@ class NotificationController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): JsonResponse {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('notification_controller_unread_count');
+            $performanceMonitor->startTiming('notification_controller_unread_count');
         }
         
         $user = $this->getUser();
@@ -117,7 +117,7 @@ class NotificationController extends AbstractController
             return new JsonResponse(['count' => $unreadCount]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('notification_controller_unread_count');
+                $performanceMonitor->stopTiming('notification_controller_unread_count');
             }
         }
     }

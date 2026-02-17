@@ -19,7 +19,7 @@ class RegistrationController extends AbstractController
     public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $entityManager, ?PerformanceMonitorService $performanceMonitor = null): Response
     {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('registration_controller_register');
+            $performanceMonitor->startTiming('registration_controller_register');
         }
         
         // Rate limiting: Check if too many registrations from same IP recently
@@ -35,7 +35,7 @@ class RegistrationController extends AbstractController
                 return $this->redirectToRoute('app_register');
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('registration_controller_register');
+                    $performanceMonitor->stopTiming('registration_controller_register');
                 }
             }
         }
@@ -65,7 +65,7 @@ class RegistrationController extends AbstractController
                 return $this->redirectToRoute('app_login');
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('registration_controller_register');
+                    $performanceMonitor->stopTiming('registration_controller_register');
                 }
             }
         }
@@ -76,7 +76,7 @@ class RegistrationController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('registration_controller_register');
+                $performanceMonitor->stopTiming('registration_controller_register');
             }
         }
     }

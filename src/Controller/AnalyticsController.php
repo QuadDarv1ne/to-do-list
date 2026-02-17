@@ -21,7 +21,7 @@ class AnalyticsController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('analytics_controller_dashboard');
+            $performanceMonitor->startTiming('analytics_controller_dashboard');
         }
         
         $user = $this->getUser();
@@ -33,7 +33,7 @@ class AnalyticsController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('analytics_controller_dashboard');
+                $performanceMonitor->stopTiming('analytics_controller_dashboard');
             }
         }
     }
@@ -44,7 +44,7 @@ class AnalyticsController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): JsonResponse {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('analytics_controller_get_data');
+            $performanceMonitor->startTiming('analytics_controller_get_data');
         }
         
         $user = $this->getUser();
@@ -54,7 +54,7 @@ class AnalyticsController extends AbstractController
             return $this->json($analytics);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('analytics_controller_get_data');
+                $performanceMonitor->stopTiming('analytics_controller_get_data');
             }
         }
     }
@@ -65,7 +65,7 @@ class AnalyticsController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('analytics_controller_export_csv');
+            $performanceMonitor->startTiming('analytics_controller_export_csv');
         }
         
         $user = $this->getUser();
@@ -79,7 +79,7 @@ class AnalyticsController extends AbstractController
             return $response;
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('analytics_controller_export_csv');
+                $performanceMonitor->stopTiming('analytics_controller_export_csv');
             }
         }
     }
@@ -90,7 +90,7 @@ class AnalyticsController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): JsonResponse {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('analytics_controller_completion_trend');
+            $performanceMonitor->startTiming('analytics_controller_completion_trend');
         }
         
         $user = $this->getUser();
@@ -104,7 +104,7 @@ class AnalyticsController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('analytics_controller_completion_trend');
+                $performanceMonitor->stopTiming('analytics_controller_completion_trend');
             }
         }
     }
@@ -115,7 +115,7 @@ class AnalyticsController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): JsonResponse {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('analytics_controller_category_breakdown');
+            $performanceMonitor->startTiming('analytics_controller_category_breakdown');
         }
         
         $user = $this->getUser();
@@ -125,7 +125,7 @@ class AnalyticsController extends AbstractController
             return $this->json($analytics['category_analysis']);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('analytics_controller_category_breakdown');
+                $performanceMonitor->stopTiming('analytics_controller_category_breakdown');
             }
         }
     }
@@ -136,7 +136,7 @@ class AnalyticsController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): JsonResponse {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('analytics_controller_priority_analysis');
+            $performanceMonitor->startTiming('analytics_controller_priority_analysis');
         }
         
         $user = $this->getUser();
@@ -146,7 +146,7 @@ class AnalyticsController extends AbstractController
             return $this->json($analytics['priority_analysis']);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('analytics_controller_priority_analysis');
+                $performanceMonitor->stopTiming('analytics_controller_priority_analysis');
             }
         }
     }
@@ -158,7 +158,7 @@ class AnalyticsController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): JsonResponse {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('analytics_controller_compare_periods');
+            $performanceMonitor->startTiming('analytics_controller_compare_periods');
         }
         
         $user = $this->getUser();
@@ -171,7 +171,7 @@ class AnalyticsController extends AbstractController
             return $this->json($comparison);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('analytics_controller_compare_periods');
+                $performanceMonitor->stopTiming('analytics_controller_compare_periods');
             }
         }
     }

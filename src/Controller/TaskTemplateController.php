@@ -19,7 +19,7 @@ class TaskTemplateController extends AbstractController
     public function index(?PerformanceMonitorService $performanceMonitor = null): Response
     {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('task_template_controller_index');
+            $performanceMonitor->startTiming('task_template_controller_index');
         }
         
         // Predefined task templates
@@ -69,7 +69,7 @@ class TaskTemplateController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('task_template_controller_index');
+                $performanceMonitor->stopTiming('task_template_controller_index');
             }
         }
     }
@@ -84,7 +84,7 @@ class TaskTemplateController extends AbstractController
     ): Response {
 
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('task_template_controller_apply');
+            $performanceMonitor->startTiming('task_template_controller_apply');
         }
 
         // Predefined templates
@@ -131,7 +131,7 @@ class TaskTemplateController extends AbstractController
                 return $this->redirectToRoute('app_task_template_index');
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('task_template_controller_apply');
+                    $performanceMonitor->stopTiming('task_template_controller_apply');
                 }
             }
         }
@@ -162,7 +162,7 @@ class TaskTemplateController extends AbstractController
             return $this->redirectToRoute('app_task_index');
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('task_template_controller_apply');
+                $performanceMonitor->stopTiming('task_template_controller_apply');
             }
         }
     }
@@ -176,7 +176,7 @@ class TaskTemplateController extends AbstractController
     ): Response {
 
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('task_template_controller_custom');
+            $performanceMonitor->startTiming('task_template_controller_custom');
         }
 
         if ($request->isMethod('POST')) {
@@ -192,7 +192,7 @@ class TaskTemplateController extends AbstractController
                     return $this->render('task_template/custom.html.twig');
                 } finally {
                     if ($performanceMonitor) {
-                        $performanceMonitor->stopTimer('task_template_controller_custom');
+                        $performanceMonitor->stopTiming('task_template_controller_custom');
                     }
                 }
             }
@@ -224,7 +224,7 @@ class TaskTemplateController extends AbstractController
                     return $this->redirectToRoute('app_task_index');
                 } finally {
                     if ($performanceMonitor) {
-                        $performanceMonitor->stopTimer('task_template_controller_custom');
+                        $performanceMonitor->stopTiming('task_template_controller_custom');
                     }
                 }
             }
@@ -234,7 +234,7 @@ class TaskTemplateController extends AbstractController
             return $this->render('task_template/custom.html.twig');
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('task_template_controller_custom');
+                $performanceMonitor->stopTiming('task_template_controller_custom');
             }
         }
     }

@@ -33,7 +33,7 @@ class TaskDependencyController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): JsonResponse {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('task_dependency_controller_list');
+            $performanceMonitor->startTiming('task_dependency_controller_list');
         }
         
         $task = $taskRepository->find($taskId);
@@ -43,7 +43,7 @@ class TaskDependencyController extends AbstractController
                 return new JsonResponse(['error' => 'Task not found'], 404);
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('task_dependency_controller_list');
+                    $performanceMonitor->stopTiming('task_dependency_controller_list');
                 }
             }
         }
@@ -54,7 +54,7 @@ class TaskDependencyController extends AbstractController
                 return new JsonResponse(['error' => 'Access denied'], 403);
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('task_dependency_controller_list');
+                    $performanceMonitor->stopTiming('task_dependency_controller_list');
                 }
             }
         }
@@ -78,7 +78,7 @@ class TaskDependencyController extends AbstractController
             return $this->json($data);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('task_dependency_controller_list');
+                $performanceMonitor->stopTiming('task_dependency_controller_list');
             }
         }
     }
@@ -93,7 +93,7 @@ class TaskDependencyController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): JsonResponse {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('task_dependency_controller_add');
+            $performanceMonitor->startTiming('task_dependency_controller_add');
         }
         
         $task = $taskRepository->find($taskId);
@@ -103,7 +103,7 @@ class TaskDependencyController extends AbstractController
                 return new JsonResponse(['error' => 'Task not found'], 404);
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('task_dependency_controller_add');
+                    $performanceMonitor->stopTiming('task_dependency_controller_add');
                 }
             }
         }
@@ -114,7 +114,7 @@ class TaskDependencyController extends AbstractController
                 return new JsonResponse(['error' => 'Access denied'], 403);
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('task_dependency_controller_add');
+                    $performanceMonitor->stopTiming('task_dependency_controller_add');
                 }
             }
         }
@@ -128,7 +128,7 @@ class TaskDependencyController extends AbstractController
                 return new JsonResponse(['error' => 'Dependency task ID is required'], 400);
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('task_dependency_controller_add');
+                    $performanceMonitor->stopTiming('task_dependency_controller_add');
                 }
             }
         }
@@ -139,7 +139,7 @@ class TaskDependencyController extends AbstractController
                 return new JsonResponse(['error' => 'Dependency task not found'], 404);
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('task_dependency_controller_add');
+                    $performanceMonitor->stopTiming('task_dependency_controller_add');
                 }
             }
         }
@@ -150,7 +150,7 @@ class TaskDependencyController extends AbstractController
                 return new JsonResponse(['error' => 'Cannot create dependency on the same task'], 400);
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('task_dependency_controller_add');
+                    $performanceMonitor->stopTiming('task_dependency_controller_add');
                 }
             }
         }
@@ -161,7 +161,7 @@ class TaskDependencyController extends AbstractController
                 return new JsonResponse(['error' => 'This would create a circular dependency'], 400);
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('task_dependency_controller_add');
+                    $performanceMonitor->stopTiming('task_dependency_controller_add');
                 }
             }
         }
@@ -172,7 +172,7 @@ class TaskDependencyController extends AbstractController
                 return new JsonResponse(['error' => 'Dependency already exists'], 400);
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('task_dependency_controller_add');
+                    $performanceMonitor->stopTiming('task_dependency_controller_add');
                 }
             }
         }
@@ -197,7 +197,7 @@ class TaskDependencyController extends AbstractController
             ], 201);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('task_dependency_controller_add');
+                $performanceMonitor->stopTiming('task_dependency_controller_add');
             }
         }
     }
@@ -212,7 +212,7 @@ class TaskDependencyController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): JsonResponse {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('task_dependency_controller_remove');
+            $performanceMonitor->startTiming('task_dependency_controller_remove');
         }
         
         $task = $taskRepository->find($taskId);
@@ -222,7 +222,7 @@ class TaskDependencyController extends AbstractController
                 return new JsonResponse(['error' => 'Task not found'], 404);
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('task_dependency_controller_remove');
+                    $performanceMonitor->stopTiming('task_dependency_controller_remove');
                 }
             }
         }
@@ -233,7 +233,7 @@ class TaskDependencyController extends AbstractController
                 return new JsonResponse(['error' => 'Access denied'], 403);
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('task_dependency_controller_remove');
+                    $performanceMonitor->stopTiming('task_dependency_controller_remove');
                 }
             }
         }
@@ -244,7 +244,7 @@ class TaskDependencyController extends AbstractController
                 return new JsonResponse(['error' => 'Dependency not found'], 404);
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('task_dependency_controller_remove');
+                    $performanceMonitor->stopTiming('task_dependency_controller_remove');
                 }
             }
         }
@@ -256,7 +256,7 @@ class TaskDependencyController extends AbstractController
             return $this->json(['success' => true]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('task_dependency_controller_remove');
+                $performanceMonitor->stopTiming('task_dependency_controller_remove');
             }
         }
     }
@@ -269,7 +269,7 @@ class TaskDependencyController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): JsonResponse {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('task_dependency_controller_check_can_start');
+            $performanceMonitor->startTiming('task_dependency_controller_check_can_start');
         }
         
         $taskId = (int) $request->query->get('taskId');
@@ -278,7 +278,7 @@ class TaskDependencyController extends AbstractController
                 return new JsonResponse(['error' => 'Task ID is required'], 400);
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('task_dependency_controller_check_can_start');
+                    $performanceMonitor->stopTiming('task_dependency_controller_check_can_start');
                 }
             }
         }
@@ -290,7 +290,7 @@ class TaskDependencyController extends AbstractController
                 return new JsonResponse(['error' => 'Task not found'], 404);
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('task_dependency_controller_check_can_start');
+                    $performanceMonitor->stopTiming('task_dependency_controller_check_can_start');
                 }
             }
         }
@@ -301,7 +301,7 @@ class TaskDependencyController extends AbstractController
                 return new JsonResponse(['error' => 'Access denied'], 403);
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('task_dependency_controller_check_can_start');
+                    $performanceMonitor->stopTiming('task_dependency_controller_check_can_start');
                 }
             }
         }
@@ -330,7 +330,7 @@ class TaskDependencyController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('task_dependency_controller_check_can_start');
+                $performanceMonitor->stopTiming('task_dependency_controller_check_can_start');
             }
         }
     }
@@ -342,7 +342,7 @@ class TaskDependencyController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): JsonResponse {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('task_dependency_controller_get_stats');
+            $performanceMonitor->startTiming('task_dependency_controller_get_stats');
         }
         
         $user = $this->getUser();
@@ -400,7 +400,7 @@ class TaskDependencyController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('task_dependency_controller_get_stats');
+                $performanceMonitor->stopTiming('task_dependency_controller_get_stats');
             }
         }
     }
@@ -415,7 +415,7 @@ class TaskDependencyController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): JsonResponse {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('task_dependency_controller_bulk_add');
+            $performanceMonitor->startTiming('task_dependency_controller_bulk_add');
         }
         
         $task = $taskRepository->find($taskId);
@@ -425,7 +425,7 @@ class TaskDependencyController extends AbstractController
                 return new JsonResponse(['error' => 'Task not found'], 404);
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('task_dependency_controller_bulk_add');
+                    $performanceMonitor->stopTiming('task_dependency_controller_bulk_add');
                 }
             }
         }
@@ -436,7 +436,7 @@ class TaskDependencyController extends AbstractController
                 return new JsonResponse(['error' => 'Access denied'], 403);
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('task_dependency_controller_bulk_add');
+                    $performanceMonitor->stopTiming('task_dependency_controller_bulk_add');
                 }
             }
         }
@@ -450,7 +450,7 @@ class TaskDependencyController extends AbstractController
                 return new JsonResponse(['error' => 'Dependency task IDs are required and must be an array'], 400);
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('task_dependency_controller_bulk_add');
+                    $performanceMonitor->stopTiming('task_dependency_controller_bulk_add');
                 }
             }
         }
@@ -524,7 +524,7 @@ class TaskDependencyController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('task_dependency_controller_bulk_add');
+                $performanceMonitor->stopTiming('task_dependency_controller_bulk_add');
             }
         }
     }
@@ -539,7 +539,7 @@ class TaskDependencyController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): JsonResponse {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('task_dependency_controller_bulk_remove');
+            $performanceMonitor->startTiming('task_dependency_controller_bulk_remove');
         }
         
         $task = $taskRepository->find($taskId);
@@ -549,7 +549,7 @@ class TaskDependencyController extends AbstractController
                 return new JsonResponse(['error' => 'Task not found'], 404);
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('task_dependency_controller_bulk_remove');
+                    $performanceMonitor->stopTiming('task_dependency_controller_bulk_remove');
                 }
             }
         }
@@ -560,7 +560,7 @@ class TaskDependencyController extends AbstractController
                 return new JsonResponse(['error' => 'Access denied'], 403);
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('task_dependency_controller_bulk_remove');
+                    $performanceMonitor->stopTiming('task_dependency_controller_bulk_remove');
                 }
             }
         }
@@ -573,7 +573,7 @@ class TaskDependencyController extends AbstractController
                 return new JsonResponse(['error' => 'Dependency IDs are required and must be an array'], 400);
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('task_dependency_controller_bulk_remove');
+                    $performanceMonitor->stopTiming('task_dependency_controller_bulk_remove');
                 }
             }
         }
@@ -615,7 +615,7 @@ class TaskDependencyController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('task_dependency_controller_bulk_remove');
+                $performanceMonitor->stopTiming('task_dependency_controller_bulk_remove');
             }
         }
     }

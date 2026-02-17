@@ -24,7 +24,7 @@ class UserController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('user_controller_index');
+            $performanceMonitor->startTiming('user_controller_index');
         }
         
         try {
@@ -34,7 +34,7 @@ class UserController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('user_controller_index');
+                $performanceMonitor->stopTiming('user_controller_index');
             }
         }
     }
@@ -47,7 +47,7 @@ class UserController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('user_controller_new');
+            $performanceMonitor->startTiming('user_controller_new');
         }
         
         $user = new User();
@@ -71,7 +71,7 @@ class UserController extends AbstractController
                 return $this->redirectToRoute('app_user_index');
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('user_controller_new');
+                    $performanceMonitor->stopTiming('user_controller_new');
                 }
             }
         }
@@ -83,7 +83,7 @@ class UserController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('user_controller_new');
+                $performanceMonitor->stopTiming('user_controller_new');
             }
         }
     }
@@ -94,7 +94,7 @@ class UserController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('user_controller_show');
+            $performanceMonitor->startTiming('user_controller_show');
         }
         
         try {
@@ -103,7 +103,7 @@ class UserController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('user_controller_show');
+                $performanceMonitor->stopTiming('user_controller_show');
             }
         }
     }
@@ -117,7 +117,7 @@ class UserController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('user_controller_edit');
+            $performanceMonitor->startTiming('user_controller_edit');
         }
         
         $form = $this->createForm(UserType::class, $user, ['is_new' => false]);
@@ -141,7 +141,7 @@ class UserController extends AbstractController
                 return $this->redirectToRoute('app_user_index');
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('user_controller_edit');
+                    $performanceMonitor->stopTiming('user_controller_edit');
                 }
             }
         }
@@ -153,7 +153,7 @@ class UserController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('user_controller_edit');
+                $performanceMonitor->stopTiming('user_controller_edit');
             }
         }
     }
@@ -166,7 +166,7 @@ class UserController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('user_controller_delete');
+            $performanceMonitor->startTiming('user_controller_delete');
         }
         
         if ($this->isCsrfTokenValid('delete'.$user->getId(), $request->request->get('_token'))) {
@@ -178,7 +178,7 @@ class UserController extends AbstractController
                     return $this->redirectToRoute('app_user_index');
                 } finally {
                     if ($performanceMonitor) {
-                        $performanceMonitor->stopTimer('user_controller_delete');
+                        $performanceMonitor->stopTiming('user_controller_delete');
                     }
                 }
             }
@@ -193,7 +193,7 @@ class UserController extends AbstractController
             return $this->redirectToRoute('app_user_index');
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('user_controller_delete');
+                $performanceMonitor->stopTiming('user_controller_delete');
             }
         }
     }
@@ -206,7 +206,7 @@ class UserController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('user_controller_toggle_active');
+            $performanceMonitor->startTiming('user_controller_toggle_active');
         }
         
         if ($this->isCsrfTokenValid('toggle-active'.$user->getId(), $request->request->get('_token'))) {
@@ -221,7 +221,7 @@ class UserController extends AbstractController
             return $this->redirectToRoute('app_user_index');
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('user_controller_toggle_active');
+                $performanceMonitor->stopTiming('user_controller_toggle_active');
             }
         }
     }
@@ -234,7 +234,7 @@ class UserController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('user_controller_unlock');
+            $performanceMonitor->startTiming('user_controller_unlock');
         }
         
         if ($this->isCsrfTokenValid('unlock'.$user->getId(), $request->request->get('_token'))) {
@@ -246,7 +246,7 @@ class UserController extends AbstractController
             return $this->redirectToRoute('app_user_index');
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('user_controller_unlock');
+                $performanceMonitor->stopTiming('user_controller_unlock');
             }
         }
     }

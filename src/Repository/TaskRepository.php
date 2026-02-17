@@ -800,12 +800,14 @@ class TaskRepository extends ServiceEntityRepository
             ->select(
                 'COUNT(t.id) as total',
                 'SUM(CASE WHEN t.status = :pending_status THEN 1 ELSE 0 END) as pending',
+                'SUM(CASE WHEN t.status = :in_progress_status THEN 1 ELSE 0 END) as in_progress',
                 'SUM(CASE WHEN t.status = :completed_status THEN 1 ELSE 0 END) as completed',
                 'SUM(CASE WHEN t.dueDate IS NOT NULL AND t.dueDate < :now AND t.status != :completed_status THEN 1 ELSE 0 END) as overdue'
             )
             ->where('t.assignedUser = :user OR t.user = :user')
             ->setParameter('user', $user)
             ->setParameter('pending_status', 'pending')
+            ->setParameter('in_progress_status', 'in_progress')
             ->setParameter('completed_status', 'completed')
             ->setParameter('now', new \DateTime())
             ->getQuery()
@@ -813,6 +815,7 @@ class TaskRepository extends ServiceEntityRepository
         
         $totalTasks = (int) $results['total'];
         $pendingTasks = (int) $results['pending'];
+        $inProgressTasks = (int) $results['in_progress'];
         $completedTasks = (int) $results['completed'];
         $overdueTasks = (int) $results['overdue'];
         
@@ -828,6 +831,7 @@ class TaskRepository extends ServiceEntityRepository
         return [
             'total' => $totalTasks,
             'pending' => $pendingTasks,
+            'in_progress' => $inProgressTasks,
             'completed' => $completedTasks,
             'overdue' => $overdueTasks,
             'completion_rate' => $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100, 1) : 0,

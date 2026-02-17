@@ -10,7 +10,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/task-category')]
@@ -23,7 +23,7 @@ class TaskCategoryController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('task_category_controller_index');
+            $performanceMonitor->startTiming('task_category_controller_index');
         }
         
         $categories = $taskCategoryRepository->findByUser($this->getUser());
@@ -34,7 +34,7 @@ class TaskCategoryController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('task_category_controller_index');
+                $performanceMonitor->stopTiming('task_category_controller_index');
             }
         }
     }
@@ -46,7 +46,7 @@ class TaskCategoryController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('task_category_controller_new');
+            $performanceMonitor->startTiming('task_category_controller_new');
         }
         
         $taskCategory = new TaskCategory();
@@ -65,7 +65,7 @@ class TaskCategoryController extends AbstractController
                 return $this->redirectToRoute('app_task_category_index', [], Response::HTTP_SEE_OTHER);
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('task_category_controller_new');
+                    $performanceMonitor->stopTiming('task_category_controller_new');
                 }
             }
         }
@@ -78,7 +78,7 @@ class TaskCategoryController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('task_category_controller_new');
+                $performanceMonitor->stopTiming('task_category_controller_new');
             }
         }
     }
@@ -89,7 +89,7 @@ class TaskCategoryController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('task_category_controller_show');
+            $performanceMonitor->startTiming('task_category_controller_show');
         }
         
         $this->denyAccessUnlessGranted('TASK_CATEGORY_VIEW', $taskCategory);
@@ -100,7 +100,7 @@ class TaskCategoryController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('task_category_controller_show');
+                $performanceMonitor->stopTiming('task_category_controller_show');
             }
         }
     }
@@ -113,7 +113,7 @@ class TaskCategoryController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('task_category_controller_edit');
+            $performanceMonitor->startTiming('task_category_controller_edit');
         }
         
         $this->denyAccessUnlessGranted('TASK_CATEGORY_EDIT', $taskCategory);
@@ -130,7 +130,7 @@ class TaskCategoryController extends AbstractController
                 return $this->redirectToRoute('app_task_category_index', [], Response::HTTP_SEE_OTHER);
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('task_category_controller_edit');
+                    $performanceMonitor->stopTiming('task_category_controller_edit');
                 }
             }
         }
@@ -143,7 +143,7 @@ class TaskCategoryController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('task_category_controller_edit');
+                $performanceMonitor->stopTiming('task_category_controller_edit');
             }
         }
     }
@@ -156,7 +156,7 @@ class TaskCategoryController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('task_category_controller_delete');
+            $performanceMonitor->startTiming('task_category_controller_delete');
         }
         
         $this->denyAccessUnlessGranted('TASK_CATEGORY_DELETE', $taskCategory);
@@ -170,7 +170,7 @@ class TaskCategoryController extends AbstractController
                     return $this->redirectToRoute('app_task_category_index', [], Response::HTTP_SEE_OTHER);
                 } finally {
                     if ($performanceMonitor) {
-                        $performanceMonitor->stopTimer('task_category_controller_delete');
+                        $performanceMonitor->stopTiming('task_category_controller_delete');
                     }
                 }
             }
@@ -185,7 +185,7 @@ class TaskCategoryController extends AbstractController
             return $this->redirectToRoute('app_task_category_index', [], Response::HTTP_SEE_OTHER);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('task_category_controller_delete');
+                $performanceMonitor->stopTiming('task_category_controller_delete');
             }
         }
     }

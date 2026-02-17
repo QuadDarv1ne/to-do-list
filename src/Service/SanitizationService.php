@@ -19,7 +19,7 @@ class SanitizationService
     public function sanitizeInput(string $input): string
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('sanitization_service_sanitize_input');
+            $this->performanceMonitor->startTiming('sanitization_service_sanitize_input');
         }
         try {
             // Remove HTML tags
@@ -34,7 +34,7 @@ class SanitizationService
             return trim($sanitized);
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('sanitization_service_sanitize_input');
+                $this->performanceMonitor->stopTiming('sanitization_service_sanitize_input');
             }
         }
     }
@@ -45,7 +45,7 @@ class SanitizationService
     public function sanitizeRichText(string $html): string
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('sanitization_service_sanitize_rich_text');
+            $this->performanceMonitor->startTiming('sanitization_service_sanitize_rich_text');
         }
         try {
             // Use HTML Purifier or similar library in production
@@ -61,7 +61,7 @@ class SanitizationService
             return $sanitized;
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('sanitization_service_sanitize_rich_text');
+                $this->performanceMonitor->stopTiming('sanitization_service_sanitize_rich_text');
             }
         }
     }
@@ -72,14 +72,14 @@ class SanitizationService
     public function sanitizeEmail(string $email): string
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('sanitization_service_sanitize_email');
+            $this->performanceMonitor->startTiming('sanitization_service_sanitize_email');
         }
         try {
             $email = filter_var(trim($email), FILTER_SANITIZE_EMAIL);
             return filter_var($email, FILTER_VALIDATE_EMAIL) ? $email : '';
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('sanitization_service_sanitize_email');
+                $this->performanceMonitor->stopTiming('sanitization_service_sanitize_email');
             }
         }
     }
@@ -90,14 +90,14 @@ class SanitizationService
     public function sanitizeUrl(string $url): string
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('sanitization_service_sanitize_url');
+            $this->performanceMonitor->startTiming('sanitization_service_sanitize_url');
         }
         try {
             $url = filter_var(trim($url), FILTER_SANITIZE_URL);
             return filter_var($url, FILTER_VALIDATE_URL) ? $url : '';
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('sanitization_service_sanitize_url');
+                $this->performanceMonitor->stopTiming('sanitization_service_sanitize_url');
             }
         }
     }
@@ -108,7 +108,7 @@ class SanitizationService
     public function sanitizeNumber($input): ?float
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('sanitization_service_sanitize_number');
+            $this->performanceMonitor->startTiming('sanitization_service_sanitize_number');
         }
         try {
             if (is_numeric($input)) {
@@ -117,7 +117,7 @@ class SanitizationService
             return null;
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('sanitization_service_sanitize_number');
+                $this->performanceMonitor->stopTiming('sanitization_service_sanitize_number');
             }
         }
     }
@@ -128,7 +128,7 @@ class SanitizationService
     public function sanitizeArray(array $inputs): array
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('sanitization_service_sanitize_array');
+            $this->performanceMonitor->startTiming('sanitization_service_sanitize_array');
         }
         try {
             $sanitized = [];
@@ -144,7 +144,7 @@ class SanitizationService
             return $sanitized;
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('sanitization_service_sanitize_array');
+                $this->performanceMonitor->stopTiming('sanitization_service_sanitize_array');
             }
         }
     }

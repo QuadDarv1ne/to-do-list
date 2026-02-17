@@ -549,22 +549,6 @@
                                 <p class="mb-0 text-muted">Входов в систему</p>
                             </div>
                         </div>
-                        <div class="col-md-8">
-                            <h6>Последние входы:</h6>
-                            {% if user_activity_stats.recent_logins is not empty %}
-                                <ul class="list-unstyled">
-                                    {% for login in user_activity_stats.recent_logins %}
-                                        <li class="mb-1">
-                                            <i class="fas fa-calendar me-2 text-success"></i>
-                                            {{ login.createdAt|date('d.m.Y H:i:s') }} - 
-                                            <small>{{ login.description }}</small>
-                                        </li>
-                                    {% endfor %}
-                                </ul>
-                            {% else %}
-                                <p class="text-muted mb-0">Нет записей о последних входах</p>
-                            {% endif %}
-                        </div>
                     </div>
                 </div>
             </div>
@@ -588,53 +572,26 @@
                         <div class="col-md-4">
                             <div class="text-center p-3 bg-light rounded">
                                 <i class="fas fa-users fa-2x text-info mb-2"></i>
-                                <h4 class="mb-1">{{ platform_activity_stats.user_statistics.active_today }}</h4>
+                                <h4 class="mb-1">{{ platform_activity_stats.active_today }}</h4>
                                 <p class="mb-0">Активных сегодня</p>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="text-center p-3 bg-light rounded">
                                 <i class="fas fa-user-check fa-2x text-success mb-2"></i>
-                                <h4 class="mb-1">{{ platform_activity_stats.user_statistics.total }}</h4>
+                                <h4 class="mb-1">{{ platform_activity_stats.total_users }}</h4>
                                 <p class="mb-0">Всего пользователей</p>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="text-center p-3 bg-light rounded">
                                 <i class="fas fa-user-tag fa-2x text-warning mb-2"></i>
-                                <h4 class="mb-1">{{ platform_activity_stats.user_statistics.active }}</h4>
+                                <h4 class="mb-1">{{ platform_activity_stats.active_today }}</h4>
                                 <p class="mb-0">Активных</p>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="mt-4">
-                        <h6>Последние входы пользователей:</h6>
-                        {% if platform_activity_stats.recent_logins is not empty %}
-                            <div class="table-responsive">
-                                <table class="table table-sm">
-                                    <thead>
-                                        <tr>
-                                            <th>Дата и время</th>
-                                            <th>Пользователь</th>
-                                            <th>Описание</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for login in platform_activity_stats.recent_logins %}
-                                            <tr>
-                                                <td>{{ login.createdAt|date('d.m.Y H:i:s') }}</td>
-                                                <td>{{ login.user.fullName }}</td>
-                                                <td>{{ login.description }}</td>
-                                            </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                        {% else %}
-                            <p class="text-muted mb-0">Нет записей о последних входах</p>
-                        {% endif %}
-                    </div>
                 </div>
             </div>
         </div>

@@ -41,7 +41,7 @@ class NotificationService
         ?Task $task = null
     ): Notification {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('notification_service_create_notification');
+            $this->performanceMonitor->startTiming('notification_service_create_notification');
         }
         try {
             $notification = new Notification();
@@ -62,7 +62,7 @@ class NotificationService
             return $notification;
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('notification_service_create_notification');
+                $this->performanceMonitor->stopTiming('notification_service_create_notification');
             }
         }
     }
@@ -78,7 +78,7 @@ class NotificationService
         ?string $taskTitle = null
     ): Notification {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('notification_service_create_task_notification');
+            $this->performanceMonitor->startTiming('notification_service_create_task_notification');
         }
         try {
             // For now, we'll create a basic notification
@@ -86,7 +86,7 @@ class NotificationService
             return $this->createNotification($user, htmlspecialchars($title, ENT_QUOTES, 'UTF-8'), htmlspecialchars($message, ENT_QUOTES, 'UTF-8'), null);
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('notification_service_create_task_notification');
+                $this->performanceMonitor->stopTiming('notification_service_create_task_notification');
             }
         }
     }
@@ -97,7 +97,7 @@ class NotificationService
     public function getUnreadNotifications(User $user): array
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('notification_service_get_unread_notifications');
+            $this->performanceMonitor->startTiming('notification_service_get_unread_notifications');
         }
         try {
             return $this->notificationRepository->findBy([
@@ -106,7 +106,7 @@ class NotificationService
             ], ['createdAt' => 'DESC']);
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('notification_service_get_unread_notifications');
+                $this->performanceMonitor->stopTiming('notification_service_get_unread_notifications');
             }
         }
     }
@@ -117,14 +117,14 @@ class NotificationService
     public function markAsRead(Notification $notification): void
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('notification_service_mark_as_read');
+            $this->performanceMonitor->startTiming('notification_service_mark_as_read');
         }
         try {
             $notification->setIsRead(true);
             $this->entityManager->flush();
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('notification_service_mark_as_read');
+                $this->performanceMonitor->stopTiming('notification_service_mark_as_read');
             }
         }
     }
@@ -135,7 +135,7 @@ class NotificationService
     public function markAllAsRead(User $user): int
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('notification_service_mark_all_as_read');
+            $this->performanceMonitor->startTiming('notification_service_mark_all_as_read');
         }
         try {
             $unreadNotifications = $this->getUnreadNotifications($user);
@@ -149,7 +149,7 @@ class NotificationService
             return $count;
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('notification_service_mark_all_as_read');
+                $this->performanceMonitor->stopTiming('notification_service_mark_all_as_read');
             }
         }
     }
@@ -161,7 +161,7 @@ class NotificationService
     public function createNotificationStream(User $user): StreamedResponse
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('notification_service_create_notification_stream');
+            $this->performanceMonitor->startTiming('notification_service_create_notification_stream');
         }
         try {
             $response = new StreamedResponse(function () use ($user) {
@@ -250,7 +250,7 @@ class NotificationService
             return $response;
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('notification_service_create_notification_stream');
+                $this->performanceMonitor->stopTiming('notification_service_create_notification_stream');
             }
         }
     }
@@ -261,7 +261,7 @@ class NotificationService
     private function getNewNotifications(User $user, \DateTime $since): array
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('notification_service_get_new_notifications');
+            $this->performanceMonitor->startTiming('notification_service_get_new_notifications');
         }
         try {
             $sinceImmutable = \DateTimeImmutable::createFromMutable($since);
@@ -281,7 +281,7 @@ class NotificationService
                 ->getArrayResult(); // Use array result to reduce object instantiation overhead
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('notification_service_get_new_notifications');
+                $this->performanceMonitor->stopTiming('notification_service_get_new_notifications');
             }
         }
     }
@@ -296,7 +296,7 @@ class NotificationService
         string $taskTitle
     ): void {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('notification_service_send_task_assignment_notification');
+            $this->performanceMonitor->startTiming('notification_service_send_task_assignment_notification');
         }
         try {
             $title = 'Новая задача назначена';
@@ -309,7 +309,7 @@ class NotificationService
             $this->createTaskNotification($assignedUser, $title, $message, $taskId, $taskTitle);
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('notification_service_send_task_assignment_notification');
+                $this->performanceMonitor->stopTiming('notification_service_send_task_assignment_notification');
             }
         }
     }
@@ -324,7 +324,7 @@ class NotificationService
         string $taskTitle
     ): void {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('notification_service_send_task_completion_notification');
+            $this->performanceMonitor->startTiming('notification_service_send_task_completion_notification');
         }
         try {
             if ($taskCreator->getId() !== $completer->getId()) {
@@ -339,7 +339,7 @@ class NotificationService
             }
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('notification_service_send_task_completion_notification');
+                $this->performanceMonitor->stopTiming('notification_service_send_task_completion_notification');
             }
         }
     }
@@ -354,7 +354,7 @@ class NotificationService
         \DateTime $deadline
     ): void {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('notification_service_send_deadline_reminder');
+            $this->performanceMonitor->startTiming('notification_service_send_deadline_reminder');
         }
         try {
             $title = 'Напоминание о сроке';
@@ -367,7 +367,7 @@ class NotificationService
             $this->createTaskNotification($user, $title, $message, $taskId, $taskTitle);
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('notification_service_send_deadline_reminder');
+                $this->performanceMonitor->stopTiming('notification_service_send_deadline_reminder');
             }
         }
     }
@@ -381,7 +381,7 @@ class NotificationService
         ?string $type = 'info'
     ): void {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('notification_service_send_system_notification');
+            $this->performanceMonitor->startTiming('notification_service_send_system_notification');
         }
         try {
             // This would typically send to all active users
@@ -389,7 +389,7 @@ class NotificationService
             $this->logger->info("System notification: {$title} - {$message}");
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('notification_service_send_system_notification');
+                $this->performanceMonitor->stopTiming('notification_service_send_system_notification');
             }
         }
     }
@@ -400,7 +400,7 @@ class NotificationService
     public function getNotificationStats(User $user): array
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('notification_service_get_notification_stats');
+            $this->performanceMonitor->startTiming('notification_service_get_notification_stats');
         }
         try {
             $total = $this->notificationRepository->count(['user' => $user]);
@@ -421,7 +421,7 @@ class NotificationService
             ];
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('notification_service_get_notification_stats');
+                $this->performanceMonitor->stopTiming('notification_service_get_notification_stats');
             }
         }
     }
@@ -432,7 +432,7 @@ class NotificationService
     public function cleanupOldNotifications(): int
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('notification_service_cleanup_old_notifications');
+            $this->performanceMonitor->startTiming('notification_service_cleanup_old_notifications');
         }
         try {
             $cutoffDate = \DateTimeImmutable::createFromMutable(new \DateTime('-30 days'));
@@ -456,7 +456,7 @@ class NotificationService
             return $count;
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('notification_service_cleanup_old_notifications');
+                $this->performanceMonitor->stopTiming('notification_service_cleanup_old_notifications');
             }
         }
     }

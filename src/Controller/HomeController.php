@@ -6,7 +6,7 @@ use App\Service\LoggingService;
 use App\Service\PerformanceMonitorService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class HomeController extends AbstractController
@@ -18,7 +18,7 @@ class HomeController extends AbstractController
         ?LoggingService $loggingService = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('home_controller_index');
+            $performanceMonitor->startTiming('home_controller_index');
         }
         
         // Log home page access
@@ -36,7 +36,7 @@ class HomeController extends AbstractController
                 return $this->redirectToRoute('app_dashboard');
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('home_controller_index');
+                    $performanceMonitor->stopTiming('home_controller_index');
                 }
             }
         }
@@ -50,7 +50,7 @@ class HomeController extends AbstractController
             return $this->redirectToRoute('app_login');
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('home_controller_index');
+                $performanceMonitor->stopTiming('home_controller_index');
             }
         }
     }

@@ -31,7 +31,7 @@ class TaskController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('task_controller_index');
+            $performanceMonitor->startTiming('task_controller_index');
         }
         
         $user = $this->getUser();
@@ -178,7 +178,7 @@ class TaskController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('task_controller_index');
+                $performanceMonitor->stopTiming('task_controller_index');
             }
         }
     }
@@ -192,7 +192,7 @@ class TaskController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('task_controller_new');
+            $performanceMonitor->startTiming('task_controller_new');
         }
         
         $task = new Task();
@@ -228,7 +228,7 @@ class TaskController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('task_controller_new');
+                $performanceMonitor->stopTiming('task_controller_new');
             }
         }
     }
@@ -237,7 +237,7 @@ class TaskController extends AbstractController
     public function show(int $id, TaskRepository $taskRepository, TaskCategoryRepository $categoryRepository, ?PerformanceMonitorService $performanceMonitor = null): Response
     {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('task_controller_show');
+            $performanceMonitor->startTiming('task_controller_show');
         }
         
         $task = $taskRepository->findTaskWithRelations($id);
@@ -257,7 +257,7 @@ class TaskController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('task_controller_show');
+                $performanceMonitor->stopTiming('task_controller_show');
             }
         }
     }
@@ -272,7 +272,7 @@ class TaskController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('task_controller_edit');
+            $performanceMonitor->startTiming('task_controller_edit');
         }
         
         $this->denyAccessUnlessGranted('TASK_EDIT', $task);
@@ -325,7 +325,7 @@ class TaskController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('task_controller_edit');
+                $performanceMonitor->stopTiming('task_controller_edit');
             }
         }
     }
@@ -333,7 +333,7 @@ class TaskController extends AbstractController
     #[Route('/{id}/clone', name: 'app_task_clone', methods: ['POST'])]
     public function cloneTask(Task $task, EntityManagerInterface $entityManager, NotificationService $notificationService, ?PerformanceMonitorService $performanceMonitor = null): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('task_controller_clone');
+            $performanceMonitor->startTiming('task_controller_clone');
         }
         
         $this->denyAccessUnlessGranted('TASK_VIEW', $task);
@@ -364,7 +364,7 @@ class TaskController extends AbstractController
             return $this->redirectToRoute('app_task_show', ['id' => $clonedTask->getId()]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('task_controller_clone');
+                $performanceMonitor->stopTiming('task_controller_clone');
             }
         }
     }
@@ -373,7 +373,7 @@ class TaskController extends AbstractController
     public function apiCategories(TaskCategoryRepository $categoryRepository, ?PerformanceMonitorService $performanceMonitor = null): Response
     {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('task_controller_api_categories');
+            $performanceMonitor->startTiming('task_controller_api_categories');
         }
         $user = $this->getUser();
         $categories = $categoryRepository->findByUser($user);
@@ -390,7 +390,7 @@ class TaskController extends AbstractController
             return $this->json($data);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('task_controller_api_categories');
+                $performanceMonitor->stopTiming('task_controller_api_categories');
             }
         }
     }
@@ -399,7 +399,7 @@ class TaskController extends AbstractController
     public function apiTags(TagRepository $tagRepository, ?PerformanceMonitorService $performanceMonitor = null): Response
     {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('task_controller_api_tags');
+            $performanceMonitor->startTiming('task_controller_api_tags');
         }
         $user = $this->getUser();
         $tags = $tagRepository->findByUser($user);
@@ -416,7 +416,7 @@ class TaskController extends AbstractController
             return $this->json($data);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('task_controller_api_tags');
+                $performanceMonitor->stopTiming('task_controller_api_tags');
             }
         }
     }
@@ -425,7 +425,7 @@ class TaskController extends AbstractController
     public function apiUsers(UserRepository $userRepository, ?PerformanceMonitorService $performanceMonitor = null): Response
     {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('task_controller_api_users');
+            $performanceMonitor->startTiming('task_controller_api_users');
         }
         $user = $this->getUser();
         // Get all users except the current user (for assignment purposes)
@@ -446,7 +446,7 @@ class TaskController extends AbstractController
             return $this->json($data);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('task_controller_api_users');
+                $performanceMonitor->stopTiming('task_controller_api_users');
             }
         }
     }
@@ -455,7 +455,7 @@ class TaskController extends AbstractController
     public function delete(Request $request, Task $task, EntityManagerInterface $entityManager, ?PerformanceMonitorService $performanceMonitor = null): Response
     {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('task_controller_delete');
+            $performanceMonitor->startTiming('task_controller_delete');
         }
         $this->denyAccessUnlessGranted('TASK_DELETE', $task);
         
@@ -470,7 +470,7 @@ class TaskController extends AbstractController
             return $this->redirectToRoute('app_task_index', [], Response::HTTP_SEE_OTHER);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('task_controller_delete');
+                $performanceMonitor->stopTiming('task_controller_delete');
             }
         }
     }
@@ -484,7 +484,7 @@ class TaskController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('task_controller_search');
+            $performanceMonitor->startTiming('task_controller_search');
         }
         $user = $this->getUser();
         
@@ -649,7 +649,7 @@ class TaskController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('task_controller_search');
+                $performanceMonitor->stopTiming('task_controller_search');
             }
         }
     }
@@ -832,7 +832,7 @@ class TaskController extends AbstractController
     public function quickCreate(Request $request, EntityManagerInterface $entityManager, ?PerformanceMonitorService $performanceMonitor = null, ?SanitizationService $sanitizationService = null): Response
     {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('task_controller_quick_create');
+            $performanceMonitor->startTiming('task_controller_quick_create');
         }
         $data = json_decode($request->getContent(), true);
         
@@ -922,7 +922,7 @@ class TaskController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('task_controller_quick_create');
+                $performanceMonitor->stopTiming('task_controller_quick_create');
             }
         }
     }
@@ -935,7 +935,7 @@ class TaskController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('task_controller_recurrence');
+            $performanceMonitor->startTiming('task_controller_recurrence');
         }
         $this->denyAccessUnlessGranted('TASK_EDIT', $task);
         
@@ -969,7 +969,7 @@ class TaskController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('task_controller_recurrence');
+                $performanceMonitor->stopTiming('task_controller_recurrence');
             }
         }
     }
@@ -983,7 +983,7 @@ class TaskController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('task_controller_bulk_action');
+            $performanceMonitor->startTiming('task_controller_bulk_action');
         }
         $action = $request->request->get('action');
         $taskIds = $request->request->get('task_ids', []);
@@ -1054,7 +1054,7 @@ class TaskController extends AbstractController
             return $this->redirectToRoute('app_task_index');
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('task_controller_bulk_action');
+                $performanceMonitor->stopTiming('task_controller_bulk_action');
             }
         }
     }
@@ -1077,7 +1077,7 @@ class TaskController extends AbstractController
     public function getStats(TaskRepository $taskRepository, ?PerformanceMonitorService $performanceMonitor = null): Response
     {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('task_controller_api_stats');
+            $performanceMonitor->startTiming('task_controller_api_stats');
         }
         $user = $this->getUser();
         
@@ -1088,7 +1088,7 @@ class TaskController extends AbstractController
             return $this->json($stats);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('task_controller_api_stats');
+                $performanceMonitor->stopTiming('task_controller_api_stats');
             }
         }
     }
@@ -1100,7 +1100,7 @@ class TaskController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('task_controller_api_insights');
+            $performanceMonitor->startTiming('task_controller_api_insights');
         }
         
         $user = $this->getUser();
@@ -1112,7 +1112,7 @@ class TaskController extends AbstractController
             return $this->json($insights);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('task_controller_api_insights');
+                $performanceMonitor->stopTiming('task_controller_api_insights');
             }
         }
     }

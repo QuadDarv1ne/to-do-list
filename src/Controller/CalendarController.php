@@ -22,7 +22,7 @@ class CalendarController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('calendar_controller_index');
+            $performanceMonitor->startTiming('calendar_controller_index');
         }
         
         $user = $this->getUser();
@@ -34,7 +34,7 @@ class CalendarController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('calendar_controller_index');
+                $performanceMonitor->stopTiming('calendar_controller_index');
             }
         }
     }
@@ -47,7 +47,7 @@ class CalendarController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): JsonResponse {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('calendar_controller_get_events');
+            $performanceMonitor->startTiming('calendar_controller_get_events');
         }
         
         $user = $this->getUser();
@@ -137,7 +137,7 @@ class CalendarController extends AbstractController
             return $this->json($events);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('calendar_controller_get_events');
+                $performanceMonitor->stopTiming('calendar_controller_get_events');
             }
         }
     }

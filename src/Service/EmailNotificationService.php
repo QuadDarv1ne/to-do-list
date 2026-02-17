@@ -23,7 +23,7 @@ class EmailNotificationService
     public function sendTaskNotification(TaskNotification $notification): void
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('email_notification_service_send_task_notification');
+            $this->performanceMonitor->startTiming('email_notification_service_send_task_notification');
         }
         try {
             $recipient = $notification->getRecipient();
@@ -41,7 +41,7 @@ class EmailNotificationService
             $notification->setIsSent(true);
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('email_notification_service_send_task_notification');
+                $this->performanceMonitor->stopTiming('email_notification_service_send_task_notification');
             }
         }
     }
@@ -49,7 +49,7 @@ class EmailNotificationService
     private function renderTemplate(TaskNotification $notification): string
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('email_notification_service_render_template');
+            $this->performanceMonitor->startTiming('email_notification_service_render_template');
         }
         try {
             $task = $notification->getTask();
@@ -64,7 +64,7 @@ class EmailNotificationService
             ]);
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('email_notification_service_render_template');
+                $this->performanceMonitor->stopTiming('email_notification_service_render_template');
             }
         }
     }
@@ -72,7 +72,7 @@ class EmailNotificationService
     public function sendTaskAssignmentNotification(User $assignee, User $assigner, $task): void
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('email_notification_service_send_task_assignment_notification');
+            $this->performanceMonitor->startTiming('email_notification_service_send_task_assignment_notification');
         }
         try {
             $notification = new TaskNotification();
@@ -86,7 +86,7 @@ class EmailNotificationService
             $this->sendTaskNotification($notification);
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('email_notification_service_send_task_assignment_notification');
+                $this->performanceMonitor->stopTiming('email_notification_service_send_task_assignment_notification');
             }
         }
     }
@@ -94,7 +94,7 @@ class EmailNotificationService
     public function sendTaskUpdateNotification(User $recipient, User $updater, $task, string $changes): void
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('email_notification_service_send_task_update_notification');
+            $this->performanceMonitor->startTiming('email_notification_service_send_task_update_notification');
         }
         try {
             $notification = new TaskNotification();
@@ -108,7 +108,7 @@ class EmailNotificationService
             $this->sendTaskNotification($notification);
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('email_notification_service_send_task_update_notification');
+                $this->performanceMonitor->stopTiming('email_notification_service_send_task_update_notification');
             }
         }
     }
@@ -116,7 +116,7 @@ class EmailNotificationService
     public function sendTaskCompletionNotification(User $assigner, User $completer, $task): void
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('email_notification_service_send_task_completion_notification');
+            $this->performanceMonitor->startTiming('email_notification_service_send_task_completion_notification');
         }
         try {
             $notification = new TaskNotification();
@@ -130,7 +130,7 @@ class EmailNotificationService
             $this->sendTaskNotification($notification);
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('email_notification_service_send_task_completion_notification');
+                $this->performanceMonitor->stopTiming('email_notification_service_send_task_completion_notification');
             }
         }
     }

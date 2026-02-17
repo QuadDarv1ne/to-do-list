@@ -26,7 +26,7 @@ class CommentController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('comment_controller_create');
+            $performanceMonitor->startTiming('comment_controller_create');
         }
         
         $task = $entityManager->getRepository(Task::class)->find($taskId);
@@ -38,7 +38,7 @@ class CommentController extends AbstractController
                 return $this->redirectToRoute('app_task_index');
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('comment_controller_create');
+                    $performanceMonitor->stopTiming('comment_controller_create');
                 }
             }
         }
@@ -49,7 +49,7 @@ class CommentController extends AbstractController
                 throw $this->createAccessDeniedException('У вас нет прав для комментирования этой задачи.');
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('comment_controller_create');
+                    $performanceMonitor->stopTiming('comment_controller_create');
                 }
             }
         }
@@ -74,7 +74,7 @@ class CommentController extends AbstractController
                 return $this->redirectToRoute('app_task_show', ['id' => $task->getId()]);
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('comment_controller_create');
+                    $performanceMonitor->stopTiming('comment_controller_create');
                 }
             }
         }
@@ -83,7 +83,7 @@ class CommentController extends AbstractController
             return $this->redirectToRoute('app_task_show', ['id' => $task->getId()]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('comment_controller_create');
+                $performanceMonitor->stopTiming('comment_controller_create');
             }
         }
     }
@@ -96,7 +96,7 @@ class CommentController extends AbstractController
         ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('comment_controller_delete');
+            $performanceMonitor->startTiming('comment_controller_delete');
         }
         
         if (!$comment) {
@@ -106,7 +106,7 @@ class CommentController extends AbstractController
                 return $this->redirectToRoute('app_task_index');
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('comment_controller_delete');
+                    $performanceMonitor->stopTiming('comment_controller_delete');
                 }
             }
         }
@@ -117,7 +117,7 @@ class CommentController extends AbstractController
                 throw $this->createAccessDeniedException('У вас нет прав для удаления этого комментария.');
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('comment_controller_delete');
+                    $performanceMonitor->stopTiming('comment_controller_delete');
                 }
             }
         }
@@ -135,7 +135,7 @@ class CommentController extends AbstractController
             return $this->redirectToRoute('app_task_show', ['id' => $taskId]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('comment_controller_delete');
+                $performanceMonitor->stopTiming('comment_controller_delete');
             }
         }
     }

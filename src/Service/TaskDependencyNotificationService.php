@@ -38,7 +38,7 @@ class TaskDependencyNotificationService
         string $message
     ): TaskNotification {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('task_dependency_notification_service_create_dependency_notification');
+            $this->performanceMonitor->startTiming('task_dependency_notification_service_create_dependency_notification');
         }
         try {
             $notification = new TaskNotification();
@@ -58,7 +58,7 @@ class TaskDependencyNotificationService
             return $notification;
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('task_dependency_notification_service_create_dependency_notification');
+                $this->performanceMonitor->stopTiming('task_dependency_notification_service_create_dependency_notification');
             }
         }
     }
@@ -69,7 +69,7 @@ class TaskDependencyNotificationService
     public function sendDependencyCreatedNotification(TaskDependency $dependency): void
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('task_dependency_notification_service_send_dependency_created_notification');
+            $this->performanceMonitor->startTiming('task_dependency_notification_service_send_dependency_created_notification');
         }
         try {
             $dependentTask = $dependency->getDependentTask();
@@ -96,7 +96,7 @@ class TaskDependencyNotificationService
             }
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('task_dependency_notification_service_send_dependency_created_notification');
+                $this->performanceMonitor->stopTiming('task_dependency_notification_service_send_dependency_created_notification');
             }
         }
     }
@@ -107,7 +107,7 @@ class TaskDependencyNotificationService
     public function sendDependencyRemovedNotification(TaskDependency $dependency): void
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('task_dependency_notification_service_send_dependency_removed_notification');
+            $this->performanceMonitor->startTiming('task_dependency_notification_service_send_dependency_removed_notification');
         }
         try {
             $dependentTask = $dependency->getDependentTask();
@@ -134,7 +134,7 @@ class TaskDependencyNotificationService
             }
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('task_dependency_notification_service_send_dependency_removed_notification');
+                $this->performanceMonitor->stopTiming('task_dependency_notification_service_send_dependency_removed_notification');
             }
         }
     }
@@ -145,7 +145,7 @@ class TaskDependencyNotificationService
     public function sendDependencySatisfiedNotification(TaskDependency $dependency): void
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('task_dependency_notification_service_send_dependency_satisfied_notification');
+            $this->performanceMonitor->startTiming('task_dependency_notification_service_send_dependency_satisfied_notification');
         }
         try {
             $dependentTask = $dependency->getDependentTask();
@@ -172,7 +172,7 @@ class TaskDependencyNotificationService
             }
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('task_dependency_notification_service_send_dependency_satisfied_notification');
+                $this->performanceMonitor->stopTiming('task_dependency_notification_service_send_dependency_satisfied_notification');
             }
         }
     }
@@ -183,7 +183,7 @@ class TaskDependencyNotificationService
     public function sendTaskBlockedNotification(Task $task): void
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('task_dependency_notification_service_send_task_blocked_notification');
+            $this->performanceMonitor->startTiming('task_dependency_notification_service_send_task_blocked_notification');
         }
         try {
             $assignedUser = $task->getAssignedUser();
@@ -223,7 +223,7 @@ class TaskDependencyNotificationService
             );
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('task_dependency_notification_service_send_task_blocked_notification');
+                $this->performanceMonitor->stopTiming('task_dependency_notification_service_send_task_blocked_notification');
             }
         }
     }
@@ -234,7 +234,7 @@ class TaskDependencyNotificationService
     public function sendTaskUnblockedNotification(Task $task): void
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('task_dependency_notification_service_send_task_unblocked_notification');
+            $this->performanceMonitor->startTiming('task_dependency_notification_service_send_task_unblocked_notification');
         }
         try {
             $assignedUser = $task->getAssignedUser();
@@ -258,7 +258,7 @@ class TaskDependencyNotificationService
             );
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('task_dependency_notification_service_send_task_unblocked_notification');
+                $this->performanceMonitor->stopTiming('task_dependency_notification_service_send_task_unblocked_notification');
             }
         }
     }

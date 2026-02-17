@@ -38,7 +38,7 @@ class RateLimitingService
         int $window = null
     ): bool {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('rate_limiting_service_is_rate_limited');
+            $this->performanceMonitor->startTiming('rate_limiting_service_is_rate_limited');
         }
         try {
             $limit = $limit ?? $this->defaultLimit;
@@ -69,7 +69,7 @@ class RateLimitingService
             return false;
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('rate_limiting_service_is_rate_limited');
+                $this->performanceMonitor->stopTiming('rate_limiting_service_is_rate_limited');
             }
         }
     }
@@ -83,7 +83,7 @@ class RateLimitingService
         int $window = null
     ): array {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('rate_limiting_service_get_rate_limit_info');
+            $this->performanceMonitor->startTiming('rate_limiting_service_get_rate_limit_info');
         }
         try {
             $limit = $limit ?? $this->defaultLimit;
@@ -116,7 +116,7 @@ class RateLimitingService
             ];
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('rate_limiting_service_get_rate_limit_info');
+                $this->performanceMonitor->stopTiming('rate_limiting_service_get_rate_limit_info');
             }
         }
     }
@@ -127,7 +127,7 @@ class RateLimitingService
     public function getClientIp(): string
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('rate_limiting_service_get_client_ip');
+            $this->performanceMonitor->startTiming('rate_limiting_service_get_client_ip');
         }
         try {
             $request = $this->requestStack->getCurrentRequest();
@@ -156,7 +156,7 @@ class RateLimitingService
             return $request->getClientIp() ?? 'unknown';
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('rate_limiting_service_get_client_ip');
+                $this->performanceMonitor->stopTiming('rate_limiting_service_get_client_ip');
             }
         }
     }
@@ -167,13 +167,13 @@ class RateLimitingService
     private function getCacheKey(string $identifier): string
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('rate_limiting_service_get_cache_key');
+            $this->performanceMonitor->startTiming('rate_limiting_service_get_cache_key');
         }
         try {
             return 'rate_limit_' . md5($identifier);
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('rate_limiting_service_get_cache_key');
+                $this->performanceMonitor->stopTiming('rate_limiting_service_get_cache_key');
             }
         }
     }
@@ -184,14 +184,14 @@ class RateLimitingService
     public function isLoginRateLimited(string $username): bool
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('rate_limiting_service_is_login_rate_limited');
+            $this->performanceMonitor->startTiming('rate_limiting_service_is_login_rate_limited');
         }
         try {
             $identifier = 'login_' . strtolower($username);
             return $this->isRateLimited($identifier, 5, 900); // 5 attempts per 15 minutes
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('rate_limiting_service_is_login_rate_limited');
+                $this->performanceMonitor->stopTiming('rate_limiting_service_is_login_rate_limited');
             }
         }
     }
@@ -202,7 +202,7 @@ class RateLimitingService
     public function isApiRateLimited(Request $request): bool
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('rate_limiting_service_is_api_rate_limited');
+            $this->performanceMonitor->startTiming('rate_limiting_service_is_api_rate_limited');
         }
         try {
             $ip = $this->getClientIp();
@@ -217,7 +217,7 @@ class RateLimitingService
             return $this->isRateLimited('api_ip_' . $ip, 100, 3600); // 100 requests per hour
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('rate_limiting_service_is_api_rate_limited');
+                $this->performanceMonitor->stopTiming('rate_limiting_service_is_api_rate_limited');
             }
         }
     }
@@ -228,7 +228,7 @@ class RateLimitingService
     public function isRequestRateLimited(Request $request): bool
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('rate_limiting_service_is_request_rate_limited');
+            $this->performanceMonitor->startTiming('rate_limiting_service_is_request_rate_limited');
         }
         try {
             $ip = $this->getClientIp();
@@ -240,7 +240,7 @@ class RateLimitingService
             return $this->isRateLimited($identifier, 200, 3600); // 200 requests per hour
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('rate_limiting_service_is_request_rate_limited');
+                $this->performanceMonitor->stopTiming('rate_limiting_service_is_request_rate_limited');
             }
         }
     }
@@ -251,14 +251,14 @@ class RateLimitingService
     public function resetRateLimit(string $identifier): void
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('rate_limiting_service_reset_rate_limit');
+            $this->performanceMonitor->startTiming('rate_limiting_service_reset_rate_limit');
         }
         try {
             $key = $this->getCacheKey($identifier);
             $this->cache->deleteItem($key);
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('rate_limiting_service_reset_rate_limit');
+                $this->performanceMonitor->stopTiming('rate_limiting_service_reset_rate_limit');
             }
         }
     }
@@ -269,14 +269,14 @@ class RateLimitingService
     public function resetLoginAttempts(string $username): void
     {
         if ($this->performanceMonitor) {
-            $this->performanceMonitor->startTimer('rate_limiting_service_reset_login_attempts');
+            $this->performanceMonitor->startTiming('rate_limiting_service_reset_login_attempts');
         }
         try {
             $identifier = 'login_' . strtolower($username);
             $this->resetRateLimit($identifier);
         } finally {
             if ($this->performanceMonitor) {
-                $this->performanceMonitor->stopTimer('rate_limiting_service_reset_login_attempts');
+                $this->performanceMonitor->stopTiming('rate_limiting_service_reset_login_attempts');
             }
         }
     }
