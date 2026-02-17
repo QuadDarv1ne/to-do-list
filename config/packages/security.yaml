@@ -27,13 +27,38 @@ security:
             # https://symfony.com/doc/current/security.html#the-firewall
 
             # https://symfony.com/doc/current/security/impersonating_user.html
-            # switch_user: true
+            switch_user: true
+
+    # Role hierarchy - higher roles inherit lower roles
+    role_hierarchy:
+        ROLE_ANALYST: ROLE_USER
+        ROLE_MANAGER: [ROLE_USER, ROLE_ANALYST]
+        ROLE_ADMIN: [ROLE_USER, ROLE_ANALYST, ROLE_MANAGER]
+        ROLE_SUPER_ADMIN: [ROLE_ADMIN, ROLE_ALLOWED_TO_SWITCH]
 
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
+        # Public routes
+        - { path: ^/login, roles: PUBLIC_ACCESS }
+        - { path: ^/register, roles: PUBLIC_ACCESS }
+        - { path: ^/reset-password, roles: PUBLIC_ACCESS }
+        
+        # Admin routes - only for admins
         - { path: ^/admin, roles: ROLE_ADMIN }
-        - { path: ^/profile, roles: ROLE_USER }
+        - { path: ^/users, roles: ROLE_ADMIN }
+        
+        # Manager routes
+        - { path: ^/reports, roles: ROLE_MANAGER }
+        - { path: ^/analytics, roles: ROLE_ANALYST }
+        - { path: ^/budget, roles: ROLE_MANAGER }
+        - { path: ^/resources, roles: ROLE_MANAGER }
+        
+        # API routes
+        - { path: ^/api, roles: ROLE_USER }
+        
+        # All other routes require authentication
+        - { path: ^/, roles: ROLE_USER }
 
 # Content Security Policy is configured in framework.yaml
 # See config/packages/framework.yaml for CSP configuration
