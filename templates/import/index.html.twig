@@ -1,0 +1,176 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Импорт задач{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="text-center mb-5">
+                <h1 class="display-5 mb-3">
+                    <i class="fas fa-file-import me-3"></i>
+                    Импорт задач
+                </h1>
+                <p class="lead text-muted">
+                    Загрузите CSV файл для массового импорта задач
+                </p>
+            </div>
+
+            <!-- Upload Form -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-5">
+                    <form action="{{ path('app_import_upload') }}" method="post" enctype="multipart/form-data">
+                        <div class="mb-4">
+                            <label for="import_file" class="form-label h5">
+                                <i class="fas fa-file-csv me-2"></i>
+                                Выберите CSV файл
+                            </label>
+                            <input type="file" 
+                                   class="form-control form-control-lg" 
+                                   id="import_file" 
+                                   name="import_file" 
+                                   accept=".csv,.txt"
+                                   required>
+                            <div class="form-text">
+                                Максимальный размер файла: 5MB. Формат: CSV (разделитель: точка с запятой или запятая)
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-upload me-2"></i>
+                                Загрузить и импортировать
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-download fa-3x text-primary mb-3"></i>
+                            <h5 class="card-title">Скачать шаблон</h5>
+                            <p class="card-text text-muted">
+                                Скачайте готовый шаблон CSV с примерами
+                            </p>
+                            <a href="{{ path('app_import_template') }}" class="btn btn-outline-primary">
+                                <i class="fas fa-file-download me-2"></i>
+                                Скачать шаблон
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-book fa-3x text-info mb-3"></i>
+                            <h5 class="card-title">Инструкция</h5>
+                            <p class="card-text text-muted">
+                                Подробная инструкция по импорту задач
+                            </p>
+                            <a href="{{ path('app_import_instructions') }}" class="btn btn-outline-info">
+                                <i class="fas fa-question-circle me-2"></i>
+                                Читать инструкцию
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Format Info -->
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Формат CSV файла
+                    </h5>
+                    <p class="mb-3">Файл должен содержать следующие колонки (в указанном порядке):</p>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th>№</th>
+                                    <th>Колонка</th>
+                                    <th>Обязательно</th>
+                                    <th>Формат</th>
+                                    <th>Пример</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td>Название</td>
+                                    <td><span class="badge bg-danger">Да</span></td>
+                                    <td>Текст</td>
+                                    <td>Подготовить отчет</td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td>Описание</td>
+                                    <td><span class="badge bg-secondary">Нет</span></td>
+                                    <td>Текст</td>
+                                    <td>Квартальный отчет по продажам</td>
+                                </tr>
+                                <tr>
+                                    <td>3</td>
+                                    <td>Статус</td>
+                                    <td><span class="badge bg-secondary">Нет</span></td>
+                                    <td>pending, in_progress, completed, cancelled</td>
+                                    <td>pending</td>
+                                </tr>
+                                <tr>
+                                    <td>4</td>
+                                    <td>Приоритет</td>
+                                    <td><span class="badge bg-secondary">Нет</span></td>
+                                    <td>low, medium, high, urgent</td>
+                                    <td>high</td>
+                                </tr>
+                                <tr>
+                                    <td>5</td>
+                                    <td>Категория</td>
+                                    <td><span class="badge bg-secondary">Нет</span></td>
+                                    <td>Название существующей категории</td>
+                                    <td>Продажи</td>
+                                </tr>
+                                <tr>
+                                    <td>6</td>
+                                    <td>Назначено</td>
+                                    <td><span class="badge bg-secondary">Нет</span></td>
+                                    <td>Email пользователя</td>
+                                    <td>user@example.com</td>
+                                </tr>
+                                <tr>
+                                    <td>7</td>
+                                    <td>Дедлайн</td>
+                                    <td><span class="badge bg-secondary">Нет</span></td>
+                                    <td>YYYY-MM-DD или DD.MM.YYYY</td>
+                                    <td>2024-12-31</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="alert alert-warning mt-3 mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Важно:</strong> Первая строка файла должна содержать заголовки колонок и будет пропущена при импорте.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Back Button -->
+            <div class="text-center mt-4">
+                <a href="{{ path('app_task_index') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Вернуться к задачам
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
