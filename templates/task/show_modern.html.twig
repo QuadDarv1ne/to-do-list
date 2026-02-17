@@ -139,14 +139,14 @@
                     {% endif %}
                     
                     <!-- Assigned To -->
-                    {% if task.assignedTo %}
+                    {% if task.assignedUser %}
                     <div>
                         <div style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; margin-bottom: 4px;">Назначено</div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 600;">
-                                {{ task.assignedTo.firstName|first }}
+                                {{ task.assignedUser.firstName|first }}
                             </div>
-                            <div style="color: var(--text-primary); font-weight: 500;">{{ task.assignedTo.fullName }}</div>
+                            <div style="color: var(--text-primary); font-weight: 500;">{{ task.assignedUser.fullName }}</div>
                         </div>
                     </div>
                     {% endif %}

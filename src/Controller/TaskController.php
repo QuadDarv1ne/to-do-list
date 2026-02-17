@@ -487,6 +487,25 @@ class TaskController extends AbstractController
         }
     }
     
+    #[Route('/{id}/complete', name: 'app_task_complete', methods: ['POST'])]
+    public function complete(
+        Request $request,
+        Task $task,
+        EntityManagerInterface $entityManager
+    ): Response {
+        $this->denyAccessUnlessGranted('TASK_EDIT', $task);
+        
+        if ($this->isCsrfTokenValid('complete'.$task->getId(), $request->request->get('_token'))) {
+            $task->setStatus('completed');
+            $task->setCompletedAt(new \DateTime());
+            $entityManager->flush();
+            
+            $this->addFlash('success', 'Задача успешно завершена');
+        }
+
+        return $this->redirectToRoute('app_task_show', ['id' => $task->getId()], Response::HTTP_SEE_OTHER);
+    }
+    
     #[Route('/search', name: 'app_task_search', methods: ['GET'])]
     public function search(
         Request $request, 

@@ -112,18 +112,18 @@
                 </div>
             </div>
             
-            {% if form.assignedTo is defined %}
+            {% if form.assignedUser is defined %}
             <div style="margin-bottom: 24px;">
                 <label style="display: block; color: var(--text-secondary); font-size: 13px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;">
                     Назначить пользователю
                 </label>
-                {{ form_widget(form.assignedTo, {
+                {{ form_widget(form.assignedUser, {
                     'attr': {
                         'class': 'form-select',
                         'style': 'background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 14px 16px; border-radius: 10px; width: 100%;'
                     }
                 }) }}
-                {{ form_errors(form.assignedTo) }}
+                {{ form_errors(form.assignedUser) }}
             </div>
             {% endif %}
             
