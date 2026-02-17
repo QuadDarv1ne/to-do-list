@@ -23,6 +23,9 @@ class DashboardController extends AbstractController
     ): Response {
         $user = $this->getUser();
         
+        // Check if user prefers modern theme
+        $useModernTheme = $this->getParameter('app.use_modern_theme') ?? false;
+        
         // Get quick stats from repository with caching
         $taskStats = $taskRepository->getQuickStats($user);
         
@@ -62,7 +65,10 @@ class DashboardController extends AbstractController
         // Add additional data for enhanced user experience
         $dashboardData['dashboard_refresh_interval'] = 300000; // 5 minutes in milliseconds
         
-        return $this->render('dashboard/index.html.twig', $dashboardData);
+        // Use modern theme if enabled
+        $template = $useModernTheme ? 'dashboard/index_modern.html.twig' : 'dashboard/index.html.twig';
+        
+        return $this->render($template, $dashboardData);
     }
     
     /**

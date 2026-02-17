@@ -1,0 +1,229 @@
+{% extends 'base_modern.html.twig' %}
+
+{% block title %}Панель управления{% endblock %}
+
+{% block body %}
+<!-- Stats Cards -->
+<div class="stats-grid">
+    <div class="stat-card sales">
+        <div class="stat-header">
+            <div class="stat-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <span>Продажи</span>
+        </div>
+        <div class="stat-value">120.000</div>
+    </div>
+    
+    <div class="stat-card orders">
+        <div class="stat-header">
+            <div class="stat-icon">
+                <i class="fas fa-shopping-bag"></i>
+            </div>
+            <span>Заказы</span>
+        </div>
+        <div class="stat-value">{{ task_stats.total }}</div>
+    </div>
+    
+    <div class="stat-card bonuses">
+        <div class="stat-header">
+            <div class="stat-icon">
+                <i class="fas fa-gift"></i>
+            </div>
+            <span>Бонусы</span>
+        </div>
+        <div class="stat-value">13.200</div>
+    </div>
+    
+    <div class="stat-card clients">
+        <div class="stat-header">
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <span>Клиенты</span>
+        </div>
+        <div class="stat-value">{{ task_stats.completed }}</div>
+    </div>
+</div>
+
+<!-- Dashboard Grid -->
+<div class="dashboard-grid">
+    <!-- Chart Card -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Заказы, шт.</h3>
+            <select class="form-select form-select-sm" style="width: auto; background: var(--bg-secondary); border-color: var(--border-color); color: var(--text-primary);">
+                <option>2025</option>
+                <option>2024</option>
+            </select>
+        </div>
+        <div class="card-body">
+            <canvas id="ordersChart" height="200"></canvas>
+        </div>
+    </div>
+    
+    <!-- Calendar Card -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Календарь</h3>
+            <div>
+                <button class="btn btn-sm" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary);">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span style="margin: 0 10px;">2025</span>
+                <button class="btn btn-sm" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary);">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div style="text-align: center; color: var(--text-secondary); margin-bottom: 15px;">ЯНВАРЬ</div>
+            <table style="width: 100%; text-align: center; font-size: 14px;">
+                <thead>
+                    <tr>
+                        <th style="padding: 8px; color: var(--text-secondary); font-weight: 500;">ПН</th>
+                        <th style="padding: 8px; color: var(--text-secondary); font-weight: 500;">ВТ</th>
+                        <th style="padding: 8px; color: var(--text-secondary); font-weight: 500;">СР</th>
+                        <th style="padding: 8px; color: var(--text-secondary); font-weight: 500;">ЧТ</th>
+                        <th style="padding: 8px; color: var(--text-secondary); font-weight: 500;">ПТ</th>
+                        <th style="padding: 8px; color: var(--text-secondary); font-weight: 500;">СБ</th>
+                        <th style="padding: 8px; color: var(--text-secondary); font-weight: 500;">ВС</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding: 8px; color: var(--text-secondary);">31</td>
+                        <td style="padding: 8px;">01</td>
+                        <td style="padding: 8px;">02</td>
+                        <td style="padding: 8px;">03</td>
+                        <td style="padding: 8px;">04</td>
+                        <td style="padding: 8px;">05</td>
+                        <td style="padding: 8px;">06</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px;">07</td>
+                        <td style="padding: 8px;">08</td>
+                        <td style="padding: 8px;">09</td>
+                        <td style="padding: 8px;">10</td>
+                        <td style="padding: 8px;">11</td>
+                        <td style="padding: 8px;">12</td>
+                        <td style="padding: 8px;">13</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px;">14</td>
+                        <td style="padding: 8px;">15</td>
+                        <td style="padding: 8px; background: var(--color-clients); border-radius: 8px; font-weight: 600;">16</td>
+                        <td style="padding: 8px;">17</td>
+                        <td style="padding: 8px;">18</td>
+                        <td style="padding: 8px;">19</td>
+                        <td style="padding: 8px;">20</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px;">21</td>
+                        <td style="padding: 8px;">22</td>
+                        <td style="padding: 8px;">23</td>
+                        <td style="padding: 8px;">24</td>
+                        <td style="padding: 8px;">25</td>
+                        <td style="padding: 8px;">26</td>
+                        <td style="padding: 8px;">27</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Tasks Table -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Последние задачи</h3>
+        <a href="{{ path('app_task_index') }}" style="color: var(--text-secondary); text-decoration: none; font-size: 14px;">
+            Все задачи <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>№</th>
+                    <th>Название</th>
+                    <th>Категория</th>
+                    <th>Сумма</th>
+                    <th>Статус</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for task in recent_tasks|slice(0, 5) %}
+                <tr>
+                    <td>{{ task.id }}</td>
+                    <td>{{ task.title }}</td>
+                    <td>{{ task.category ? task.category.name : '-' }}</td>
+                    <td>-</td>
+                    <td>
+                        <span class="status-badge {{ task.status == 'completed' ? 'success' : (task.status == 'in_progress' ? 'warning' : 'danger') }}">
+                            {{ task.status|trans }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Orders Chart
+    const ctx = document.getElementById('ordersChart');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'],
+            datasets: [{
+                data: [20, 30, 50, 25, 35, 45, 40],
+                backgroundColor: [
+                    '#ffd93d',
+                    '#4dd4ac',
+                    '#8b7ff4',
+                    '#ffd93d',
+                    '#4dd4ac',
+                    '#8b7ff4',
+                    '#4dd4ac'
+                ],
+                borderRadius: 8,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.05)'
+                    },
+                    ticks: {
+                        color: '#b0b0b0'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: '#b0b0b0'
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

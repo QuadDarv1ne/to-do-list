@@ -166,8 +166,12 @@ class TaskController extends AbstractController
         // Get all tags for filter dropdown
         $tags = $tagRepository->findByUser($user);
         
+        // Check if modern theme is enabled
+        $useModernTheme = $this->getParameter('app.use_modern_theme') ?? false;
+        $template = $useModernTheme ? 'task/index_modern.html.twig' : 'task/index.html.twig';
+        
         try {
-            return $this->render('task/index.html.twig', [
+            return $this->render($template, [
                 'tasks' => $tasks,
                 'categories' => $categories,
                 'tags' => $tags,
@@ -220,8 +224,12 @@ class TaskController extends AbstractController
         // Get user's categories for form
         $categories = $categoryRepository->findByUser($this->getUser());
         
+        // Check if modern theme is enabled
+        $useModernTheme = $this->getParameter('app.use_modern_theme') ?? false;
+        $template = $useModernTheme ? 'task/new_modern.html.twig' : 'task/new.html.twig';
+        
         try {
-            return $this->render('task/new.html.twig', [
+            return $this->render($template, [
                 'task' => $task,
                 'form' => $form,
                 'categories' => $categories,
@@ -250,8 +258,12 @@ class TaskController extends AbstractController
         
         $categories = $categoryRepository->findByUser($this->getUser());
         
+        // Check if modern theme is enabled
+        $useModernTheme = $this->getParameter('app.use_modern_theme') ?? false;
+        $template = $useModernTheme ? 'task/show_modern.html.twig' : 'task/show.html.twig';
+        
         try {
-            return $this->render('task/show.html.twig', [
+            return $this->render($template, [
                 'task' => $task,
                 'categories' => $categories,
             ]);

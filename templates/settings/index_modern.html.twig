@@ -1,0 +1,350 @@
+{% extends 'base_modern.html.twig' %}
+
+{% block title %}Настройки{% endblock %}
+
+{% block body %}
+<!-- Header -->
+<div style="margin-bottom: 30px;">
+    <h2 style="margin: 0 0 10px 0; font-size: 32px; font-weight: 600;">Настройки</h2>
+    <p style="color: var(--text-secondary); margin: 0;">Персонализация и конфигурация системы</p>
+</div>
+
+<!-- Settings Grid -->
+<div style="display: grid; grid-template-columns: 250px 1fr; gap: 20px;">
+    <!-- Sidebar Menu -->
+    <div class="card">
+        <div class="card-body" style="padding: 0;">
+            <nav style="display: flex; flex-direction: column;">
+                <a href="#appearance" class="settings-nav-item active" data-section="appearance">
+                    <i class="fas fa-palette"></i>
+                    <span>Внешний вид</span>
+                </a>
+                <a href="#notifications" class="settings-nav-item" data-section="notifications">
+                    <i class="fas fa-bell"></i>
+                    <span>Уведомления</span>
+                </a>
+                <a href="#security" class="settings-nav-item" data-section="security">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Безопасность</span>
+                </a>
+                <a href="#preferences" class="settings-nav-item" data-section="preferences">
+                    <i class="fas fa-cog"></i>
+                    <span>Предпочтения</span>
+                </a>
+            </nav>
+        </div>
+    </div>
+    
+    <!-- Settings Content -->
+    <div>
+        <!-- Appearance Section -->
+        <div class="settings-section" id="appearance">
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="card-header">
+                    <h3 class="card-title">Тема оформления</h3>
+                </div>
+                <div class="card-body">
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                        <div class="theme-option" data-theme="dark">
+                            <div style="background: #1a1a1a; border: 2px solid var(--border-color); border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.2s;">
+                                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                                    <div style="width: 30px; height: 30px; background: #2a2a2a; border-radius: 6px;"></div>
+                                    <div style="flex: 1; background: #2a2a2a; border-radius: 6px;"></div>
+                                </div>
+                                <div style="background: #2d2d2d; height: 60px; border-radius: 8px;"></div>
+                            </div>
+                            <div style="text-align: center; margin-top: 8px; font-weight: 600;">Темная</div>
+                        </div>
+                        
+                        <div class="theme-option" data-theme="light">
+                            <div style="background: #ffffff; border: 2px solid var(--border-color); border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.2s;">
+                                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                                    <div style="width: 30px; height: 30px; background: #f5f5f5; border-radius: 6px;"></div>
+                                    <div style="flex: 1; background: #f5f5f5; border-radius: 6px;"></div>
+                                </div>
+                                <div style="background: #fafafa; height: 60px; border-radius: 8px;"></div>
+                            </div>
+                            <div style="text-align: center; margin-top: 8px; font-weight: 600;">Светлая</div>
+                        </div>
+                        
+                        <div class="theme-option" data-theme="auto">
+                            <div style="background: linear-gradient(135deg, #1a1a1a 50%, #ffffff 50%); border: 2px solid var(--border-color); border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.2s;">
+                                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                                    <div style="width: 30px; height: 30px; background: rgba(255,255,255,0.2); border-radius: 6px;"></div>
+                                    <div style="flex: 1; background: rgba(255,255,255,0.2); border-radius: 6px;"></div>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.1); height: 60px; border-radius: 8px;"></div>
+                            </div>
+                            <div style="text-align: center; margin-top: 8px; font-weight: 600;">Авто</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Цветовая схема</h3>
+                </div>
+                <div class="card-body">
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+                        <div class="color-option" data-color="default" style="cursor: pointer;">
+                            <div style="height: 60px; border-radius: 10px; background: linear-gradient(135deg, #4dd4ac, #ffd93d, #ff6bcb, #8b7ff4); border: 2px solid var(--border-color);"></div>
+                            <div style="text-align: center; margin-top: 8px; font-size: 13px;">По умолчанию</div>
+                        </div>
+                        <div class="color-option" data-color="blue" style="cursor: pointer;">
+                            <div style="height: 60px; border-radius: 10px; background: linear-gradient(135deg, #3b82f6, #06b6d4); border: 2px solid var(--border-color);"></div>
+                            <div style="text-align: center; margin-top: 8px; font-size: 13px;">Синяя</div>
+                        </div>
+                        <div class="color-option" data-color="green" style="cursor: pointer;">
+                            <div style="height: 60px; border-radius: 10px; background: linear-gradient(135deg, #10b981, #34d399); border: 2px solid var(--border-color);"></div>
+                            <div style="text-align: center; margin-top: 8px; font-size: 13px;">Зеленая</div>
+                        </div>
+                        <div class="color-option" data-color="purple" style="cursor: pointer;">
+                            <div style="height: 60px; border-radius: 10px; background: linear-gradient(135deg, #8b5cf6, #a78bfa); border: 2px solid var(--border-color);"></div>
+                            <div style="text-align: center; margin-top: 8px; font-size: 13px;">Фиолетовая</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Notifications Section -->
+        <div class="settings-section" id="notifications" style="display: none;">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Настройки уведомлений</h3>
+                </div>
+                <div class="card-body">
+                    <div style="display: flex; flex-direction: column; gap: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-secondary); border-radius: 10px;">
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 4px;">Email уведомления</div>
+                                <div style="font-size: 13px; color: var(--text-secondary);">Получать уведомления на email</div>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-secondary); border-radius: 10px;">
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 4px;">Push уведомления</div>
+                                <div style="font-size: 13px; color: var(--text-secondary);">Показывать уведомления в браузере</div>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-secondary); border-radius: 10px;">
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 4px;">Звуковые уведомления</div>
+                                <div style="font-size: 13px; color: var(--text-secondary);">Воспроизводить звук при новых уведомлениях</div>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Security Section -->
+        <div class="settings-section" id="security" style="display: none;">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Безопасность</h3>
+                </div>
+                <div class="card-body">
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        <a href="{{ path('app_profile_change_password') }}" style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-secondary); border-radius: 10px; text-decoration: none; color: var(--text-primary);">
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 4px;">Сменить пароль</div>
+                                <div style="font-size: 13px; color: var(--text-secondary);">Обновите свой пароль</div>
+                            </div>
+                            <i class="fas fa-chevron-right" style="color: var(--text-secondary);"></i>
+                        </a>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-secondary); border-radius: 10px;">
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 4px;">Двухфакторная аутентификация</div>
+                                <div style="font-size: 13px; color: var(--text-secondary);">Дополнительная защита аккаунта</div>
+                            </div>
+                            <button class="btn btn-sm" style="background: var(--color-sales); border: none; color: #000; padding: 8px 16px; border-radius: 8px; font-weight: 600;">
+                                Настроить
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Preferences Section -->
+        <div class="settings-section" id="preferences" style="display: none;">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Предпочтения</h3>
+                </div>
+                <div class="card-body">
+                    <div style="display: flex; flex-direction: column; gap: 20px;">
+                        <div>
+                            <label style="display: block; color: var(--text-secondary); font-size: 13px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;">
+                                Язык интерфейса
+                            </label>
+                            <select class="form-select" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 12px 16px; border-radius: 10px;">
+                                <option value="ru">Русский</option>
+                                <option value="en">English</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label style="display: block; color: var(--text-secondary); font-size: 13px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;">
+                                Часовой пояс
+                            </label>
+                            <select class="form-select" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 12px 16px; border-radius: 10px;">
+                                <option value="Europe/Moscow">Москва (UTC+3)</option>
+                                <option value="Europe/Kiev">Киев (UTC+2)</option>
+                                <option value="Europe/Minsk">Минск (UTC+3)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<style>
+.settings-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+}
+
+.settings-nav-item:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.settings-nav-item.active {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border-left-color: var(--color-sales);
+}
+
+.theme-option:hover > div {
+    transform: scale(1.05);
+    border-color: var(--color-sales) !important;
+}
+
+.color-option:hover > div {
+    transform: scale(1.05);
+    border-color: var(--color-sales) !important;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 28px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    transition: .4s;
+    border-radius: 28px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 3px;
+    background-color: var(--text-secondary);
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: var(--color-sales);
+    border-color: var(--color-sales);
+}
+
+input:checked + .slider:before {
+    transform: translateX(22px);
+    background-color: #000;
+}
+</style>
+
+<script>
+// Settings navigation
+document.querySelectorAll('.settings-nav-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+        e.preventDefault();
+        
+        // Update active state
+        document.querySelectorAll('.settings-nav-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        
+        // Show section
+        const section = item.dataset.section;
+        document.querySelectorAll('.settings-section').forEach(s => s.style.display = 'none');
+        document.getElementById(section).style.display = 'block';
+    });
+});
+
+// Theme selection
+document.querySelectorAll('.theme-option').forEach(option => {
+    option.addEventListener('click', () => {
+        const theme = option.dataset.theme;
+        if (theme === 'auto') {
+            // Detect system preference
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+        } else {
+            document.documentElement.setAttribute('data-theme', theme);
+        }
+        localStorage.setItem('theme', theme);
+        
+        // Update icon
+        const icon = document.querySelector('#themeToggle i');
+        icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+    });
+});
+
+// Color scheme selection
+document.querySelectorAll('.color-option').forEach(option => {
+    option.addEventListener('click', () => {
+        const color = option.dataset.color;
+        localStorage.setItem('colorScheme', color);
+        // Apply color scheme (would need CSS variables update)
+    });
+});
+</script>
+{% endblock %}

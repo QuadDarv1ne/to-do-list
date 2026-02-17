@@ -1,0 +1,201 @@
+{% extends 'base_modern.html.twig' %}
+
+{% block title %}Профиль{% endblock %}
+
+{% block body %}
+<!-- Header -->
+<div style="margin-bottom: 30px;">
+    <h2 style="margin: 0 0 10px 0; font-size: 32px; font-weight: 600;">Мой профиль</h2>
+    <p style="color: var(--text-secondary); margin: 0;">Управление личной информацией и настройками</p>
+</div>
+
+<!-- Profile Grid -->
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
+    <!-- Avatar Card -->
+    <div>
+        <div class="card" style="margin-bottom: 20px;">
+            <div class="card-body" style="text-align: center;">
+                <div style="width: 120px; height: 120px; margin: 0 auto 20px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; font-size: 48px; color: #fff; font-weight: 700;">
+                    {{ app.user.firstName|first }}{{ app.user.lastName|first }}
+                </div>
+                <h3 style="margin: 0 0 5px 0; font-size: 24px; font-weight: 600;">{{ app.user.fullName }}</h3>
+                <p style="color: var(--text-secondary); margin: 0 0 20px 0;">{{ app.user.email }}</p>
+                
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <a href="{{ path('app_profile_edit') }}" class="btn w-100" style="background: var(--color-sales); border: none; color: #000; padding: 12px; border-radius: 10px; font-weight: 600; text-decoration: none; text-align: center;">
+                        <i class="fas fa-edit me-2"></i>Редактировать
+                    </a>
+                    <a href="{{ path('app_profile_change_password') }}" class="btn w-100" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 12px; border-radius: 10px; font-weight: 600; text-decoration: none; text-align: center;">
+                        <i class="fas fa-key me-2"></i>Сменить пароль
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Stats Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Статистика</h3>
+            </div>
+            <div class="card-body">
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: var(--text-secondary);">Создано задач</span>
+                        <span style="font-size: 20px; font-weight: 600; color: var(--color-sales);">
+                            {{ app.user.createdTasks|length }}
+                        </span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: var(--text-secondary);">Назначено задач</span>
+                        <span style="font-size: 20px; font-weight: 600; color: var(--color-orders);">
+                            {{ app.user.assignedTasks|length }}
+                        </span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: var(--text-secondary);">Завершено</span>
+                        <span style="font-size: 20px; font-weight: 600; color: var(--color-clients);">
+                            {{ app.user.assignedTasks|filter(t => t.status == 'completed')|length }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Info Cards -->
+    <div>
+        <!-- Personal Info -->
+        <div class="card" style="margin-bottom: 20px;">
+            <div class="card-header">
+                <h3 class="card-title">Личная информация</h3>
+            </div>
+            <div class="card-body">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; margin-bottom: 4px;">Имя</div>
+                        <div style="color: var(--text-primary); font-weight: 500; font-size: 16px;">{{ app.user.firstName }}</div>
+                    </div>
+                    
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; margin-bottom: 4px;">Фамилия</div>
+                        <div style="color: var(--text-primary); font-weight: 500; font-size: 16px;">{{ app.user.lastName }}</div>
+                    </div>
+                    
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; margin-bottom: 4px;">Email</div>
+                        <div style="color: var(--text-primary); font-weight: 500; font-size: 16px;">{{ app.user.email }}</div>
+                    </div>
+                    
+                    {% if app.user.phone %}
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; margin-bottom: 4px;">Телефон</div>
+                        <div style="color: var(--text-primary); font-weight: 500; font-size: 16px;">{{ app.user.phone }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if app.user.position %}
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; margin-bottom: 4px;">Должность</div>
+                        <div style="color: var(--text-primary); font-weight: 500; font-size: 16px;">{{ app.user.position }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if app.user.department %}
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; margin-bottom: 4px;">Отдел</div>
+                        <div style="color: var(--text-primary); font-weight: 500; font-size: 16px;">{{ app.user.department }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Account Info -->
+        <div class="card" style="margin-bottom: 20px;">
+            <div class="card-header">
+                <h3 class="card-title">Информация об аккаунте</h3>
+            </div>
+            <div class="card-body">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; margin-bottom: 4px;">Роль</div>
+                        <div style="color: var(--text-primary); font-weight: 500; font-size: 16px;">
+                            {% if is_granted('ROLE_ADMIN') %}
+                                <span class="status-badge" style="background: rgba(255, 107, 203, 0.2); color: var(--color-bonuses);">
+                                    <i class="fas fa-crown me-1"></i>Администратор
+                                </span>
+                            {% else %}
+                                <span class="status-badge success">
+                                    <i class="fas fa-user me-1"></i>Пользователь
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; margin-bottom: 4px;">Дата регистрации</div>
+                        <div style="color: var(--text-primary); font-weight: 500; font-size: 16px;">
+                            <i class="fas fa-calendar me-2" style="color: var(--color-sales);"></i>
+                            {{ app.user.createdAt|date('d.m.Y') }}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; margin-bottom: 4px;">Статус</div>
+                        <div style="color: var(--text-primary); font-weight: 500; font-size: 16px;">
+                            <span class="status-badge success">
+                                <i class="fas fa-check-circle me-1"></i>Активен
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; margin-bottom: 4px;">2FA</div>
+                        <div style="color: var(--text-primary); font-weight: 500; font-size: 16px;">
+                            {% if app.user.isTotpAuthenticationEnabled %}
+                                <span class="status-badge success">
+                                    <i class="fas fa-shield-alt me-1"></i>Включена
+                                </span>
+                            {% else %}
+                                <span class="status-badge" style="background: rgba(255, 217, 61, 0.2); color: var(--color-orders);">
+                                    <i class="fas fa-shield-alt me-1"></i>Отключена
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Activity -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Последняя активность</h3>
+            </div>
+            <div class="card-body">
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    {% set recentTasks = app.user.createdTasks|slice(0, 5) %}
+                    {% if recentTasks is not empty %}
+                        {% for task in recentTasks %}
+                        <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg-secondary); border-radius: 10px;">
+                            <div style="width: 8px; height: 8px; border-radius: 50%; background: {{ task.status == 'completed' ? 'var(--color-sales)' : (task.status == 'in_progress' ? 'var(--color-orders)' : 'var(--color-bonuses)') }};"></div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 500; margin-bottom: 2px;">{{ task.title }}</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">
+                                    {{ task.createdAt|date('d.m.Y H:i') }}
+                                </div>
+                            </div>
+                            <a href="{{ path('app_task_show', {'id': task.id}) }}" style="color: var(--color-sales); text-decoration: none;">
+                                <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p style="color: var(--text-secondary); text-align: center; margin: 20px 0;">Нет активности</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

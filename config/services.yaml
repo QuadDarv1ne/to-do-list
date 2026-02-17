@@ -1,3 +1,6 @@
+parameters:
+    app.use_modern_theme: true
+
 services:
     _defaults:
         autowire: true
