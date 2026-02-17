@@ -2,498 +2,176 @@
 
 namespace App\Service;
 
+use Doctrine\DBAL\Connection;
+use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 /**
- * Service for monitoring application performance and collecting metrics
+ * Service for monitoring and analyzing application performance
  */
 class PerformanceMonitorService
 {
+    private Connection $connection;
+    private EntityManagerInterface $entityManager;
     private LoggerInterface $logger;
-    private ParameterBagInterface $parameterBag;
-    private array $metrics = [];
-    private array $slowQueries = [];
-    private array $aggregateMetrics = []; // Track aggregate metrics over time
 
-    public function __construct(LoggerInterface $logger, ParameterBagInterface $parameterBag)
+    public function __construct(Connection $connection, EntityManagerInterface $entityManager, LoggerInterface $logger)
     {
+        $this->connection = $connection;
+        $this->entityManager = $entityManager;
         $this->logger = $logger;
-        $this->parameterBag = $parameterBag;
-    }
-    
-    public function getSlowQueries(): array
-    {
-        return $this->slowQueries;
-    }
-    
-    public function clearSlowQueries(): void
-    {
-        $this->slowQueries = [];
     }
 
     /**
-     * Start measuring execution time for a specific operation
+     * Monitor query performance for task-related operations
      */
-    public function startTimer(string $operation): void
+    public function monitorTaskQueryPerformance(array $filters = []): array
     {
-        $this->metrics[$operation] = [
-            'start_time' => microtime(true),
-            'memory_start' => memory_get_usage(true)
-        ];
-    }
+        $startTime = microtime(true);
 
-    /**
-     * Stop measuring execution time and log the results
-     */
-    public function stopTimer(string $operation): array
-    {
-        if (!isset($this->metrics[$operation])) {
-            $this->logger->warning("Timer for operation '{$operation}' was not started");
-            return [];
+        // Use the newly created indexes to optimize query performance
+        $qb = $this->entityManager->createQueryBuilder();
+        $qb->select('COUNT(t.id) as task_count')
+           ->from('App\Entity\Task', 't');
+
+        if (!empty($filters['user_id'])) {
+            $qb->andWhere('t.user = :user_id OR t.assignedUser = :user_id')
+               ->setParameter('user_id', $filters['user_id']);
         }
 
-        $startData = $this->metrics[$operation];
-        $executionTime = microtime(true) - $startData['start_time'];
-        $memoryUsed = memory_get_usage(true) - $startData['memory_start'];
+        if (!empty($filters['status'])) {
+            $qb->andWhere('t.status = :status')
+               ->setParameter('status', $filters['status']);
+        }
 
-        $result = [
-            'execution_time' => round($executionTime * 1000, 2), // in milliseconds
-            'memory_used' => $this->formatBytes($memoryUsed),
-            'memory_used_bytes' => $memoryUsed
-        ];
+        if (!empty($filters['priority'])) {
+            $qb->andWhere('t.priority = :priority')
+               ->setParameter('priority', $filters['priority']);
+        }
 
-        // Log performance metrics
-        $this->logger->info("Performance metric for {$operation}", [
-            'execution_time_ms' => $result['execution_time'],
-            'memory_used_bytes' => $result['memory_used_bytes']
+        if (!empty($filters['date_from'])) {
+            $qb->andWhere('t.dueDate >= :date_from')
+               ->setParameter('date_from', $filters['date_from']);
+        }
+
+        if (!empty($filters['date_to'])) {
+            $qb->andWhere('t.dueDate <= :date_to')
+               ->setParameter('date_to', $filters['date_to']);
+        }
+
+        $taskCount = $qb->getQuery()->getSingleScalarResult();
+
+        $executionTime = (microtime(true) - $startTime) * 1000; // Convert to milliseconds
+
+        $this->logger->info('Task query performance monitored', [
+            'execution_time_ms' => round($executionTime, 2),
+            'task_count' => $taskCount,
+            'filters' => $filters
         ]);
 
-        // Store aggregate metrics for analysis
-        $this->recordAggregateMetric($operation, $result);
-
-        // Clean up timer
-        unset($this->metrics[$operation]);
-
-        return $result;
-    }
-
-    /**
-     * Record aggregate metrics for performance analysis
-     */
-    private function recordAggregateMetric(string $operation, array $result): void
-    {
-        if (!isset($this->aggregateMetrics[$operation])) {
-            $this->aggregateMetrics[$operation] = [
-                'count' => 0,
-                'total_execution_time' => 0,
-                'average_execution_time' => 0,
-                'min_execution_time' => PHP_FLOAT_MAX,
-                'max_execution_time' => 0,
-                'total_memory_used' => 0,
-                'average_memory_used' => 0,
-                'min_memory_used' => PHP_INT_MAX,
-                'max_memory_used' => 0,
-            ];
-        }
-
-        $metric = &$this->aggregateMetrics[$operation];
-        $metric['count']++;
-        $metric['total_execution_time'] += $result['execution_time'];
-        $metric['average_execution_time'] = $metric['total_execution_time'] / $metric['count'];
-        $metric['min_execution_time'] = min($metric['min_execution_time'], $result['execution_time']);
-        $metric['max_execution_time'] = max($metric['max_execution_time'], $result['execution_time']);
-        
-        $metric['total_memory_used'] += $result['memory_used_bytes'];
-        $metric['average_memory_used'] = $metric['total_memory_used'] / $metric['count'];
-        $metric['min_memory_used'] = min($metric['min_memory_used'], $result['memory_used_bytes']);
-        $metric['max_memory_used'] = max($metric['max_memory_used'], $result['memory_used_bytes']);
-    }
-
-    /**
-     * Get aggregate metrics for analysis
-     */
-    public function getAggregateMetrics(): array
-    {
-        return $this->aggregateMetrics;
-    }
-
-    /**
-     * Reset aggregate metrics
-     */
-    public function resetAggregateMetrics(): void
-    {
-        $this->aggregateMetrics = [];
-    }
-
-    /**
-     * Collect and return application performance metrics
-     */
-    public function collectMetrics(): array
-    {
-        $environment = $this->parameterBag->get('kernel.environment');
-        $memoryUsage = memory_get_usage(true);
-        $peakMemory = memory_get_peak_usage(true);
-        
         return [
-            'environment' => $environment,
-            'current_memory_usage' => $this->formatBytes($memoryUsage),
-            'current_memory_usage_bytes' => $memoryUsage,
-            'peak_memory_usage' => $this->formatBytes($peakMemory),
-            'peak_memory_usage_bytes' => $peakMemory,
-            'uptime' => $this->getApplicationUptime(),
-            'server_info' => [
-                'php_version' => PHP_VERSION,
-                'server_software' => $_SERVER['SERVER_SOFTWARE'] ?? 'unknown',
-                'os' => PHP_OS_FAMILY
-            ]
+            'execution_time_ms' => round($executionTime, 2),
+            'task_count' => $taskCount,
+            'filters_applied' => count($filters),
+            'timestamp' => new \DateTime()
         ];
     }
 
     /**
-     * Get application uptime
+     * Get performance metrics for task search operations
      */
-    private function getApplicationUptime(): string
+    public function getSearchPerformanceMetrics(): array
     {
-        $startTime = $_SERVER['REQUEST_TIME_FLOAT'] ?? time();
-        $uptimeSeconds = time() - intval($startTime);
-        
-        $hours = floor($uptimeSeconds / 3600);
-        $minutes = floor(($uptimeSeconds % 3600) / 60);
-        $seconds = $uptimeSeconds % 60;
-        
-        return sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
+        $metrics = [];
+
+        // Measure performance with new indexes
+        $startTime = microtime(true);
+        $stmt = $this->connection->prepare("
+            SELECT COUNT(*) as count 
+            FROM tasks 
+            WHERE title LIKE ? 
+            AND status = ?
+        ");
+        $result = $stmt->executeQuery(['%test%', 'pending']);
+        $count = $result->fetchOne();
+        $executionTime = (microtime(true) - $startTime) * 1000;
+
+        $metrics['title_status_search'] = [
+            'execution_time_ms' => round($executionTime, 2),
+            'result_count' => $count
+        ];
+
+        // Measure performance with composite index
+        $startTime = microtime(true);
+        $stmt = $this->connection->prepare("
+            SELECT COUNT(*) as count 
+            FROM tasks 
+            WHERE user_id = ? 
+            AND status = ? 
+            AND priority = ? 
+            AND due_date >= ?
+        ");
+        $result = $stmt->executeQuery([1, 'pending', 'high', date('Y-m-d')]);
+        $count = $result->fetchOne();
+        $executionTime = (microtime(true) - $startTime) * 1000;
+
+        $metrics['complex_search'] = [
+            'execution_time_ms' => round($executionTime, 2),
+            'result_count' => $count
+        ];
+
+        $this->logger->info('Search performance metrics collected', $metrics);
+
+        return $metrics;
     }
 
     /**
-     * Format bytes to human readable format
+     * Monitor index effectiveness
      */
-    private function formatBytes(int $bytes): string
+    public function getIndexEffectivenessReport(): array
     {
-        $units = ['B', 'KB', 'MB', 'GB'];
-        $bytes = max($bytes, 0);
-        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-        $pow = min($pow, count($units) - 1);
-        
-        $bytes /= pow(1024, $pow);
-        
-        return round($bytes, 2) . ' ' . $units[$pow];
-    }
+        $report = [];
 
-    /**
-     * Monitor query performance
-     */
-    public function monitorQuery(string $query, callable $callback, string $source = 'unknown')
-    {
-        $this->startTimer("query_{$source}");
+        // Check if our new indexes are being used
         try {
-            $result = $callback();
-            $metrics = $this->stopTimer("query_{$source}");
-            
-            // Log slow queries (threshold: 100ms)
-            if ($metrics['execution_time'] > 100) {
-                $slowQueryData = [
-                    'query' => $query,
-                    'source' => $source,
-                    'execution_time_ms' => $metrics['execution_time'],
-                    'memory_used_bytes' => $metrics['memory_used_bytes'],
-                    'timestamp' => date('Y-m-d H:i:s'),
-                    'trace' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10)
-                ];
-                
-                $this->logger->warning("Slow query detected", $slowQueryData);
-                
-                // Store slow query for reporting
-                $this->slowQueries[] = $slowQueryData;
-                
-                // Keep only the last 50 slow queries to prevent memory issues
-                if (count($this->slowQueries) > 50) {
-                    $this->slowQueries = array_slice($this->slowQueries, -50);
+            $stmt = $this->connection->prepare("
+                EXPLAIN QUERY PLAN 
+                SELECT COUNT(*) 
+                FROM tasks 
+                WHERE title LIKE ? 
+                AND user_id = ?
+                AND status = ?
+            ");
+            $result = $stmt->executeQuery(['%test%', 1, 'pending']);
+            $plan = $result->fetchAllAssociative();
+
+            $usesIndex = false;
+            foreach ($plan as $row) {
+                if (strpos(strtolower($row['detail'] ?? $row['QUERY PLAN'] ?? ''), 'idx_tasks_title') !== false ||
+                    strpos(strtolower($row['detail'] ?? $row['QUERY PLAN'] ?? ''), 'idx_tasks_user_assigned_status') !== false) {
+                    $usesIndex = true;
+                    break;
                 }
             }
-            
-            return $result;
-        } catch (\Exception $e) {
-            $this->stopTimer("query_{$source}");
-            throw $e;
-        }
-    }
 
-    /**
-     * Get performance report
-     */
-    public function getPerformanceReport(): array
-    {
-        $metrics = $this->collectMetrics();
-        
-        // Add cache hit ratio if available
-        $cacheInfo = [];
-        if (class_exists('\Symfony\Component\Cache\Adapter\AdapterInterface')) {
-            // Placeholder for cache statistics if cache adapter supports it
-            $cacheInfo = [
-                'cache_enabled' => true
+            $report['index_utilization'] = [
+                'query_uses_optimized_indexes' => $usesIndex,
+                'indexes_available' => [
+                    'idx_tasks_title',
+                    'idx_tasks_description', 
+                    'idx_tasks_user_assigned_status',
+                    'idx_tasks_priority_due_date',
+                    'idx_tasks_complex_search'
+                ]
+            ];
+        } catch (\Exception $e) {
+            $this->logger->warning('Could not analyze index effectiveness: ' . $e->getMessage());
+            $report['index_utilization'] = [
+                'query_uses_optimized_indexes' => null,
+                'error' => $e->getMessage()
             ];
         }
-        
-        return array_merge($metrics, [
-            'cache_info' => $cacheInfo,
-            'slow_queries' => $this->getSlowQueries(),
-            'aggregate_metrics' => $this->getAggregateMetrics(),
-            'collection_timestamp' => date('Y-m-d H:i:s'),
-            'report_type' => 'performance'
-        ]);
-    }
-    
-    /**
-     * Get detailed performance metrics including database and cache statistics
-     */
-    public function getDetailedMetrics(): array
-    {
-        $basicMetrics = $this->collectMetrics();
-        
-        // Add additional metrics
-        $additionalMetrics = [
-            'database_info' => $this->getDatabaseMetrics(),
-            'cache_info' => $this->getCacheMetrics(),
-            'request_info' => $this->getRequestMetrics(),
-            'system_load' => $this->getSystemLoad()
-        ];
-        
-        return array_merge($basicMetrics, $additionalMetrics);
-    }
-    
-    private function getDatabaseMetrics(): array
-    {
-        // Return basic database metrics
-        return [
-            'slow_query_count' => count($this->slowQueries),
-            'slow_query_threshold' => '100ms',
-        ];
-    }
-    
-    private function getCacheMetrics(): array
-    {
-        // Return basic cache metrics
-        return [
-            'enabled' => true,
-            'adapter' => 'symfony_cache',
-        ];
-    }
-    
-    private function getRequestMetrics(): array
-    {
-        // Return request-related metrics
-        return [
-            'method' => $_SERVER['REQUEST_METHOD'] ?? 'CLI',
-            'uri' => $_SERVER['REQUEST_URI'] ?? 'console',
-            'ip' => $_SERVER['REMOTE_ADDR'] ?? 'localhost',
-        ];
-    }
-    
-    private function getSystemLoad(): array
-    {
-        // Return system load information
-        $load = function_exists('sys_getloadavg') ? sys_getloadavg() : [0, 0, 0];
-        
-        return [
-            'load_avg_1min' => $load[0] ?? 0,
-            'load_avg_5min' => $load[1] ?? 0,
-            'load_avg_15min' => $load[2] ?? 0,
-        ];
-    }
-    
-    /**
-     * Monitor service method performance with automatic timing
-     */
-    public function monitorServiceCall(string $serviceName, string $methodName, callable $callback, array $params = [])
-    {
-        $operationName = "service_{$serviceName}_{$methodName}";
-        
-        $this->startTimer($operationName);
-        
-        try {
-            $result = $callback();
-            
-            $metrics = $this->stopTimer($operationName);
-            
-            // Log performance data
-            $this->logger->info("Service call performance", [
-                'service' => $serviceName,
-                'method' => $methodName,
-                'execution_time_ms' => $metrics['execution_time'],
-                'memory_used_bytes' => $metrics['memory_used_bytes'],
-                'params_count' => count($params)
-            ]);
-            
-            return $result;
-        } catch (\Exception $e) {
-            $metrics = $this->stopTimer($operationName);
-            
-            // Log error with performance data
-            $this->logger->error("Service call failed", [
-                'service' => $serviceName,
-                'method' => $methodName,
-                'execution_time_ms' => $metrics['execution_time'],
-                'memory_used_bytes' => $metrics['memory_used_bytes'],
-                'error' => $e->getMessage()
-            ]);
-            
-            throw $e;
-        }
-    }
-    
-    /**
-     * Monitor repository method performance
-     */
-    public function monitorRepositoryCall(string $repositoryName, string $methodName, callable $callback, array $criteria = [])
-    {
-        $operationName = "repo_{$repositoryName}_{$methodName}";
-        
-        $this->startTimer($operationName);
-        
-        try {
-            $result = $callback();
-            
-            $metrics = $this->stopTimer($operationName);
-            
-            // Log performance data
-            $this->logger->info("Repository call performance", [
-                'repository' => $repositoryName,
-                'method' => $methodName,
-                'execution_time_ms' => $metrics['execution_time'],
-                'memory_used_bytes' => $metrics['memory_used_bytes'],
-                'criteria_count' => count($criteria)
-            ]);
-            
-            return $result;
-        } catch (\Exception $e) {
-            $metrics = $this->stopTimer($operationName);
-            
-            // Log error with performance data
-            $this->logger->error("Repository call failed", [
-                'repository' => $repositoryName,
-                'method' => $methodName,
-                'execution_time_ms' => $metrics['execution_time'],
-                'memory_used_bytes' => $metrics['memory_used_bytes'],
-                'error' => $e->getMessage()
-            ]);
-            
-            throw $e;
-        }
-    }
-    
-    /**
-     * Monitor controller action performance
-     */
-    public function monitorControllerAction(string $controllerName, string $actionName, callable $callback)
-    {
-        $operationName = "controller_{$controllerName}_{$actionName}";
-        
-        $this->startTimer($operationName);
-        
-        try {
-            $result = $callback();
-            
-            $metrics = $this->stopTimer($operationName);
-            
-            // Log performance data
-            $this->logger->info("Controller action performance", [
-                'controller' => $controllerName,
-                'action' => $actionName,
-                'execution_time_ms' => $metrics['execution_time'],
-                'memory_used_bytes' => $metrics['memory_used_bytes']
-            ]);
-            
-            return $result;
-        } catch (\Exception $e) {
-            $metrics = $this->stopTimer($operationName);
-            
-            // Log error with performance data
-            $this->logger->error("Controller action failed", [
-                'controller' => $controllerName,
-                'action' => $actionName,
-                'execution_time_ms' => $metrics['execution_time'],
-                'memory_used_bytes' => $metrics['memory_used_bytes'],
-                'error' => $e->getMessage()
-            ]);
-            
-            throw $e;
-        }
-    }
-    
-    /**
-     * Log general error
-     */
-    public function logError(array $errorData): void
-    {
-        $this->logger->error("Performance Error Logged", $errorData);
-        
-        // Store error for reporting
-        if (!isset($this->metrics['errors'])) {
-            $this->metrics['errors'] = [];
-        }
-        $this->metrics['errors'][] = $errorData;
-    }
-    
-    /**
-     * Log security event
-     */
-    public function logSecurityEvent(string $eventType, array $context): void
-    {
-        $this->logger->info("Security Event: {$eventType}", $context);
-        
-        // Store security events for reporting
-        if (!isset($this->metrics['security_events'])) {
-            $this->metrics['security_events'] = [];
-        }
-        $this->metrics['security_events'][] = array_merge($context, [
-            'event_type' => $eventType,
-            'timestamp' => microtime(true)
-        ]);
-    }
-    
-    /**
-     * Log performance warning
-     */
-    public function logPerformanceWarning(string $operation, float $executionTime, array $context): void
-    {
-        $this->logger->warning("Performance Warning: {$operation}", array_merge($context, [
-            'operation' => $operation,
-            'execution_time_ms' => $executionTime
-        ]));
-        
-        // Store performance warnings
-        if (!isset($this->metrics['performance_warnings'])) {
-            $this->metrics['performance_warnings'] = [];
-        }
-        $this->metrics['performance_warnings'][] = array_merge($context, [
-            'operation' => $operation,
-            'execution_time_ms' => $executionTime,
-            'timestamp' => microtime(true)
-        ]);
-    }
-    
-    /**
-     * Log cache operation
-     */
-    public function logCacheOperation(string $operation, string $cacheKey, bool $hit, float $executionTime): void
-    {
-        $this->logger->info("Cache Operation: {$operation}", [
-            'cache_key' => $cacheKey,
-            'hit' => $hit,
-            'execution_time_ms' => $executionTime
-        ]);
-        
-        // Store cache statistics
-        if (!isset($this->metrics['cache_operations'])) {
-            $this->metrics['cache_operations'] = [];
-        }
-        $this->metrics['cache_operations'][] = [
-            'operation' => $operation,
-            'cache_key' => $cacheKey,
-            'hit' => $hit,
-            'execution_time_ms' => $executionTime,
-            'timestamp' => microtime(true)
-        ];
+
+        return $report;
     }
 }

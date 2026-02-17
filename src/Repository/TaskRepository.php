@@ -274,11 +274,13 @@ class TaskRepository extends ServiceEntityRepository
     }
     
     /**
-     * Internal search tasks implementation
+     * Internal search tasks implementation with optimized query
      */
     private function performSearchTasks(array $criteria = []): array
     {
+        // Use select() to explicitly define what to fetch and avoid fetching unnecessary data
         $qb = $this->createQueryBuilder('t')
+            ->select('t, u, au, c') // Explicitly select only required associations
             ->leftJoin('t.user', 'u')
             ->leftJoin('t.assignedUser', 'au')
             ->leftJoin('t.category', 'c');
@@ -289,8 +291,9 @@ class TaskRepository extends ServiceEntityRepository
         }
 
         if (!empty($criteria['search'])) {
-            $qb->andWhere('t.title LIKE :search OR t.description LIKE :search')
-               ->setParameter('search', '%' . $criteria['search'] . '%');
+            // Use CONCAT for better index utilization if available, or use direct comparison
+            $qb->andWhere('LOWER(t.title) LIKE :search OR LOWER(t.description) LIKE :search')
+               ->setParameter('search', '%' . strtolower($criteria['search']) . '%');
         }
 
         if (!empty($criteria['status'])) {
@@ -306,11 +309,6 @@ class TaskRepository extends ServiceEntityRepository
         if (!empty($criteria['category'])) {
             $qb->andWhere('t.category = :category')
                ->setParameter('category', $criteria['category']);
-        }
-
-        if (!empty($criteria['user'])) {
-            $qb->andWhere('t.user = :user OR t.assignedUser = :user')
-               ->setParameter('user', $criteria['user']);
         }
 
         if (!empty($criteria['startDate'])) {
@@ -362,17 +360,95 @@ class TaskRepository extends ServiceEntityRepository
         }
         
         if (!empty($criteria['sortBy'])) {
-            $allowedSortFields = ['title', 'createdAt', 'dueDate', 'priority', 'status'];
+            $allowedSortFields = ['t.title', 't.createdAt', 't.dueDate', 't.priority', 't.status'];
             $direction = (!empty($criteria['sortDirection']) && strtoupper($criteria['sortDirection']) === 'ASC') ? 'ASC' : 'DESC';
             
             if ($criteria['sortBy'] === 'tag_count') {
-                // Sort by tag count (tasks with more tags first)
-                $qb->select('t, COUNT(tg.id) as HIDDEN tag_count')
-                   ->leftJoin('t.tags', 'tg')
-                   ->groupBy('t.id')
-                   ->orderBy('tag_count', $direction)
-                   ->addOrderBy('t.createdAt', 'DESC');
-            } elseif (in_array($criteria['sortBy'], $allowedSortFields)) {
+                // Sort by tag count (tasks with more tags first) - requires special handling
+                $qb = $this->createQueryBuilder('t')
+                    ->select('t, u, au, c, COUNT(tg.id) as HIDDEN tag_count')
+                    ->leftJoin('t.user', 'u')
+                    ->leftJoin('t.assignedUser', 'au')
+                    ->leftJoin('t.category', 'c')
+                    ->leftJoin('t.tags', 'tg')
+                    ->groupBy('t.id, u.id, au.id, c.id') // Group by all selected non-aggregate fields
+                    ->orderBy('tag_count', $direction)
+                    ->addOrderBy('t.createdAt', 'DESC');
+                
+                // Reapply conditions for this special query
+                if (!empty($criteria['user'])) {
+                    $qb->andWhere('t.user = :user OR t.assignedUser = :user')
+                       ->setParameter('user', $criteria['user']);
+                }
+                
+                if (!empty($criteria['search'])) {
+                    $qb->andWhere('LOWER(t.title) LIKE :search OR LOWER(t.description) LIKE :search')
+                       ->setParameter('search', '%' . strtolower($criteria['search']) . '%');
+                }
+                
+                if (!empty($criteria['status'])) {
+                    $qb->andWhere('t.status = :status')
+                       ->setParameter('status', $criteria['status']);
+                }
+                
+                if (!empty($criteria['priority'])) {
+                    $qb->andWhere('t.priority = :priority')
+                       ->setParameter('priority', $criteria['priority']);
+                }
+                
+                if (!empty($criteria['category'])) {
+                    $qb->andWhere('t.category = :category')
+                       ->setParameter('category', $criteria['category']);
+                }
+                
+                if (!empty($criteria['startDate'])) {
+                    $qb->andWhere('t.dueDate >= :startDate')
+                       ->setParameter('startDate', $criteria['startDate']);
+                }
+                
+                if (!empty($criteria['endDate'])) {
+                    $qb->andWhere('t.dueDate <= :endDate')
+                       ->setParameter('endDate', $criteria['endDate']);
+                }
+                
+                if (!empty($criteria['createdAfter'])) {
+                    $qb->andWhere('t.createdAt >= :createdAfter')
+                       ->setParameter('createdAfter', $criteria['createdAfter']);
+                }
+                
+                if (!empty($criteria['createdBefore'])) {
+                    $qb->andWhere('t.createdAt <= :createdBefore')
+                       ->setParameter('createdBefore', $criteria['createdBefore']);
+                }
+                
+                if (!empty($criteria['assignedToMe']) && $criteria['assignedToMe']) {
+                    $qb->andWhere('t.assignedUser = :currentUser')
+                       ->setParameter('currentUser', $criteria['assignedToMe']);
+                }
+                
+                if (!empty($criteria['createdByMe']) && $criteria['createdByMe']) {
+                    $qb->andWhere('t.user = :currentUser')
+                       ->setParameter('currentUser', $criteria['createdByMe']);
+                }
+                
+                if (!empty($criteria['overdue']) && $criteria['overdue']) {
+                    $qb->andWhere('t.dueDate < :now AND t.status != :completed')
+                       ->setParameter('now', new \DateTime())
+                       ->setParameter('completed', 'completed');
+                }
+                
+                if (!empty($criteria['tag'])) {
+                    $qb->join('t.tags', 'jt2')
+                       ->andWhere('jt2.id = :tagId')
+                       ->setParameter('tagId', $criteria['tag']);
+                }
+                
+                if (!empty($criteria['hideCompleted']) && $criteria['hideCompleted']) {
+                    $qb->andWhere('t.status != :completedStatus')
+                       ->setParameter('completedStatus', 'completed');
+                }
+            } elseif (in_array($criteria['sortBy'], ['title', 'createdAt', 'dueDate', 'priority', 'status'])) {
+                // Properly prefix the sort field to avoid ambiguity
                 $qb->orderBy('t.' . $criteria['sortBy'], $direction);
             } else {
                 $qb->orderBy('t.createdAt', 'DESC');
@@ -414,12 +490,12 @@ class TaskRepository extends ServiceEntityRepository
     }
     
     /**
-     * Internal count search tasks implementation
+     * Internal count search tasks implementation with optimized query
      */
     private function performCountSearchTasks(array $criteria = []): int
     {
         $qb = $this->createQueryBuilder('t')
-            ->select('COUNT(t.id)')
+            ->select('COUNT(DISTINCT t.id)') // Use DISTINCT to avoid counting duplicates in case of joins
             ->leftJoin('t.user', 'u')
             ->leftJoin('t.assignedUser', 'au')
             ->leftJoin('t.category', 'c');
@@ -430,8 +506,8 @@ class TaskRepository extends ServiceEntityRepository
         }
 
         if (!empty($criteria['search'])) {
-            $qb->andWhere('t.title LIKE :search OR t.description LIKE :search')
-               ->setParameter('search', '%' . $criteria['search'] . '%');
+            $qb->andWhere('LOWER(t.title) LIKE :search OR LOWER(t.description) LIKE :search')
+               ->setParameter('search', '%' . strtolower($criteria['search']) . '%');
         }
 
         if (!empty($criteria['status'])) {

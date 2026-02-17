@@ -20,19 +20,22 @@ final class Version20260213100000 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE tags ADD user_id INT NOT NULL');
-        $this->addSql('ALTER TABLE tags ADD CONSTRAINT FK_6FBC9426A76ED395 FOREIGN KEY (user_id) REFERENCES users (id)');
+        // For SQLite, we need to recreate the table to add foreign key constraint
+        $this->addSql('CREATE TEMPORARY TABLE __temp__tags_backup AS SELECT id, name, description, color, created_at, updated_at FROM tags');
+        $this->addSql('DROP TABLE tags');
+        $this->addSql('CREATE TABLE tags (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, name VARCHAR(50) NOT NULL, description CLOB DEFAULT NULL, color VARCHAR(7) DEFAULT \'#007bff\' NOT NULL, created_at DATETIME NOT NULL, updated_at DATETIME DEFAULT NULL, user_id INTEGER NOT NULL, CONSTRAINT FK_6FBC9426A76ED395 FOREIGN KEY (user_id) REFERENCES users (id) NOT DEFERRABLE INITIALLY IMMEDIATE)');
+        $this->addSql('INSERT INTO tags (id, name, description, color, created_at, updated_at, user_id) SELECT id, name, description, color, created_at, updated_at, 1 FROM __temp__tags_backup');
+        $this->addSql('DROP TABLE __temp__tags_backup');
         $this->addSql('CREATE INDEX IDX_6FBC9426A76ED395 ON tags (user_id)');
-        
-        // Update existing tags to assign them to a default user (assuming user ID 1 exists)
-        $this->addSql('UPDATE tags SET user_id = 1 WHERE user_id IS NULL OR user_id = 0');
     }
 
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE tags DROP FOREIGN KEY FK_6FBC9426A76ED395');
-        $this->addSql('DROP INDEX IDX_6FBC9426A76ED395 ON tags');
-        $this->addSql('ALTER TABLE tags DROP user_id');
+        $this->addSql('CREATE TEMPORARY TABLE __temp__tags_backup AS SELECT id, name, description, color, created_at, updated_at FROM tags');
+        $this->addSql('DROP TABLE tags');
+        $this->addSql('CREATE TABLE tags (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, name VARCHAR(50) NOT NULL, description CLOB DEFAULT NULL, color VARCHAR(7) DEFAULT \'#007bff\' NOT NULL, created_at DATETIME NOT NULL, updated_at DATETIME DEFAULT NULL)');
+        $this->addSql('INSERT INTO tags (id, name, description, color, created_at, updated_at) SELECT id, name, description, color, created_at, updated_at FROM __temp__tags_backup');
+        $this->addSql('DROP TABLE __temp__tags_backup');
     }
 }

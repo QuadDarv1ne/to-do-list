@@ -5,6 +5,10 @@ services:
     App\:
         resource: '../src/'
 
+    # Performance monitoring service
+    App\Service\PerformanceMonitorService:
+        arguments: ['@database_connection', '@doctrine.orm.entity_manager', '@logger']
+
     # Security management service
     App\Service\SecurityManagementService:
         arguments: ['@logger', '@request_stack', '@security.token_storage']
@@ -69,13 +73,7 @@ services:
     App\Command\HealthCheckCommand:
         arguments: ['@App\Service\HealthCheckService']
 
-    # Query performance analyzer service
-    App\Service\QueryPerformanceAnalyzerService:
-        arguments: ['@database_connection', '@logger', '@service_container']
 
-    # Query analysis command
-    App\Command\QueryAnalysisCommand:
-        arguments: ['@App\Service\QueryPerformanceAnalyzerService']
 
     # API performance monitor service
     App\Service\ApiPerformanceMonitorService:
