@@ -1,0 +1,93 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Достижения и уровни{% endblock %}
+
+{% block body %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1><i class="fas fa-trophy"></i> Достижения и уровни</h1>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h2 class="display-4">{{ level.level }}</h2>
+                    <p class="text-muted">Уровень</p>
+                    <h5 class="text-{{ rank.color }}">{{ rank.name }}</h5>
+                    
+                    <div class="progress mt-3" style="height: 25px;">
+                        <div class="progress-bar" role="progressbar" 
+                             style="width: {{ level.progress_percent }}%">
+                            {{ level.progress_percent }}%
+                        </div>
+                    </div>
+                    <small class="text-muted">
+                        {{ level.xp_current_level }} / {{ level.xp_needed_for_level }} XP
+                    </small>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5><i class="fas fa-fire"></i> Серия</h5>
+                </div>
+                <div class="card-body text-center">
+                    <h3>{{ streak.current_streak }} дней</h3>
+                    <p class="text-muted">Текущая серия</p>
+                    <small>Рекорд: {{ streak.longest_streak }} дней</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-star"></i> Достижения</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for key, achievement in achievements %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card {% if achievement.unlocked %}border-success{% endif %}">
+                                <div class="card-body">
+                                    <h6>
+                                        <i class="fas {{ achievement.achievement.icon }}"></i>
+                                        {{ achievement.achievement.name }}
+                                        {% if achievement.unlocked %}
+                                        <span class="badge bg-success">✓</span>
+                                        {% endif %}
+                                    </h6>
+                                    <p class="small text-muted">{{ achievement.achievement.description }}</p>
+                                    <div class="progress" style="height: 5px;">
+                                        <div class="progress-bar" style="width: {{ achievement.percent }}%"></div>
+                                    </div>
+                                    <small>{{ achievement.progress }} / {{ achievement.required }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5><i class="fas fa-calendar-day"></i> Ежедневное задание</h5>
+                </div>
+                <div class="card-body">
+                    <h6>{{ daily_challenge.title }}</h6>
+                    <p class="text-muted">{{ daily_challenge.description }}</p>
+                    <div class="progress">
+                        <div class="progress-bar" style="width: {{ (daily_challenge.progress / daily_challenge.required * 100) }}%"></div>
+                    </div>
+                    <small>{{ daily_challenge.progress }} / {{ daily_challenge.required }}</small>
+                    <span class="badge bg-warning float-end">+{{ daily_challenge.reward_xp }} XP</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

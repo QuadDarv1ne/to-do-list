@@ -1,0 +1,48 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Интеграции{% endblock %}
+
+{% block body %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1><i class="fas fa-plug"></i> Интеграции</h1>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        {% for key, integration in available %}
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="{{ integration.icon }}"></i>
+                        {{ integration.name }}
+                    </h5>
+                    <p class="card-text">{{ integration.description }}</p>
+                    
+                    <ul class="small">
+                        {% for feature in integration.features %}
+                        <li>{{ feature }}</li>
+                        {% endfor %}
+                    </ul>
+                    
+                    <button class="btn btn-primary btn-sm connect-btn" data-integration="{{ key }}">
+                        Подключить
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.connect-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        const integration = e.target.dataset.integration;
+        alert(`Подключение ${integration}. Функция в разработке.`);
+    });
+});
+</script>
+{% endblock %}
