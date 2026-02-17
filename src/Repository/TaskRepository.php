@@ -900,6 +900,7 @@ class TaskRepository extends ServiceEntityRepository
             ->addSelect('u', 'au', 'c', 'tg', 'cm', 'al', 'nt', 'dep', 'dt', 'tt', 'r')
             ->where('t.id = :id')
             ->setParameter('id', $id)
+            ->getQuery()
             ->getOneOrNullResult();
     }
     
