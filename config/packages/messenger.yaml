@@ -3,24 +3,31 @@ framework:
         failure_transport: failed
 
         transports:
-            # https://symfony.com/doc/current/messenger.html#transport-configuration
             async:
                 dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    auto_setup: true
                 retry_strategy:
                     max_retries: 3
                     multiplier: 2
+                    delay: 1000
+            
             failed: 'doctrine://default?queue_name=failed'
-            # sync: 'sync://'
-
-        default_bus: messenger.bus.default
-
-        buses:
-            messenger.bus.default: []
+            
+            sync: 'sync://'
 
         routing:
-            Symfony\Component\Mailer\Messenger\SendEmailMessage: async
-            Symfony\Component\Notifier\Message\ChatMessage: async
-            Symfony\Component\Notifier\Message\SmsMessage: async
-
-            # Route your messages to the transports
-            # 'App\Message\YourMessage': async
+            # Commands - synchronous
+            'App\Application\Command\CreateTaskCommand': sync
+            'App\Application\Command\CompleteTaskCommand': sync
+            'App\Application\Command\ChangeTaskStatusCommand': sync
+            
+            # Queries - synchronous
+            'App\Application\Query\GetTaskQuery': sync
+            'App\Application\Query\GetTasksQuery': sync
+            
+            # Events - asynchronous
+            'App\Domain\Task\Event\TaskCreated': async
+            'App\Domain\Task\Event\TaskCompleted': async
+            'App\Domain\Task\Event\TaskAssigned': async
+            'App\Domain\Task\Event\TaskStatusChanged': async
