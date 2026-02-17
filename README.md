@@ -29,25 +29,48 @@
 - Регион: Дальневосточный федеральный округ
 - Направления: молочная продукция, мясо, овощи, зерновые
 
-## Технологии
+## 🚀 Технологии
 
-- **Backend:** PHP 8.3, Symfony 8.0
+- **Backend:** PHP 8.4+, Symfony 8.0.5
 - **Frontend:** Stimulus, Turbo, Bootstrap 5
-- **Database:** PostgreSQL 16
-- **Cache:** Redis
+- **Database:** SQLite (dev), MySQL 8.0+ / PostgreSQL 16+ (prod)
+- **Cache:** Doctrine Cache, Redis (опционально)
 - **Queue:** Symfony Messenger
 - **Architecture:** CQRS, Event Sourcing, DDD
 
-## 📦 Установка
+## 📦 Быстрый старт
+
+### Требования
+
+- PHP 8.4 или выше
+- Composer 2.x
+- Node.js 18+ и npm (для фронтенда)
+- SQLite (для разработки) или MySQL/PostgreSQL (для продакшена)
+
+### Установка
 
 ```bash
-# Клонирование репозитория
+# 1. Клонирование репозитория
 git clone https://github.com/your-repo/crm-sales-analytics.git
 cd crm-sales-analytics
 
-# Установка зависимостей
+# 2. Установка зависимостей
 composer install
 npm install
+
+# 3. Настройка окружения
+cp .env .env.local
+# Отредактируйте .env.local при необходимости
+
+# 4. Создание базы данных и миграции
+php bin/console doctrine:database:create
+php bin/console doctrine:migrations:migrate
+
+# 5. Создание тестовых пользователей
+php bin/console app:create-test-users
+
+# 6. Запуск сервера разработки
+php -S localhost:8000 -t public
 
 # Настройка окружения
 cp .env .env.local
@@ -156,3 +179,214 @@ php bin/console cache:clear
 ООО «Дальневосточный фермер»  
 Email: info@dvfarm.ru  
 Сайт: https://dvfarm.ru
+
+
+## 🔧 Полезные команды
+
+### Разработка
+
+```bash
+# Очистка кэша
+php bin/console cache:clear
+
+# Прогрев кэша
+php bin/console cache:warmup
+
+# Проверка маршрутов
+php bin/console debug:router
+
+# Проверка контейнера
+php bin/console debug:container
+```
+
+### База данных
+
+```bash
+# Создание миграции
+php bin/console doctrine:migrations:diff
+
+# Применение миграций
+php bin/console doctrine:migrations:migrate
+
+# Откат миграции
+php bin/console doctrine:migrations:migrate prev
+
+# Статус миграций
+php bin/console doctrine:migrations:status
+```
+
+### Тестовые данные
+
+```bash
+# Создание тестовых пользователей
+php bin/console app:create-test-users
+
+# Сброс паролей тестовых пользователей
+php bin/console app:reset-test-passwords
+
+# Создание администратора
+php bin/console app:create-admin admin@example.com password123 Admin User
+```
+
+### Обслуживание
+
+```bash
+# Очистка старых данных
+php bin/console app:cleanup-data --notifications-days=90
+
+# Резервное копирование
+php bin/console app:backup
+
+# Оптимизация базы данных
+php bin/console app:optimize-database --analyze --optimize
+
+# Проверка здоровья системы
+php bin/console app:health-check
+```
+
+### Мониторинг производительности
+
+```bash
+# Отчет о производительности
+php bin/console app:performance-monitor --action=report
+
+# Медленные операции
+php bin/console app:performance-monitor --action=slow-ops --threshold=200
+
+# Статистика памяти
+php bin/console app:monitor-memory --action=analysis
+
+# Аудит производительности
+php bin/console app:performance-audit
+```
+
+## 📚 Документация
+
+- [Руководство по очистке проекта](docs/CLEANUP_GUIDE.md)
+- [Оптимизация производительности](docs/PERFORMANCE_OPTIMIZATION.md)
+- [Миграции базы данных](migrations/README.md)
+- [Настройка базы данных](docs/DATABASE_SETUP.md)
+- [Полная документация](docs/DOCUMENTATION.md)
+
+## 🔐 Тестовые учетные записи
+
+После выполнения `php bin/console app:create-test-users`:
+
+| Email | Пароль | Роль |
+|-------|--------|------|
+| admin@example.com | admin123 | Администратор |
+| manager@example.com | manager123 | Менеджер |
+| user@example.com | user123 | Пользователь |
+| analyst@example.com | analyst123 | Аналитик |
+
+⚠️ **Важно:** Измените пароли перед развертыванием в продакшене!
+
+## 🚀 Развертывание в продакшене
+
+### Проверка готовности
+
+```bash
+# Windows
+bin\production-check.bat
+
+# Linux/Mac
+chmod +x bin/production-check.sh
+./bin/production-check.sh
+```
+
+### Подготовка
+
+```bash
+# 1. Установка зависимостей без dev-пакетов
+composer install --no-dev --optimize-autoloader
+
+# 2. Настройка окружения
+# Отредактируйте .env:
+# APP_ENV=prod
+# APP_DEBUG=0
+# DATABASE_URL=mysql://user:pass@host:3306/dbname
+
+# 3. Очистка и прогрев кэша
+php bin/console cache:clear --env=prod
+php bin/console cache:warmup --env=prod
+
+# 4. Применение миграций
+php bin/console doctrine:migrations:migrate --no-interaction
+
+# 5. Установка прав доступа
+chmod -R 755 var/
+chmod -R 755 public/
+```
+
+### Настройка cron задач
+
+```bash
+# Редактирование crontab
+crontab -e
+
+# Добавьте задачи из crontab.example
+# Пример:
+0 2 * * * cd /path/to/project && php bin/console app:backup
+0 9 * * * cd /path/to/project && php bin/console app:send-deadline-notifications
+```
+
+## 📊 Статистика проекта
+
+- **PHP файлов:** 146
+- **Команд:** 21
+- **Сервисов:** 30
+- **Контроллеров:** 25
+- **Маршрутов:** 101
+- **Шаблонов:** 49
+- **Миграций:** 35
+
+## 🔄 Сброс миграций (только для разработки)
+
+Если нужно начать с чистой базы данных:
+
+```bash
+# Windows
+bin\reset-migrations.bat
+
+# Linux/Mac
+chmod +x bin/reset-migrations.sh
+./bin/reset-migrations.sh
+```
+
+⚠️ **Внимание:** Это удалит все данные и создаст новую базу!
+
+## 🛠️ Оптимизация
+
+Проект уже оптимизирован:
+
+✅ Индексы базы данных настроены
+✅ Eager loading для предотвращения N+1 запросов
+✅ Кэширование Doctrine включено
+✅ Автообновление дашборда отключено
+✅ Polling уведомлений оптимизирован (2 минуты)
+✅ Безопасность настроена
+✅ Готов к продакшену
+
+Подробнее: [docs/PERFORMANCE_OPTIMIZATION.md](docs/PERFORMANCE_OPTIMIZATION.md)
+
+## 🤝 Вклад в проект
+
+1. Fork репозитория
+2. Создайте ветку для новой функции (`git checkout -b feature/AmazingFeature`)
+3. Commit изменений (`git commit -m 'Add some AmazingFeature'`)
+4. Push в ветку (`git push origin feature/AmazingFeature`)
+5. Откройте Pull Request
+
+## 📝 Лицензия
+
+Proprietary - ООО «Дальневосточный фермер»
+
+## 📧 Контакты
+
+- **Проект:** CRM система анализа продаж
+- **Организация:** ООО «Дальневосточный фермер»
+- **Email:** info@dvfarm.ru
+
+---
+
+Сделано с ❤️ для ООО «Дальневосточный фермер»
