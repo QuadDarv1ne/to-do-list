@@ -676,17 +676,15 @@ class Task
     {
         $totalTime = 0;
         foreach ($this->getTimeTrackings() as $tracking) {
-            // Convert time spent (DateTimeImmutable) to hours
-            // The timeSpent field stores time in HH:MM:SS format, so we need to extract hours
             $timeSpent = $tracking->getTimeSpent();
             if ($timeSpent) {
-                $hours = $timeSpent->format('H');
-                $minutes = $timeSpent->format('i');
-                $seconds = $timeSpent->format('s');
+                $hours = (int)$timeSpent->format('H');
+                $minutes = (int)$timeSpent->format('i');
+                $seconds = (int)$timeSpent->format('s');
                 
                 $totalTime += $hours + ($minutes / 60.0) + ($seconds / 3600.0);
             }
         }
-        return $totalTime;
+        return round($totalTime, 2);
     }
 }

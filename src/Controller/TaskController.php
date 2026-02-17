@@ -49,8 +49,11 @@ class TaskController extends AbstractController
         $limit = 10;
         $offset = ($page - 1) * $limit;
         
-        // Build query
+        // Build query with eager loading to prevent N+1
         $qb = $taskRepository->createQueryBuilder('t')
+            ->leftJoin('t.assignedUser', 'au')->addSelect('au')
+            ->leftJoin('t.category', 'c')->addSelect('c')
+            ->leftJoin('t.tags', 'tags')->addSelect('tags')
             ->andWhere('t.user = :user')
             ->setParameter('user', $user);
         
@@ -92,9 +95,8 @@ class TaskController extends AbstractController
         
         if ($sort === 'tag_count') {
             // Special handling for tag count sorting
-            $qb->select('t, COUNT(tg.id) as HIDDEN tag_count')
-               ->leftJoin('t.tags', 'tg')
-               ->groupBy('t.id')
+            $qb->select('t, au, c, tags, COUNT(tags.id) as HIDDEN tag_count')
+               ->groupBy('t.id, au.id, c.id, tags.id')
                ->orderBy('tag_count', $direction)
                ->addOrderBy('t.createdAt', 'DESC');
         } elseif (in_array($sort, $allowedSorts) && in_array($direction, $allowedDirections)) {

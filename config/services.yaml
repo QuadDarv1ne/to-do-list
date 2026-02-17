@@ -2,121 +2,15 @@ services:
     _defaults:
         autowire: true
         autoconfigure: true
+        bind:
+            $projectDir: '%kernel.project_dir%'
+
     App\:
         resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
 
-
-
-    # Security management service
-    App\Service\SecurityManagementService:
-        arguments: ['@logger', '@request_stack', '@security.token_storage']
-
-    # Security management command
-    App\Command\SecurityManagementCommand:
-        arguments: ['@App\Service\SecurityManagementService']
-
-    # Performance monitoring service
-    App\Service\PerformanceMonitoringService:
-        arguments: ['@logger', '@parameter_bag']
-
-    # Performance monitoring command
-    App\Command\PerformanceMonitorCommand:
-        arguments: ['@App\Service\PerformanceMonitoringService']
-
-    # Data loader optimizer service
-    App\Service\DataLoaderOptimizerService:
-        arguments: ['@doctrine.orm.entity_manager', '@logger', '@parameter_bag']
-
-    # Data loader optimizer command
-    App\Command\DataLoaderOptimizeCommand:
-        arguments: ['@App\Service\DataLoaderOptimizerService']
-
-    # Advanced security service
-    App\Service\AdvancedSecurityService:
-        arguments: ['@logger', '@request_stack', '@security.token_storage', '@security.authorization_checker']
-
-    # Advanced security command
-    App\Command\AdvancedSecurityCommand:
-        arguments: ['@App\Service\AdvancedSecurityService']
-
-    # Performance audit service
-    App\Service\PerformanceAuditService:
-        arguments: ['@doctrine.orm.entity_manager', '@database_connection', '@logger', '@service_container', '@kernel']
-
-    # Performance audit command
-    App\Command\PerformanceAuditCommand:
-        arguments: ['@App\Service\PerformanceAuditService']
-
-    # Backup service
-    App\Service\BackupService:
-        arguments: ['%kernel.project_dir%', '@logger', '@filesystem']
-
-    # Backup command
-    App\Command\BackupCommand:
-        arguments: ['@App\Service\BackupService']
-
-    # Data cleanup service
-    App\Service\DataCleanupService:
-        arguments: ['@doctrine.orm.entity_manager', '@logger']
-
-    # Data cleanup command
-    App\Command\DataCleanupCommand:
-        arguments: ['@App\Service\DataCleanupService']
-
-    # Health check service
-    App\Service\HealthCheckService:
-        arguments: ['@database_connection', '@logger', '@service_container', '@kernel', '@request_stack', '@security.authorization_checker', '@twig']
-
-    # Health check command
-    App\Command\HealthCheckCommand:
-        arguments: ['@App\Service\HealthCheckService']
-
-
-
-    # API performance monitor service
-    App\Service\ApiPerformanceMonitorService:
-        arguments: ['@logger', '@database_connection', '@service_container']
-
-    # API performance monitor command
-    App\Command\ApiPerformanceMonitorCommand:
-        arguments: ['@App\Service\ApiPerformanceMonitorService']
-
-    # Session optimizer service
-    App\Service\SessionOptimizerService:
-        arguments: ['@logger', '@service_container', '@security.token_storage', '@request_stack']
-
-    # Session optimizer command
-    App\Command\SessionOptimizerCommand:
-        arguments: ['@App\Service\SessionOptimizerService']
-
-    # Memory usage monitor service
-    App\Service\MemoryUsageMonitorService:
-        arguments: ['@logger', '@service_container']
-
-    # Memory usage monitor command
-    App\Command\MemoryUsageMonitorCommand:
-        arguments: ['@App\Service\MemoryUsageMonitorService']
-
-    # Image optimizer service
-    App\Service\ImageOptimizerService:
-        arguments: ['@logger', '@service_container']
-
-    # Image optimizer command
-    App\Command\ImageOptimizerCommand:
-        arguments: ['@App\Service\ImageOptimizerService']
-
-    # Autoloader optimizer service
-    App\Service\AutoloaderOptimizerService:
-        arguments: ['@logger', '@service_container']
-
-    # Autoloader optimizer command
-    App\Command\AutoloaderOptimizerCommand:
-        arguments: ['@App\Service\AutoloaderOptimizerService']
-
-    # Database optimizer service
-    App\Service\DatabaseOptimizerService:
-        arguments: ['@database_connection', '@logger', '@service_container']
-
-    # Database optimizer command
-    App\Command\DatabaseOptimizerCommand:
-        arguments: ['@App\Service\DatabaseOptimizerService']
+    # Alias for ContainerInterface to allow autowiring
+    Symfony\Component\DependencyInjection\ContainerInterface: '@service_container'

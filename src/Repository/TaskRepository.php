@@ -85,6 +85,9 @@ class TaskRepository extends ServiceEntityRepository
     public function findByAssignedUser(User $user): array
     {
         return $this->createQueryBuilder('t')
+            ->leftJoin('t.assignedUser', 'au')->addSelect('au')
+            ->leftJoin('t.category', 'c')->addSelect('c')
+            ->leftJoin('t.tags', 'tags')->addSelect('tags')
             ->andWhere('t.assignedUser = :user')
             ->setParameter('user', $user)
             ->orderBy('t.createdAt', 'DESC')
@@ -98,6 +101,9 @@ class TaskRepository extends ServiceEntityRepository
     public function findAllOrderedByDate(): array
     {
         return $this->createQueryBuilder('t')
+            ->leftJoin('t.assignedUser', 'au')->addSelect('au')
+            ->leftJoin('t.category', 'c')->addSelect('c')
+            ->leftJoin('t.tags', 'tags')->addSelect('tags')
             ->orderBy('t.createdAt', 'DESC')
             ->getQuery()
             ->getResult();
@@ -124,8 +130,10 @@ class TaskRepository extends ServiceEntityRepository
     public function findByAssignedToOrCreatedBy(User $user): array
     {
         return $this->createQueryBuilder('t')
-            ->leftJoin('t.assignedUser', 'au')
-            ->leftJoin('t.user', 'cu')
+            ->leftJoin('t.assignedUser', 'au')->addSelect('au')
+            ->leftJoin('t.user', 'cu')->addSelect('cu')
+            ->leftJoin('t.category', 'c')->addSelect('c')
+            ->leftJoin('t.tags', 'tags')->addSelect('tags')
             ->andWhere('au = :user OR cu = :user')
             ->setParameter('user', $user)
             ->orderBy('t.createdAt', 'DESC')
@@ -162,8 +170,10 @@ class TaskRepository extends ServiceEntityRepository
     private function performSearchQuery(string $searchQuery, int $limit): array
     {
         $qb = $this->createQueryBuilder('t')
-            ->leftJoin('t.assignedUser', 'au')
-            ->leftJoin('t.user', 'cu')
+            ->leftJoin('t.assignedUser', 'au')->addSelect('au')
+            ->leftJoin('t.user', 'cu')->addSelect('cu')
+            ->leftJoin('t.category', 'c')->addSelect('c')
+            ->leftJoin('t.tags', 'tags')->addSelect('tags')
             ->where('(
                 LOWER(t.title) LIKE :search OR
                 LOWER(t.description) LIKE :search OR
@@ -211,8 +221,10 @@ class TaskRepository extends ServiceEntityRepository
     private function performUserSearchQuery(string $searchQuery, User $user, int $limit): array
     {
         $qb = $this->createQueryBuilder('t')
-            ->leftJoin('t.assignedUser', 'au')
-            ->leftJoin('t.user', 'cu')
+            ->leftJoin('t.assignedUser', 'au')->addSelect('au')
+            ->leftJoin('t.user', 'cu')->addSelect('cu')
+            ->leftJoin('t.category', 'c')->addSelect('c')
+            ->leftJoin('t.tags', 'tags')->addSelect('tags')
             ->andWhere('(au = :user OR cu = :user)')
             ->andWhere('(
                 LOWER(t.title) LIKE :search OR
@@ -240,6 +252,10 @@ class TaskRepository extends ServiceEntityRepository
     public function findByUserAndStatus(User $user, string $status, \DateTime $fromDate, \DateTime $toDate): array
     {
         return $this->createQueryBuilder('t')
+            ->leftJoin('t.assignedUser', 'au')->addSelect('au')
+            ->leftJoin('t.user', 'cu')->addSelect('cu')
+            ->leftJoin('t.category', 'c')->addSelect('c')
+            ->leftJoin('t.tags', 'tags')->addSelect('tags')
             ->andWhere('(t.assignedUser = :user OR t.user = :user)')
             ->andWhere('t.status = :status')
             ->andWhere('t.createdAt BETWEEN :fromDate AND :toDate')
@@ -583,6 +599,9 @@ class TaskRepository extends ServiceEntityRepository
     public function findByTag(int $tagId): array
     {
         return $this->createQueryBuilder('t')
+            ->leftJoin('t.assignedUser', 'au')->addSelect('au')
+            ->leftJoin('t.category', 'c')->addSelect('c')
+            ->leftJoin('t.tags', 'tags')->addSelect('tags')
             ->join('t.tags', 'tag')
             ->andWhere('tag.id = :tagId')
             ->setParameter('tagId', $tagId)
@@ -597,9 +616,11 @@ class TaskRepository extends ServiceEntityRepository
     public function findAllSortedByTagCount(): array
     {
         return $this->createQueryBuilder('t')
-            ->select('t, COUNT(tg.id) as HIDDEN tag_count')
-            ->leftJoin('t.tags', 'tg')
-            ->groupBy('t.id')
+            ->leftJoin('t.assignedUser', 'au')->addSelect('au')
+            ->leftJoin('t.category', 'c')->addSelect('c')
+            ->leftJoin('t.tags', 'tg')->addSelect('tg')
+            ->select('t, au, c, tg, COUNT(tg.id) as HIDDEN tag_count')
+            ->groupBy('t.id, au.id, c.id, tg.id')
             ->orderBy('tag_count', 'DESC')
             ->addOrderBy('t.createdAt', 'DESC')
             ->getQuery()
