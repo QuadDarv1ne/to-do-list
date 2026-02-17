@@ -2,6 +2,11 @@
 
 {% block title %}Панель управления{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/modern-dashboard.css') }}">
+{% endblock %}
+
 {% block body %}
 <div class="container-fluid page-transition">
     <!-- Welcome Banner with CRM Branding -->
@@ -49,37 +54,6 @@
             </div>
         </div>
     </div>
-
-    <style>
-        .welcome-banner {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-        }
-        
-        .banner-bg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120"><path d="M0,0 Q300,60 600,30 T1200,0 L1200,120 L0,120 Z" fill="rgba(255,255,255,0.1)"/></svg>') no-repeat bottom;
-            background-size: cover;
-            opacity: 0.5;
-        }
-        
-        .avatar-circle {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: white;
-            border: 3px solid rgba(255,255,255,0.3);
-        }
-    </style>
 
     <!-- Statistics Cards -->
     <div class="row mb-4" id="stats-row">
@@ -659,15 +633,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load chart data asynchronously
     loadChartData();
     
-    // Refresh data every 30 seconds
-    setInterval(() => {
-        loadQuickStats();
-        loadChartData();
-    }, 30000);
+    // Refresh data every 5 minutes (300000ms) instead of 30 seconds
+    // Uncomment the line below if you want auto-refresh
+    // setInterval(() => {
+    //     loadQuickStats();
+    //     loadChartData();
+    // }, 300000);
 });
 
 function loadQuickStats() {
-    fetch('/api/task/stats')
+    fetch('/tasks/api/stats')
         .then(response => response.json())
         .then(stats => {
             // Update stat numbers with smooth transitions
@@ -739,7 +714,7 @@ function animateValue(element, start, end, duration, callback) {
 }
 
 function loadChartData() {
-    fetch('/api/analytics/dashboard')
+    fetch('/analytics/api/data')
         .then(response => response.json())
         .then(data => {
             renderCharts(data);

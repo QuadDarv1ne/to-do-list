@@ -341,28 +341,17 @@
                     return;
                 }
                 
-                this.eventSource = new EventSource('/api/notifications/stream');
-                
-                this.eventSource.addEventListener('connected', (event) => {
-                    console.log('Connected to notification stream');
-                });
-                
-                this.eventSource.addEventListener('notification', (event) => {
-                    const data = JSON.parse(event.data);
-                    this.handleNotification(data);
-                });
-                
-                this.eventSource.addEventListener('heartbeat', (event) => {
-                    // Keep connection alive
-                });
-                
-                this.eventSource.onerror = (error) => {
-                    console.error('Notification stream error:', error);
-                    // Attempt to reconnect after delay
-                    setTimeout(() => {
-                        this.connect();
-                    }, 5000);
-                };
+                // EventSource disabled to reduce server load
+                // Use polling instead
+                this.startPolling();
+            }
+            
+            startPolling() {
+                // Poll for notifications every 2 minutes instead of constant stream
+                this.updateNotificationCount();
+                setInterval(() => {
+                    this.updateNotificationCount();
+                }, 120000); // 2 minutes
             }
             
             handleNotification(notification) {

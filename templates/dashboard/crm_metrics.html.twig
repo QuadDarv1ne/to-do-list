@@ -1,290 +1,133 @@
-{# CRM Metrics Section for Sales Analytics Dashboard #}
-
+<!-- CRM Sales Analytics Metrics -->
 <div class="row mb-4">
     <div class="col-12">
-        <h2 class="mb-3">
-            <i class="fas fa-chart-line me-2"></i>
+        <h4 class="mb-4 fw-bold">
+            <i class="fas fa-chart-line me-2 text-primary"></i>
             Ключевые показатели продаж (KPI)
-        </h2>
+        </h4>
     </div>
 </div>
 
 <div class="row mb-4">
-    {# Conversion Rate #}
-    <div class="col-lg-3 col-md-6 mb-4">
-        <div class="card border-0 shadow-sm h-100 card-hover">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div>
-                        <h6 class="text-muted mb-0">Конверсия в продажу</h6>
-                    </div>
-                    <div class="rounded-circle bg-primary bg-opacity-10 p-2">
-                        <i class="fas fa-percentage text-primary"></i>
-                    </div>
+    <!-- Conversion Rate -->
+    <div class="col-md-3 mb-4">
+        <div class="crm-metric-card success">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="metric-icon">
+                    <i class="fas fa-percentage fa-2x text-success"></i>
                 </div>
-                <h2 class="mb-2">{{ crm_metrics.conversion_rate }}%</h2>
-                <div class="d-flex align-items-center">
-                    {% if crm_metrics.conversion_trend > 0 %}
-                        <span class="badge bg-success me-2">
-                            <i class="fas fa-arrow-up"></i> {{ crm_metrics.conversion_trend|abs|number_format(1) }}%
-                        </span>
-                        <small class="text-success">Рост к предыдущему периоду</small>
-                    {% elseif crm_metrics.conversion_trend < 0 %}
-                        <span class="badge bg-danger me-2">
-                            <i class="fas fa-arrow-down"></i> {{ crm_metrics.conversion_trend|abs|number_format(1) }}%
-                        </span>
-                        <small class="text-danger">Снижение к предыдущему периоду</small>
-                    {% else %}
-                        <span class="badge bg-secondary me-2">
-                            <i class="fas fa-minus"></i> 0%
-                        </span>
-                        <small class="text-muted">Без изменений</small>
-                    {% endif %}
-                </div>
+                {% if crm_metrics.conversion_trend > 0 %}
+                    <span class="metric-trend up">
+                        <i class="fas fa-arrow-up me-1"></i>
+                        {{ crm_metrics.conversion_trend|abs|number_format(1) }}%
+                    </span>
+                {% elseif crm_metrics.conversion_trend < 0 %}
+                    <span class="metric-trend down">
+                        <i class="fas fa-arrow-down me-1"></i>
+                        {{ crm_metrics.conversion_trend|abs|number_format(1) }}%
+                    </span>
+                {% endif %}
+            </div>
+            <div class="metric-label">Конверсия</div>
+            <div class="metric-value text-success">{{ crm_metrics.conversion_rate }}%</div>
+            <div class="progress mt-3" style="height: 8px;">
+                <div class="progress-bar bg-success" role="progressbar" 
+                     style="width: {{ crm_metrics.conversion_rate }}%"></div>
             </div>
         </div>
     </div>
 
-    {# Win Rate #}
-    <div class="col-lg-3 col-md-6 mb-4">
-        <div class="card border-0 shadow-sm h-100 card-hover">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div>
-                        <h6 class="text-muted mb-0">Win Rate</h6>
-                    </div>
-                    <div class="rounded-circle bg-success bg-opacity-10 p-2">
-                        <i class="fas fa-trophy text-success"></i>
-                    </div>
+    <!-- Win Rate -->
+    <div class="col-md-3 mb-4">
+        <div class="crm-metric-card primary">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="metric-icon">
+                    <i class="fas fa-trophy fa-2x text-primary"></i>
                 </div>
-                <h2 class="mb-2">{{ crm_metrics.win_rate }}%</h2>
-                <div class="progress" style="height: 8px;">
-                    <div class="progress-bar bg-success" role="progressbar" 
-                         style="width: {{ crm_metrics.win_rate }}%" 
-                         aria-valuenow="{{ crm_metrics.win_rate }}" 
-                         aria-valuemin="0" 
-                         aria-valuemax="100">
-                    </div>
-                </div>
-                <small class="text-muted mt-2 d-block">
-                    {{ crm_metrics.won_deals }} выигранных из {{ crm_metrics.won_deals + (task_stats.cancelled ?? 0) }} закрытых
-                </small>
+            </div>
+            <div class="metric-label">Процент успеха</div>
+            <div class="metric-value text-primary">{{ crm_metrics.win_rate }}%</div>
+            <div class="progress mt-3" style="height: 8px;">
+                <div class="progress-bar" role="progressbar" 
+                     style="width: {{ crm_metrics.win_rate }}%; background: var(--primary-gradient);"></div>
             </div>
         </div>
     </div>
 
-    {# Average Deal Cycle #}
-    <div class="col-lg-3 col-md-6 mb-4">
-        <div class="card border-0 shadow-sm h-100 card-hover">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div>
-                        <h6 class="text-muted mb-0">Средний цикл сделки</h6>
-                    </div>
-                    <div class="rounded-circle bg-info bg-opacity-10 p-2">
-                        <i class="fas fa-clock text-info"></i>
-                    </div>
-                </div>
-                <h2 class="mb-2">{{ crm_metrics.avg_cycle_days }}</h2>
-                <small class="text-muted">дней от создания до закрытия</small>
-                <div class="mt-3">
-                    <div class="d-flex justify-content-between text-muted small">
-                        <span>Оптимально: 5-7 дней</span>
-                        {% if crm_metrics.avg_cycle_days <= 7 %}
-                            <span class="text-success"><i class="fas fa-check-circle"></i></span>
-                        {% else %}
-                            <span class="text-warning"><i class="fas fa-exclamation-triangle"></i></span>
-                        {% endif %}
-                    </div>
+    <!-- Pipeline Value -->
+    <div class="col-md-3 mb-4">
+        <div class="crm-metric-card info">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="metric-icon">
+                    <i class="fas fa-funnel-dollar fa-2x text-info"></i>
                 </div>
             </div>
+            <div class="metric-label">Активные сделки</div>
+            <div class="metric-value text-info">{{ crm_metrics.pipeline_value }}</div>
+            <small class="text-muted">
+                <i class="fas fa-chart-bar me-1"></i>
+                В работе
+            </small>
         </div>
     </div>
 
-    {# Active Pipeline #}
-    <div class="col-lg-3 col-md-6 mb-4">
-        <div class="card border-0 shadow-sm h-100 card-hover">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div>
-                        <h6 class="text-muted mb-0">Активная воронка</h6>
-                    </div>
-                    <div class="rounded-circle bg-warning bg-opacity-10 p-2">
-                        <i class="fas fa-funnel-dollar text-warning"></i>
-                    </div>
-                </div>
-                <h2 class="mb-2">{{ crm_metrics.pipeline_value }}</h2>
-                <small class="text-muted">сделок в работе</small>
-                <div class="mt-3">
-                    <a href="{{ path('app_task_index', {status: 'in_progress'}) }}" class="btn btn-sm btn-outline-primary w-100">
-                        <i class="fas fa-eye me-1"></i> Просмотреть
-                    </a>
+    <!-- Average Cycle -->
+    <div class="col-md-3 mb-4">
+        <div class="crm-metric-card warning">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="metric-icon">
+                    <i class="fas fa-clock fa-2x text-warning"></i>
                 </div>
             </div>
+            <div class="metric-label">Средний цикл</div>
+            <div class="metric-value text-warning">{{ crm_metrics.avg_cycle_days }}</div>
+            <small class="text-muted">
+                <i class="fas fa-calendar-alt me-1"></i>
+                дней
+            </small>
         </div>
     </div>
 </div>
 
-{# Sales Funnel Visualization #}
+<!-- Additional Metrics Row -->
 <div class="row mb-4">
-    <div class="col-lg-8 mb-4">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white border-0 py-3">
-                <h5 class="mb-0">
-                    <i class="fas fa-filter me-2"></i>
-                    Воронка продаж
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="funnel-chart">
-                    {# Pending Stage #}
-                    <div class="funnel-stage" style="width: 100%;">
-                        <div class="funnel-stage-content bg-primary bg-opacity-10 border-primary">
-                            <div class="d-flex justify-content-between align-items-center p-3">
-                                <div>
-                                    <h6 class="mb-0">Новые лиды</h6>
-                                    <small class="text-muted">Первичный контакт</small>
-                                </div>
-                                <div class="text-end">
-                                    <h4 class="mb-0 text-primary">{{ task_stats.pending }}</h4>
-                                    <small class="text-muted">100%</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {# In Progress Stage #}
-                    {% set in_progress_percent = task_stats.pending > 0 ? (crm_metrics.active_deals / task_stats.pending * 100)|round(0) : 0 %}
-                    <div class="funnel-stage" style="width: {{ in_progress_percent }}%;">
-                        <div class="funnel-stage-content bg-info bg-opacity-10 border-info">
-                            <div class="d-flex justify-content-between align-items-center p-3">
-                                <div>
-                                    <h6 class="mb-0">В переговорах</h6>
-                                    <small class="text-muted">Активная работа</small>
-                                </div>
-                                <div class="text-end">
-                                    <h4 class="mb-0 text-info">{{ crm_metrics.active_deals }}</h4>
-                                    <small class="text-muted">{{ in_progress_percent }}%</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {# Completed Stage #}
-                    {% set completed_percent = task_stats.pending > 0 ? (crm_metrics.won_deals / task_stats.pending * 100)|round(0) : 0 %}
-                    <div class="funnel-stage" style="width: {{ completed_percent }}%;">
-                        <div class="funnel-stage-content bg-success bg-opacity-10 border-success">
-                            <div class="d-flex justify-content-between align-items-center p-3">
-                                <div>
-                                    <h6 class="mb-0">Закрыто успешно</h6>
-                                    <small class="text-muted">Сделка завершена</small>
-                                </div>
-                                <div class="text-end">
-                                    <h4 class="mb-0 text-success">{{ crm_metrics.won_deals }}</h4>
-                                    <small class="text-muted">{{ completed_percent }}%</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mt-4 pt-3 border-top">
-                    <div class="row text-center">
-                        <div class="col-4">
-                            <div class="text-muted small">Конверсия 1→2</div>
-                            <div class="h5 mb-0">{{ in_progress_percent }}%</div>
-                        </div>
-                        <div class="col-4">
-                            <div class="text-muted small">Конверсия 2→3</div>
-                            <div class="h5 mb-0">{{ crm_metrics.active_deals > 0 ? ((crm_metrics.won_deals / crm_metrics.active_deals * 100)|round(0)) : 0 }}%</div>
-                        </div>
-                        <div class="col-4">
-                            <div class="text-muted small">Общая конверсия</div>
-                            <div class="h5 mb-0 text-success">{{ crm_metrics.conversion_rate }}%</div>
-                        </div>
-                    </div>
-                </div>
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+            <div class="card-body text-center">
+                <i class="fas fa-handshake fa-2x text-success mb-3"></i>
+                <h5 class="mb-1">{{ crm_metrics.won_deals }}</h5>
+                <p class="text-muted mb-0 small">Выигранные сделки</p>
             </div>
         </div>
     </div>
-
-    {# Quick Actions #}
-    <div class="col-lg-4 mb-4">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white border-0 py-3">
-                <h5 class="mb-0">
-                    <i class="fas fa-bolt me-2"></i>
-                    Быстрые действия
-                </h5>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+            <div class="card-body text-center">
+                <i class="fas fa-spinner fa-2x text-info mb-3"></i>
+                <h5 class="mb-1">{{ crm_metrics.active_deals }}</h5>
+                <p class="text-muted mb-0 small">Активные сделки</p>
             </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a href="{{ path('app_task_new') }}" class="btn btn-primary btn-lg">
-                        <i class="fas fa-plus-circle me-2"></i>
-                        Новая сделка
-                    </a>
-                    <a href="{{ path('app_task_index', {status: 'pending'}) }}" class="btn btn-outline-primary">
-                        <i class="fas fa-inbox me-2"></i>
-                        Новые лиды ({{ task_stats.pending }})
-                    </a>
-                    <a href="{{ path('app_task_index', {status: 'in_progress'}) }}" class="btn btn-outline-info">
-                        <i class="fas fa-tasks me-2"></i>
-                        В работе ({{ crm_metrics.active_deals }})
-                    </a>
-                    <a href="{{ path('app_task_index', {priority: 'high'}) }}" class="btn btn-outline-danger">
-                        <i class="fas fa-exclamation-circle me-2"></i>
-                        Горячие сделки
-                    </a>
-                </div>
-
-                <hr class="my-3">
-
-                <h6 class="text-muted mb-3">Требуют внимания</h6>
-                <div class="d-grid gap-2">
-                    <a href="{{ path('app_task_index', {overdue: 1}) }}" class="btn btn-sm btn-outline-warning">
-                        <i class="fas fa-clock me-2"></i>
-                        Просроченные
-                    </a>
-                    <a href="{{ path('app_task_index', {due_soon: 1}) }}" class="btn btn-sm btn-outline-info">
-                        <i class="fas fa-calendar-alt me-2"></i>
-                        Срок истекает скоро
-                    </a>
-                </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+            <div class="card-body text-center">
+                <i class="fas fa-hourglass-half fa-2x text-warning mb-3"></i>
+                <h5 class="mb-1">{{ crm_metrics.pending_deals }}</h5>
+                <p class="text-muted mb-0 small">Ожидающие</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+            <div class="card-body text-center">
+                <i class="fas fa-briefcase fa-2x text-primary mb-3"></i>
+                <h5 class="mb-1">{{ crm_metrics.total_deals }}</h5>
+                <p class="text-muted mb-0 small">Всего сделок</p>
             </div>
         </div>
     </div>
 </div>
-
-<style>
-.funnel-chart {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    padding: 20px;
-}
-
-.funnel-stage {
-    margin: 0 auto;
-    transition: all 0.3s ease;
-}
-
-.funnel-stage-content {
-    border: 2px solid;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-}
-
-.funnel-stage:hover .funnel-stage-content {
-    transform: translateX(5px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.card-hover {
-    transition: all 0.3s ease;
-}
-
-.card-hover:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.15) !important;
-}
-</style>
