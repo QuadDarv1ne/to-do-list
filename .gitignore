@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-
 ###> symfony/framework-bundle ###
 /.env.local
 /.env.local.php
@@ -19,57 +17,52 @@
 /public/assets/
 /assets/vendor/
 ###< symfony/asset-mapper ###
-=======
-# Cache and logs (Symfony2)
-/app/cache/*
-/app/logs/*
-!app/cache/.gitkeep
-!app/logs/.gitkeep
 
-# Email spool folder
-/app/spool/*
+###> Редакторы кода (IDE) ###
+/.idea/
+/.vscode/
+*.sublime-*
+###< Редакторы кода (IDE) ###
 
-# Cache, session files and logs (Symfony3)
-/var/cache/*
-/var/logs/*
-/var/sessions/*
-!var/cache/.gitkeep
-!var/logs/.gitkeep
-!var/sessions/.gitkeep
+###> Операционная система ###
+.DS_Store
+Thumbs.db
+###< Операционная система ###
 
-# Logs (Symfony4)
-/var/log/*
-!var/log/.gitkeep
+###> Логи ###
+/var/log/
+*.log
+###< Логи ###
 
-# Parameters
-/app/config/parameters.yml
-/app/config/parameters.ini
+###> Кеш инструментов ###
+/var/cache/
+/.php-cs-fixer.cache
+/.php_cs.cache
+/.phpstan.cache
+/.psalm.cache
+###< Кеш инструментов ###
 
-# Managed by Composer
-/app/bootstrap.php.cache
-/var/bootstrap.php.cache
-/bin/*
-!bin/console
-!bin/symfony_requirements
-/vendor/
-
-# Assets and user uploads
-/web/bundles/
-/web/uploads/
-
-# PHPUnit
-/app/phpunit.xml
+###> Инструменты тестирования ###
+/phpunit.xml.dist
 /phpunit.xml
+/behat.yml
+/.phpunit.result.cache
+/tools/
+###< Инструменты тестирования ###
 
-# Build data
-/build/
+###> Фронтенд (Node, npm, yarn) ###
+/node_modules/
+/package-lock.json
+/yarn.lock
+/public/build/
+###< Фронтенд (Node, npm, yarn) ###
 
-# Composer PHAR
-/composer.phar
+###> Docker ###
+/docker-compose.override.yml
+/.docker/
+###< Docker ###
 
-# Backup entities generated with doctrine:generate:entities command
-**/Entity/*~
-
-# Embedded web-server pid file
-/.web-server-pid
->>>>>>> 8b8dced660cb03a080f3c0affd6b25f3d6f54cd8
+###> Специфичные для окружения ###
+/.env.test.local
+/.env.test
+###< Специфичные для окружения ###

@@ -5,16 +5,11 @@
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "build": "encore production",
-    "dev": "encore dev",
-    "dev-server": "encore dev --watch"
+    "test:coverage": "jest --coverage"
   },
   "devDependencies": {
     "jest": "^29.0.0",
-    "jest-environment-jsdom": "^29.0.0",
-    "@hotwired/stimulus": "^3.0.0",
-    "@symfony/webpack-encore": "^4.0.0"
+    "jest-environment-jsdom": "^29.0.0"
   },
   "jest": {
     "testEnvironment": "jsdom",

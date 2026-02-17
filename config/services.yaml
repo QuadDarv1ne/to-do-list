@@ -65,7 +65,7 @@ services:
 
     # Health check service
     App\Service\HealthCheckService:
-        arguments: ['@database_connection', '@logger', '@service_container', '@kernel', '@request_stack']
+        arguments: ['@database_connection', '@logger', '@service_container', '@kernel', '@request_stack', '@security.authorization_checker', '@twig']
 
     # Health check command
     App\Command\HealthCheckCommand:

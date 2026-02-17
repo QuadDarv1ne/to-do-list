@@ -5,7 +5,7 @@ namespace App\Controller;
 use App\Entity\Tag;
 use App\Form\TagType;
 use App\Repository\TagRepository;
-use App\Service\PerformanceMonitorService;
+use App\Service\PerformanceMonitoringService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,10 +20,10 @@ class TagController extends AbstractController
     #[Route('/', name: 'app_tag_index', methods: ['GET'])]
     public function index(
         TagRepository $tagRepository,
-        ?PerformanceMonitorService $performanceMonitor = null
+        ?PerformanceMonitoringService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('tag_controller_index');
+            $performanceMonitor->startTiming('tag_controller_index');
         }
         
         $user = $this->getUser();
@@ -34,7 +34,7 @@ class TagController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('tag_controller_index');
+                $performanceMonitor->stopTiming('tag_controller_index');
             }
         }
     }
@@ -43,10 +43,10 @@ class TagController extends AbstractController
     public function new(
         Request $request, 
         EntityManagerInterface $entityManager,
-        ?PerformanceMonitorService $performanceMonitor = null
+        ?PerformanceMonitoringService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('tag_controller_new');
+            $performanceMonitor->startTiming('tag_controller_new');
         }
         
         $user = $this->getUser();
@@ -65,7 +65,7 @@ class TagController extends AbstractController
                 return $this->redirectToRoute('app_tag_index', [], Response::HTTP_SEE_OTHER);
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('tag_controller_new');
+                    $performanceMonitor->stopTiming('tag_controller_new');
                 }
             }
         }
@@ -77,7 +77,7 @@ class TagController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('tag_controller_new');
+                $performanceMonitor->stopTiming('tag_controller_new');
             }
         }
     }
@@ -85,10 +85,10 @@ class TagController extends AbstractController
     #[Route('/{id}', name: 'app_tag_show', methods: ['GET'])]
     public function show(
         Tag $tag,
-        ?PerformanceMonitorService $performanceMonitor = null
+        ?PerformanceMonitoringService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('tag_controller_show');
+            $performanceMonitor->startTiming('tag_controller_show');
         }
         
         // Check if the current user owns the tag
@@ -100,7 +100,7 @@ class TagController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('tag_controller_show');
+                $performanceMonitor->stopTiming('tag_controller_show');
             }
         }
     }
@@ -110,10 +110,10 @@ class TagController extends AbstractController
         Request $request, 
         Tag $tag, 
         EntityManagerInterface $entityManager,
-        ?PerformanceMonitorService $performanceMonitor = null
+        ?PerformanceMonitoringService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('tag_controller_edit');
+            $performanceMonitor->startTiming('tag_controller_edit');
         }
         
         // Check if the current user owns the tag
@@ -132,7 +132,7 @@ class TagController extends AbstractController
                 return $this->redirectToRoute('app_tag_index', [], Response::HTTP_SEE_OTHER);
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('tag_controller_edit');
+                    $performanceMonitor->stopTiming('tag_controller_edit');
                 }
             }
         }
@@ -144,49 +144,19 @@ class TagController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('tag_controller_edit');
+                $performanceMonitor->stopTiming('tag_controller_edit');
             }
         }
     }
 
-    #[Route('/{id}', name: 'app_tag_delete', methods: ['POST'])]
-    public function delete(
-        Request $request, 
-        Tag $tag, 
-        EntityManagerInterface $entityManager,
-        ?PerformanceMonitorService $performanceMonitor = null
-    ): Response {
-        if ($performanceMonitor) {
-            $performanceMonitor->startTimer('tag_controller_delete');
-        }
-        
-        // Check if the current user owns the tag
-        $this->denyAccessUnlessGranted('delete', $tag);
-        
-        if ($this->isCsrfTokenValid('delete'.$tag->getId(), $request->request->get('_token'))) {
-            $entityManager->remove($tag);
-            $entityManager->flush();
-
-            $this->addFlash('success', 'Тег успешно удален.');
-        }
-
-        try {
-            return $this->redirectToRoute('app_tag_index', [], Response::HTTP_SEE_OTHER);
-        } finally {
-            if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('tag_controller_delete');
-            }
-        }
-    }
-    
     #[Route('/create-ajax', name: 'app_tag_create_ajax', methods: ['POST'])]
     public function createAjax(
         Request $request, 
         EntityManagerInterface $entityManager,
-        ?PerformanceMonitorService $performanceMonitor = null
+        ?PerformanceMonitoringService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
-            $performanceMonitor->startTimer('tag_controller_create_ajax');
+            $performanceMonitor->startTiming('tag_controller_create_ajax');
         }
         
         $user = $this->getUser();
@@ -203,7 +173,7 @@ class TagController extends AbstractController
                 ], 400);
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('tag_controller_create_ajax');
+                    $performanceMonitor->stopTiming('tag_controller_create_ajax');
                 }
             }
         }
@@ -225,7 +195,7 @@ class TagController extends AbstractController
                 ]);
             } finally {
                 if ($performanceMonitor) {
-                    $performanceMonitor->stopTimer('tag_controller_create_ajax');
+                    $performanceMonitor->stopTiming('tag_controller_create_ajax');
                 }
             }
         }
@@ -252,7 +222,37 @@ class TagController extends AbstractController
             ]);
         } finally {
             if ($performanceMonitor) {
-                $performanceMonitor->stopTimer('tag_controller_create_ajax');
+                $performanceMonitor->stopTiming('tag_controller_create_ajax');
+            }
+        }
+    }
+    
+    #[Route('/{id}', name: 'app_tag_delete', methods: ['POST'])]
+    public function delete(
+        Request $request, 
+        Tag $tag, 
+        EntityManagerInterface $entityManager,
+        ?PerformanceMonitoringService $performanceMonitor = null
+    ): Response {
+        if ($performanceMonitor) {
+            $performanceMonitor->startTiming('tag_controller_delete');
+        }
+        
+        // Check if the current user owns the tag
+        $this->denyAccessUnlessGranted('delete', $tag);
+        
+        if ($this->isCsrfTokenValid('delete'.$tag->getId(), $request->request->get('_token'))) {
+            $entityManager->remove($tag);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Тег успешно удален.');
+        }
+
+        try {
+            return $this->redirectToRoute('app_tag_index', [], Response::HTTP_SEE_OTHER);
+        } finally {
+            if ($performanceMonitor) {
+                $performanceMonitor->stopTiming('tag_controller_delete');
             }
         }
     }
