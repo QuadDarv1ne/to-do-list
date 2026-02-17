@@ -875,7 +875,26 @@ class TaskRepository extends ServiceEntityRepository
             ->addSelect('u', 'au', 'c', 'tg', 'cm', 'al', 'nt', 'dep', 'dt', 'tt', 'r')
             ->where('t.id = :id')
             ->setParameter('id', $id)
-            ->getQuery()
             ->getOneOrNullResult();
+    }
+    
+    /**
+     * Find tasks with upcoming deadlines (within next 24 hours)
+     */
+    public function findTasksWithUpcomingDeadlines(): array
+    {
+        $now = new \DateTime();
+        $tomorrow = (clone $now)->modify('+1 day');
+        
+        return $this->createQueryBuilder('t')
+            ->andWhere('t.dueDate >= :now')
+            ->andWhere('t.dueDate <= :tomorrow')
+            ->andWhere('t.status != :completed')
+            ->setParameter('now', $now)
+            ->setParameter('tomorrow', $tomorrow)
+            ->setParameter('completed', 'completed')
+            ->orderBy('t.dueDate', 'ASC')
+            ->getQuery()
+            ->getResult();
     }
 }
