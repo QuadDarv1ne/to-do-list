@@ -18,7 +18,7 @@ class SmartSearchService
     /**
      * Smart search across all entities
      */
-    public function search(string $query, User $user, array $filters = []): array
+    public function search(string $query, User $user, array $options = []): array
     {
         $results = [
             'tasks' => [],
@@ -28,23 +28,21 @@ class SmartSearchService
         ];
 
         // Search tasks
-        if (!isset($filters['type']) || $filters['type'] === 'tasks') {
-            $results['tasks'] = $this->searchTasks($query, $user, $filters);
+        if (!isset($options['entities']) || in_array('tasks', $options['entities'])) {
+            $results['tasks'] = $this->searchTasks($query, $user, $options);
         }
 
         // Search comments
-        if (!isset($filters['type']) || $filters['type'] === 'comments') {
-            $results['comments'] = $this->searchComments($query, $user);
+        if (!isset($options['entities']) || in_array('comments', $options['entities'])) {
+            $results['comments'] = $this->searchComments($query, $user, $options);
         }
 
         // Search users
-        if (!isset($filters['type']) || $filters['type'] === 'users') {
-            $results['users'] = $this->searchUsers($query);
+        if (!isset($options['entities']) || in_array('users', $options['entities'])) {
+            $results['users'] = $this->searchUsers($query, $options);
         }
 
-        $results['total'] = count($results['tasks']) + 
-                           count($results['comments']) + 
-                           count($results['users']);
+        $results['total'] = count($results['tasks']) + count($results['comments']) + count($results['users']);
 
         return $results;
     }
@@ -52,70 +50,76 @@ class SmartSearchService
     /**
      * Search tasks
      */
-    private function searchTasks(string $query, User $user, array $filters): array
+    private function searchTasks(string $query, User $user, array $options): array
     {
         $qb = $this->taskRepository->createQueryBuilder('t')
             ->where('t.user = :user OR t.assignedUser = :user')
             ->andWhere('(t.title LIKE :query OR t.description LIKE :query)')
             ->setParameter('user', $user)
-            ->setParameter('query', '%' . $query . '%');
+            ->setParameter('query', '%' . $query . '%')
+            ->orderBy('t.createdAt', 'DESC');
 
         // Apply filters
-        if (isset($filters['status'])) {
+        if (isset($options['status'])) {
             $qb->andWhere('t.status = :status')
-               ->setParameter('status', $filters['status']);
+               ->setParameter('status', $options['status']);
         }
 
-        if (isset($filters['priority'])) {
+        if (isset($options['priority'])) {
             $qb->andWhere('t.priority = :priority')
-               ->setParameter('priority', $filters['priority']);
+               ->setParameter('priority', $options['priority']);
         }
 
-        if (isset($filters['category'])) {
+        if (isset($options['category'])) {
             $qb->andWhere('t.category = :category')
-               ->setParameter('category', $filters['category']);
+               ->setParameter('category', $options['category']);
         }
 
-        return $qb->orderBy('t.createdAt', 'DESC')
-                  ->setMaxResults(20)
-                  ->getQuery()
-                  ->getResult();
+        $limit = $options['limit'] ?? 10;
+        $qb->setMaxResults($limit);
+
+        return $qb->getQuery()->getResult();
     }
 
     /**
      * Search comments
      */
-    private function searchComments(string $query, User $user): array
+    private function searchComments(string $query, User $user, array $options): array
     {
-        return $this->commentRepository->createQueryBuilder('c')
+        $qb = $this->commentRepository->createQueryBuilder('c')
             ->join('c.task', 't')
             ->where('t.user = :user OR t.assignedUser = :user')
             ->andWhere('c.content LIKE :query')
             ->setParameter('user', $user)
             ->setParameter('query', '%' . $query . '%')
-            ->orderBy('c.createdAt', 'DESC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult();
+            ->orderBy('c.createdAt', 'DESC');
+
+        $limit = $options['limit'] ?? 10;
+        $qb->setMaxResults($limit);
+
+        return $qb->getQuery()->getResult();
     }
 
     /**
      * Search users
      */
-    private function searchUsers(string $query): array
+    private function searchUsers(string $query, array $options): array
     {
-        return $this->userRepository->createQueryBuilder('u')
+        $qb = $this->userRepository->createQueryBuilder('u')
             ->where('u.username LIKE :query OR u.email LIKE :query OR u.fullName LIKE :query')
             ->setParameter('query', '%' . $query . '%')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult();
+            ->orderBy('u.fullName', 'ASC');
+
+        $limit = $options['limit'] ?? 10;
+        $qb->setMaxResults($limit);
+
+        return $qb->getQuery()->getResult();
     }
 
     /**
      * Get search suggestions
      */
-    public function getSuggestions(string $query, User $user): array
+    public function getSuggestions(string $query, User $user, int $limit = 5): array
     {
         $suggestions = [];
 
@@ -132,7 +136,7 @@ class SmartSearchService
             ->andWhere('t.title LIKE :query')
             ->setParameter('user', $user)
             ->setParameter('query', $query . '%')
-            ->setMaxResults(5)
+            ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
 
@@ -144,82 +148,111 @@ class SmartSearchService
     }
 
     /**
-     * Get search history
+     * Advanced search with filters
      */
-    public function getSearchHistory(User $user, int $limit = 10): array
-    {
-        // TODO: Get from database
-        return [];
-    }
-
-    /**
-     * Save search query
-     */
-    public function saveSearch(string $query, User $user): void
-    {
-        // TODO: Save to database
-    }
-
-    /**
-     * Get popular searches
-     */
-    public function getPopularSearches(int $limit = 10): array
-    {
-        // TODO: Get from database
-        return [];
-    }
-
-    /**
-     * Advanced search with multiple criteria
-     */
-    public function advancedSearch(array $criteria, User $user): array
+    public function advancedSearch(array $filters, User $user): array
     {
         $qb = $this->taskRepository->createQueryBuilder('t')
             ->where('t.user = :user OR t.assignedUser = :user')
             ->setParameter('user', $user);
 
-        if (isset($criteria['title'])) {
-            $qb->andWhere('t.title LIKE :title')
-               ->setParameter('title', '%' . $criteria['title'] . '%');
+        // Text search
+        if (!empty($filters['query'])) {
+            $qb->andWhere('(t.title LIKE :query OR t.description LIKE :query)')
+               ->setParameter('query', '%' . $filters['query'] . '%');
         }
 
-        if (isset($criteria['description'])) {
-            $qb->andWhere('t.description LIKE :description')
-               ->setParameter('description', '%' . $criteria['description'] . '%');
-        }
-
-        if (isset($criteria['status'])) {
+        // Status filter
+        if (!empty($filters['status'])) {
             $qb->andWhere('t.status IN (:statuses)')
-               ->setParameter('statuses', $criteria['status']);
+               ->setParameter('statuses', $filters['status']);
         }
 
-        if (isset($criteria['priority'])) {
+        // Priority filter
+        if (!empty($filters['priority'])) {
             $qb->andWhere('t.priority IN (:priorities)')
-               ->setParameter('priorities', $criteria['priority']);
+               ->setParameter('priorities', $filters['priority']);
         }
 
-        if (isset($criteria['deadline_from'])) {
-            $qb->andWhere('t.deadline >= :deadline_from')
-               ->setParameter('deadline_from', $criteria['deadline_from']);
+        // Category filter
+        if (!empty($filters['category'])) {
+            $qb->andWhere('t.category IN (:categories)')
+               ->setParameter('categories', $filters['category']);
         }
 
-        if (isset($criteria['deadline_to'])) {
-            $qb->andWhere('t.deadline <= :deadline_to')
-               ->setParameter('deadline_to', $criteria['deadline_to']);
+        // Date range
+        if (!empty($filters['date_from'])) {
+            $qb->andWhere('t.createdAt >= :dateFrom')
+               ->setParameter('dateFrom', new \DateTime($filters['date_from']));
         }
 
-        if (isset($criteria['created_from'])) {
-            $qb->andWhere('t.createdAt >= :created_from')
-               ->setParameter('created_from', $criteria['created_from']);
+        if (!empty($filters['date_to'])) {
+            $qb->andWhere('t.createdAt <= :dateTo')
+               ->setParameter('dateTo', new \DateTime($filters['date_to']));
         }
 
-        if (isset($criteria['created_to'])) {
-            $qb->andWhere('t.createdAt <= :created_to')
-               ->setParameter('created_to', $criteria['created_to']);
+        // Deadline range
+        if (!empty($filters['deadline_from'])) {
+            $qb->andWhere('t.deadline >= :deadlineFrom')
+               ->setParameter('deadlineFrom', new \DateTime($filters['deadline_from']));
         }
 
-        return $qb->orderBy('t.createdAt', 'DESC')
-                  ->getQuery()
-                  ->getResult();
+        if (!empty($filters['deadline_to'])) {
+            $qb->andWhere('t.deadline <= :deadlineTo')
+               ->setParameter('deadlineTo', new \DateTime($filters['deadline_to']));
+        }
+
+        // Assigned user
+        if (!empty($filters['assigned_user'])) {
+            $qb->andWhere('t.assignedUser = :assignedUser')
+               ->setParameter('assignedUser', $filters['assigned_user']);
+        }
+
+        // Has deadline
+        if (isset($filters['has_deadline'])) {
+            if ($filters['has_deadline']) {
+                $qb->andWhere('t.deadline IS NOT NULL');
+            } else {
+                $qb->andWhere('t.deadline IS NULL');
+            }
+        }
+
+        // Is overdue
+        if (isset($filters['is_overdue']) && $filters['is_overdue']) {
+            $qb->andWhere('t.deadline < :now')
+               ->andWhere('t.status != :completed')
+               ->setParameter('now', new \DateTime())
+               ->setParameter('completed', 'completed');
+        }
+
+        // Sorting
+        $sortBy = $filters['sort_by'] ?? 'createdAt';
+        $sortOrder = $filters['sort_order'] ?? 'DESC';
+        $qb->orderBy('t.' . $sortBy, $sortOrder);
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * Save search query
+     */
+    public function saveSearch(string $name, array $filters, User $user): array
+    {
+        // TODO: Save to database
+        return [
+            'name' => $name,
+            'filters' => $filters,
+            'user_id' => $user->getId(),
+            'created_at' => new \DateTime()
+        ];
+    }
+
+    /**
+     * Get saved searches
+     */
+    public function getSavedSearches(User $user): array
+    {
+        // TODO: Get from database
+        return [];
     }
 }

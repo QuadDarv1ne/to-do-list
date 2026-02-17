@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ filter_info.name ?? 'Результаты фильтра' }}{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>
+            <i class="fas {{ filter_info.icon ?? 'fa-filter' }}"></i>
+            {{ filter_info.name ?? 'Результаты фильтра' }}
+        </h1>
+        <div>
+            <a href="{{ path('app_filters') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Все фильтры
+            </a>
+        </div>
+    </div>
+
+    {% if filter_info %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            {{ filter_info.description }}
+        </div>
+    {% endif %}
+
+    <p class="text-muted">Найдено задач: {{ tasks|length }}</p>
+
+    {% if tasks is empty %}
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i>
+            Нет задач, соответствующих этому фильтру
+        </div>
+    {% else %}
+        <div class="list-group">
+            {% for task in tasks %}
+                <a href="{{ path('app_task_show', {id: task.id}) }}" 
+                   class="list-group-item list-group-item-action">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h5 class="mb-1">{{ task.title }}</h5>
+                            <p class="mb-1 text-muted">{{ task.description|slice(0, 100) }}...</p>
+                            <small>
+                                <span class="badge bg-{{ task.priority == 'urgent' ? 'danger' : (task.priority == 'high' ? 'warning' : 'info') }}">
+                                    {{ task.priority }}
+                                </span>
+                                <span class="badge bg-secondary">{{ task.status }}</span>
+                                {% if task.category %}
+                                    <span class="badge bg-primary">{{ task.category.name }}</span>
+                                {% endif %}
+                                {% if task.deadline %}
+                                    <span class="badge bg-warning">
+                                        <i class="fas fa-calendar"></i> {{ task.deadline|date('d.m.Y') }}
+                                    </span>
+                                {% endif %}
+                            </small>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted">{{ task.createdAt|date('d.m.Y H:i') }}</small>
+                        </div>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

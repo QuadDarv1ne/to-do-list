@@ -1,0 +1,181 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Статистика{% endblock %}
+
+{% block body %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-chart-bar"></i> Статистика</h1>
+        <div>
+            <a href="{{ path('app_statistics_compare') }}" class="btn btn-info">
+                <i class="fas fa-exchange-alt"></i> Сравнить периоды
+            </a>
+            <a href="{{ path('app_statistics_export') }}" class="btn btn-success">
+                <i class="fas fa-download"></i> Экспорт
+            </a>
+        </div>
+    </div>
+
+    <!-- Period Selector -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-5">
+                    <label class="form-label">От</label>
+                    <input type="date" name="from" class="form-control" value="{{ from|date('Y-m-d') }}">
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label">До</label>
+                    <input type="date" name="to" class="form-control" value="{{ to|date('Y-m-d') }}">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> Показать
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Overview -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-primary">{{ stats.overview.total }}</h3>
+                    <p class="text-muted mb-0">Всего задач</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-success">{{ stats.overview.completed }}</h3>
+                    <p class="text-muted mb-0">Завершено</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-warning">{{ stats.overview.in_progress }}</h3>
+                    <p class="text-muted mb-0">В процессе</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-info">{{ stats.overview.completion_rate }}%</h3>
+                    <p class="text-muted mb-0">Процент завершения</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="row">
+        <!-- By Status -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>По статусу</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- By Priority -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>По приоритету</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="priorityChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- By Day -->
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>По дням</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="dayChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- By Category -->
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>По категориям</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Status Chart
+new Chart(document.getElementById('statusChart'), {
+    type: 'pie',
+    data: {
+        labels: Object.keys({{ stats.by_status|json_encode|raw }}),
+        datasets: [{
+            data: Object.values({{ stats.by_status|json_encode|raw }}),
+            backgroundColor: ['#6c757d', '#ffc107', '#28a745', '#dc3545']
+        }]
+    }
+});
+
+// Priority Chart
+new Chart(document.getElementById('priorityChart'), {
+    type: 'doughnut',
+    data: {
+        labels: Object.keys({{ stats.by_priority|json_encode|raw }}),
+        datasets: [{
+            data: Object.values({{ stats.by_priority|json_encode|raw }}),
+            backgroundColor: ['#6c757d', '#17a2b8', '#ffc107', '#dc3545']
+        }]
+    }
+});
+
+// Day Chart
+new Chart(document.getElementById('dayChart'), {
+    type: 'line',
+    data: {
+        labels: Object.keys({{ stats.by_day|json_encode|raw }}),
+        datasets: [{
+            label: 'Задачи',
+            data: Object.values({{ stats.by_day|json_encode|raw }}),
+            borderColor: '#007bff',
+            tension: 0.1
+        }]
+    }
+});
+
+// Category Chart
+new Chart(document.getElementById('categoryChart'), {
+    type: 'bar',
+    data: {
+        labels: Object.keys({{ stats.by_category|json_encode|raw }}),
+        datasets: [{
+            label: 'Задачи',
+            data: Object.values({{ stats.by_category|json_encode|raw }}),
+            backgroundColor: '#007bff'
+        }]
+    }
+});
+</script>
+{% endblock %}

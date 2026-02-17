@@ -11,7 +11,8 @@ class TaskAutomationService
 {
     public function __construct(
         private TaskRepository $taskRepository,
-        private EntityManagerInterface $entityManager
+        private EntityManagerInterface $entityManager,
+        private NotificationService $notificationService
     ) {}
 
     /**
@@ -30,41 +31,30 @@ class TaskAutomationService
             ->getResult();
 
         foreach ($tasks as $task) {
-            // TODO: Implement assignment logic
-            // - Based on category expertise
-            // - Based on workload
-            // - Based on past performance
-            $assigned++;
+            $user = $this->findBestAssignee($task);
+            if ($user) {
+                $task->setAssignedUser($user);
+                $assigned++;
+            }
         }
+
+        $this->entityManager->flush();
 
         return $assigned;
     }
 
     /**
-     * Auto-close completed tasks after X days
+     * Find best assignee for task
      */
-    public function autoCloseCompletedTasks(int $daysOld = 30): int
+    private function findBestAssignee(Task $task): ?User
     {
-        $closed = 0;
-        $cutoffDate = new \DateTime("-{$daysOld} days");
-
-        $tasks = $this->taskRepository->createQueryBuilder('t')
-            ->where('t.status = :completed')
-            ->andWhere('t.completedAt < :cutoff')
-            ->setParameter('completed', 'completed')
-            ->setParameter('cutoff', $cutoffDate)
-            ->getQuery()
-            ->getResult();
-
-        foreach ($tasks as $task) {
-            // Archive or mark as closed
-            $task->setStatus('archived');
-            $closed++;
-        }
-
-        $this->entityManager->flush();
-
-        return $closed;
+        // TODO: Implement smart assignment logic
+        // - Check user workload
+        // - Check user skills/categories
+        // - Check past performance
+        // - Check availability
+        
+        return null;
     }
 
     /**
@@ -87,13 +77,21 @@ class TaskAutomationService
 
         foreach ($tasks as $task) {
             // Escalate priority
-            if ($task->getPriority() === 'low') {
-                $task->setPriority('medium');
-            } elseif ($task->getPriority() === 'medium') {
-                $task->setPriority('high');
-            } elseif ($task->getPriority() === 'high') {
-                $task->setPriority('urgent');
+            $oldPriority = $task->getPriority();
+            $newPriority = match($oldPriority) {
+                'low' => 'medium',
+                'medium' => 'high',
+                'high' => 'urgent',
+                default => 'urgent'
+            };
+
+            $task->setPriority($newPriority);
+            
+            // Notify
+            if ($task->getAssignedUser()) {
+                $this->notificationService->notifyTaskEscalated($task, $oldPriority, $newPriority);
             }
+
             $escalated++;
         }
 
@@ -103,81 +101,66 @@ class TaskAutomationService
     }
 
     /**
-     * Auto-tag tasks based on content
+     * Auto-complete tasks with all subtasks done
      */
-    public function autoTagTasks(): int
+    public function autoCompleteParentTasks(): int
     {
-        $tagged = 0;
+        $completed = 0;
 
-        // Get tasks without tags
-        $tasks = $this->taskRepository->createQueryBuilder('t')
-            ->leftJoin('t.tags', 'tag')
-            ->having('COUNT(tag.id) = 0')
-            ->groupBy('t.id')
-            ->getQuery()
-            ->getResult();
-
-        foreach ($tasks as $task) {
-            // Analyze title and description for keywords
-            $keywords = $this->extractKeywords($task);
-            
-            // TODO: Create and add tags
-            $tagged++;
-        }
-
-        return $tagged;
+        // TODO: Implement when subtasks are added
+        
+        return $completed;
     }
 
     /**
-     * Extract keywords from task
+     * Auto-archive old completed tasks
      */
-    private function extractKeywords(Task $task): array
+    public function autoArchiveOldTasks(int $daysOld = 90): int
     {
-        $text = strtolower($task->getTitle() . ' ' . $task->getDescription());
-        
-        $keywords = [
-            'bug' => ['bug', 'ошибка', 'баг', 'error'],
-            'feature' => ['feature', 'функция', 'новое'],
-            'urgent' => ['urgent', 'срочно', 'asap'],
-            'meeting' => ['meeting', 'встреча', 'созвон'],
-            'documentation' => ['doc', 'документация', 'readme'],
-            'testing' => ['test', 'тест', 'qa'],
-            'deployment' => ['deploy', 'развертывание', 'релиз']
-        ];
+        $archived = 0;
+        $cutoffDate = new \DateTime("-{$daysOld} days");
 
-        $found = [];
-        foreach ($keywords as $tag => $patterns) {
-            foreach ($patterns as $pattern) {
-                if (str_contains($text, $pattern)) {
-                    $found[] = $tag;
-                    break;
-                }
-            }
-        }
-
-        return array_unique($found);
-    }
-
-    /**
-     * Auto-update task status based on activity
-     */
-    public function autoUpdateStatus(): int
-    {
-        $updated = 0;
-
-        // Tasks in progress with no activity for 7 days -> back to pending
-        $cutoffDate = new \DateTime('-7 days');
-        
         $tasks = $this->taskRepository->createQueryBuilder('t')
-            ->where('t.status = :in_progress')
-            ->andWhere('t.updatedAt < :cutoff')
-            ->setParameter('in_progress', 'in_progress')
+            ->where('t.status = :completed')
+            ->andWhere('t.completedAt < :cutoff')
+            ->setParameter('completed', 'completed')
             ->setParameter('cutoff', $cutoffDate)
             ->getQuery()
             ->getResult();
 
         foreach ($tasks as $task) {
+            // TODO: Move to archive table or set archived flag
+            $archived++;
+        }
+
+        return $archived;
+    }
+
+    /**
+     * Auto-update task status based on activity
+     */
+    public function autoUpdateStaleTaskStatus(): int
+    {
+        $updated = 0;
+        $staleDate = new \DateTime('-7 days');
+
+        $tasks = $this->taskRepository->createQueryBuilder('t')
+            ->where('t.status = :in_progress')
+            ->andWhere('t.updatedAt < :staleDate')
+            ->setParameter('in_progress', 'in_progress')
+            ->setParameter('staleDate', $staleDate)
+            ->getQuery()
+            ->getResult();
+
+        foreach ($tasks as $task) {
+            // Mark as stale or pending
             $task->setStatus('pending');
+            
+            // Notify assignee
+            if ($task->getAssignedUser()) {
+                $this->notificationService->notifyTaskStale($task);
+            }
+
             $updated++;
         }
 
@@ -187,52 +170,68 @@ class TaskAutomationService
     }
 
     /**
-     * Get automation rules
+     * Create automation rule
      */
-    public function getRules(): array
+    public function createRule(array $config): array
     {
+        // TODO: Save to database
         return [
-            'auto_assign' => [
-                'name' => 'Автоназначение задач',
-                'description' => 'Автоматически назначать задачи на основе правил',
-                'enabled' => true
-            ],
-            'auto_close' => [
-                'name' => 'Автозакрытие завершенных',
-                'description' => 'Закрывать завершенные задачи через 30 дней',
-                'enabled' => true
-            ],
-            'auto_escalate' => [
-                'name' => 'Автоэскалация просроченных',
-                'description' => 'Повышать приоритет просроченных задач',
-                'enabled' => true
-            ],
-            'auto_tag' => [
-                'name' => 'Автотегирование',
-                'description' => 'Автоматически добавлять теги на основе содержимого',
-                'enabled' => false
-            ],
-            'auto_status' => [
-                'name' => 'Автообновление статуса',
-                'description' => 'Обновлять статус неактивных задач',
-                'enabled' => true
-            ]
+            'id' => uniqid(),
+            'name' => $config['name'],
+            'trigger' => $config['trigger'],
+            'conditions' => $config['conditions'],
+            'actions' => $config['actions'],
+            'enabled' => true,
+            'created_at' => new \DateTime()
         ];
     }
 
     /**
-     * Run all automation rules
+     * Get automation rules
      */
-    public function runAllAutomations(): array
+    public function getRules(): array
     {
-        $results = [
-            'auto_assigned' => $this->autoAssignTasks(),
-            'auto_closed' => $this->autoCloseCompletedTasks(),
-            'auto_escalated' => $this->autoEscalateOverdueTasks(),
-            'auto_tagged' => $this->autoTagTasks(),
-            'auto_status_updated' => $this->autoUpdateStatus()
-        ];
+        // TODO: Get from database
+        return [];
+    }
 
-        return $results;
+    /**
+     * Execute automation rules
+     */
+    public function executeRules(): int
+    {
+        $executed = 0;
+
+        $rules = $this->getRules();
+
+        foreach ($rules as $rule) {
+            if ($rule['enabled']) {
+                $this->executeRule($rule);
+                $executed++;
+            }
+        }
+
+        return $executed;
+    }
+
+    /**
+     * Execute single rule
+     */
+    private function executeRule(array $rule): void
+    {
+        // TODO: Implement rule execution engine
+    }
+
+    /**
+     * Get automation statistics
+     */
+    public function getStatistics(): array
+    {
+        return [
+            'total_rules' => count($this->getRules()),
+            'active_rules' => 0,
+            'total_executions' => 0,
+            'last_execution' => null
+        ];
     }
 }

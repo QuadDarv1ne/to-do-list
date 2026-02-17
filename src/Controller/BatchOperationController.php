@@ -31,16 +31,12 @@ class BatchOperationController extends AbstractController
         $taskIds = $data['task_ids'] ?? [];
         $status = $data['status'] ?? '';
 
-        if (empty($taskIds) || empty($status)) {
-            return $this->json(['error' => 'Неверные параметры'], 400);
-        }
-
         $count = $this->batchService->batchUpdateStatus($taskIds, $status);
 
         return $this->json([
             'success' => true,
             'count' => $count,
-            'message' => "Обновлено задач: {$count}"
+            'message' => sprintf('Обновлено %d задач', $count)
         ]);
     }
 
@@ -54,16 +50,12 @@ class BatchOperationController extends AbstractController
         $taskIds = $data['task_ids'] ?? [];
         $priority = $data['priority'] ?? '';
 
-        if (empty($taskIds) || empty($priority)) {
-            return $this->json(['error' => 'Неверные параметры'], 400);
-        }
-
         $count = $this->batchService->batchUpdatePriority($taskIds, $priority);
 
         return $this->json([
             'success' => true,
             'count' => $count,
-            'message' => "Обновлено задач: {$count}"
+            'message' => sprintf('Обновлено %d задач', $count)
         ]);
     }
 
@@ -77,13 +69,9 @@ class BatchOperationController extends AbstractController
         $taskIds = $data['task_ids'] ?? [];
         $userId = $data['user_id'] ?? null;
 
-        if (empty($taskIds) || !$userId) {
-            return $this->json(['error' => 'Неверные параметры'], 400);
-        }
-
         $user = $this->userRepository->find($userId);
         if (!$user) {
-            return $this->json(['error' => 'Пользователь не найден'], 404);
+            return $this->json(['success' => false, 'message' => 'Пользователь не найден'], 404);
         }
 
         $count = $this->batchService->batchAssign($taskIds, $user);
@@ -91,7 +79,7 @@ class BatchOperationController extends AbstractController
         return $this->json([
             'success' => true,
             'count' => $count,
-            'message' => "Назначено задач: {$count}"
+            'message' => sprintf('Назначено %d задач', $count)
         ]);
     }
 
@@ -104,39 +92,30 @@ class BatchOperationController extends AbstractController
         $data = json_decode($request->getContent(), true);
         $taskIds = $data['task_ids'] ?? [];
 
-        if (empty($taskIds)) {
-            return $this->json(['error' => 'Неверные параметры'], 400);
-        }
-
         $count = $this->batchService->batchDelete($taskIds);
 
         return $this->json([
             'success' => true,
             'count' => $count,
-            'message' => "Удалено задач: {$count}"
+            'message' => sprintf('Удалено %d задач', $count)
         ]);
     }
 
     /**
-     * Batch duplicate
+     * Batch complete
      */
-    #[Route('/duplicate', name: 'app_batch_duplicate', methods: ['POST'])]
-    public function duplicate(Request $request): JsonResponse
+    #[Route('/complete', name: 'app_batch_complete', methods: ['POST'])]
+    public function complete(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
         $taskIds = $data['task_ids'] ?? [];
 
-        if (empty($taskIds)) {
-            return $this->json(['error' => 'Неверные параметры'], 400);
-        }
-
-        $user = $this->getUser();
-        $duplicated = $this->batchService->batchDuplicate($taskIds, $user);
+        $count = $this->batchService->batchComplete($taskIds);
 
         return $this->json([
             'success' => true,
-            'count' => count($duplicated),
-            'message' => "Создано копий: " . count($duplicated)
+            'count' => $count,
+            'message' => sprintf('Завершено %d задач', $count)
         ]);
     }
 
@@ -150,17 +129,36 @@ class BatchOperationController extends AbstractController
         $taskIds = $data['task_ids'] ?? [];
         $categoryId = $data['category_id'] ?? null;
 
-        if (empty($taskIds)) {
-            return $this->json(['error' => 'Неверные параметры'], 400);
+        $category = $this->entityManager->getRepository('App\Entity\Category')->find($categoryId);
+        if (!$category) {
+            return $this->json(['success' => false, 'message' => 'Категория не найдена'], 404);
         }
 
-        $category = $categoryId ? $this->entityManager->getRepository('App\Entity\Category')->find($categoryId) : null;
         $count = $this->batchService->batchMoveToCategory($taskIds, $category);
 
         return $this->json([
             'success' => true,
             'count' => $count,
-            'message' => "Перемещено задач: {$count}"
+            'message' => sprintf('Перемещено %d задач', $count)
+        ]);
+    }
+
+    /**
+     * Batch update deadline
+     */
+    #[Route('/deadline', name: 'app_batch_deadline', methods: ['POST'])]
+    public function updateDeadline(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $taskIds = $data['task_ids'] ?? [];
+        $deadline = new \DateTime($data['deadline'] ?? 'now');
+
+        $count = $this->batchService->batchUpdateDeadline($taskIds, $deadline);
+
+        return $this->json([
+            'success' => true,
+            'count' => $count,
+            'message' => sprintf('Обновлено %d задач', $count)
         ]);
     }
 }

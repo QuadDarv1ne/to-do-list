@@ -2,48 +2,47 @@
 
 namespace App\Controller;
 
-use App\Entity\Task;
-use App\Service\TemplateService;
+use App\Service\TaskTemplateLibraryService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/templates')]
-#[IsGranted('ROLE_USER')]
 class TemplateController extends AbstractController
 {
     public function __construct(
-        private TemplateService $templateService
+        private TaskTemplateLibraryService $templateService
     ) {}
 
-    /**
-     * Templates page
-     */
-    #[Route('', name: 'app_templates', methods: ['GET'])]
+    #[Route('', name: 'app_templates_index')]
     public function index(): Response
     {
-        $predefined = $this->templateService->getPredefinedTemplates();
-        $userTemplates = $this->templateService->getUserTemplates($this->getUser());
-        $stats = $this->templateService->getTemplateStats();
+        $templates = $this->templateService->getAllTemplates();
+        $categories = $this->templateService->getCategories();
+        $user = $this->getUser();
+        $customTemplates = $this->templateService->getUserCustomTemplates($user);
 
         return $this->render('templates/index.html.twig', [
-            'predefined' => $predefined,
-            'user_templates' => $userTemplates,
-            'stats' => $stats
+            'templates' => $templates,
+            'categories' => $categories,
+            'custom_templates' => $customTemplates
         ]);
     }
 
-    /**
-     * Get template by key
-     */
-    #[Route('/get/{key}', name: 'app_templates_get', methods: ['GET'])]
-    public function getTemplate(string $key): JsonResponse
+    #[Route('/api/all', name: 'app_templates_api_all')]
+    public function apiAll(): JsonResponse
+    {
+        $templates = $this->templateService->getAllTemplates();
+        return $this->json($templates);
+    }
+
+    #[Route('/api/{key}', name: 'app_templates_api_get')]
+    public function apiGet(string $key): JsonResponse
     {
         $template = $this->templateService->getTemplate($key);
-
+        
         if (!$template) {
             return $this->json(['error' => 'Template not found'], 404);
         }
@@ -51,37 +50,57 @@ class TemplateController extends AbstractController
         return $this->json($template);
     }
 
-    /**
-     * Create task from template
-     */
-    #[Route('/create/{key}', name: 'app_templates_create', methods: ['POST'])]
-    public function createFromTemplate(string $key): Response
+    #[Route('/create-from/{key}', name: 'app_templates_create_from', methods: ['POST'])]
+    public function createFrom(string $key, Request $request): JsonResponse
     {
-        $template = $this->templateService->getTemplate($key);
+        $user = $this->getUser();
+        $overrides = $request->request->all();
 
-        if (!$template) {
-            $this->addFlash('error', 'Шаблон не найден');
-            return $this->redirectToRoute('app_templates');
+        try {
+            $task = $this->templateService->createFromTemplate($key, $user, $overrides);
+            
+            return $this->json([
+                'success' => true,
+                'task_id' => $task->getId(),
+                'redirect' => $this->generateUrl('app_task_show', ['id' => $task->getId()])
+            ]);
+        } catch (\Exception $e) {
+            return $this->json(['error' => $e->getMessage()], 400);
         }
-
-        // Redirect to task creation with template data
-        return $this->redirectToRoute('app_task_new', [
-            'template' => $key
-        ]);
     }
 
-    /**
-     * Get all templates as JSON
-     */
-    #[Route('/api/list', name: 'app_templates_api_list', methods: ['GET'])]
-    public function apiList(): JsonResponse
+    #[Route('/category/{category}', name: 'app_templates_by_category')]
+    public function byCategory(string $category): JsonResponse
     {
-        $predefined = $this->templateService->getPredefinedTemplates();
-        $userTemplates = $this->templateService->getUserTemplates($this->getUser());
+        $templates = $this->templateService->getTemplatesByCategory($category);
+        return $this->json($templates);
+    }
 
-        return $this->json([
-            'predefined' => $predefined,
-            'user_templates' => $userTemplates
-        ]);
+    #[Route('/search', name: 'app_templates_search')]
+    public function search(Request $request): JsonResponse
+    {
+        $query = $request->query->get('q', '');
+        $templates = $this->templateService->searchTemplates($query);
+        
+        return $this->json($templates);
+    }
+
+    #[Route('/custom/create', name: 'app_templates_custom_create', methods: ['POST'])]
+    public function createCustom(Request $request): JsonResponse
+    {
+        $name = $request->request->get('name');
+        $template = $request->request->get('template');
+        $user = $this->getUser();
+
+        $customTemplate = $this->templateService->createCustomTemplate($name, $template, $user);
+
+        return $this->json($customTemplate);
+    }
+
+    #[Route('/popular', name: 'app_templates_popular')]
+    public function popular(): JsonResponse
+    {
+        $templates = $this->templateService->getPopularTemplates(5);
+        return $this->json($templates);
     }
 }

@@ -1,94 +1,51 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Performance Metrics{% endblock %}
+{% block title %}Производительность{% endblock %}
 
 {% block body %}
-<div class="container-fluid">
+<div class="container-fluid mt-4">
     <div class="row">
         <div class="col-12">
-            <h1>Performance Metrics Dashboard</h1>
-            <hr>
+            <h1><i class="fas fa-chart-line"></i> Производительность</h1>
         </div>
     </div>
 
-    <div class="row mb-4">
+    <div class="row mt-4">
         <div class="col-md-3">
-            <div class="card card-enhanced bg-primary text-white">
+            <div class="card text-center">
                 <div class="card-body">
-                    <h5 class="card-title">Environment</h5>
-                    <p class="card-text">{{ performance_data.environment }}</p>
+                    <h6 class="text-muted">Оценка продуктивности</h6>
+                    <h2 class="text-primary">{{ metrics.productivity_score|number_format(1) }}</h2>
+                    <small>/100</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card card-enhanced bg-success text-white">
-                <div class="card-body">
-                    <h5 class="card-title">Current Memory</h5>
-                    <p class="card-text">{{ performance_data.current_memory_usage }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card card-enhanced bg-info text-white">
-                <div class="card-body">
-                    <h5 class="card-title">Peak Memory</h5>
-                    <p class="card-text">{{ performance_data.peak_memory_usage }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card card-enhanced bg-warning text-dark">
-                <div class="card-body">
-                    <h5 class="card-title">Uptime</h5>
-                    <p class="card-text">{{ performance_data.uptime }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <div class="row">
-        <div class="col-md-6">
-            <div class="card card-enhanced">
-                <div class="card-header">
-                    <h5>Server Information</h5>
-                </div>
+        <div class="col-md-3">
+            <div class="card text-center">
                 <div class="card-body">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">
-                            <strong>PHP Version:</strong> {{ performance_data.server_info.php_version }}
-                        </li>
-                        <li class="list-group-item">
-                            <strong>OS Family:</strong> {{ performance_data.server_info.os }}
-                        </li>
-                        <li class="list-group-item">
-                            <strong>Server Software:</strong> {{ performance_data.server_info.server_software }}
-                        </li>
-                    </ul>
+                    <h6 class="text-muted">Оценка эффективности</h6>
+                    <h2 class="text-success">{{ metrics.efficiency_score|number_format(1) }}</h2>
+                    <small>/100</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="card card-enhanced">
-                <div class="card-header">
-                    <h5>Cache Information</h5>
-                </div>
+
+        <div class="col-md-3">
+            <div class="card text-center">
                 <div class="card-body">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">
-                            <strong>Cache Status:</strong> 
-                            {% if performance_data.cache_info.cache_enabled %}
-                                <span class="badge bg-success">Enabled</span>
-                            {% else %}
-                                <span class="badge bg-warning">Disabled</span>
-                            {% endif %}
-                        </li>
-                        <li class="list-group-item">
-                            <strong>Data Collected:</strong> {{ performance_data.collection_timestamp }}
-                        </li>
-                        <li class="list-group-item">
-                            <strong>Report Type:</strong> {{ performance_data.report_type }}
-                        </li>
-                    </ul>
+                    <h6 class="text-muted">Завершено задач</h6>
+                    <h2 class="text-info">{{ metrics.tasks_completed }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="text-muted">Скорость</h6>
+                    <h2 class="text-warning">{{ metrics.velocity|number_format(1) }}</h2>
+                    <small>задач/день</small>
                 </div>
             </div>
         </div>
@@ -96,227 +53,34 @@
 
     <div class="row mt-4">
         <div class="col-12">
-            <div class="card card-enhanced">
+            <div class="card">
                 <div class="card-header">
-                    <h5>Health Status</h5>
+                    <h5>Тренд производительности</h5>
                 </div>
                 <div class="card-body">
-                    <div id="health-status" class="alert alert-info">
-                        Checking health status...
-                    </div>
-                    <button class="btn btn-primary btn-enhanced" onclick="checkHealth()">Refresh Health Status</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card card-enhanced">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5>Slow Queries</h5>
-                    <button class="btn btn-sm btn-warning btn-enhanced" onclick="clearSlowQueries()">Clear Slow Queries</button>
-                </div>
-                <div class="card-body">
-                    <div id="slow-queries-list">
-                        Loading slow queries...
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card card-enhanced">
-                <div class="card-header">
-                    <h5>Detailed Metrics</h5>
-                </div>
-                <div class="card-body">
-                    <div id="detailed-metrics">
-                        Loading detailed metrics...
-                    </div>
+                    <canvas id="trendChart"></canvas>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-async function checkHealth() {
-    const healthDiv = document.getElementById('health-status');
-    healthDiv.innerHTML = 'Checking...';
-    healthDiv.className = 'alert alert-info';
-    
-    try {
-        const response = await fetch('{{ path('app_performance_health') }}');
-        const data = await response.json();
-        
-        let statusClass = 'alert-info';
-        if (data.status === 'healthy') {
-            statusClass = 'alert-success';
-        } else if (data.status === 'warning') {
-            statusClass = 'alert-warning';
-        } else if (data.status === 'critical') {
-            statusClass = 'alert-danger';
-        }
-        
-        healthDiv.innerHTML = `
-            <strong>Status:</strong> ${data.status}<br>
-            <strong>Timestamp:</strong> ${data.timestamp}<br>
-            <strong>Memory Check:</strong> ${data.checks.memory_usage_normal ? 'OK' : 'HIGH'}<br>
-            <strong>Environment:</strong> ${data.checks.environment}
-        `;
-        healthDiv.className = `alert ${statusClass}`;
-    } catch (error) {
-        healthDiv.innerHTML = 'Error checking health status: ' + error.message;
-        healthDiv.className = 'alert alert-danger';
-    }
-}
+const trendData = {{ trend|json_encode|raw }};
 
-async function loadSlowQueries() {
-    const slowQueriesDiv = document.getElementById('slow-queries-list');
-    slowQueriesDiv.innerHTML = 'Loading slow queries...';
-    
-    try {
-        const response = await fetch('{{ path('app_performance_slow_queries') }}');
-        const data = await response.json();
-        
-        if (data.length === 0) {
-            slowQueriesDiv.innerHTML = '<p class="text-muted">No slow queries recorded</p>';
-            return;
-        }
-        
-        let html = `<div class="table-responsive"><table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Query</th>
-                    <th>Source</th>
-                    <th>Execution Time (ms)</th>
-                    <th>Memory Used</th>
-                    <th>Timestamp</th>
-                </tr>
-            </thead>
-            <tbody>`;
-            
-        data.forEach(query => {
-            html += `<tr>
-                <td class="text-wrap" style="max-width: 200px;">${query.query.substring(0, 100)}${query.query.length > 100 ? '...' : ''}</td>
-                <td>${query.source}</td>
-                <td>${query.execution_time_ms}</td>
-                <td>${query.memory_used_bytes}</td>
-                <td>${query.timestamp}</td>
-            </tr>`;
-        });
-        
-        html += '</tbody></table></div>';
-        slowQueriesDiv.innerHTML = html;
-    } catch (error) {
-        slowQueriesDiv.innerHTML = 'Error loading slow queries: ' + error.message;
+const ctx = document.getElementById('trendChart').getContext('2d');
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: trendData.map(d => d.week),
+        datasets: [{
+            label: 'Оценка продуктивности',
+            data: trendData.map(d => d.productivity_score),
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1
+        }]
     }
-}
-
-async function loadDetailedMetrics() {
-    const detailedMetricsDiv = document.getElementById('detailed-metrics');
-    detailedMetricsDiv.innerHTML = 'Loading detailed metrics...';
-    
-    try {
-        const response = await fetch('{{ path('app_performance_detailed') }}');
-        const data = await response.json();
-        
-        let html = `;
-        // Display system load
-        if (data.system_load) {
-            html += `<div class="row mb-3">
-                <div class="col-md-4">
-                    <div class="card card-enhanced bg-light">
-                        <div class="card-body">
-                            <h6 class="card-title">Load Average (1 min)</h6>
-                            <p class="card-text">${data.system_load.load_avg_1min}</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card card-enhanced bg-light">
-                        <div class="card-body">
-                            <h6 class="card-title">Load Average (5 min)</h6>
-                            <p class="card-text">${data.system_load.load_avg_5min}</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card card-enhanced bg-light">
-                        <div class="card-body">
-                            <h6 class="card-title">Load Average (15 min)</h6>
-                            <p class="card-text">${data.system_load.load_avg_15min}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>`;
-        }
-        
-        // Display database info
-        if (data.database_info) {
-            html += `<div class="row mb-3">
-                <div class="col-md-6">
-                    <div class="card card-enhanced">
-                        <div class="card-header">Database Info</div>
-                        <div class="card-body">
-                            <p class="mb-1">Slow Queries: <span class="badge badge-animated bg-warning">${data.database_info.slow_query_count}</span></p>
-                            <p class="mb-1">Threshold: ${data.database_info.slow_query_threshold}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>`;
-        }
-        
-        // Display request info
-        if (data.request_info) {
-            html += `<div class="row">
-                <div class="col-md-6">
-                    <div class="card card-enhanced">
-                        <div class="card-header">Request Info</div>
-                        <div class="card-body">
-                            <p class="mb-1">Method: <code>${data.request_info.method}</code></p>
-                            <p class="mb-1">URI: <code>${data.request_info.uri}</code></p>
-                            <p class="mb-1">IP: <code>${data.request_info.ip}</code></p>
-                        </div>
-                    </div>
-                </div>
-            </div>`;
-        }
-        
-        detailedMetricsDiv.innerHTML = html;
-    } catch (error) {
-        detailedMetricsDiv.innerHTML = 'Error loading detailed metrics: ' + error.message;
-    }
-}
-
-async function clearSlowQueries() {
-    try {
-        const response = await fetch('{{ path('app_performance_clear_slow_queries') }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            loadSlowQueries(); // Reload the slow queries list
-            alert(data.message);
-        }
-    } catch (error) {
-        alert('Error clearing slow queries: ' + error.message);
-    }
-}
-
-// Initial health check and metrics loading
-document.addEventListener('DOMContentLoaded', function() {
-    checkHealth();
-    loadSlowQueries();
-    loadDetailedMetrics();
 });
 </script>
 {% endblock %}

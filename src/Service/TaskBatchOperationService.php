@@ -157,35 +157,24 @@ class TaskBatchOperationService
     }
 
     /**
-     * Batch duplicate tasks
+     * Batch complete
      */
-    public function batchDuplicate(array $taskIds, User $user): array
+    public function batchComplete(array $taskIds): int
     {
-        $duplicated = [];
+        $count = 0;
 
         foreach ($taskIds as $taskId) {
-            $original = $this->taskRepository->find($taskId);
-            if ($original) {
-                $duplicate = new Task();
-                $duplicate->setTitle($original->getTitle() . ' (копия)');
-                $duplicate->setDescription($original->getDescription());
-                $duplicate->setPriority($original->getPriority());
-                $duplicate->setStatus('pending');
-                $duplicate->setUser($user);
-                $duplicate->setCategory($original->getCategory());
-
-                foreach ($original->getTags() as $tag) {
-                    $duplicate->addTag($tag);
-                }
-
-                $this->entityManager->persist($duplicate);
-                $duplicated[] = $duplicate;
+            $task = $this->taskRepository->find($taskId);
+            if ($task) {
+                $task->setStatus('completed');
+                $task->setCompletedAt(new \DateTime());
+                $count++;
             }
         }
 
         $this->entityManager->flush();
 
-        return $duplicated;
+        return $count;
     }
 
     /**

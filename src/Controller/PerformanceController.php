@@ -2,102 +2,105 @@
 
 namespace App\Controller;
 
-use App\Service\AnalyticsService;
-use App\Service\PerformanceMonitoringService;
+use App\Service\PerformanceMetricsService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/performance')]
-#[IsGranted('ROLE_ADMIN')]
 class PerformanceController extends AbstractController
 {
-    private PerformanceMonitoringService $performanceMonitor;
-    private AnalyticsService $analyticsService;
-
     public function __construct(
-        PerformanceMonitoringService $performanceMonitor,
-        AnalyticsService $analyticsService
-    ) {
-        $this->performanceMonitor = $performanceMonitor;
-        $this->analyticsService = $analyticsService;
-    }
+        private PerformanceMetricsService $metricsService
+    ) {}
 
-    #[Route('/', name: 'app_performance_index', methods: ['GET'])]
+    #[Route('', name: 'app_performance_index')]
     public function index(): Response
     {
-        $performanceData = $this->performanceMonitor->getPerformanceReport();
-        
+        $user = $this->getUser();
+        $from = new \DateTime('first day of this month');
+        $to = new \DateTime();
+
+        $metrics = $this->metricsService->getUserMetrics($user, $from, $to);
+        $trend = $this->metricsService->getPerformanceTrend($user, 4);
+
         return $this->render('performance/index.html.twig', [
-            'performance_data' => $performanceData
+            'metrics' => $metrics,
+            'trend' => $trend
         ]);
     }
 
-    #[Route('/metrics', name: 'app_performance_metrics', methods: ['GET'])]
-    public function getMetrics(): JsonResponse
+    #[Route('/api/metrics', name: 'app_performance_api_metrics')]
+    public function apiMetrics(Request $request): JsonResponse
     {
-        $performanceData = $this->performanceMonitor->getPerformanceReport();
-        
-        return $this->json($performanceData);
+        $user = $this->getUser();
+        $period = $request->query->get('period', 'month');
+
+        $from = match($period) {
+            'today' => new \DateTime('today'),
+            'week' => new \DateTime('monday this week'),
+            'month' => new \DateTime('first day of this month'),
+            'year' => new \DateTime('first day of january this year'),
+            default => new \DateTime('first day of this month')
+        };
+        $to = new \DateTime();
+
+        $metrics = $this->metricsService->getUserMetrics($user, $from, $to);
+
+        return $this->json($metrics);
     }
 
-    #[Route('/system', name: 'app_performance_system', methods: ['GET'])]
-    public function getSystemMetrics(): JsonResponse
+    #[Route('/api/trend', name: 'app_performance_api_trend')]
+    public function apiTrend(Request $request): JsonResponse
     {
-        $systemMetrics = $this->analyticsService->getSystemPerformanceMetrics();
-        
-        return $this->json($systemMetrics);
+        $user = $this->getUser();
+        $weeks = (int)$request->query->get('weeks', 4);
+
+        $trend = $this->metricsService->getPerformanceTrend($user, $weeks);
+
+        return $this->json($trend);
     }
 
-    #[Route('/detailed', name: 'app_performance_detailed', methods: ['GET'])]
-    public function getDetailedMetrics(): JsonResponse
+    #[Route('/export', name: 'app_performance_export')]
+    public function export(Request $request): Response
     {
-        $detailedMetrics = $this->performanceMonitor->getPerformanceReport();
-        
-        return $this->json($detailedMetrics);
+        $user = $this->getUser();
+        $from = new \DateTime('first day of this month');
+        $to = new \DateTime();
+
+        $metrics = $this->metricsService->getUserMetrics($user, $from, $to);
+        $csv = $this->metricsService->exportMetricsToCSV($metrics);
+
+        return new Response($csv, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="performance.csv"'
+        ]);
     }
 
-    #[Route('/slow-queries', name: 'app_performance_slow_queries', methods: ['GET'])]
-    public function getSlowQueries(): JsonResponse
+    #[Route('/team', name: 'app_performance_team')]
+    public function team(Request $request): JsonResponse
     {
-        $slowQueries = $this->performanceMonitor->getSlowOperations();
-        
-        return $this->json($slowQueries);
+        $userIds = $request->query->all('user_ids');
+        $from = new \DateTime('first day of this month');
+        $to = new \DateTime();
+
+        $teamMetrics = $this->metricsService->getTeamMetrics($userIds, $from, $to);
+
+        return $this->json($teamMetrics);
     }
 
-    #[Route('/clear-slow-queries', name: 'app_performance_clear_slow_queries', methods: ['POST'])]
-    public function clearSlowQueries(): JsonResponse
+    #[Route('/leaderboard', name: 'app_performance_leaderboard')]
+    public function leaderboard(Request $request): JsonResponse
     {
-        $this->performanceMonitor->clearMetrics();
-        
-        return $this->json(['success' => true, 'message' => 'Slow queries cleared']);
-    }
+        $userIds = $request->query->all('user_ids');
+        $from = new \DateTime('first day of this month');
+        $to = new \DateTime();
+        $limit = (int)$request->query->get('limit', 10);
 
-    #[Route('/health', name: 'app_performance_health', methods: ['GET'])]
-    public function healthCheck(): JsonResponse
-    {
-        $performanceData = $this->performanceMonitor->getPerformanceReport();
-        
-        // Determine health status based on metrics
-        $healthStatus = [
-            'status' => 'healthy',
-            'timestamp' => date('Y-m-d H:i:s'),
-            'metrics' => $performanceData,
-            'checks' => [
-                'memory_usage_normal' => $performanceData['current_memory_usage_bytes'] < 500 * 1024 * 1024, // Less than 500MB
-                'environment' => $performanceData['environment']
-            ]
-        ];
+        $leaderboard = $this->metricsService->getLeaderboard($userIds, $from, $to, $limit);
 
-        // Adjust status if any issues are detected
-        if ($performanceData['current_memory_usage_bytes'] > 1000 * 1024 * 1024) { // More than 1GB
-            $healthStatus['status'] = 'critical';
-        } elseif ($performanceData['current_memory_usage_bytes'] > 750 * 1024 * 1024) { // More than 750MB
-            $healthStatus['status'] = 'warning';
-        }
-
-        return $this->json($healthStatus);
+        return $this->json($leaderboard);
     }
 }

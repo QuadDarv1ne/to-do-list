@@ -4,119 +4,12 @@ namespace App\Service;
 
 use App\Entity\User;
 use App\Repository\TaskRepository;
-use Doctrine\ORM\QueryBuilder;
 
 class TaskFilterService
 {
     public function __construct(
         private TaskRepository $taskRepository
     ) {}
-
-    /**
-     * Apply filters to query builder
-     */
-    public function applyFilters(QueryBuilder $qb, array $filters, User $user): QueryBuilder
-    {
-        // User filter
-        if (!isset($filters['show_all']) || !$filters['show_all']) {
-            $qb->andWhere('t.user = :user OR t.assignedUser = :user')
-               ->setParameter('user', $user);
-        }
-
-        // Status filter
-        if (isset($filters['status']) && !empty($filters['status'])) {
-            if (is_array($filters['status'])) {
-                $qb->andWhere('t.status IN (:statuses)')
-                   ->setParameter('statuses', $filters['status']);
-            } else {
-                $qb->andWhere('t.status = :status')
-                   ->setParameter('status', $filters['status']);
-            }
-        }
-
-        // Priority filter
-        if (isset($filters['priority']) && !empty($filters['priority'])) {
-            if (is_array($filters['priority'])) {
-                $qb->andWhere('t.priority IN (:priorities)')
-                   ->setParameter('priorities', $filters['priority']);
-            } else {
-                $qb->andWhere('t.priority = :priority')
-                   ->setParameter('priority', $filters['priority']);
-            }
-        }
-
-        // Category filter
-        if (isset($filters['category']) && !empty($filters['category'])) {
-            $qb->andWhere('t.category = :category')
-               ->setParameter('category', $filters['category']);
-        }
-
-        // Assigned user filter
-        if (isset($filters['assigned_to']) && !empty($filters['assigned_to'])) {
-            $qb->andWhere('t.assignedUser = :assignedUser')
-               ->setParameter('assignedUser', $filters['assigned_to']);
-        }
-
-        // Date range filter
-        if (isset($filters['date_from']) && !empty($filters['date_from'])) {
-            $qb->andWhere('t.createdAt >= :dateFrom')
-               ->setParameter('dateFrom', new \DateTime($filters['date_from']));
-        }
-
-        if (isset($filters['date_to']) && !empty($filters['date_to'])) {
-            $qb->andWhere('t.createdAt <= :dateTo')
-               ->setParameter('dateTo', new \DateTime($filters['date_to']));
-        }
-
-        // Deadline filter
-        if (isset($filters['deadline_from']) && !empty($filters['deadline_from'])) {
-            $qb->andWhere('t.deadline >= :deadlineFrom')
-               ->setParameter('deadlineFrom', new \DateTime($filters['deadline_from']));
-        }
-
-        if (isset($filters['deadline_to']) && !empty($filters['deadline_to'])) {
-            $qb->andWhere('t.deadline <= :deadlineTo')
-               ->setParameter('deadlineTo', new \DateTime($filters['deadline_to']));
-        }
-
-        // Overdue filter
-        if (isset($filters['overdue']) && $filters['overdue']) {
-            $qb->andWhere('t.deadline < :now')
-               ->andWhere('t.status != :completed')
-               ->setParameter('now', new \DateTime())
-               ->setParameter('completed', 'completed');
-        }
-
-        // Has deadline filter
-        if (isset($filters['has_deadline'])) {
-            if ($filters['has_deadline']) {
-                $qb->andWhere('t.deadline IS NOT NULL');
-            } else {
-                $qb->andWhere('t.deadline IS NULL');
-            }
-        }
-
-        // Tags filter
-        if (isset($filters['tags']) && !empty($filters['tags'])) {
-            $qb->leftJoin('t.tags', 'tag')
-               ->andWhere('tag.id IN (:tags)')
-               ->setParameter('tags', $filters['tags']);
-        }
-
-        // Search query
-        if (isset($filters['search']) && !empty($filters['search'])) {
-            $qb->andWhere('t.title LIKE :search OR t.description LIKE :search')
-               ->setParameter('search', '%' . $filters['search'] . '%');
-        }
-
-        // Sorting
-        $sortField = $filters['sort_by'] ?? 'createdAt';
-        $sortOrder = $filters['sort_order'] ?? 'DESC';
-        
-        $qb->orderBy('t.' . $sortField, $sortOrder);
-
-        return $qb;
-    }
 
     /**
      * Get predefined filters
@@ -127,69 +20,209 @@ class TaskFilterService
             'my_tasks' => [
                 'name' => 'Мои задачи',
                 'icon' => 'fa-user',
-                'filters' => ['show_all' => false]
+                'description' => 'Задачи, созданные мной',
+                'filter' => ['created_by_me' => true]
             ],
             'assigned_to_me' => [
                 'name' => 'Назначенные мне',
                 'icon' => 'fa-user-check',
-                'filters' => ['assigned_to' => 'current_user']
+                'description' => 'Задачи, назначенные мне',
+                'filter' => ['assigned_to_me' => true]
             ],
-            'urgent' => [
-                'name' => 'Срочные',
-                'icon' => 'fa-exclamation-circle',
-                'filters' => ['priority' => 'urgent']
-            ],
-            'overdue' => [
-                'name' => 'Просроченные',
-                'icon' => 'fa-clock',
-                'filters' => ['overdue' => true]
-            ],
-            'in_progress' => [
-                'name' => 'В работе',
-                'icon' => 'fa-spinner',
-                'filters' => ['status' => 'in_progress']
-            ],
-            'completed' => [
-                'name' => 'Завершенные',
-                'icon' => 'fa-check-circle',
-                'filters' => ['status' => 'completed']
+            'today' => [
+                'name' => 'Сегодня',
+                'icon' => 'fa-calendar-day',
+                'description' => 'Задачи на сегодня',
+                'filter' => ['deadline' => 'today']
             ],
             'this_week' => [
                 'name' => 'На этой неделе',
                 'icon' => 'fa-calendar-week',
-                'filters' => [
-                    'deadline_from' => 'monday this week',
-                    'deadline_to' => 'sunday this week'
-                ]
+                'description' => 'Задачи на текущую неделю',
+                'filter' => ['deadline' => 'this_week']
+            ],
+            'overdue' => [
+                'name' => 'Просроченные',
+                'icon' => 'fa-exclamation-triangle',
+                'description' => 'Просроченные задачи',
+                'filter' => ['is_overdue' => true],
+                'color' => 'danger'
+            ],
+            'urgent' => [
+                'name' => 'Срочные',
+                'icon' => 'fa-fire',
+                'description' => 'Срочные задачи',
+                'filter' => ['priority' => 'urgent'],
+                'color' => 'danger'
+            ],
+            'in_progress' => [
+                'name' => 'В процессе',
+                'icon' => 'fa-spinner',
+                'description' => 'Задачи в работе',
+                'filter' => ['status' => 'in_progress'],
+                'color' => 'warning'
+            ],
+            'completed' => [
+                'name' => 'Завершенные',
+                'icon' => 'fa-check-circle',
+                'description' => 'Завершенные задачи',
+                'filter' => ['status' => 'completed'],
+                'color' => 'success'
             ],
             'no_deadline' => [
                 'name' => 'Без дедлайна',
                 'icon' => 'fa-calendar-times',
-                'filters' => ['has_deadline' => false]
+                'description' => 'Задачи без дедлайна',
+                'filter' => ['has_deadline' => false]
+            ],
+            'unassigned' => [
+                'name' => 'Не назначенные',
+                'icon' => 'fa-user-slash',
+                'description' => 'Задачи без исполнителя',
+                'filter' => ['is_unassigned' => true]
             ]
         ];
     }
 
     /**
-     * Save custom filter
+     * Apply filter
      */
-    public function saveCustomFilter(User $user, string $name, array $filters): array
+    public function applyFilter(string $filterKey, User $user): array
+    {
+        $filters = $this->getPredefinedFilters();
+        
+        if (!isset($filters[$filterKey])) {
+            return [];
+        }
+
+        $filter = $filters[$filterKey]['filter'];
+        
+        return $this->executeFilter($filter, $user);
+    }
+
+    /**
+     * Execute filter
+     */
+    private function executeFilter(array $filter, User $user): array
+    {
+        $qb = $this->taskRepository->createQueryBuilder('t');
+
+        // Created by me
+        if (isset($filter['created_by_me']) && $filter['created_by_me']) {
+            $qb->andWhere('t.user = :user')
+               ->setParameter('user', $user);
+        }
+
+        // Assigned to me
+        if (isset($filter['assigned_to_me']) && $filter['assigned_to_me']) {
+            $qb->andWhere('t.assignedUser = :user')
+               ->setParameter('user', $user);
+        }
+
+        // Deadline filters
+        if (isset($filter['deadline'])) {
+            switch ($filter['deadline']) {
+                case 'today':
+                    $start = new \DateTime('today 00:00:00');
+                    $end = new \DateTime('today 23:59:59');
+                    $qb->andWhere('t.deadline BETWEEN :start AND :end')
+                       ->setParameter('start', $start)
+                       ->setParameter('end', $end);
+                    break;
+                case 'this_week':
+                    $start = new \DateTime('monday this week');
+                    $end = new \DateTime('sunday this week');
+                    $qb->andWhere('t.deadline BETWEEN :start AND :end')
+                       ->setParameter('start', $start)
+                       ->setParameter('end', $end);
+                    break;
+            }
+        }
+
+        // Overdue
+        if (isset($filter['is_overdue']) && $filter['is_overdue']) {
+            $qb->andWhere('t.deadline < :now')
+               ->andWhere('t.status != :completed')
+               ->setParameter('now', new \DateTime())
+               ->setParameter('completed', 'completed');
+        }
+
+        // Priority
+        if (isset($filter['priority'])) {
+            $qb->andWhere('t.priority = :priority')
+               ->setParameter('priority', $filter['priority']);
+        }
+
+        // Status
+        if (isset($filter['status'])) {
+            $qb->andWhere('t.status = :status')
+               ->setParameter('status', $filter['status']);
+        }
+
+        // Has deadline
+        if (isset($filter['has_deadline'])) {
+            if ($filter['has_deadline']) {
+                $qb->andWhere('t.deadline IS NOT NULL');
+            } else {
+                $qb->andWhere('t.deadline IS NULL');
+            }
+        }
+
+        // Unassigned
+        if (isset($filter['is_unassigned']) && $filter['is_unassigned']) {
+            $qb->andWhere('t.assignedUser IS NULL');
+        }
+
+        return $qb->orderBy('t.createdAt', 'DESC')
+                  ->getQuery()
+                  ->getResult();
+    }
+
+    /**
+     * Get filter count
+     */
+    public function getFilterCount(string $filterKey, User $user): int
+    {
+        $results = $this->applyFilter($filterKey, $user);
+        return count($results);
+    }
+
+    /**
+     * Get all filter counts
+     */
+    public function getAllFilterCounts(User $user): array
+    {
+        $filters = $this->getPredefinedFilters();
+        $counts = [];
+
+        foreach (array_keys($filters) as $key) {
+            $counts[$key] = $this->getFilterCount($key, $user);
+        }
+
+        return $counts;
+    }
+
+    /**
+     * Create custom filter
+     */
+    public function createCustomFilter(string $name, array $filter, User $user): array
     {
         // TODO: Save to database
         return [
             'id' => uniqid(),
             'name' => $name,
-            'filters' => $filters,
-            'user' => $user
+            'filter' => $filter,
+            'user_id' => $user->getId(),
+            'created_at' => new \DateTime()
         ];
     }
 
     /**
-     * Get user's custom filters
+     * Get user custom filters
      */
-    public function getUserFilters(User $user): array
+    public function getUserCustomFilters(User $user): array
     {
-        // TODO: Load from database
+        // TODO: Get from database
         return [];
     }
 }

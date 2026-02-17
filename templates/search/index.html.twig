@@ -1,0 +1,132 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Поиск{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1><i class="fas fa-search"></i> Поиск</h1>
+
+    <!-- Search Form -->
+    <form action="{{ path('app_search') }}" method="get" class="mb-4">
+        <div class="input-group input-group-lg">
+            <input type="text" 
+                   name="q" 
+                   class="form-control" 
+                   placeholder="Поиск задач, комментариев, пользователей..."
+                   value="{{ query }}"
+                   autofocus>
+            <button class="btn btn-primary" type="submit">
+                <i class="fas fa-search"></i> Искать
+            </button>
+            <a href="{{ path('app_search_advanced') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-sliders-h"></i> Расширенный поиск
+            </a>
+        </div>
+    </form>
+
+    {% if query %}
+        <!-- Results -->
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h6>Фильтры</h6>
+                    </div>
+                    <div class="list-group list-group-flush">
+                        <a href="#tasks" class="list-group-item list-group-item-action">
+                            <i class="fas fa-tasks"></i> Задачи
+                            <span class="badge bg-primary float-end">{{ results.tasks|length }}</span>
+                        </a>
+                        <a href="#comments" class="list-group-item list-group-item-action">
+                            <i class="fas fa-comments"></i> Комментарии
+                            <span class="badge bg-primary float-end">{{ results.comments|length }}</span>
+                        </a>
+                        <a href="#users" class="list-group-item list-group-item-action">
+                            <i class="fas fa-users"></i> Пользователи
+                            <span class="badge bg-primary float-end">{{ results.users|length }}</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-9">
+                {% if results.total == 0 %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        Ничего не найдено по запросу "{{ query }}"
+                    </div>
+                {% else %}
+                    <p class="text-muted">Найдено результатов: {{ results.total }}</p>
+
+                    <!-- Tasks -->
+                    {% if results.tasks is not empty %}
+                        <h3 id="tasks" class="mt-4">Задачи</h3>
+                        <div class="list-group mb-4">
+                            {% for task in results.tasks %}
+                                <a href="{{ path('app_task_show', {id: task.id}) }}" 
+                                   class="list-group-item list-group-item-action">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h5 class="mb-1">{{ task.title }}</h5>
+                                            <p class="mb-1 text-muted">{{ task.description|slice(0, 150) }}...</p>
+                                            <small>
+                                                <span class="badge bg-{{ task.priority == 'urgent' ? 'danger' : 'info' }}">
+                                                    {{ task.priority }}
+                                                </span>
+                                                <span class="badge bg-secondary">{{ task.status }}</span>
+                                            </small>
+                                        </div>
+                                        <small class="text-muted">{{ task.createdAt|date('d.m.Y') }}</small>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <!-- Comments -->
+                    {% if results.comments is not empty %}
+                        <h3 id="comments" class="mt-4">Комментарии</h3>
+                        <div class="list-group mb-4">
+                            {% for comment in results.comments %}
+                                <a href="{{ path('app_task_show', {id: comment.task.id}) }}#comment-{{ comment.id }}" 
+                                   class="list-group-item list-group-item-action">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <p class="mb-1">{{ comment.content|slice(0, 200) }}...</p>
+                                            <small class="text-muted">
+                                                в задаче: {{ comment.task.title }}
+                                            </small>
+                                        </div>
+                                        <small class="text-muted">{{ comment.createdAt|date('d.m.Y') }}</small>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <!-- Users -->
+                    {% if results.users is not empty %}
+                        <h3 id="users" class="mt-4">Пользователи</h3>
+                        <div class="list-group mb-4">
+                            {% for user in results.users %}
+                                <div class="list-group-item">
+                                    <div class="d-flex align-items-center">
+                                        <img src="{{ user.avatarUrl }}" 
+                                             alt="{{ user.fullName }}" 
+                                             class="rounded-circle me-3"
+                                             style="width: 48px; height: 48px;">
+                                        <div>
+                                            <h6 class="mb-0">{{ user.fullName }}</h6>
+                                            <small class="text-muted">@{{ user.username }} • {{ user.email }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

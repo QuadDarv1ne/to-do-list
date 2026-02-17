@@ -1,0 +1,109 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Фильтры задач{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1><i class="fas fa-filter"></i> Фильтры задач</h1>
+
+    <div class="row mt-4">
+        {% for key, filter in filters %}
+            <div class="col-md-6 col-lg-4 mb-3">
+                <a href="{{ path('app_filters_apply', {key: key}) }}" 
+                   class="card text-decoration-none h-100 filter-card"
+                   data-filter="{{ key }}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h5 class="card-title">
+                                    <i class="fas {{ filter.icon }} text-{{ filter.color ?? 'primary' }}"></i>
+                                    {{ filter.name }}
+                                </h5>
+                                <p class="card-text text-muted small">{{ filter.description }}</p>
+                            </div>
+                            <span class="badge bg-{{ filter.color ?? 'primary' }} rounded-pill filter-count" 
+                                  data-filter="{{ key }}">
+                                {{ counts[key] ?? 0 }}
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Custom Filters -->
+    {% if custom_filters is not empty %}
+        <h3 class="mt-5">Пользовательские фильтры</h3>
+        <div class="row mt-3">
+            {% for filter in custom_filters %}
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-star text-warning"></i>
+                                {{ filter.name }}
+                            </h5>
+                            <div class="d-flex justify-content-between">
+                                <a href="#" class="btn btn-sm btn-primary">Применить</a>
+                                <button class="btn btn-sm btn-outline-danger">Удалить</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Create Custom Filter -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5><i class="fas fa-plus"></i> Создать пользовательский фильтр</h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">Создайте свой фильтр с уникальными условиями</p>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createFilterModal">
+                <i class="fas fa-plus"></i> Создать фильтр
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+.filter-card {
+    transition: all 0.3s;
+    border: 2px solid transparent;
+}
+
+.filter-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border-color: var(--bs-primary);
+}
+
+.filter-count {
+    font-size: 1.2rem;
+    min-width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+</style>
+
+<script>
+// Auto-update counts every 30 seconds
+setInterval(function() {
+    fetch('{{ path('app_filters_counts') }}')
+        .then(r => r.json())
+        .then(counts => {
+            document.querySelectorAll('.filter-count').forEach(badge => {
+                const filter = badge.dataset.filter;
+                if (counts[filter] !== undefined) {
+                    badge.textContent = counts[filter];
+                }
+            });
+        });
+}, 30000);
+</script>
+{% endblock %}

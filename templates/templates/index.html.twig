@@ -3,125 +3,53 @@
 {% block title %}Шаблоны задач{% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="fas fa-file-alt"></i> Шаблоны задач</h1>
-        <div>
-            <span class="badge bg-primary">Всего: {{ stats.total_templates }}</span>
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1><i class="fas fa-file-alt"></i> Шаблоны задач</h1>
         </div>
     </div>
 
-    <div class="alert alert-info">
-        <i class="fas fa-info-circle"></i>
-        Используйте шаблоны для быстрого создания типовых задач
-    </div>
-
-    <h3 class="mb-3">Предустановленные шаблоны</h3>
-    
-    <div class="row">
-        {% for key, template in predefined %}
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            <i class="fas fa-file-alt text-primary"></i>
-                            {{ template.name }}
-                        </h5>
-                        
-                        <p class="text-muted small mb-2">
-                            <strong>Заголовок:</strong> {{ template.title }}
-                        </p>
-                        
-                        <div class="mb-2">
-                            <span class="badge bg-{{ template.priority == 'urgent' ? 'danger' : (template.priority == 'high' ? 'warning' : 'info') }}">
-                                {{ template.priority|upper }}
-                            </span>
-                        </div>
-                        
-                        <div class="mb-3">
-                            {% for tag in template.tags %}
-                                <span class="badge bg-secondary">{{ tag }}</span>
-                            {% endfor %}
-                        </div>
-                        
-                        <div class="d-grid gap-2">
-                            <button class="btn btn-primary btn-sm use-template" data-key="{{ key }}">
-                                <i class="fas fa-plus"></i> Использовать шаблон
-                            </button>
-                            <button class="btn btn-outline-secondary btn-sm preview-template" data-key="{{ key }}">
-                                <i class="fas fa-eye"></i> Предпросмотр
-                            </button>
-                        </div>
-                    </div>
+    <div class="row mt-4">
+        {% for key, template in templates %}
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas {{ template.icon }}"></i>
+                        {{ template.name }}
+                    </h5>
+                    <p class="card-text">
+                        <span class="badge bg-secondary">{{ template.category }}</span>
+                    </p>
+                    <button class="btn btn-primary btn-sm use-template" data-key="{{ key }}">
+                        Использовать
+                    </button>
                 </div>
             </div>
+        </div>
         {% endfor %}
     </div>
 </div>
 
-<!-- Preview Modal -->
-<div class="modal fade" id="previewModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Предпросмотр шаблона</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div id="preview-content"></div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-                <button type="button" class="btn btn-primary" id="use-from-preview">
-                    <i class="fas fa-plus"></i> Использовать
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    let currentTemplateKey = null;
-    
-    // Use template
-    document.querySelectorAll('.use-template').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const key = this.dataset.key;
-            window.location.href = '{{ path('app_task_new') }}?template=' + key;
+document.querySelectorAll('.use-template').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+        const key = e.target.dataset.key;
+        const title = prompt('Название задачи:');
+        
+        if (!title) return;
+        
+        const response = await fetch(`/templates/create-from/${key}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({title})
         });
-    });
-    
-    // Preview template
-    document.querySelectorAll('.preview-template').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const key = this.dataset.key;
-            currentTemplateKey = key;
-            
-            fetch('{{ path('app_templates_get', {key: '__KEY__'}) }}'.replace('__KEY__', key))
-                .then(r => r.json())
-                .then(template => {
-                    const content = `
-                        <h4>${template.name}</h4>
-                        <hr>
-                        <p><strong>Заголовок:</strong> ${template.title}</p>
-                        <p><strong>Приоритет:</strong> <span class="badge bg-info">${template.priority}</span></p>
-                        <p><strong>Теги:</strong> ${template.tags.map(t => '<span class="badge bg-secondary">' + t + '</span>').join(' ')}</p>
-                        <hr>
-                        <p><strong>Описание:</strong></p>
-                        <pre class="bg-light p-3 rounded">${template.description}</pre>
-                    `;
-                    
-                    document.getElementById('preview-content').innerHTML = content;
-                    new bootstrap.Modal(document.getElementById('previewModal')).show();
-                });
-        });
-    });
-    
-    // Use from preview
-    document.getElementById('use-from-preview')?.addEventListener('click', function() {
-        if (currentTemplateKey) {
-            window.location.href = '{{ path('app_task_new') }}?template=' + currentTemplateKey;
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            window.location.href = result.redirect;
         }
     });
 });
