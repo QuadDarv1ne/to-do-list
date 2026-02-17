@@ -1,129 +1,573 @@
-{% extends 'base.html.twig' %}
+{% extends 'auth_base.html.twig' %}
 
 {% block title %}Регистрация{% endblock %}
 
+{% block stylesheets %}
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 40px 20px;
+        }
+        
+        .register-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 550px;
+            overflow: hidden;
+            animation: slideUp 0.5s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .register-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .register-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .register-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .register-logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .register-subtitle {
+            opacity: 0.9;
+            font-size: 0.95rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .register-body {
+            padding: 2.5rem 2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .form-label i {
+            margin-right: 0.5rem;
+            color: #3498db;
+        }
+        
+        .form-control {
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 12px 18px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .form-control:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.15);
+            outline: none;
+        }
+        
+        .form-control.is-invalid {
+            border-color: #e74c3c;
+        }
+        
+        .form-control.is-valid {
+            border-color: #27ae60;
+        }
+        
+        .invalid-feedback {
+            color: #e74c3c;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: block;
+        }
+        
+        .input-icon {
+            position: absolute;
+            right: 15px;
+            top: 38px;
+            color: #95a5a6;
+            pointer-events: none;
+        }
+        
+        .password-field-wrapper {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        
+        .password-field-wrapper:last-child {
+            margin-bottom: 0;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #95a5a6;
+            transition: color 0.3s;
+            z-index: 10;
+        }
+        
+        .password-toggle:hover {
+            color: #3498db;
+        }
+        
+        .password-fields {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .password-strength {
+            height: 4px;
+            border-radius: 2px;
+            margin-top: 8px;
+            background: #e9ecef;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        
+        .password-strength-bar {
+            height: 100%;
+            transition: all 0.3s ease;
+            border-radius: 2px;
+        }
+        
+        .password-hint {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .password-hint i {
+            margin-right: 0.5rem;
+        }
+        
+        .btn-register {
+            background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
+            border: none;
+            color: white;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            width: 100%;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-register::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .btn-register:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(52, 152, 219, 0.4);
+        }
+        
+        .btn-register:active {
+            transform: translateY(0);
+        }
+        
+        .btn-register span {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .register-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .register-footer a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .register-footer a:hover {
+            color: #2980b9;
+            text-decoration: underline;
+        }
+        
+        .alert {
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border: none;
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .alert-danger {
+            background-color: #fee;
+            color: #c33;
+        }
+        
+        .row-cols-2 > * {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+        
+        .row-cols-2 {
+            margin-left: -0.5rem;
+            margin-right: -0.5rem;
+        }
+    </style>
+{% endblock %}
+
 {% block body %}
-<div class="container-fluid vh-100 d-flex align-items-center">
-    <div class="row justify-content-center w-100">
-        <div class="col-md-8 col-lg-6 col-xl-5">
-            <div class="card border-0 shadow-lg">
-                <div class="card-header bg-primary text-white text-center py-4">
-                    <div class="mb-3">
-                        <i class="fas fa-user-plus fa-2x"></i>
-                    </div>
-                    <h3 class="card-title mb-0">Регистрация нового пользователя</h3>
-                    <p class="mb-0 mt-2 text-white-50">Создайте аккаунт для начала работы</p>
-                </div>
-                <div class="card-body p-4">
-                    {# Общие ошибки формы #}
-                    {% if registration_form.vars.errors|length > 0 %}
-                        <div class="alert alert-danger alert-dismissible fade show">
-                            {{ form_errors(registration_form) }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    {% endif %}
-                    
-                    {# Flash-сообщения #}
-                    {% for flash_error in app.flashes('verify_email_error') %}
-                        <div class="alert alert-danger alert-dismissible fade show">
-                            {{ flash_error }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    {% endfor %}
-                    
-                    {{ form_start(registration_form, {'attr': {'novalidate': 'novalidate'}}) }}
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            {{ form_row(registration_form.firstName, {
-                                'attr': {'class': 'form-control'},
-                                'row_attr': {'class': 'form-group'}
-                            }) }}
-                        </div>
-                        <div class="col-md-6">
-                            {{ form_row(registration_form.lastName, {
-                                'attr': {'class': 'form-control'},
-                                'row_attr': {'class': 'form-group'}
-                            }) }}
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        {{ form_row(registration_form.username, {
-                            'attr': {'class': 'form-control'},
-                            'row_attr': {'class': 'form-group'}
-                        }) }}
-                    </div>
-                    
-                    <div class="mb-3">
-                        {{ form_row(registration_form.email, {
-                            'attr': {'class': 'form-control'},
-                            'row_attr': {'class': 'form-group'}
-                        }) }}
-                    </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            {{ form_row(registration_form.plainPassword.first, {
-                                'attr': {'class': 'form-control'},
-                                'row_attr': {'class': 'form-group'},
-                                'label': 'Пароль'
-                            }) }}
-                        </div>
-                        <div class="col-md-6">
-                            {{ form_row(registration_form.plainPassword.second, {
-                                'attr': {'class': 'form-control'},
-                                'row_attr': {'class': 'form-group'},
-                                'label': 'Подтверждение пароля'
-                            }) }}
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        {{ form_row(registration_form.phone, {
-                            'attr': {'class': 'form-control'},
-                            'row_attr': {'class': 'form-group'}
-                        }) }}
-                    </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            {{ form_row(registration_form.position, {
-                                'attr': {'class': 'form-control'},
-                                'row_attr': {'class': 'form-group'}
-                            }) }}
-                        </div>
-                        <div class="col-md-6">
-                            {{ form_row(registration_form.department, {
-                                'attr': {'class': 'form-control'},
-                                'row_attr': {'class': 'form-group'}
-                            }) }}
-                        </div>
-                    </div>
-                    
-                    <div class="d-grid gap-2 mb-4">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="fas fa-user-plus me-2"></i>Зарегистрироваться
-                        </button>
-                    </div>
-                    
-                    {{ form_end(registration_form) }}
-                    
-                    <div class="text-center">
-                        <p class="mb-2 text-muted">Уже есть аккаунт?</p>
-                        <a href="{{ path('app_login') }}" class="btn btn-outline-primary">
-                            <i class="fas fa-sign-in-alt me-2"></i>Войти в систему
-                        </a>
-                    </div>
+<div class="register-card">
+    <div class="register-header">
+        <div class="register-icon">
+            <i class="fas fa-user-plus"></i>
+        </div>
+        <div class="register-logo">Регистрация</div>
+        <div class="register-subtitle">CRM система: Анализ продаж</div>
+    </div>
+    
+    <div class="register-body">
+        {% if registration_form.vars.errors|length > 0 %}
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                {{ form_errors(registration_form) }}
+            </div>
+        {% endif %}
+        
+        {% for flash_error in app.flashes('verify_email_error') %}
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                {{ flash_error }}
+            </div>
+        {% endfor %}
+        
+        {{ form_start(registration_form, {'attr': {'novalidate': 'novalidate', 'id': 'registration-form'}}) }}
+        
+        <div class="row row-cols-2">
+            <div class="col">
+                <div class="form-group">
+                    <label for="{{ registration_form.firstName.vars.id }}" class="form-label">
+                        <i class="fas fa-user"></i>Имя
+                    </label>
+                    {{ form_widget(registration_form.firstName, {
+                        'attr': {'class': 'form-control', 'placeholder': 'Иван'}
+                    }) }}
+                    {{ form_errors(registration_form.firstName) }}
                 </div>
             </div>
-            
-            <div class="text-center mt-4">
-                <a href="{{ path('app_dashboard') }}" class="text-muted">
-                    <i class="fas fa-home me-1"></i>Вернуться на главную
-                </a>
+            <div class="col">
+                <div class="form-group">
+                    <label for="{{ registration_form.lastName.vars.id }}" class="form-label">
+                        <i class="fas fa-user"></i>Фамилия
+                    </label>
+                    {{ form_widget(registration_form.lastName, {
+                        'attr': {'class': 'form-control', 'placeholder': 'Иванов'}
+                    }) }}
+                    {{ form_errors(registration_form.lastName) }}
+                </div>
             </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ registration_form.email.vars.id }}" class="form-label">
+                <i class="fas fa-envelope"></i>Email
+            </label>
+            {{ form_widget(registration_form.email, {
+                'attr': {'class': 'form-control', 'placeholder': 'ivanov@dvfarm.ru', 'type': 'email'}
+            }) }}
+            <i class="fas fa-at input-icon"></i>
+            {{ form_errors(registration_form.email) }}
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ registration_form.username.vars.id }}" class="form-label">
+                <i class="fas fa-id-badge"></i>Логин
+            </label>
+            {{ form_widget(registration_form.username, {
+                'attr': {'class': 'form-control', 'placeholder': 'ivanov'}
+            }) }}
+            {{ form_errors(registration_form.username) }}
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">
+                <i class="fas fa-lock"></i>Пароль
+            </label>
+            <div class="password-fields">
+                <div class="password-field-wrapper">
+                    {{ form_widget(registration_form.plainPassword.first, {
+                        'attr': {
+                            'class': 'form-control', 
+                            'placeholder': 'Введите пароль',
+                            'id': 'password-input',
+                            'type': 'password'
+                        }
+                    }) }}
+                    <i class="fas fa-eye password-toggle" id="password-toggle"></i>
+                </div>
+                
+                <div class="password-field-wrapper">
+                    {{ form_widget(registration_form.plainPassword.second, {
+                        'attr': {
+                            'class': 'form-control', 
+                            'placeholder': 'Повторите пароль',
+                            'id': 'password-confirm',
+                            'type': 'password'
+                        }
+                    }) }}
+                    <i class="fas fa-eye password-toggle" id="password-toggle-confirm"></i>
+                </div>
+            </div>
+            <div class="password-strength">
+                <div class="password-strength-bar" id="password-strength-bar"></div>
+            </div>
+            <div class="password-hint">
+                <i class="fas fa-info-circle"></i>
+                <span id="password-hint-text">Используйте заглавные буквы, цифры и символы</span>
+            </div>
+            {{ form_errors(registration_form.plainPassword) }}
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ registration_form.phone.vars.id }}" class="form-label">
+                <i class="fas fa-phone"></i>Телефон
+            </label>
+            {{ form_widget(registration_form.phone, {
+                'attr': {'class': 'form-control', 'placeholder': '+7 (999) 123-45-67'}
+            }) }}
+            {{ form_errors(registration_form.phone) }}
+        </div>
+        
+        <div class="row row-cols-2">
+            <div class="col">
+                <div class="form-group">
+                    <label for="{{ registration_form.position.vars.id }}" class="form-label">
+                        <i class="fas fa-briefcase"></i>Должность
+                    </label>
+                    {{ form_widget(registration_form.position, {
+                        'attr': {'class': 'form-control', 'placeholder': 'Менеджер'}
+                    }) }}
+                    {{ form_errors(registration_form.position) }}
+                </div>
+            </div>
+            <div class="col">
+                <div class="form-group">
+                    <label for="{{ registration_form.department.vars.id }}" class="form-label">
+                        <i class="fas fa-building"></i>Отдел
+                    </label>
+                    {{ form_widget(registration_form.department, {
+                        'attr': {'class': 'form-control', 'placeholder': 'Продажи'}
+                    }) }}
+                    {{ form_errors(registration_form.department) }}
+                </div>
+            </div>
+        </div>
+        
+        <button type="submit" class="btn-register">
+            <span>
+                <i class="fas fa-user-plus me-2"></i>Зарегистрироваться
+            </span>
+        </button>
+        
+        {{ form_end(registration_form) }}
+        
+        <div class="register-footer">
+            <p class="text-muted mb-2">Уже есть аккаунт?</p>
+            <a href="{{ path('app_login') }}">
+                <i class="fas fa-sign-in-alt me-1"></i>Войти в систему
+            </a>
         </div>
     </div>
 </div>
+
+<script>
+// Password strength indicator
+const passwordInput = document.getElementById('password-input');
+const strengthBar = document.getElementById('password-strength-bar');
+const hintText = document.getElementById('password-hint-text');
+const passwordToggle = document.getElementById('password-toggle');
+
+if (passwordInput && strengthBar) {
+    passwordInput.addEventListener('input', function(e) {
+        const password = e.target.value;
+        let strength = 0;
+        let hints = [];
+        
+        if (password.length >= 8) {
+            strength += 25;
+        } else {
+            hints.push('минимум 8 символов');
+        }
+        
+        if (password.match(/[a-z]/) && password.match(/[A-Z]/)) {
+            strength += 25;
+        } else {
+            hints.push('заглавные и строчные буквы');
+        }
+        
+        if (password.match(/[0-9]/)) {
+            strength += 25;
+        } else {
+            hints.push('цифры');
+        }
+        
+        if (password.match(/[^a-zA-Z0-9]/)) {
+            strength += 25;
+        } else {
+            hints.push('спецсимволы');
+        }
+        
+        strengthBar.style.width = strength + '%';
+        
+        if (strength <= 25) {
+            strengthBar.style.backgroundColor = '#e74c3c';
+            hintText.textContent = 'Слабый пароль. Добавьте: ' + hints.join(', ');
+            hintText.style.color = '#e74c3c';
+        } else if (strength <= 50) {
+            strengthBar.style.backgroundColor = '#f39c12';
+            hintText.textContent = 'Средний пароль. Добавьте: ' + hints.join(', ');
+            hintText.style.color = '#f39c12';
+        } else if (strength <= 75) {
+            strengthBar.style.backgroundColor = '#3498db';
+            hintText.textContent = 'Хороший пароль!';
+            hintText.style.color = '#3498db';
+        } else {
+            strengthBar.style.backgroundColor = '#27ae60';
+            hintText.textContent = 'Отличный пароль!';
+            hintText.style.color = '#27ae60';
+        }
+        
+        // Add validation classes
+        if (strength >= 75) {
+            passwordInput.classList.add('is-valid');
+            passwordInput.classList.remove('is-invalid');
+        } else if (password.length > 0) {
+            passwordInput.classList.add('is-invalid');
+            passwordInput.classList.remove('is-valid');
+        }
+    });
+}
+
+// Password toggle
+if (passwordToggle && passwordInput) {
+    passwordToggle.addEventListener('click', function() {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        
+        if (type === 'text') {
+            passwordToggle.classList.remove('fa-eye');
+            passwordToggle.classList.add('fa-eye-slash');
+        } else {
+            passwordToggle.classList.remove('fa-eye-slash');
+            passwordToggle.classList.add('fa-eye');
+        }
+    });
+}
+
+// Form validation
+const form = document.getElementById('registration-form');
+if (form) {
+    form.addEventListener('submit', function(e) {
+        const inputs = form.querySelectorAll('.form-control');
+        let isValid = true;
+        
+        inputs.forEach(input => {
+            if (input.hasAttribute('required') && !input.value.trim()) {
+                input.classList.add('is-invalid');
+                isValid = false;
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Пожалуйста, заполните все обязательные поля');
+        }
+    });
+}
+</script>
 {% endblock %}
