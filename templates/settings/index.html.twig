@@ -1,0 +1,265 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Настройки{% endblock %}
+
+{% block body %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-cog"></i> Меню настроек</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="#profile" class="list-group-item list-group-item-action active" data-bs-toggle="tab">
+                        <i class="fas fa-user"></i> Профиль
+                    </a>
+                    <a href="#dashboard" class="list-group-item list-group-item-action" data-bs-toggle="tab">
+                        <i class="fas fa-th-large"></i> Дашборд
+                    </a>
+                    <a href="#notifications" class="list-group-item list-group-item-action" data-bs-toggle="tab">
+                        <i class="fas fa-bell"></i> Уведомления
+                    </a>
+                    <a href="#theme" class="list-group-item list-group-item-action" data-bs-toggle="tab">
+                        <i class="fas fa-palette"></i> Тема
+                    </a>
+                    <a href="{{ path('app_settings_shortcuts') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-keyboard"></i> Горячие клавиши
+                    </a>
+                    <a href="#export" class="list-group-item list-group-item-action" data-bs-toggle="tab">
+                        <i class="fas fa-download"></i> Экспорт данных
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="tab-content">
+                <!-- Profile Tab -->
+                <div class="tab-pane fade show active" id="profile">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Настройки профиля</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-3 text-center">
+                                    <img src="{{ app.user.avatarUrl }}" alt="{{ app.user.fullName }}" 
+                                         class="rounded-circle" style="width: 120px; height: 120px;">
+                                    <p class="mt-2 text-muted">Аватар через Gravatar</p>
+                                </div>
+                                <div class="col-md-9">
+                                    <div class="mb-3">
+                                        <label class="form-label">Имя пользователя</label>
+                                        <input type="text" class="form-control" value="{{ app.user.username }}" readonly>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Email</label>
+                                        <input type="email" class="form-control" value="{{ app.user.email }}" readonly>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Полное имя</label>
+                                        <input type="text" class="form-control" value="{{ app.user.fullName }}" readonly>
+                                    </div>
+                                    <p class="text-muted">
+                                        <i class="fas fa-info-circle"></i> 
+                                        Для изменения профиля обратитесь к администратору
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dashboard Tab -->
+                <div class="tab-pane fade" id="dashboard">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Настройки дашборда</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted mb-3">Выберите виджеты для отображения на главной странице</p>
+                            
+                            <div class="row" id="widget-selector">
+                                {% for id, widget in available_widgets %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input widget-checkbox" type="checkbox" 
+                                               value="{{ id }}" id="widget_{{ id }}"
+                                               {% if id in user_widgets %}checked{% endif %}>
+                                        <label class="form-check-label" for="widget_{{ id }}">
+                                            <i class="fas {{ widget.icon }}"></i> {{ widget.name }}
+                                            <br>
+                                            <small class="text-muted">{{ widget.description }}</small>
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <button type="button" class="btn btn-primary" id="save-widgets">
+                                <i class="fas fa-save"></i> Сохранить настройки
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notifications Tab -->
+                <div class="tab-pane fade" id="notifications">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Настройки уведомлений</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="email_notifications" checked>
+                                <label class="form-check-label" for="email_notifications">
+                                    Email уведомления
+                                </label>
+                            </div>
+                            
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="push_notifications" checked>
+                                <label class="form-check-label" for="push_notifications">
+                                    Push уведомления
+                                </label>
+                            </div>
+                            
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="deadline_reminders" checked>
+                                <label class="form-check-label" for="deadline_reminders">
+                                    Напоминания о дедлайнах
+                                </label>
+                            </div>
+                            
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="task_assignments" checked>
+                                <label class="form-check-label" for="task_assignments">
+                                    Уведомления о назначении задач
+                                </label>
+                            </div>
+                            
+                            <button type="button" class="btn btn-primary" id="save-notifications">
+                                <i class="fas fa-save"></i> Сохранить настройки
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Theme Tab -->
+                <div class="tab-pane fade" id="theme">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Настройки темы</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted mb-3">Выберите тему оформления</p>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="card theme-card" data-theme="light" style="cursor: pointer;">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-sun fa-3x mb-2"></i>
+                                            <h5>Светлая тема</h5>
+                                            <p class="text-muted">Классическое светлое оформление</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <div class="card theme-card" data-theme="dark" style="cursor: pointer;">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-moon fa-3x mb-2"></i>
+                                            <h5>Темная тема</h5>
+                                            <p class="text-muted">Темное оформление для работы ночью</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Export Tab -->
+                <div class="tab-pane fade" id="export">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Экспорт данных</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted mb-3">Экспортируйте свои данные в формате JSON</p>
+                            
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i>
+                                Экспорт включает информацию о вашем профиле и настройках
+                            </div>
+                            
+                            <a href="{{ path('app_settings_export_data') }}" class="btn btn-primary">
+                                <i class="fas fa-download"></i> Экспортировать данные
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Save widgets
+    document.getElementById('save-widgets')?.addEventListener('click', function() {
+        const widgets = Array.from(document.querySelectorAll('.widget-checkbox:checked'))
+            .map(cb => cb.value);
+        
+        fetch('{{ path('app_settings_widgets') }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({widgets: widgets})
+        })
+        .then(r => r.json())
+        .then(data => {
+            alert(data.message);
+        });
+    });
+    
+    // Save notifications
+    document.getElementById('save-notifications')?.addEventListener('click', function() {
+        const preferences = {
+            email_notifications: document.getElementById('email_notifications').checked,
+            push_notifications: document.getElementById('push_notifications').checked,
+            deadline_reminders: document.getElementById('deadline_reminders').checked,
+            task_assignments: document.getElementById('task_assignments').checked
+        };
+        
+        fetch('{{ path('app_settings_notifications') }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(preferences)
+        })
+        .then(r => r.json())
+        .then(data => {
+            alert(data.message);
+        });
+    });
+    
+    // Theme selection
+    document.querySelectorAll('.theme-card').forEach(card => {
+        card.addEventListener('click', function() {
+            const theme = this.dataset.theme;
+            
+            fetch('{{ path('app_settings_theme') }}', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({theme: theme})
+            })
+            .then(r => r.json())
+            .then(data => {
+                document.body.classList.toggle('dark-theme', theme === 'dark');
+                alert('Тема изменена на: ' + (theme === 'dark' ? 'Темная' : 'Светлая'));
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

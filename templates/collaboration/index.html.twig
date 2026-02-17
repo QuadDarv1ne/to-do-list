@@ -1,0 +1,85 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Коллаборация{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-users"></i> Коллаборация</h1>
+        {% if is_granted('ROLE_MANAGER') %}
+            <div>
+                <a href="{{ path('app_collaboration_workload') }}" class="btn btn-info">
+                    <i class="fas fa-tasks"></i> Нагрузка команды
+                </a>
+                <a href="{{ path('app_collaboration_network') }}" class="btn btn-primary">
+                    <i class="fas fa-project-diagram"></i> Сеть коллаборации
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-primary">{{ stats.assigned_to_others }}</h3>
+                    <p class="text-muted mb-0">Назначено другим</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-success">{{ stats.assigned_from_others }}</h3>
+                    <p class="text-muted mb-0">Получено от других</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-info">{{ stats.total_collaborations }}</h3>
+                    <p class="text-muted mb-0">Всего коллабораций</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Collaborators -->
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="fas fa-star"></i> Частые коллаборанты</h5>
+        </div>
+        <div class="card-body">
+            {% if collaborators is empty %}
+                <p class="text-muted text-center">Пока нет коллабораций</p>
+            {% else %}
+                <div class="list-group">
+                    {% for item in collaborators %}
+                        <a href="{{ path('app_collaboration_shared', {id: item.user.id}) }}" 
+                           class="list-group-item list-group-item-action">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <img src="{{ item.user.avatarUrl }}" 
+                                         alt="{{ item.user.fullName }}" 
+                                         class="rounded-circle me-3"
+                                         style="width: 40px; height: 40px;">
+                                    <div>
+                                        <strong>{{ item.user.fullName }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ item.user.email }}</small>
+                                    </div>
+                                </div>
+                                <span class="badge bg-primary rounded-pill">
+                                    {{ item.collaboration_count }} задач
+                                </span>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

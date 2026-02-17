@@ -1,0 +1,136 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Учет времени{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-stopwatch"></i> Учет времени</h1>
+        <a href="{{ path('app_time_tracking_report') }}" class="btn btn-info">
+            <i class="fas fa-chart-bar"></i> Отчет
+        </a>
+    </div>
+
+    <!-- Active Session -->
+    {% if active_session %}
+        <div class="alert alert-success">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="fas fa-play-circle"></i>
+                    <strong>Активная сессия</strong>
+                    <br>
+                    Задача #{{ active_session.task_id }}
+                    <br>
+                    <small class="text-muted">
+                        Начато: {{ active_session.started_at|date('H:i:s') }}
+                    </small>
+                </div>
+                <div>
+                    <div id="timer" class="h3 mb-0"></div>
+                    <button class="btn btn-danger mt-2" id="stop-tracking">
+                        <i class="fas fa-stop"></i> Остановить
+                    </button>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            Нет активной сессии отслеживания времени
+        </div>
+    {% endif %}
+
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-primary">{{ stats.total_time }}</h3>
+                    <p class="text-muted mb-0">Всего времени</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-success">{{ stats.tasks_tracked }}</h3>
+                    <p class="text-muted mb-0">Задач отслежено</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-info">{{ stats.average_per_task }}</h3>
+                    <p class="text-muted mb-0">Среднее на задачу</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-warning">7</h3>
+                    <p class="text-muted mb-0">Дней в отчете</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="fas fa-question-circle"></i> Как использовать</h5>
+        </div>
+        <div class="card-body">
+            <ol>
+                <li>Откройте задачу, над которой хотите работать</li>
+                <li>Нажмите кнопку "Начать отслеживание"</li>
+                <li>Работайте над задачей</li>
+                <li>Нажмите "Остановить" когда закончите</li>
+                <li>Время автоматически сохранится</li>
+            </ol>
+            
+            <div class="alert alert-warning mt-3">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>Примечание:</strong> Одновременно можно отслеживать только одну задачу
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+{% if active_session %}
+let startTime = new Date('{{ active_session.started_at|date('c') }}');
+
+function updateTimer() {
+    const now = new Date();
+    const diff = Math.floor((now - startTime) / 1000);
+    
+    const hours = Math.floor(diff / 3600);
+    const minutes = Math.floor((diff % 3600) / 60);
+    const seconds = diff % 60;
+    
+    document.getElementById('timer').textContent = 
+        String(hours).padStart(2, '0') + ':' +
+        String(minutes).padStart(2, '0') + ':' +
+        String(seconds).padStart(2, '0');
+}
+
+setInterval(updateTimer, 1000);
+updateTimer();
+
+document.getElementById('stop-tracking')?.addEventListener('click', function() {
+    fetch('{{ path('app_time_tracking_stop') }}', {
+        method: 'POST'
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            alert('Время отслежено: ' + data.duration_formatted);
+            window.location.reload();
+        }
+    });
+});
+{% endif %}
+</script>
+{% endblock %}

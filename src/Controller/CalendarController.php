@@ -2,9 +2,7 @@
 
 namespace App\Controller;
 
-use App\Repository\TaskRepository;
-use App\Repository\TaskCategoryRepository;
-use App\Service\PerformanceMonitorService;
+use App\Service\CalendarService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,132 +11,110 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/calendar')]
+#[IsGranted('ROLE_USER')]
 class CalendarController extends AbstractController
 {
-    #[Route('/', name: 'app_calendar_index')]
-    #[IsGranted('IS_AUTHENTICATED_FULLY')]
-    public function index(
-        TaskCategoryRepository $categoryRepository,
-        ?PerformanceMonitorService $performanceMonitor = null
-    ): Response {
-        if ($performanceMonitor) {
-            $performanceMonitor->startTiming('calendar_controller_index');
-        }
-        
-        $user = $this->getUser();
-        $categories = $user->getTaskCategories();
-        
-        try {
-            return $this->render('calendar/index.html.twig', [
-                'categories' => $categories,
-            ]);
-        } finally {
-            if ($performanceMonitor) {
-                $performanceMonitor->stopTiming('calendar_controller_index');
-            }
-        }
+    public function __construct(
+        private CalendarService $calendarService
+    ) {}
+
+    /**
+     * Calendar page
+     */
+    #[Route('', name: 'app_calendar', methods: ['GET'])]
+    public function index(): Response
+    {
+        return $this->render('calendar/index.html.twig');
     }
-    
-    #[Route('/api/events', name: 'app_api_calendar_events', methods: ['GET'])]
-    #[IsGranted('IS_AUTHENTICATED_FULLY')]
-    public function getEvents(
-        Request $request,
-        TaskRepository $taskRepository,
-        ?PerformanceMonitorService $performanceMonitor = null
-    ): JsonResponse {
-        if ($performanceMonitor) {
-            $performanceMonitor->startTiming('calendar_controller_get_events');
-        }
-        
+
+    /**
+     * Get calendar events (FullCalendar format)
+     */
+    #[Route('/events', name: 'app_calendar_events', methods: ['GET'])]
+    public function events(Request $request): JsonResponse
+    {
         $user = $this->getUser();
-        $start = $request->query->get('start');
-        $end = $request->query->get('end');
-        $status = $request->query->get('status');
-        $priority = $request->query->get('priority');
-        $category = $request->query->get('category');
-        $showOverdue = $request->query->get('showOverdue', '1') === '1';
-        $showCompleted = $request->query->get('showCompleted', '0') === '1';
         
-        // Build search criteria
-        $criteria = [
-            'user' => $user,
-        ];
+        $start = new \DateTime($request->query->get('start', 'now'));
+        $end = new \DateTime($request->query->get('end', '+1 month'));
+
+        $events = $this->calendarService->getCalendarEvents($user, $start, $end);
+
+        return $this->json($events);
+    }
+
+    /**
+     * Month view
+     */
+    #[Route('/month/{year}/{month}', name: 'app_calendar_month', methods: ['GET'])]
+    public function month(int $year, int $month): Response
+    {
+        $user = $this->getUser();
+        $data = $this->calendarService->getMonthView($user, $year, $month);
+
+        return $this->render('calendar/month.html.twig', $data);
+    }
+
+    /**
+     * Week view
+     */
+    #[Route('/week/{date}', name: 'app_calendar_week', methods: ['GET'])]
+    public function week(string $date): Response
+    {
+        $user = $this->getUser();
+        $weekStart = new \DateTime($date);
+        $data = $this->calendarService->getWeekView($user, $weekStart);
+
+        return $this->render('calendar/week.html.twig', $data);
+    }
+
+    /**
+     * Day view
+     */
+    #[Route('/day/{date}', name: 'app_calendar_day', methods: ['GET'])]
+    public function day(string $date): Response
+    {
+        $user = $this->getUser();
+        $dayDate = new \DateTime($date);
+        $data = $this->calendarService->getDayView($user, $dayDate);
+
+        return $this->render('calendar/day.html.twig', $data);
+    }
+
+    /**
+     * Upcoming deadlines
+     */
+    #[Route('/upcoming', name: 'app_calendar_upcoming', methods: ['GET'])]
+    public function upcoming(Request $request): Response
+    {
+        $user = $this->getUser();
+        $days = (int)$request->query->get('days', 7);
         
-        if ($status) {
-            $criteria['status'] = $status;
-        }
+        $tasks = $this->calendarService->getUpcomingDeadlines($user, $days);
+
+        return $this->render('calendar/upcoming.html.twig', [
+            'tasks' => $tasks,
+            'days' => $days
+        ]);
+    }
+
+    /**
+     * Export to iCal
+     */
+    #[Route('/export.ics', name: 'app_calendar_export', methods: ['GET'])]
+    public function export(Request $request): Response
+    {
+        $user = $this->getUser();
         
-        if ($priority) {
-            $criteria['priority'] = $priority;
-        }
-        
-        if ($category) {
-            $criteria['category'] = $category;
-        }
-        
-        if (!$showOverdue) {
-            $criteria['hideOverdue'] = true;
-        }
-        
-        if (!$showCompleted) {
-            $criteria['hideCompleted'] = true;
-        }
-        
-        if ($start) {
-            $criteria['startDate'] = new \DateTime($start);
-        }
-        
-        if ($end) {
-            $criteria['endDate'] = new \DateTime($end);
-        }
-        
-        $tasks = $taskRepository->searchTasks($criteria);
-        
-        // Convert tasks to calendar events format
-        $events = [];
-        foreach ($tasks as $task) {
-            $event = [
-                'id' => $task->getId(),
-                'title' => $task->getTitle(),
-                'start' => $task->getDueDate() ? $task->getDueDate()->format('Y-m-d\TH:i:s') : $task->getCreatedAt()->format('Y-m-d\TH:i:s'),
-                'allDay' => true,
-                'extendedProps' => [
-                    'description' => $task->getDescription(),
-                    'status' => $task->getStatus(),
-                    'priority' => $task->getPriority(),
-                    'category' => $task->getCategory() ? $task->getCategory()->getName() : null,
-                    'isOverdue' => $task->isOverdue(),
-                    'isCompleted' => $task->isCompleted(),
-                ]
-            ];
-            
-            // Add color based on priority and status
-            if ($task->isCompleted()) {
-                $event['backgroundColor'] = '#28a745'; // green
-                $event['borderColor'] = '#28a745';
-            } elseif ($task->isOverdue()) {
-                $event['backgroundColor'] = '#dc3545'; // red
-                $event['borderColor'] = '#dc3545';
-            } elseif ($task->getPriority() === 'high' || $task->getPriority() === 'urgent') {
-                $event['backgroundColor'] = '#fd7e14'; // orange
-                $event['borderColor'] = '#fd7e14';
-            } elseif ($task->getPriority() === 'low') {
-                $event['backgroundColor'] = '#6c757d'; // gray
-                $event['borderColor'] = '#6c757d';
-            } else {
-                $event['backgroundColor'] = '#0d6efd'; // blue (medium priority)
-                $event['borderColor'] = '#0d6efd';
-            }
-            
-            $events[] = $event;
-        }
-        
-        try {
-            return $this->json($events);
-        } finally {
-            if ($performanceMonitor) {
-                $performanceMonitor->stopTiming('calendar_controller_get_events');
-            }
-        }
+        $start = new \DateTime($request->query->get('start', 'now'));
+        $end = new \DateTime($request->query->get('end', '+3 months'));
+
+        $ical = $this->calendarService->exportToICal($user, $start, $end);
+
+        $response = new Response($ical);
+        $response->headers->set('Content-Type', 'text/calendar; charset=utf-8');
+        $response->headers->set('Content-Disposition', 'attachment; filename="calendar.ics"');
+
+        return $response;
     }
 }

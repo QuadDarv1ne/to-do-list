@@ -1,0 +1,197 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Настройки уведомлений{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-bell"></i> Настройки уведомлений</h1>
+        <a href="{{ path('app_settings') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Назад к настройкам
+        </a>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-primary">{{ stats.total_sent }}</h3>
+                    <p class="text-muted mb-0">Отправлено</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-success">{{ stats.total_read }}</h3>
+                    <p class="text-muted mb-0">Прочитано</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-warning">{{ stats.total_unread }}</h3>
+                    <p class="text-muted mb-0">Непрочитано</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Channels -->
+    {% for channel_key, channel in channels %}
+        <div class="card mb-3">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas {{ channel.icon }}"></i>
+                        {{ channel.name }}
+                    </h5>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input channel-toggle" 
+                               type="checkbox" 
+                               id="channel_{{ channel_key }}"
+                               data-channel="{{ channel_key }}"
+                               {% if preferences[channel_key].enabled %}checked{% endif %}>
+                        <label class="form-check-label" for="channel_{{ channel_key }}">
+                            Включено
+                        </label>
+                    </div>
+                </div>
+                <small class="text-muted">{{ channel.description }}</small>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for type_key, type_name in types %}
+                        {% if preferences[channel_key][type_key] is defined %}
+                            <div class="col-md-6 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input notification-type" 
+                                           type="checkbox" 
+                                           id="{{ channel_key }}_{{ type_key }}"
+                                           data-channel="{{ channel_key }}"
+                                           data-type="{{ type_key }}"
+                                           {% if preferences[channel_key][type_key] %}checked{% endif %}>
+                                    <label class="form-check-label" for="{{ channel_key }}_{{ type_key }}">
+                                        {{ type_name }}
+                                    </label>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                
+                <div class="mt-3">
+                    <button class="btn btn-sm btn-outline-primary test-notification" 
+                            data-channel="{{ channel_key }}">
+                        <i class="fas fa-paper-plane"></i> Отправить тестовое уведомление
+                    </button>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+    <!-- Quiet Hours -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5><i class="fas fa-moon"></i> Тихие часы</h5>
+        </div>
+        <div class="card-body">
+            <div class="form-check form-switch mb-3">
+                <input class="form-check-input" 
+                       type="checkbox" 
+                       id="quiet_hours_enabled"
+                       {% if preferences.quiet_hours.enabled %}checked{% endif %}>
+                <label class="form-check-label" for="quiet_hours_enabled">
+                    Включить тихие часы
+                </label>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <label class="form-label">Начало</label>
+                    <input type="time" 
+                           class="form-control" 
+                           id="quiet_hours_start"
+                           value="{{ preferences.quiet_hours.start }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Конец</label>
+                    <input type="time" 
+                           class="form-control" 
+                           id="quiet_hours_end"
+                           value="{{ preferences.quiet_hours.end }}">
+                </div>
+            </div>
+            
+            <small class="text-muted mt-2 d-block">
+                В тихие часы уведомления не будут отправляться
+            </small>
+        </div>
+    </div>
+
+    <!-- Save Button -->
+    <div class="text-center">
+        <button class="btn btn-primary btn-lg" id="save-preferences">
+            <i class="fas fa-save"></i> Сохранить настройки
+        </button>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Test notification
+    document.querySelectorAll('.test-notification').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const channel = this.dataset.channel;
+            
+            fetch('{{ path('app_notification_preferences_test', {channel: '__CHANNEL__'}) }}'.replace('__CHANNEL__', channel), {
+                method: 'POST'
+            })
+            .then(r => r.json())
+            .then(data => {
+                alert(data.message);
+            });
+        });
+    });
+    
+    // Save preferences
+    document.getElementById('save-preferences')?.addEventListener('click', function() {
+        const preferences = {
+            email: {
+                enabled: document.getElementById('channel_email').checked
+            },
+            push: {
+                enabled: document.getElementById('channel_push').checked
+            },
+            in_app: {
+                enabled: document.getElementById('channel_in_app').checked
+            },
+            quiet_hours: {
+                enabled: document.getElementById('quiet_hours_enabled').checked,
+                start: document.getElementById('quiet_hours_start').value,
+                end: document.getElementById('quiet_hours_end').value
+            }
+        };
+        
+        // Collect notification types
+        document.querySelectorAll('.notification-type').forEach(input => {
+            const channel = input.dataset.channel;
+            const type = input.dataset.type;
+            preferences[channel][type] = input.checked;
+        });
+        
+        fetch('{{ path('app_notification_preferences_update') }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(preferences)
+        })
+        .then(r => r.json())
+        .then(data => {
+            alert(data.message);
+        });
+    });
+});
+</script>
+{% endblock %}

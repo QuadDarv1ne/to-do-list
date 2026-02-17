@@ -750,4 +750,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         
         return $this;
     }
+    
+    /**
+     * Get avatar URL (using Gravatar)
+     */
+    public function getAvatarUrl(): string
+    {
+        // Use Gravatar based on email
+        $hash = md5(strtolower(trim($this->email ?? '')));
+        $default = 'identicon'; // Default avatar style
+        $size = 40;
+        
+        return "https://www.gravatar.com/avatar/{$hash}?d={$default}&s={$size}";
+    }
+    
+    /**
+     * Get initials for avatar fallback
+     */
+    public function getInitials(): string
+    {
+        $firstName = $this->firstName ?? '';
+        $lastName = $this->lastName ?? '';
+        
+        if ($firstName && $lastName) {
+            return strtoupper(substr($firstName, 0, 1) . substr($lastName, 0, 1));
+        }
+        
+        if ($this->username) {
+            return strtoupper(substr($this->username, 0, 2));
+        }
+        
+        return 'U';
+    }
 }

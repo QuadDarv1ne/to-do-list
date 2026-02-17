@@ -1,431 +1,88 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Календарь задач{% endblock %}
+{% block title %}Календарь{% endblock %}
 
 {% block body %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                <div>
-                    <h1 class="mb-0">
-                        <i class="fas fa-calendar-alt me-3 text-primary"></i>
-                        Календарь задач
-                    </h1>
-                    <p class="text-muted mb-0">Просматривайте и управляйте задачами в календарном виде</p>
-                </div>
-                <div class="d-flex gap-2 flex-wrap">
-                    <a href="{{ path('app_task_new') }}" class="btn btn-primary">
-                        <i class="fas fa-plus me-2"></i>
-                        Создать задачу
-                    </a>
-                    <button type="button" class="btn btn-success" id="todayBtn">
-                        <i class="fas fa-calendar-day me-2"></i>
-                        Сегодня
-                    </button>
-                    <div class="btn-group" role="group">
-                        <button type="button" class="btn btn-outline-secondary" id="prevBtn">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary" id="nextBtn">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-calendar-alt"></i> Календарь задач</h1>
+        <div>
+            <a href="{{ path('app_calendar_upcoming') }}" class="btn btn-info">
+                <i class="fas fa-clock"></i> Ближайшие дедлайны
+            </a>
+            <a href="{{ path('app_calendar_export') }}" class="btn btn-success">
+                <i class="fas fa-download"></i> Экспорт в iCal
+            </a>
         </div>
     </div>
 
-    <!-- Calendar Filters -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white">
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="fas fa-filter me-2 text-primary"></i>
-                    Фильтры
-                </h5>
-                <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#calendarFilters">
-                    <i class="fas fa-sliders-h me-1"></i>Фильтры
-                </button>
-            </div>
-        </div>
-        <div class="collapse show" id="calendarFilters">
-            <div class="card-body">
-                <form class="row g-3">
-                    <div class="col-md-3">
-                        <label for="viewType" class="form-label">Вид календаря</label>
-                        <select class="form-select" id="viewType">
-                            <option value="dayGridMonth">Месяц</option>
-                            <option value="timeGridWeek">Неделя</option>
-                            <option value="timeGridDay">День</option>
-                            <option value="listWeek">Список</option>
-                        </select>
-                    </div>
-                    
-                    <div class="col-md-3">
-                        <label for="statusFilter" class="form-label">Статус</label>
-                        <select class="form-select" id="statusFilter">
-                            <option value="">Все статусы</option>
-                            <option value="pending">В ожидании</option>
-                            <option value="in_progress">В процессе</option>
-                            <option value="completed">Завершено</option>
-                        </select>
-                    </div>
-                    
-                    <div class="col-md-3">
-                        <label for="priorityFilter" class="form-label">Приоритет</label>
-                        <select class="form-select" id="priorityFilter">
-                            <option value="">Все приоритеты</option>
-                            <option value="low">Низкий</option>
-                            <option value="medium">Средний</option>
-                            <option value="high">Высокий</option>
-                            <option value="urgent">Критический</option>
-                        </select>
-                    </div>
-                    
-                    <div class="col-md-3">
-                        <label for="categoryFilter" class="form-label">Категория</label>
-                        <select class="form-select" id="categoryFilter">
-                            <option value="">Все категории</option>
-                            {% for category in categories %}
-                                <option value="{{ category.id }}">{{ category.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    
-                    <div class="col-12">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="showOverdue" checked>
-                            <label class="form-check-label" for="showOverdue">
-                                Показывать просроченные задачи
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="showCompleted">
-                            <label class="form-check-label" for="showCompleted">
-                                Показывать завершенные задачи
-                            </label>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Calendar Container -->
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white">
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-0" id="currentDateDisplay">Календарь</h5>
-                <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-sm btn-outline-primary" id="refreshCalendar">
-                        <i class="fas fa-sync-alt me-1"></i>Обновить
-                    </button>
-                </div>
-            </div>
-        </div>
-        <div class="card-body p-0">
-            <div id="calendar" class="p-3"></div>
+    <div class="card">
+        <div class="card-body">
+            <div id="calendar"></div>
         </div>
     </div>
 </div>
 
-<!-- Task Detail Modal -->
-<div class="modal fade" id="taskDetailModal" tabindex="-1" aria-labelledby="taskDetailModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="taskDetailModalLabel">Детали задачи</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" id="taskDetailContent">
-                <!-- Task details will be loaded here -->
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-                <a href="#" class="btn btn-primary" id="editTaskBtn">
-                    <i class="fas fa-edit me-1"></i>Редактировать
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Quick Task Modal -->
-<div class="modal fade" id="quickTaskModal" tabindex="-1" aria-labelledby="quickTaskModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="quickTaskModalLabel">Быстрое создание задачи</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="quickTaskForm">
-                    <div class="mb-3">
-                        <label for="quickTaskTitle" class="form-label">Название задачи *</label>
-                        <input type="text" class="form-control" id="quickTaskTitle" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="quickTaskDate" class="form-label">Дата *</label>
-                        <input type="date" class="form-control" id="quickTaskDate" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="quickTaskTime" class="form-label">Время</label>
-                        <input type="time" class="form-control" id="quickTaskTime">
-                    </div>
-                    <div class="mb-3">
-                        <label for="quickTaskDescription" class="form-label">Описание</label>
-                        <textarea class="form-control" id="quickTaskDescription" rows="3"></textarea>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <label for="quickTaskPriority" class="form-label">Приоритет</label>
-                            <select class="form-select" id="quickTaskPriority">
-                                <option value="low">Низкий</option>
-                                <option value="medium" selected>Средний</option>
-                                <option value="high">Высокий</option>
-                                <option value="urgent">Критический</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="quickTaskCategory" class="form-label">Категория</label>
-                            <select class="form-select" id="quickTaskCategory">
-                                <option value="">Без категории</option>
-                                {% for category in categories %}
-                                    <option value="{{ category.id }}">{{ category.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                <button type="button" class="btn btn-primary" id="saveQuickTask">Создать задачу</button>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block javascripts %}
-{{ parent() }}
-<!-- FullCalendar CSS -->
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
-
-<!-- FullCalendar JS -->
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/locales/ru.global.min.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize calendar
     const calendarEl = document.getElementById('calendar');
+    
     const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
         locale: 'ru',
-        headerToolbar: false,
-        editable: true,
-        selectable: true,
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+        },
+        buttonText: {
+            today: 'Сегодня',
+            month: 'Месяц',
+            week: 'Неделя',
+            day: 'День',
+            list: 'Список'
+        },
+        events: '{{ path('app_calendar_events') }}',
         eventClick: function(info) {
-            showTaskDetails(info.event);
+            info.jsEvent.preventDefault();
+            if (info.event.url) {
+                window.location.href = info.event.url;
+            }
         },
-        select: function(info) {
-            showQuickTaskModal(info);
+        eventDidMount: function(info) {
+            // Add tooltip
+            info.el.title = info.event.title + '\n' +
+                'Приоритет: ' + info.event.extendedProps.priority + '\n' +
+                'Статус: ' + info.event.extendedProps.status;
         },
-        eventDrop: function(info) {
-            updateTaskDate(info.event);
-        },
-        eventResize: function(info) {
-            updateTaskDate(info.event);
-        },
-        events: function(fetchInfo, successCallback, failureCallback) {
-            fetch('{{ path('app_api_calendar_events') }}?' + new URLSearchParams({
-                start: fetchInfo.startStr,
-                end: fetchInfo.endStr,
-                status: document.getElementById('statusFilter').value,
-                priority: document.getElementById('priorityFilter').value,
-                category: document.getElementById('categoryFilter').value,
-                showOverdue: document.getElementById('showOverdue').checked ? '1' : '0',
-                showCompleted: document.getElementById('showCompleted').checked ? '1' : '0'
-            }))
-            .then(response => response.json())
-            .then(data => {
-                successCallback(data);
-            })
-            .catch(error => {
-                console.error('Error fetching events:', error);
-                failureCallback(error);
-            });
-        }
+        height: 'auto',
+        firstDay: 1, // Monday
+        weekNumbers: true,
+        weekText: 'Нед',
+        allDayText: 'Весь день',
+        noEventsText: 'Нет задач для отображения'
     });
-
+    
     calendar.render();
-
-    // Update current date display
-    function updateDateDisplay() {
-        const currentDate = calendar.currentData.viewTitle;
-        document.getElementById('currentDateDisplay').textContent = currentDate;
-    }
-
-    // Navigation buttons
-    document.getElementById('prevBtn').addEventListener('click', function() {
-        calendar.prev();
-        updateDateDisplay();
-    });
-
-    document.getElementById('nextBtn').addEventListener('click', function() {
-        calendar.next();
-        updateDateDisplay();
-    });
-
-    document.getElementById('todayBtn').addEventListener('click', function() {
-        calendar.today();
-        updateDateDisplay();
-    });
-
-    // View type change
-    document.getElementById('viewType').addEventListener('change', function() {
-        calendar.changeView(this.value);
-        updateDateDisplay();
-    });
-
-    // Filter changes
-    const filters = ['statusFilter', 'priorityFilter', 'categoryFilter', 'showOverdue', 'showCompleted'];
-    filters.forEach(filterId => {
-        document.getElementById(filterId).addEventListener('change', function() {
-            calendar.refetchEvents();
-        });
-    });
-
-    // Refresh button
-    document.getElementById('refreshCalendar').addEventListener('click', function() {
-        calendar.refetchEvents();
-        showToast('Календарь обновлен', 'success');
-    });
-
-    // Quick task modal
-    function showQuickTaskModal(selectionInfo) {
-        const modal = new bootstrap.Modal(document.getElementById('quickTaskModal'));
-        const dateInput = document.getElementById('quickTaskDate');
-        const timeInput = document.getElementById('quickTaskTime');
-        
-        // Set default date and time
-        dateInput.value = selectionInfo.startStr.split('T')[0];
-        if (selectionInfo.startStr.includes('T')) {
-            timeInput.value = selectionInfo.startStr.split('T')[1].substring(0, 5);
-        }
-        
-        modal.show();
-    }
-
-    // Save quick task
-    document.getElementById('saveQuickTask').addEventListener('click', function() {
-        const title = document.getElementById('quickTaskTitle').value.trim();
-        const date = document.getElementById('quickTaskDate').value;
-        const time = document.getElementById('quickTaskTime').value;
-        const description = document.getElementById('quickTaskDescription').value;
-        const priority = document.getElementById('quickTaskPriority').value;
-        const category = document.getElementById('quickTaskCategory').value;
-        
-        if (!title || !date) {
-            showToast('Пожалуйста, заполните обязательные поля', 'warning');
-            return;
-        }
-        
-        const dueDate = time ? `${date}T${time}` : date;
-        
-        fetch('{{ path('app_task_quick_create') }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify({
-                title: title,
-                description: description,
-                priority: priority,
-                dueDate: dueDate,
-                category: category
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showToast('Задача создана успешно', 'success');
-                const modal = bootstrap.Modal.getInstance(document.getElementById('quickTaskModal'));
-                modal.hide();
-                calendar.refetchEvents();
-                resetQuickTaskForm();
-            } else {
-                showToast(data.message || 'Ошибка при создании задачи', 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showToast('Произошла ошибка при создании задачи', 'error');
-        });
-    });
-
-    function resetQuickTaskForm() {
-        document.getElementById('quickTaskForm').reset();
-        document.getElementById('quickTaskPriority').value = 'medium';
-    }
-
-    // Show task details
-    function showTaskDetails(event) {
-        const taskId = event.id;
-        fetch(`/tasks/${taskId}`)
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('taskDetailContent').innerHTML = html;
-                document.getElementById('editTaskBtn').href = `/tasks/${taskId}/edit`;
-                const modal = new bootstrap.Modal(document.getElementById('taskDetailModal'));
-                modal.show();
-            })
-            .catch(error => {
-                console.error('Error fetching task details:', error);
-                showToast('Ошибка при загрузке деталей задачи', 'error');
-            });
-    }
-
-    // Update task date after drag/drop
-    function updateTaskDate(event) {
-        const taskId = event.id;
-        const newStart = event.start;
-        const newEnd = event.end;
-        
-        fetch(`/api/tasks/${taskId}/update-date`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify({
-                startDate: newStart.toISOString(),
-                endDate: newEnd ? newEnd.toISOString() : null
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showToast('Дата задачи обновлена', 'success');
-            } else {
-                showToast('Ошибка при обновлении даты', 'error');
-                // Revert the change if update failed
-                event.revert();
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showToast('Ошибка при обновлении даты', 'error');
-            event.revert();
-        });
-    }
-
-    // Initialize date display
-    updateDateDisplay();
 });
 </script>
+
+<style>
+#calendar {
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.fc-event {
+    cursor: pointer;
+}
+
+.fc-event:hover {
+    opacity: 0.8;
+}
+</style>
 {% endblock %}

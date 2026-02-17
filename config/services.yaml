@@ -1,5 +1,6 @@
 parameters:
     app.use_modern_theme: true
+    uploads_directory: '%kernel.project_dir%/public/uploads'
 
 services:
     _defaults:
@@ -7,6 +8,7 @@ services:
         autoconfigure: true
         bind:
             $projectDir: '%kernel.project_dir%'
+            $uploadsDirectory: '%uploads_directory%'
 
     App\:
         resource: '../src/'

@@ -1,0 +1,89 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Лента активности{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-stream"></i> Лента активности</h1>
+        <div>
+            <a href="{{ path('app_activity_stats') }}" class="btn btn-info">
+                <i class="fas fa-chart-bar"></i> Статистика
+            </a>
+            {% if is_granted('ROLE_MANAGER') %}
+                <a href="{{ path('app_activity_team') }}" class="btn btn-primary">
+                    <i class="fas fa-users"></i> Активность команды
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            {% if feed is empty %}
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-inbox fa-3x mb-3"></i>
+                    <p>Пока нет активности</p>
+                </div>
+            {% else %}
+                <div class="activity-feed">
+                    {% for item in feed %}
+                        <div class="activity-item mb-3 pb-3 border-bottom">
+                            <div class="d-flex">
+                                <div class="activity-icon me-3">
+                                    <i class="fas {{ item.icon }} text-{{ item.color }}"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <strong>{{ item.user.fullName }}</strong>
+                                            <span class="text-muted">{{ item.action }}</span>
+                                            <span class="text-muted">{{ item.entity }}</span>
+                                            {% if item.entity_id %}
+                                                <a href="{{ path('app_task_show', {id: item.entity_id}) }}" class="text-decoration-none">
+                                                    #{{ item.entity_id }}
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                        <small class="text-muted">
+                                            {{ item.created_at|date('d.m.Y H:i') }}
+                                        </small>
+                                    </div>
+                                    
+                                    {% if item.metadata %}
+                                        <div class="mt-2">
+                                            {% set meta = item.metadata|json_decode %}
+                                            {% if meta.changes is defined %}
+                                                <small class="text-muted">
+                                                    Изменения: {{ meta.changes|join(', ') }}
+                                                </small>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    border-radius: 50%;
+    font-size: 1.2rem;
+}
+
+.activity-item:last-child {
+    border-bottom: none !important;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ближайшие дедлайны{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-clock"></i> Ближайшие дедлайны</h1>
+        <a href="{{ path('app_calendar') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Назад к календарю
+        </a>
+    </div>
+
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i>
+        Показаны задачи на ближайшие {{ days }} дней
+    </div>
+
+    {% if tasks is empty %}
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i>
+            Нет задач с приближающимися дедлайнами!
+        </div>
+    {% else %}
+        <div class="row">
+            {% for task in tasks %}
+                {% set daysUntil = date(task.deadline).diff(date()).days %}
+                {% set isUrgent = daysUntil <= 1 %}
+                
+                <div class="col-md-6 mb-3">
+                    <div class="card {% if isUrgent %}border-danger{% endif %}">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title mb-0">
+                                    <a href="{{ path('app_task_show', {id: task.id}) }}">
+                                        {{ task.title }}
+                                    </a>
+                                </h5>
+                                <span class="badge bg-{{ task.priority == 'urgent' ? 'danger' : (task.priority == 'high' ? 'warning' : 'info') }}">
+                                    {{ task.priority|upper }}
+                                </span>
+                            </div>
+                            
+                            <p class="text-muted mb-2">
+                                {% if task.category %}
+                                    <i class="fas fa-folder"></i> {{ task.category.name }}
+                                {% endif %}
+                            </p>
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="{% if isUrgent %}text-danger fw-bold{% endif %}">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    {{ task.deadline|date('d.m.Y') }}
+                                    {% if isUrgent %}
+                                        <span class="badge bg-danger">Срочно!</span>
+                                    {% else %}
+                                        (через {{ daysUntil }} дн.)
+                                    {% endif %}
+                                </span>
+                                
+                                <span class="badge bg-secondary">
+                                    {{ task.status }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,322 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Расширенная аналитика{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-brain me-2"></i>
+                Расширенная аналитика и прогнозы
+            </h1>
+            <p class="text-muted">Интеллектуальный анализ вашей продуктивности</p>
+        </div>
+    </div>
+
+    <!-- Performance Insights -->
+    {% if insights is not empty %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <h5 class="alert-heading">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    Персональные рекомендации
+                </h5>
+                {% for insight in insights %}
+                <div class="d-flex align-items-center mb-2">
+                    <i class="fas {{ insight.icon }} me-2"></i>
+                    <span>{{ insight.message }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Burnout Risk Assessment -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-fire me-2"></i>
+                        Оценка риска выгорания
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="display-1 mb-2 
+                            {% if burnout.risk_level == 'high' %}text-danger
+                            {% elseif burnout.risk_level == 'medium' %}text-warning
+                            {% else %}text-success{% endif %}">
+                            {{ burnout.risk_score }}
+                        </div>
+                        <h4 class="
+                            {% if burnout.risk_level == 'high' %}text-danger
+                            {% elseif burnout.risk_level == 'medium' %}text-warning
+                            {% else %}text-success{% endif %}">
+                            {% if burnout.risk_level == 'high' %}Высокий риск
+                            {% elseif burnout.risk_level == 'medium' %}Средний риск
+                            {% else %}Низкий риск{% endif %}
+                        </h4>
+                    </div>
+
+                    {% if burnout.risk_factors is not empty %}
+                    <h6>Факторы риска:</h6>
+                    <ul class="list-unstyled">
+                        {% for factor in burnout.risk_factors %}
+                        <li><i class="fas fa-exclamation-circle text-warning me-2"></i>{{ factor }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+
+                    {% if burnout.recommendations is not empty %}
+                    <h6 class="mt-3">Рекомендации:</h6>
+                    <ul>
+                        {% for recommendation in burnout.recommendations %}
+                        <li>{{ recommendation }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Task Patterns -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>
+                        Паттерны работы
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Самый продуктивный день:</strong>
+                        <span class="badge bg-primary ms-2">{{ patterns.most_productive_day }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Наиболее частый приоритет:</strong>
+                        <span class="badge bg-info ms-2">{{ patterns.most_common_priority }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Среднее задач в неделю:</strong>
+                        <span class="badge bg-secondary ms-2">{{ patterns.avg_tasks_per_week }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Всего задач:</strong>
+                        <span class="badge bg-dark ms-2">{{ patterns.total_tasks }}</span>
+                    </div>
+                    <div>
+                        <strong>Общий процент завершения:</strong>
+                        <div class="progress mt-2" style="height: 25px;">
+                            <div class="progress-bar 
+                                {% if patterns.completion_rate >= 80 %}bg-success
+                                {% elseif patterns.completion_rate >= 60 %}bg-info
+                                {% elseif patterns.completion_rate >= 40 %}bg-warning
+                                {% else %}bg-danger{% endif %}" 
+                                role="progressbar" 
+                                style="width: {{ patterns.completion_rate }}%">
+                                {{ patterns.completion_rate }}%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Completion Time Predictions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-crystal-ball me-2"></i>
+                        Прогноз времени выполнения
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <h6>Прогноз</h6>
+                            <div class="display-4 text-primary">{{ predictions.predicted_days }}</div>
+                            <small class="text-muted">дней</small>
+                        </div>
+                        <div class="col-md-3">
+                            <h6>Минимум</h6>
+                            <div class="display-4 text-success">{{ predictions.min_days }}</div>
+                            <small class="text-muted">дней</small>
+                        </div>
+                        <div class="col-md-3">
+                            <h6>Максимум</h6>
+                            <div class="display-4 text-danger">{{ predictions.max_days }}</div>
+                            <small class="text-muted">дней</small>
+                        </div>
+                        <div class="col-md-3">
+                            <h6>Уверенность</h6>
+                            <div class="display-4">
+                                {% if predictions.confidence == 'high' %}
+                                    <i class="fas fa-check-circle text-success"></i>
+                                {% elseif predictions.confidence == 'medium' %}
+                                    <i class="fas fa-minus-circle text-warning"></i>
+                                {% else %}
+                                    <i class="fas fa-question-circle text-secondary"></i>
+                                {% endif %}
+                            </div>
+                            <small class="text-muted">
+                                {% if predictions.confidence == 'high' %}Высокая
+                                {% elseif predictions.confidence == 'medium' %}Средняя
+                                {% else %}Низкая{% endif %}
+                            </small>
+                        </div>
+                    </div>
+                    <div class="text-center mt-3">
+                        <small class="text-muted">
+                            На основе {{ predictions.sample_size }} завершенных задач
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Productivity Trends -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Тренды продуктивности (12 недель)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="trendsChart" height="80"></canvas>
+                    
+                    <div class="row mt-4 text-center">
+                        <div class="col-md-4">
+                            <h6>Тренд</h6>
+                            <span class="badge 
+                                {% if trends.trend == 'improving' %}bg-success
+                                {% elseif trends.trend == 'declining' %}bg-danger
+                                {% else %}bg-secondary{% endif %} fs-5">
+                                {% if trends.trend == 'improving' %}
+                                    <i class="fas fa-arrow-up me-1"></i>Растет
+                                {% elseif trends.trend == 'declining' %}
+                                    <i class="fas fa-arrow-down me-1"></i>Снижается
+                                {% else %}
+                                    <i class="fas fa-minus me-1"></i>Стабильно
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>Средний процент</h6>
+                            <div class="fs-4">{{ trends.average_completion_rate }}%</div>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>Лучшая неделя</h6>
+                            <div class="fs-6">
+                                {{ trends.best_week.week|date('d.m.Y') }}<br>
+                                <span class="text-success">{{ trends.best_week.completion_rate }}%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tag Cloud -->
+    {% if tag_cloud is not empty %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tags me-2"></i>
+                        Облако тегов
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    {% for tag in tag_cloud %}
+                    <a href="{{ path('app_task_index', {tag: tag.id}) }}" 
+                       class="badge me-2 mb-2" 
+                       style="font-size: {{ tag.size }}px; background-color: {{ tag.color }}; text-decoration: none;">
+                        {{ tag.name }} ({{ tag.task_count }})
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Trends Chart
+    const trendsData = {{ trends.weekly_data|json_encode|raw }};
+    
+    new Chart(document.getElementById('trendsChart'), {
+        type: 'line',
+        data: {
+            labels: trendsData.map(d => new Date(d.week).toLocaleDateString('ru-RU', {month: 'short', day: 'numeric'})),
+            datasets: [
+                {
+                    label: 'Процент завершения',
+                    data: trendsData.map(d => d.completion_rate),
+                    borderColor: '#007bff',
+                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'Всего задач',
+                    data: trendsData.map(d => d.total),
+                    borderColor: '#28a745',
+                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    yAxisID: 'y1'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Процент завершения (%)'
+                    }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: 'Количество задач'
+                    },
+                    grid: {
+                        drawOnChartArea: false
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

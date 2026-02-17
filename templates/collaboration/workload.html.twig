@@ -1,0 +1,91 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Нагрузка команды{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-tasks"></i> Нагрузка команды</h1>
+        <a href="{{ path('app_collaboration') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Назад
+        </a>
+    </div>
+
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i>
+        Показана текущая нагрузка всех членов команды
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Пользователь</th>
+                            <th>Активных задач</th>
+                            <th>Срочных задач</th>
+                            <th>Уровень нагрузки</th>
+                            <th>Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in workload %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="{{ item.user.avatarUrl }}" 
+                                             alt="{{ item.user.fullName }}" 
+                                             class="rounded-circle me-2"
+                                             style="width: 32px; height: 32px;">
+                                        <div>
+                                            <strong>{{ item.user.fullName }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ item.user.email }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">{{ item.active_tasks }}</span>
+                                </td>
+                                <td>
+                                    {% if item.urgent_tasks > 0 %}
+                                        <span class="badge bg-danger">{{ item.urgent_tasks }}</span>
+                                    {% else %}
+                                        <span class="text-muted">0</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="progress" style="height: 25px;">
+                                        {% set percentage = (item.active_tasks / 20 * 100)|round %}
+                                        {% set color = item.workload_level == 'overloaded' ? 'danger' : (item.workload_level == 'high' ? 'warning' : (item.workload_level == 'medium' ? 'info' : 'success')) %}
+                                        <div class="progress-bar bg-{{ color }}" 
+                                             role="progressbar" 
+                                             style="width: {{ percentage }}%"
+                                             aria-valuenow="{{ percentage }}" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="100">
+                                            {{ percentage }}%
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if item.workload_level == 'overloaded' %}
+                                        <span class="badge bg-danger">Перегружен</span>
+                                    {% elseif item.workload_level == 'high' %}
+                                        <span class="badge bg-warning">Высокая</span>
+                                    {% elseif item.workload_level == 'medium' %}
+                                        <span class="badge bg-info">Средняя</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Низкая</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

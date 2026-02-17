@@ -201,7 +201,7 @@
                                 {% endfor %}
                             </td>
                             <td>
-                                {% if user.isLocked %}
+                                {% if user.isAccountLocked %}
                                     <span class="user-status status-locked">Заблокирован</span>
                                 {% elseif user.isActive %}
                                     <span class="user-status status-active">Активен</span>
@@ -236,7 +236,7 @@
                                         <i class="fas fa-edit"></i>
                                     </a>
                                     
-                                    {% if user.isLocked %}
+                                    {% if user.isAccountLocked %}
                                         <form action="{{ path('app_user_unlock', {'id': user.id}) }}" 
                                               method="post" 
                                               class="d-inline">
