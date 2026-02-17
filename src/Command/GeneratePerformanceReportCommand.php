@@ -2,7 +2,7 @@
 
 namespace App\Command;
 
-use App\Service\PerformanceMonitorService;
+use App\Service\PerformanceMonitoringService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
@@ -17,9 +17,9 @@ use Symfony\Component\Console\Helper\ProgressBar;
 )]
 class GeneratePerformanceReportCommand extends Command
 {
-    private PerformanceMonitorService $performanceMonitor;
+    private PerformanceMonitoringService $performanceMonitor;
 
-    public function __construct(PerformanceMonitorService $performanceMonitor)
+    public function __construct(PerformanceMonitoringService $performanceMonitor)
     {
         $this->performanceMonitor = $performanceMonitor;
         parent::__construct();
@@ -45,7 +45,7 @@ class GeneratePerformanceReportCommand extends Command
         // Collect basic metrics
         $progressBar->setMessage('Collecting basic metrics...');
         $progressBar->start();
-        $basicMetrics = $this->performanceMonitor->collectMetrics();
+        $basicMetrics = $this->performanceMonitor->getPerformanceReport();
         $progressBar->advance();
         
         // Collect detailed metrics

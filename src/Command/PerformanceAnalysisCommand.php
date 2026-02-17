@@ -2,7 +2,7 @@
 
 namespace App\Command;
 
-use App\Service\PerformanceMonitorService;
+use App\Service\PerformanceMonitoringService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -15,9 +15,9 @@ use Symfony\Component\Console\Helper\Table;
 )]
 class PerformanceAnalysisCommand extends Command
 {
-    private PerformanceMonitorService $performanceMonitorService;
+    private PerformanceMonitoringService $performanceMonitorService;
 
-    public function __construct(PerformanceMonitorService $performanceMonitorService)
+    public function __construct(PerformanceMonitoringService $performanceMonitorService)
     {
         $this->performanceMonitorService = $performanceMonitorService;
         parent::__construct();

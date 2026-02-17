@@ -2,7 +2,7 @@
 
 namespace App\Command;
 
-use App\Service\PerformanceMonitorService;
+use App\Service\PerformanceMonitoringService;
 use App\Service\QueryCacheService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -16,11 +16,11 @@ use Symfony\Component\Console\Helper\ProgressBar;
 )]
 class OptimizePerformanceCommand extends Command
 {
-    private PerformanceMonitorService $performanceMonitor;
+    private PerformanceMonitoringService $performanceMonitor;
     private QueryCacheService $queryCacheService;
 
     public function __construct(
-        PerformanceMonitorService $performanceMonitor,
+        PerformanceMonitoringService $performanceMonitor,
         QueryCacheService $queryCacheService
     ) {
         $this->performanceMonitor = $performanceMonitor;

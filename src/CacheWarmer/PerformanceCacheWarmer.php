@@ -2,7 +2,7 @@
 
 namespace App\CacheWarmer;
 
-use App\Service\PerformanceMonitorService;
+use App\Service\PerformanceMonitoringService;
 use Symfony\Component\HttpKernel\CacheWarmer\CacheWarmerInterface;
 
 /**
@@ -10,9 +10,9 @@ use Symfony\Component\HttpKernel\CacheWarmer\CacheWarmerInterface;
  */
 class PerformanceCacheWarmer implements CacheWarmerInterface
 {
-    private PerformanceMonitorService $performanceMonitor;
+    private PerformanceMonitoringService $performanceMonitor;
 
-    public function __construct(PerformanceMonitorService $performanceMonitor)
+    public function __construct(PerformanceMonitoringService $performanceMonitor)
     {
         $this->performanceMonitor = $performanceMonitor;
     }
@@ -23,7 +23,8 @@ class PerformanceCacheWarmer implements CacheWarmerInterface
     public function warmUp(string $cacheDir, ?string $buildDir = null): array
     {
         // Initialize performance monitoring metrics
-        $this->performanceMonitor->collectMetrics();
+        $this->performanceMonitor->startTiming('cache_warmup_initialization');
+        $this->performanceMonitor->stopTiming('cache_warmup_initialization');
         
         // Pre-populate common aggregate metrics keys
         $operations = [
@@ -39,9 +40,9 @@ class PerformanceCacheWarmer implements CacheWarmerInterface
         
         foreach ($operations as $operation) {
             // Initialize aggregate metrics structure for common operations
-            $this->performanceMonitor->startTimer($operation);
+            $this->performanceMonitor->startTiming($operation);
             // Just start and immediately stop to initialize the structure
-            $this->performanceMonitor->stopTimer($operation);
+            $this->performanceMonitor->stopTiming($operation);
         }
 
         // Return list of classes to preload

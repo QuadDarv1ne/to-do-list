@@ -3,7 +3,7 @@
 namespace App\Command;
 
 use App\Service\TaskPerformanceOptimizerService;
-use App\Service\PerformanceMonitorService;
+use App\Service\PerformanceMonitoringService;
 use App\Service\QueryCacheService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -18,12 +18,12 @@ use Symfony\Component\Console\Helper\ProgressBar;
 class FullPerformanceOptimizeCommand extends Command
 {
     private TaskPerformanceOptimizerService $taskOptimizer;
-    private PerformanceMonitorService $performanceMonitor;
+    private PerformanceMonitoringService $performanceMonitor;
     private QueryCacheService $queryCacheService;
 
     public function __construct(
         TaskPerformanceOptimizerService $taskOptimizer,
-        PerformanceMonitorService $performanceMonitor,
+        PerformanceMonitoringService $performanceMonitor,
         QueryCacheService $queryCacheService
     ) {
         $this->taskOptimizer = $taskOptimizer;
@@ -50,7 +50,7 @@ class FullPerformanceOptimizeCommand extends Command
         
         // Task 2: Analyze performance metrics
         $progressBar->setMessage('Analyzing performance metrics...');
-        $performanceData = $this->performanceMonitor->collectMetrics();
+        $performanceData = $this->performanceMonitor->getPerformanceReport();
         
         $output->writeln("\n" . '<comment>Current Performance Metrics:</comment>');
         $output->writeln(sprintf('Memory Usage: %s', $this->formatBytes($performanceData['current_memory_usage_bytes'])));
@@ -63,7 +63,7 @@ class FullPerformanceOptimizeCommand extends Command
         $progressBar->setMessage('Optimizing database queries...');
         
         // This would typically involve analyzing slow queries and optimizing them
-        $slowQueries = $this->performanceMonitor->getSlowQueries();
+        $slowQueries = $this->performanceMonitor->getSlowOperations();
         $output->writeln(sprintf("\n<comment>Slow Queries Found: %d</comment>", count($slowQueries)));
         
         $progressBar->advance();
