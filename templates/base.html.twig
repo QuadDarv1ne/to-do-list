@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}To-Do List{% endblock %}</title>
+    <title>{% block title %}CRM система: Анализ продаж{% endblock %}</title>
     
     <!-- Content Security Policy -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; img-src 'self' data: https:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;">
@@ -40,7 +40,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary" role="navigation" aria-label="Основная навигация">
         <div class="container-fluid">
             <a class="navbar-brand" href="{{ path('app_dashboard') }}" aria-label="Перейти на главную страницу">
-                <i class="fas fa-tasks" aria-hidden="true"></i> To-Do List
+                <i class="fas fa-chart-line" aria-hidden="true"></i> CRM: Анализ продаж
             </a>
             
             <!-- Theme Toggle -->
@@ -484,6 +484,7 @@
     </script>
     {% endif %}
     
+    {% if app.user %}
     <!-- Quick Task Modal -->
     <div class="modal fade" id="quickTaskModal" tabindex="-1" aria-labelledby="quickTaskModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -564,6 +565,7 @@
             title="Быстрое создание задачи (N)">
         <i class="fas fa-plus"></i>
     </button>
+    {% endif %}
     
     <script>
         // Theme Management

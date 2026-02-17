@@ -1,11 +1,10 @@
 {# templates/security/login.html.twig #}
 
-{% extends 'base.html.twig' %}
+{% extends 'auth_base.html.twig' %}
 
-{% block title %}Вход в CRM систему{% endblock %}
+{% block title %}Вход в систему{% endblock %}
 
 {% block stylesheets %}
-    {{ parent() }}
     <style>
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -113,8 +112,8 @@
 {% block body %}
 <div class="login-card">
     <div class="login-header">
-        <div class="login-logo">CRM СИСТЕМА</div>
-        <div class="login-subtitle">Панель управления бизнесом</div>
+        <div class="login-logo">CRM система</div>
+        <div class="login-subtitle">Анализ продаж ООО «Дальневосточный фермер»</div>
     </div>
     
     <div class="login-body">
@@ -169,7 +168,7 @@
                     </label>
                 </div>
                 <a href="{{ path('app_forgot_password_request') }}" class="text-decoration-none">
-                    Забыли пароль?
+                    <i class="fas fa-key me-1"></i>Забыли пароль?
                 </a>
             </div>
             
@@ -186,15 +185,12 @@
                 Для доступа к системе требуется авторизация
             </p>
             <p class="text-center mb-3">
-                <a href="{{ path('app_register') }}" class="text-decoration-none me-4">
+                <a href="{{ path('app_register') }}" class="text-decoration-none">
                     <i class="fas fa-user-plus me-1"></i>Регистрация
-                </a>
-                <a href="{{ path('app_forgot_password_request') }}" class="text-decoration-none">
-                    <i class="fas fa-key me-1"></i>Забыли пароль?
                 </a>
             </p>
             <small class="text-muted">
-                CRM System &copy; {{ "now"|date("Y") }}
+                ООО «Дальневосточный фермер» &copy; {{ "now"|date("Y") }}
             </small>
         </div>
     </div>

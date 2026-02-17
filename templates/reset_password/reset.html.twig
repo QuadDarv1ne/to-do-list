@@ -1,29 +1,210 @@
-{% extends 'base.html.twig' %}
+{% extends 'auth_base.html.twig' %}
 
-{% block title %}Сбросить пароль{% endblock %}
+{% block title %}Новый пароль{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .reset-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 450px;
+            overflow: hidden;
+        }
+        
+        .reset-header {
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+            color: white;
+            padding: 2.5rem;
+            text-align: center;
+        }
+        
+        .reset-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .reset-logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .reset-subtitle {
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+        
+        .reset-body {
+            padding: 2.5rem;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-control {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 12px 18px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: #27ae60;
+            box-shadow: 0 0 0 0.2rem rgba(39, 174, 96, 0.25);
+        }
+        
+        .btn-reset {
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+            border: none;
+            color: white;
+            padding: 14px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1rem;
+            width: 100%;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .btn-reset:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(39, 174, 96, 0.3);
+            color: white;
+        }
+        
+        .reset-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .password-requirements {
+            background: #f8f9fa;
+            border-left: 4px solid #27ae60;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .password-requirements ul {
+            margin: 0.5rem 0 0 0;
+            padding-left: 1.5rem;
+        }
+        
+        .password-strength {
+            height: 5px;
+            border-radius: 3px;
+            margin-top: 8px;
+            background: #e9ecef;
+            overflow: hidden;
+        }
+        
+        .password-strength-bar {
+            height: 100%;
+            transition: all 0.3s;
+        }
+    </style>
+{% endblock %}
 
 {% block body %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title text-center">Сбросить пароль</h3>
-                </div>
-                <div class="card-body">
-                    {{ form_start(resetForm) }}
-                    {{ form_row(resetForm.plainPassword) }}
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">Сохранить пароль</button>
-                    </div>
-                    {{ form_end(resetForm) }}
-                    
-                    <div class="text-center mt-3">
-                        <p><a href="{{ path('app_login') }}">Вернуться к входу</a></p>
-                    </div>
-                </div>
+<div class="reset-card">
+    <div class="reset-header">
+        <div class="reset-icon">
+            <i class="fas fa-lock"></i>
+        </div>
+        <div class="reset-logo">Новый пароль</div>
+        <div class="reset-subtitle">Создайте надёжный пароль</div>
+    </div>
+    
+    <div class="reset-body">
+        <div class="password-requirements">
+            <strong><i class="fas fa-shield-alt me-2"></i>Требования к паролю:</strong>
+            <ul>
+                <li>Минимум 8 символов</li>
+                <li>Заглавные и строчные буквы</li>
+                <li>Цифры и спецсимволы</li>
+            </ul>
+        </div>
+        
+        {{ form_start(resetForm) }}
+        
+        <div class="mb-4">
+            <label for="{{ resetForm.plainPassword.vars.id }}" class="form-label">
+                <i class="fas fa-key me-2"></i>Новый пароль
+            </label>
+            {{ form_widget(resetForm.plainPassword.first, {
+                'attr': {
+                    'class': 'form-control mb-3',
+                    'placeholder': 'Введите новый пароль',
+                    'id': 'password-input'
+                }
+            }) }}
+            <div class="password-strength">
+                <div class="password-strength-bar" id="password-strength-bar"></div>
             </div>
+            
+            {{ form_widget(resetForm.plainPassword.second, {
+                'attr': {
+                    'class': 'form-control mt-3',
+                    'placeholder': 'Повторите новый пароль'
+                }
+            }) }}
+            {{ form_errors(resetForm.plainPassword) }}
+        </div>
+        
+        <button type="submit" class="btn btn-reset mb-3">
+            <i class="fas fa-check-circle me-2"></i>Сохранить пароль
+        </button>
+        
+        {{ form_end(resetForm) }}
+        
+        <div class="reset-footer">
+            <a href="{{ path('app_login') }}" class="text-decoration-none">
+                <i class="fas fa-arrow-left me-1"></i>Вернуться к входу
+            </a>
         </div>
     </div>
 </div>
+
+<script>
+// Password strength indicator
+document.getElementById('password-input')?.addEventListener('input', function(e) {
+    const password = e.target.value;
+    const strengthBar = document.getElementById('password-strength-bar');
+    
+    let strength = 0;
+    if (password.length >= 8) strength += 25;
+    if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength += 25;
+    if (password.match(/[0-9]/)) strength += 25;
+    if (password.match(/[^a-zA-Z0-9]/)) strength += 25;
+    
+    strengthBar.style.width = strength + '%';
+    
+    if (strength <= 25) {
+        strengthBar.style.backgroundColor = '#dc3545';
+    } else if (strength <= 50) {
+        strengthBar.style.backgroundColor = '#ffc107';
+    } else if (strength <= 75) {
+        strengthBar.style.backgroundColor = '#17a2b8';
+    } else {
+        strengthBar.style.backgroundColor = '#28a745';
+    }
+});
+</script>
 {% endblock %}

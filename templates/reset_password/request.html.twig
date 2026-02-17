@@ -1,30 +1,151 @@
-{% extends 'base.html.twig' %}
+{% extends 'auth_base.html.twig' %}
 
-{% block title %}Забыли пароль?{% endblock %}
+{% block title %}Восстановление пароля{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .reset-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 450px;
+            overflow: hidden;
+        }
+        
+        .reset-header {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 2.5rem;
+            text-align: center;
+        }
+        
+        .reset-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .reset-logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .reset-subtitle {
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+        
+        .reset-body {
+            padding: 2.5rem;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-control {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 12px 18px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: #e74c3c;
+            box-shadow: 0 0 0 0.2rem rgba(231, 76, 60, 0.25);
+        }
+        
+        .btn-reset {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            border: none;
+            color: white;
+            padding: 14px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1rem;
+            width: 100%;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .btn-reset:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(231, 76, 60, 0.3);
+            color: white;
+        }
+        
+        .reset-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #e74c3c;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+{% endblock %}
 
 {% block body %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title text-center">Забыли пароль?</h3>
-                </div>
-                <div class="card-body">
-                    <p class="text-center">Введите свой email, и мы вышлем вам ссылку для сброса пароля.</p>
-                    
-                    {{ form_start(requestForm) }}
-                    {{ form_row(requestForm.email) }}
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">Отправить ссылку для сброса</button>
-                    </div>
-                    {{ form_end(requestForm) }}
-                    
-                    <div class="text-center mt-3">
-                        <p><a href="{{ path('app_login') }}">Вернуться к входу</a></p>
-                    </div>
-                </div>
-            </div>
+<div class="reset-card">
+    <div class="reset-header">
+        <div class="reset-icon">
+            <i class="fas fa-key"></i>
+        </div>
+        <div class="reset-logo">Восстановление пароля</div>
+        <div class="reset-subtitle">CRM система: Анализ продаж</div>
+    </div>
+    
+    <div class="reset-body">
+        <div class="info-box">
+            <i class="fas fa-info-circle me-2"></i>
+            <small>Введите email, указанный при регистрации. Мы отправим вам ссылку для сброса пароля.</small>
+        </div>
+        
+        {{ form_start(requestForm) }}
+        
+        <div class="mb-4">
+            <label for="{{ requestForm.email.vars.id }}" class="form-label">
+                <i class="fas fa-envelope me-2"></i>Email адрес
+            </label>
+            {{ form_widget(requestForm.email, {
+                'attr': {
+                    'class': 'form-control',
+                    'placeholder': 'user@example.com',
+                    'autofocus': true
+                }
+            }) }}
+            {{ form_errors(requestForm.email) }}
+        </div>
+        
+        <button type="submit" class="btn btn-reset mb-3">
+            <i class="fas fa-paper-plane me-2"></i>Отправить ссылку
+        </button>
+        
+        {{ form_end(requestForm) }}
+        
+        <div class="reset-footer">
+            <p class="text-muted mb-2">Вспомнили пароль?</p>
+            <a href="{{ path('app_login') }}" class="text-decoration-none">
+                <i class="fas fa-sign-in-alt me-1"></i>Вернуться к входу
+            </a>
         </div>
     </div>
 </div>

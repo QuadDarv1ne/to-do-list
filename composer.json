@@ -1,4 +1,6 @@
 {
+    "name": "dvfarm/crm-sales-analytics",
+    "description": "CRM система для анализа продаж ООО «Дальневосточный фермер»",
     "type": "project",
     "license": "proprietary",
     "minimum-stability": "stable",

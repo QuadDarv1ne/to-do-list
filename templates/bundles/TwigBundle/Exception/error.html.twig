@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ошибка {{ status_code }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .error-container {
+            text-align: center;
+            color: white;
+            padding: 2rem;
+            max-width: 800px;
+        }
+        
+        .error-code {
+            font-size: 8rem;
+            font-weight: 900;
+            line-height: 1;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .error-icon {
+            font-size: 5rem;
+            margin-bottom: 2rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .error-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .error-message {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+        
+        .btn-home {
+            background: white;
+            color: #e74c3c;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin: 0.5rem;
+        }
+        
+        .btn-home:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+            color: #e74c3c;
+        }
+        
+        .error-details {
+            margin-top: 3rem;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="error-code">{{ status_code }}</div>
+        <h1 class="error-title">{{ status_text }}</h1>
+        <p class="error-message">
+            Произошла ошибка при обработке вашего запроса. Пожалуйста, попробуйте позже.
+        </p>
+        
+        <div>
+            <a href="/" class="btn-home">
+                <i class="fas fa-home me-2"></i>Главная страница
+            </a>
+            <a href="javascript:history.back()" class="btn-home">
+                <i class="fas fa-arrow-left me-2"></i>Назад
+            </a>
+        </div>
+        
+        {% if app.debug %}
+        <div class="error-details">
+            <h5><i class="fas fa-bug me-2"></i>Детали ошибки (режим отладки):</h5>
+            <p><strong>Код:</strong> {{ status_code }}</p>
+            <p><strong>Сообщение:</strong> {{ exception.message }}</p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
