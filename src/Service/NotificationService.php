@@ -178,11 +178,11 @@ class NotificationService
 
                 $lastCheck = new \DateTime();
                 $heartbeatInterval = 30; // seconds
-                $checkInterval = 10; // seconds - increased interval to reduce load
-                $iterationCount = 0;
-                $maxIterations = 300; // Maximum iterations to prevent indefinite running (300 * 10s = 50 minutes)
+                $checkInterval = 10; // seconds
+                $maxDuration = 600; // 10 minutes maximum connection time
+                $startTime = time();
                 
-                while ($iterationCount < $maxIterations && !connection_aborted()) {
+                while ((time() - $startTime) < $maxDuration && !connection_aborted()) {
                     // Check for new notifications
                     $newNotifications = $this->getNewNotifications($user, $lastCheck);
                     
@@ -213,39 +213,32 @@ class NotificationService
                     }
 
                     // Send heartbeat to keep connection alive
-                    if ($iterationCount % $heartbeatInterval === 0) {
+                    $elapsed = time() - $startTime;
+                    if ($elapsed % $heartbeatInterval === 0) {
                         echo "event: heartbeat\n";
-                        echo "data: " . json_encode(['time' => date('c')]) . "\n\n";
+                        echo "data: " . json_encode(['time' => date('c'), 'elapsed' => $elapsed]) . "\n\n";
                         flush();
                     }
 
-                    // Break the sleep into smaller chunks to allow for quicker response to connection abort
+                    // Sleep with connection check
                     $remainingSleep = $checkInterval;
-                    $chunkSize = 2; // 2 second chunks
-                    $continueLoop = true;
+                    $chunkSize = 2;
                     
-                    while ($remainingSleep > 0 && $continueLoop && !connection_aborted()) {
+                    while ($remainingSleep > 0 && !connection_aborted()) {
                         $sleepChunk = min($chunkSize, $remainingSleep);
-                        usleep($sleepChunk * 1000000); // usleep takes microseconds, not seconds
+                        sleep($sleepChunk);
                         $remainingSleep -= $sleepChunk;
-                        
-                        // Check periodically if connection is still alive
-                        if (connection_aborted()) {
-                            $continueLoop = false;
-                        }
                     }
                     
-                    $iterationCount++;
-                    
-                    // Final check if connection is still alive
                     if (connection_aborted()) {
                         break;
                     }
                 }
                 
                 // Send disconnect event before closing
+                $reason = (time() - $startTime) >= $maxDuration ? 'timeout' : 'client_disconnect';
                 echo "event: disconnected\n";
-                echo "data: " . json_encode(['status' => 'disconnected', 'reason' => 'timeout or client disconnect']) . "\n\n";
+                echo "data: " . json_encode(['status' => 'disconnected', 'reason' => $reason]) . "\n\n";
                 flush();
             });
 

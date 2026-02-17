@@ -1,0 +1,31 @@
+framework:
+    rate_limiter:
+        # General request rate limiter
+        general_request:
+            policy: 'sliding_window'
+            limit: 100
+            interval: '1 minute'
+        
+        # API rate limiter
+        api_request:
+            policy: 'sliding_window'
+            limit: 60
+            interval: '1 minute'
+        
+        # Login rate limiter
+        login_attempt:
+            policy: 'sliding_window'
+            limit: 5
+            interval: '15 minutes'
+        
+        # Password reset rate limiter
+        password_reset:
+            policy: 'sliding_window'
+            limit: 3
+            interval: '1 hour'
+        
+        # Registration rate limiter
+        registration:
+            policy: 'sliding_window'
+            limit: 3
+            interval: '1 hour'

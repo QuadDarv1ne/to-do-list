@@ -7,7 +7,7 @@ use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use App\Validator\Constraints\PasswordStrength;
+use App\Validator\Constraints\StrongPassword;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Regex;
@@ -40,7 +40,7 @@ class ChangePasswordFormType extends AbstractType
                             minMessage: 'Пароль должен содержать минимум {{ limit }} символов',
                             maxMessage: 'Пароль слишком длинный'
                         ),
-                        new PasswordStrength(),
+                        new StrongPassword(),
                         new Regex(
                             pattern: '/^(?=.*[A-Za-z])(?=.*\d).+$/',
                             message: 'Пароль должен содержать хотя бы одну букву и одну цифру'

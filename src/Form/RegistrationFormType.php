@@ -3,7 +3,7 @@
 namespace App\Form;
 
 use App\Entity\User;
-use App\Validator\Constraints\PasswordStrength;
+use App\Validator\Constraints\StrongPassword;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
@@ -117,7 +117,7 @@ class RegistrationFormType extends AbstractType
                             minMessage: 'Пароль должен содержать минимум {{ limit }} символов',
                             maxMessage: 'Пароль должен содержать максимум {{ limit }} символов',
                         ),
-                        new PasswordStrength(),
+                        new StrongPassword(),
                         new Regex(
                             pattern: '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/',
                             message: 'Пароль должен содержать хотя бы одну заглавную букву, одну строчную букву и одну цифру'

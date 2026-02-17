@@ -94,29 +94,62 @@ class TaskController extends AbstractController
         $allowedDirections = ['ASC', 'DESC'];
         
         if ($sort === 'tag_count') {
-            // Special handling for tag count sorting
+            // Optimized tag count sorting with proper pagination
             $qb->select('t, au, c, tags, COUNT(tags.id) as HIDDEN tag_count')
-               ->groupBy('t.id, au.id, c.id, tags.id')
+               ->groupBy('t.id, au.id, c.id')
                ->orderBy('tag_count', $direction)
                ->addOrderBy('t.createdAt', 'DESC');
-        } elseif (in_array($sort, $allowedSorts) && in_array($direction, $allowedDirections)) {
-            $qb->orderBy('t.' . $sort, $direction);
-        } else {
-            $qb->orderBy('t.createdAt', 'DESC');
-        }
-        
-        // Handle pagination differently when sorting by tag count
-        if ($sort === 'tag_count') {
-            // For tag count sorting, get all matching tasks and handle pagination in memory
-            $allTasks = $qb->getQuery()->getResult();
-            $totalTasks = count($allTasks);
+            
+            // Get total count for pagination
+            $countQb = $taskRepository->createQueryBuilder('t2')
+                ->select('COUNT(DISTINCT t2.id)')
+                ->andWhere('t2.user = :user')
+                ->setParameter('user', $user);
+            
+            if ($search) {
+                $countQb->andWhere('t2.title LIKE :search OR t2.description LIKE :search')
+                    ->setParameter('search', '%' . $search . '%');
+            }
+            if ($status) {
+                $countQb->andWhere('t2.status = :status')->setParameter('status', $status);
+            }
+            if ($priority) {
+                $countQb->andWhere('t2.priority = :priority')->setParameter('priority', $priority);
+            }
+            if ($categoryId) {
+                $countQb->andWhere('t2.category = :category')->setParameter('category', $categoryId);
+            }
+            if ($hideCompleted) {
+                $countQb->andWhere('t2.status != :completedStatus')->setParameter('completedStatus', 'completed');
+            }
+            
+            $totalTasks = $countQb->getQuery()->getSingleScalarResult();
             $totalPages = ceil($totalTasks / $limit);
             
-            // Apply pagination manually
-            $tasks = array_slice($allTasks, $offset, $limit);
-        } else {
+            // Apply pagination at database level
+            $tasks = $qb
+                ->setFirstResult($offset)
+                ->setMaxResults($limit)
+                ->getQuery()
+                ->getResult();
+        } elseif (in_array($sort, $allowedSorts) && in_array($direction, $allowedDirections)) {
+            $qb->orderBy('t.' . $sort, $direction);
+            
             // Get total count for pagination
-            $totalTasks = (clone $qb)->select('COUNT(t.id)')->getQuery()->getSingleScalarResult();
+            $totalTasks = (clone $qb)->select('COUNT(DISTINCT t.id)')->getQuery()->getSingleScalarResult();
+            $totalPages = ceil($totalTasks / $limit);
+            
+            // Apply pagination
+            $tasks = $qb
+                ->setFirstResult($offset)
+                ->setMaxResults($limit)
+                ->getQuery()
+                ->getResult();
+        } else {
+            $qb->orderBy('t.createdAt', 'DESC');
+            
+            // Get total count for pagination
+            $totalTasks = (clone $qb)->select('COUNT(DISTINCT t.id)')->getQuery()->getSingleScalarResult();
             $totalPages = ceil($totalTasks / $limit);
             
             // Apply pagination
