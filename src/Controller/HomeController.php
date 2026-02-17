@@ -11,7 +11,7 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class HomeController extends AbstractController
 {
-    #[Route('/', name: 'app_home')]
+    #[Route('/', name: 'app_homepage')]
     public function index(
         AuthenticationUtils $authenticationUtils,
         ?PerformanceMonitorService $performanceMonitor = null,

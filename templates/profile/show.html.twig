@@ -201,7 +201,6 @@
                                 <div class="info-value">
                                     {% if user.lastLoginAt %}
                                         {{ user.lastLoginAt|date('d.m.Y H:i') }}
-                                        <small class="text-muted">({{ user.lastLoginAt|ago }})</small>
                                     {% else %}
                                         <span class="text-muted">Еще не входил</span>
                                     {% endif %}

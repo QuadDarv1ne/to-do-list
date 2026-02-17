@@ -1222,5 +1222,42 @@
             });
         });
     </script>
+    
+    <!-- Footer -->
+    <footer class="bg-light text-center text-lg-start mt-5">
+        <div class="container p-4">
+            <div class="row">
+                <div class="col-lg-6 col-md-12 mb-4 mb-md-0">
+                    <h5 class="text-uppercase">CRM система: Анализ продаж</h5>
+                    <p>
+                        Система управления продажами для ООО «Дальневосточный фермер»
+                    </p>
+                </div>
+                
+                <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
+                    <h5 class="text-uppercase">Ссылки</h5>
+                    <ul class="list-unstyled mb-0">
+                        <li><a href="{{ path('app_dashboard') }}" class="text-dark">Панель управления</a></li>
+                        <li><a href="{{ path('app_about') }}" class="text-dark">О системе</a></li>
+                        {% if app.user and app.user.hasRole('ROLE_ADMIN') %}
+                            <li><a href="{{ path('app_performance_index') }}" class="text-dark">Производительность</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                
+                <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
+                    <h5 class="text-uppercase">Поддержка</h5>
+                    <ul class="list-unstyled mb-0">
+                        <li><a href="#" class="text-dark">Документация</a></li>
+                        <li><a href="#" class="text-dark">Техподдержка</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-center p-3 bg-dark text-white">
+            © {{ "now"|date("Y") }} ООО «Дальневосточный фермер». Все права защищены.
+        </div>
+    </footer>
 </body>
 </html>

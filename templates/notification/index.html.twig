@@ -2,49 +2,140 @@
 
 {% block title %}Уведомления{% endblock %}
 
+{% block stylesheets %}
+<style>
+    .notification-item {
+        transition: all 0.3s ease;
+        border-left: 4px solid transparent;
+    }
+    
+    .notification-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .notification-item.unread {
+        background: linear-gradient(to right, #f8f9fa 0%, #ffffff 100%);
+        border-left-color: #0d6efd;
+    }
+    
+    .notification-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    
+    .notification-icon.info {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .notification-icon.success {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+    }
+    
+    .notification-icon.warning {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+    }
+</style>
+{% endblock %}
+
 {% block body %}
-<div class="container mt-4">
+<div class="container py-4">
     <div class="row">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="h3">Уведомления</h2>
-                <div>
-                    <button class="btn btn-outline-primary btn-enhanced me-2" onclick="markAllAsRead()">
-                        <i class="fas fa-check-double me-2"></i>Отметить все как прочитанные
-                    </button>
-                    <a href="{{ path('app_dashboard') }}" class="btn btn-secondary btn-enhanced">
-                        <i class="fas fa-arrow-left me-2"></i>Назад
-                    </a>
-                </div>
-            </div>
-            
-            {% if notifications %}
-            <div class="list-group">
-                {% for notification in notifications %}
-                <div class="list-group-item d-flex justify-content-between align-items-start {% if not notification.isRead %}bg-light{% endif %}">
-                    <div class="ms-2 me-auto">
-                        <div class="fw-bold">{{ notification.title }}</div>
-                        <p class="mb-1">{{ notification.message|raw }}</p>
-                        <small class="text-muted">{{ notification.createdAt|date('d.m.Y H:i') }}</small>
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h2 class="h4 mb-0">
+                        <i class="fas fa-bell me-2"></i>
+                        Уведомления
+                    </h2>
+                    <div>
+                        {% set unreadCount = notifications|filter(n => not n.isRead)|length %}
+                        {% if unreadCount > 0 %}
+                            <button class="btn btn-light btn-sm me-2" onclick="markAllAsRead()">
+                                <i class="fas fa-check-double me-1"></i>
+                                Отметить все ({{ unreadCount }})
+                            </button>
+                        {% endif %}
+                        <a href="{{ path('app_dashboard') }}" class="btn btn-light btn-sm">
+                            <i class="fas fa-arrow-left me-1"></i>
+                            Назад
+                        </a>
                     </div>
-                    {% if notification.task %}
-                    <a href="{{ path('app_task_show', {'id': notification.task.id}) }}" class="btn btn-sm btn-outline-primary btn-enhanced ms-2">
-                        <i class="fas fa-eye"></i>
-                    </a>
-                    {% endif %}
-                    {% if not notification.isRead %}
-                    <button class="btn btn-sm btn-outline-success btn-enhanced ms-2" onclick="markAsRead({{ notification.id }})">
-                        <i class="fas fa-check"></i>
-                    </button>
+                </div>
+                
+                <div class="card-body p-0">
+                    {% if notifications %}
+                        <div class="list-group list-group-flush">
+                            {% for notification in notifications %}
+                            <div class="list-group-item notification-item {% if not notification.isRead %}unread{% endif %}" id="notification-{{ notification.id }}">
+                                <div class="d-flex align-items-start">
+                                    <div class="notification-icon info me-3">
+                                        <i class="fas fa-info-circle"></i>
+                                    </div>
+                                    
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h5 class="mb-1 {% if not notification.isRead %}fw-bold{% endif %}">
+                                                {{ notification.title }}
+                                            </h5>
+                                            <small class="text-muted">
+                                                <i class="fas fa-clock me-1"></i>
+                                                {{ notification.createdAt|date('d.m.Y H:i') }}
+                                            </small>
+                                        </div>
+                                        
+                                        <p class="mb-2 text-muted">
+                                            {{ notification.message|striptags }}
+                                        </p>
+                                        
+                                        <div class="d-flex gap-2">
+                                            {% if notification.task %}
+                                                <a href="{{ path('app_task_show', {'id': notification.task.id}) }}" 
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye me-1"></i>
+                                                    Просмотреть задачу
+                                                </a>
+                                            {% endif %}
+                                            
+                                            {% if not notification.isRead %}
+                                                <button class="btn btn-sm btn-outline-success" 
+                                                        onclick="markAsRead({{ notification.id }})">
+                                                    <i class="fas fa-check me-1"></i>
+                                                    Прочитано
+                                                </button>
+                                            {% else %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check me-1"></i>
+                                                    Прочитано
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-bell-slash fa-4x text-muted mb-3"></i>
+                            <h4 class="text-muted">Уведомлений нет</h4>
+                            <p class="text-muted">Здесь будут отображаться ваши уведомления</p>
+                            <a href="{{ path('app_dashboard') }}" class="btn btn-primary mt-3">
+                                <i class="fas fa-home me-2"></i>
+                                На главную
+                            </a>
+                        </div>
                     {% endif %}
                 </div>
-                {% endfor %}
             </div>
-            {% else %}
-            <div class="alert alert-info">
-                Уведомлений нет.
-            </div>
-            {% endif %}
         </div>
     </div>
 </div>
@@ -56,25 +147,41 @@ async function markAsRead(notificationId) {
             method: 'POST',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                'Content-Type': 'application/json'
             }
         });
         
         if (response.ok) {
+            const item = document.getElementById(`notification-${notificationId}`);
+            if (item) {
+                item.classList.remove('unread');
+                item.querySelector('.btn-outline-success')?.remove();
+                const badge = document.createElement('span');
+                badge.className = 'badge bg-success';
+                badge.innerHTML = '<i class="fas fa-check me-1"></i>Прочитано';
+                item.querySelector('.d-flex.gap-2').appendChild(badge);
+            }
+            
+            // Update unread count in header
             location.reload();
         }
     } catch (error) {
-        console.error('Error marking notification as read:', error);
+        console.error('Error:', error);
+        alert('Ошибка при отметке уведомления');
     }
 }
 
 async function markAllAsRead() {
+    if (!confirm('Отметить все уведомления как прочитанные?')) {
+        return;
+    }
+    
     try {
         const response = await fetch('/notifications/mark-all-as-read', {
             method: 'POST',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                'Content-Type': 'application/json'
             }
         });
         
@@ -82,7 +189,8 @@ async function markAllAsRead() {
             location.reload();
         }
     } catch (error) {
-        console.error('Error marking all notifications as read:', error);
+        console.error('Error:', error);
+        alert('Ошибка при отметке уведомлений');
     }
 }
 </script>

@@ -65,6 +65,8 @@ npm run build
 
 # Запуск сервера
 symfony server:start
+# или
+php -S localhost:8000 -t public
 ```
 
 ## 📖 Документация
