@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 use App\Service\AnalyticsService;
-use App\Service\PerformanceMonitorService;
+use App\Service\PerformanceMonitoringService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,11 +14,11 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 class PerformanceController extends AbstractController
 {
-    private PerformanceMonitorService $performanceMonitor;
+    private PerformanceMonitoringService $performanceMonitor;
     private AnalyticsService $analyticsService;
 
     public function __construct(
-        PerformanceMonitorService $performanceMonitor,
+        PerformanceMonitoringService $performanceMonitor,
         AnalyticsService $analyticsService
     ) {
         $this->performanceMonitor = $performanceMonitor;
@@ -54,7 +54,7 @@ class PerformanceController extends AbstractController
     #[Route('/detailed', name: 'app_performance_detailed', methods: ['GET'])]
     public function getDetailedMetrics(): JsonResponse
     {
-        $detailedMetrics = $this->performanceMonitor->getDetailedMetrics();
+        $detailedMetrics = $this->performanceMonitor->getPerformanceReport();
         
         return $this->json($detailedMetrics);
     }
@@ -62,7 +62,7 @@ class PerformanceController extends AbstractController
     #[Route('/slow-queries', name: 'app_performance_slow_queries', methods: ['GET'])]
     public function getSlowQueries(): JsonResponse
     {
-        $slowQueries = $this->performanceMonitor->getSlowQueries();
+        $slowQueries = $this->performanceMonitor->getSlowOperations();
         
         return $this->json($slowQueries);
     }
@@ -70,7 +70,7 @@ class PerformanceController extends AbstractController
     #[Route('/clear-slow-queries', name: 'app_performance_clear_slow_queries', methods: ['POST'])]
     public function clearSlowQueries(): JsonResponse
     {
-        $this->performanceMonitor->clearSlowQueries();
+        $this->performanceMonitor->clearMetrics();
         
         return $this->json(['success' => true, 'message' => 'Slow queries cleared']);
     }
@@ -78,7 +78,7 @@ class PerformanceController extends AbstractController
     #[Route('/health', name: 'app_performance_health', methods: ['GET'])]
     public function healthCheck(): JsonResponse
     {
-        $performanceData = $this->performanceMonitor->collectMetrics();
+        $performanceData = $this->performanceMonitor->getPerformanceReport();
         
         // Determine health status based on metrics
         $healthStatus = [
