@@ -1,0 +1,28 @@
+# Crontab configuration for To-Do List application
+# Copy this file and adjust paths as needed
+# Install with: crontab -e
+
+# Set PATH and project directory
+PATH=/usr/local/bin:/usr/bin:/bin
+PROJECT_DIR=/path/to/your/project
+
+# Daily backup at 2 AM
+0 2 * * * cd $PROJECT_DIR && php bin/console app:backup >> var/log/cron.log 2>&1
+
+# Weekly cleanup on Sunday at 3 AM
+0 3 * * 0 cd $PROJECT_DIR && php bin/console app:data-cleanup --notifications-days=90 --activity-logs-days=180 >> var/log/cron.log 2>&1
+
+# Send deadline notifications daily at 9 AM
+0 9 * * * cd $PROJECT_DIR && php bin/console app:send-deadline-notifications >> var/log/cron.log 2>&1
+
+# Generate recurring tasks daily at midnight
+0 0 * * * cd $PROJECT_DIR && php bin/console app:generate-recurring-tasks >> var/log/cron.log 2>&1
+
+# Performance monitoring every hour
+0 * * * * cd $PROJECT_DIR && php bin/console app:performance-monitor >> var/log/cron.log 2>&1
+
+# Database optimization weekly on Saturday at 4 AM
+0 4 * * 6 cd $PROJECT_DIR && php bin/console app:database-optimizer --analyze --optimize >> var/log/cron.log 2>&1
+
+# Cleanup old tasks monthly on 1st at 5 AM
+0 5 1 * * cd $PROJECT_DIR && php bin/console app:cleanup-old-tasks --days=365 >> var/log/cron.log 2>&1

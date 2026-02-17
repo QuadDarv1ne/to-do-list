@@ -3,10 +3,26 @@ framework:
     secret: '%env(APP_SECRET)%'
 
     # Note that the session will be started ONLY if you read or write from it.
-    session: true
+    session:
+        cookie_secure: auto
+        cookie_httponly: true
+        cookie_samesite: lax
+        handler_id: null
+        cookie_lifetime: 3600
+        gc_maxlifetime: 3600
 
-    #esi: true
-    #fragments: true
+    # Content Security Policy
+    http_client:
+        default_options:
+            headers:
+                'X-Content-Type-Options': 'nosniff'
+                'X-Frame-Options': 'DENY'
+                'X-XSS-Protection': '1; mode=block'
+                'Referrer-Policy': 'strict-origin-when-cross-origin'
+
+    # Enable trusted headers for reverse proxy
+    # trusted_proxies: '%env(default::TRUSTED_PROXIES)%'
+    # trusted_headers: ['x-forwarded-for', 'x-forwarded-proto', 'x-forwarded-port']
 
 when@test:
     framework:

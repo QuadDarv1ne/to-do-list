@@ -141,8 +141,17 @@ class DatabaseOptimizerService
             $tableNames = $schemaManager->listTableNames();
 
             foreach ($tableNames as $tableName) {
-                // Get row count
-                $rowCount = $this->connection->executeQuery("SELECT COUNT(*) FROM `{$tableName}`")->fetchOne();
+                // Sanitize table name to prevent SQL injection
+                $sanitizedTableName = preg_replace('/[^a-zA-Z0-9_]/', '', $tableName);
+                
+                if ($sanitizedTableName !== $tableName) {
+                    $this->logger->warning('Skipping table with invalid name', ['table' => $tableName]);
+                    continue;
+                }
+                
+                // Get row count using parameterized query
+                $sql = sprintf('SELECT COUNT(*) FROM %s', $this->connection->quoteIdentifier($sanitizedTableName));
+                $rowCount = $this->connection->executeQuery($sql)->fetchOne();
                 
                 $tables[] = [
                     'name' => $tableName,
@@ -311,20 +320,25 @@ class DatabaseOptimizerService
         ]);
 
         try {
-            // For SQLite, we can run VACUUM on the table
-            $result = $this->connection->executeStatement("VACUUM '{$tableName}'");
+            // Sanitize table name to prevent SQL injection
+            $sanitizedTableName = preg_replace('/[^a-zA-Z0-9_]/', '', $tableName);
             
-            $this->logger->info('Table optimized successfully', [
-                'table' => $tableName
-            ]);
+            if ($sanitizedTableName !== $tableName) {
+                throw new \InvalidArgumentException('Invalid table name');
+            }
+            
+            // For SQLite, VACUUM doesn't support table-specific optimization
+            $result = $this->connection->executeStatement("VACUUM");
+            
+            $this->logger->info('Database optimized successfully');
 
             return [
                 'success' => true,
                 'table' => $tableName,
-                'message' => "Table {$tableName} optimized successfully"
+                'message' => "Database optimized successfully"
             ];
         } catch (\Exception $e) {
-            $this->logger->error('Table optimization failed', [
+            $this->logger->error('Database optimization failed', [
                 'table' => $tableName,
                 'error' => $e->getMessage()
             ]);
@@ -387,7 +401,16 @@ class DatabaseOptimizerService
             $tableRecordCounts = [];
             
             foreach ($tableNames as $tableName) {
-                $recordCount = $this->connection->executeQuery("SELECT COUNT(*) FROM `{$tableName}`")->fetchOne();
+                // Sanitize table name
+                $sanitizedTableName = preg_replace('/[^a-zA-Z0-9_]/', '', $tableName);
+                
+                if ($sanitizedTableName !== $tableName) {
+                    $this->logger->warning('Skipping table with invalid name', ['table' => $tableName]);
+                    continue;
+                }
+                
+                $sql = sprintf('SELECT COUNT(*) FROM %s', $this->connection->quoteIdentifier($sanitizedTableName));
+                $recordCount = $this->connection->executeQuery($sql)->fetchOne();
                 $totalRecords += $recordCount;
                 
                 $tableRecordCounts[] = [
@@ -445,7 +468,19 @@ class DatabaseOptimizerService
             $cutoffDate = new \DateTime("-{$retentionDays} days");
             $cutoffDateString = $cutoffDate->format('Y-m-d H:i:s');
             
-            $sql = "DELETE FROM `{$tableName}` WHERE `{$dateField}` < ?";
+            // Sanitize table and field names
+            $sanitizedTableName = preg_replace('/[^a-zA-Z0-9_]/', '', $tableName);
+            $sanitizedDateField = preg_replace('/[^a-zA-Z0-9_]/', '', $dateField);
+            
+            if ($sanitizedTableName !== $tableName || $sanitizedDateField !== $dateField) {
+                throw new \InvalidArgumentException('Invalid table or field name');
+            }
+            
+            $sql = sprintf(
+                'DELETE FROM %s WHERE %s < ?',
+                $this->connection->quoteIdentifier($sanitizedTableName),
+                $this->connection->quoteIdentifier($sanitizedDateField)
+            );
             $deletedCount = $this->connection->executeStatement($sql, [$cutoffDateString]);
             
             $this->logger->info('Old records cleanup completed', [
