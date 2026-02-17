@@ -14,11 +14,11 @@ use Throwable;
 class AdvancedErrorHandlingService
 {
     private LoggerInterface $logger;
-    private PerformanceMonitorService $performanceMonitor;
+    private PerformanceMonitoringService $performanceMonitor;
 
     public function __construct(
         LoggerInterface $logger,
-        PerformanceMonitorService $performanceMonitor
+        PerformanceMonitoringService $performanceMonitor
     ) {
         $this->logger = $logger;
         $this->performanceMonitor = $performanceMonitor;

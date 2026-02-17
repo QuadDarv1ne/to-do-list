@@ -5,9 +5,7 @@ services:
     App\:
         resource: '../src/'
 
-    # Performance monitoring service
-    App\Service\PerformanceMonitorService:
-        arguments: ['@database_connection', '@doctrine.orm.entity_manager', '@logger']
+
 
     # Security management service
     App\Service\SecurityManagementService:

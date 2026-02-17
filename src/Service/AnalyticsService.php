@@ -5,7 +5,7 @@ namespace App\Service;
 use App\Entity\User;
 use App\Entity\Task;
 use App\Repository\TaskRepository;
-use App\Service\PerformanceMonitorService;
+use App\Service\PerformanceMonitoringService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 
@@ -14,13 +14,13 @@ class AnalyticsService
     private EntityManagerInterface $entityManager;
     private LoggerInterface $logger;
     private TaskRepository $taskRepository;
-    private PerformanceMonitorService $performanceMonitor;
+    private PerformanceMonitoringService $performanceMonitor;
 
     public function __construct(
         EntityManagerInterface $entityManager,
         LoggerInterface $logger,
         TaskRepository $taskRepository,
-        PerformanceMonitorService $performanceMonitor
+        PerformanceMonitoringService $performanceMonitor
     ) {
         $this->entityManager = $entityManager;
         $this->logger = $logger;

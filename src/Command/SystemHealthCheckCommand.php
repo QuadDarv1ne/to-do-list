@@ -2,7 +2,7 @@
 
 namespace App\Command;
 
-use App\Service\PerformanceMonitorService;
+use App\Service\PerformanceMonitoringService;
 use App\Service\AnalyticsService;
 use App\Repository\TaskRepository;
 use App\Repository\UserRepository;
@@ -19,13 +19,13 @@ use Symfony\Component\Console\Helper\Table;
 )]
 class SystemHealthCheckCommand extends Command
 {
-    private PerformanceMonitorService $performanceMonitor;
+    private PerformanceMonitoringService $performanceMonitor;
     private AnalyticsService $analyticsService;
     private TaskRepository $taskRepository;
     private UserRepository $userRepository;
 
     public function __construct(
-        PerformanceMonitorService $performanceMonitor,
+        PerformanceMonitoringService $performanceMonitor,
         AnalyticsService $analyticsService,
         TaskRepository $taskRepository,
         UserRepository $userRepository
@@ -48,7 +48,7 @@ class SystemHealthCheckCommand extends Command
 
         // 1. Collect basic system metrics
         $progressBar->setMessage('Collecting system metrics...');
-        $systemMetrics = $this->performanceMonitor->collectMetrics();
+        $systemMetrics = $this->performanceMonitor->getPerformanceReport();
         $progressBar->advance();
 
         // 2. Analyze performance data
@@ -73,12 +73,12 @@ class SystemHealthCheckCommand extends Command
 
         // 6. Check for slow queries
         $progressBar->setMessage('Checking for slow queries...');
-        $slowQueries = $this->performanceMonitor->getSlowQueries();
+        $slowQueries = $this->performanceMonitor->getSlowOperations();
         $progressBar->advance();
 
         // 7. Analyze aggregate metrics
         $progressBar->setMessage('Analyzing aggregate metrics...');
-        $aggregateMetrics = $this->performanceMonitor->getAggregateMetrics();
+        $aggregateMetrics = $this->performanceMonitor->getPerformanceReport();
         $progressBar->advance();
 
         // 8. Generate recommendations

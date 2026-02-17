@@ -2,7 +2,7 @@
 
 namespace App\Command;
 
-use App\Service\PerformanceMonitorService;
+use App\Service\PerformanceMonitoringService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -15,9 +15,9 @@ use Symfony\Component\Console\Helper\ProgressBar;
 )]
 class PerformanceTestCommand extends Command
 {
-    private PerformanceMonitorService $performanceMonitor;
+    private PerformanceMonitoringService $performanceMonitor;
 
-    public function __construct(PerformanceMonitorService $performanceMonitor)
+    public function __construct(PerformanceMonitoringService $performanceMonitor)
     {
         $this->performanceMonitor = $performanceMonitor;
         parent::__construct();
@@ -34,7 +34,7 @@ class PerformanceTestCommand extends Command
         $progressBar->setMessage('Testing memory usage...');
         $progressBar->start();
         
-        $initialMetrics = $this->performanceMonitor->collectMetrics();
+        $initialMetrics = $this->performanceMonitor->getPerformanceReport();
         $output->writeln("\n<comment>Initial memory usage: {$initialMetrics['current_memory_usage']}</comment>");
         $output->writeln("<comment>Initial peak memory: {$initialMetrics['peak_memory_usage']}</comment>");
         
@@ -44,9 +44,9 @@ class PerformanceTestCommand extends Command
         $progressBar->setMessage('Running performance benchmarks...');
         
         // Simulate some operations
-        $this->performanceMonitor->startTimer('benchmark_operation');
+        $this->performanceMonitor->startTiming('benchmark_operation');
         $result = $this->simulateOperations();
-        $benchmarkMetrics = $this->performanceMonitor->stopTimer('benchmark_operation');
+        $benchmarkMetrics = $this->performanceMonitor->stopTiming('benchmark_operation');
         
         $output->writeln("\n<comment>Benchmark execution time: {$benchmarkMetrics['execution_time']} ms</comment>");
         $output->writeln("<comment>Memory used in benchmark: {$benchmarkMetrics['memory_used']}</comment>");
@@ -56,7 +56,7 @@ class PerformanceTestCommand extends Command
         // Test 3: Collect final metrics
         $progressBar->setMessage('Collecting final metrics...');
         
-        $finalMetrics = $this->performanceMonitor->collectMetrics();
+        $finalMetrics = $this->performanceMonitor->getPerformanceReport();
         $output->writeln("\n<comment>Final memory usage: {$finalMetrics['current_memory_usage']}</comment>");
         $output->writeln("<comment>Final peak memory: {$finalMetrics['peak_memory_usage']}</comment>");
         
