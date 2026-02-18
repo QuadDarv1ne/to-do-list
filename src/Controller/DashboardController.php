@@ -23,9 +23,43 @@ class DashboardController extends AbstractController
         \App\Repository\HabitRepository $habitRepository,
         \App\Repository\DealRepository $dealRepository,
         \App\Repository\ClientRepository $clientRepository,
+        QueryCacheService $cacheService,
         ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         $user = $this->getUser();
+        
+        // Cache dashboard data for 2 minutes
+        $cacheKey = 'dashboard_data_' . $user->getId();
+        $dashboardData = $cacheService->get($cacheKey, function() use (
+            $user, $taskRepository, $analyticsService, $goalRepository, 
+            $habitRepository, $dealRepository, $clientRepository, $performanceMonitor
+        ) {
+            return $this->loadDashboardData(
+                $user, $taskRepository, $analyticsService, $goalRepository,
+                $habitRepository, $dealRepository, $clientRepository, $performanceMonitor
+            );
+        }, 120); // 2 minutes cache
+        
+        // Use modern theme if enabled
+        $useModernTheme = $this->getParameter('app.use_modern_theme') ?? false;
+        $template = $useModernTheme ? 'dashboard/index_modern.html.twig' : 'dashboard/index.html.twig';
+        
+        return $this->render($template, $dashboardData);
+    }
+    
+    /**
+     * Load all dashboard data (extracted for caching)
+     */
+    private function loadDashboardData(
+        $user,
+        TaskRepository $taskRepository,
+        AnalyticsService $analyticsService,
+        $goalRepository,
+        $habitRepository,
+        $dealRepository,
+        $clientRepository,
+        ?PerformanceMonitorService $performanceMonitor
+    ): array {
         
         // Get goals and habits data
         $activeGoals = $goalRepository->findActiveGoalsByUser($user);
@@ -157,10 +191,7 @@ class DashboardController extends AbstractController
         // Add additional data for enhanced user experience
         $dashboardData['dashboard_refresh_interval'] = 300000; // 5 minutes in milliseconds
         
-        // Use modern theme if enabled
-        $template = $useModernTheme ? 'dashboard/index_modern.html.twig' : 'dashboard/index.html.twig';
-        
-        return $this->render($template, $dashboardData);
+        return $dashboardData;
     }
     
     /**

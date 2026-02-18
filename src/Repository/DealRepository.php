@@ -18,11 +18,26 @@ class DealRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find deals by manager
+     * Find all deals with optimized joins
+     */
+    public function findAllWithRelations(): array
+    {
+        return $this->createQueryBuilder('d')
+            ->leftJoin('d.client', 'c')->addSelect('c')
+            ->leftJoin('d.manager', 'm')->addSelect('m')
+            ->orderBy('d.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Find deals by manager with optimized joins
      */
     public function findByManager(User $manager): array
     {
         return $this->createQueryBuilder('d')
+            ->leftJoin('d.client', 'c')->addSelect('c')
+            ->leftJoin('d.manager', 'm')->addSelect('m')
             ->where('d.manager = :manager')
             ->setParameter('manager', $manager)
             ->orderBy('d.createdAt', 'DESC')
@@ -31,11 +46,13 @@ class DealRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find active deals (in progress)
+     * Find active deals (in progress) with optimized joins
      */
     public function findActiveDeals(?User $manager = null): array
     {
         $qb = $this->createQueryBuilder('d')
+            ->leftJoin('d.client', 'c')->addSelect('c')
+            ->leftJoin('d.manager', 'm')->addSelect('m')
             ->where('d.status = :status')
             ->setParameter('status', 'in_progress')
             ->orderBy('d.expectedCloseDate', 'ASC');
@@ -119,11 +136,13 @@ class DealRepository extends ServiceEntityRepository
     }
 
     /**
-     * Get overdue deals
+     * Get overdue deals with optimized joins
      */
     public function getOverdueDeals(?User $manager = null): array
     {
         $qb = $this->createQueryBuilder('d')
+            ->leftJoin('d.client', 'c')->addSelect('c')
+            ->leftJoin('d.manager', 'm')->addSelect('m')
             ->where('d.status = :status')
             ->andWhere('d.expectedCloseDate < :now')
             ->setParameter('status', 'in_progress')

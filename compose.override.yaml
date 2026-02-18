@@ -4,9 +4,6 @@ services:
   database-postgres:
     ports:
       - "5432:5432"
-  database-mysql:
-    ports:
-      - "3306:3306"
 ###< doctrine/doctrine-bundle ###
 
 ###> symfony/mailer ###

@@ -18,11 +18,24 @@ class ClientRepository extends ServiceEntityRepository
     }
 
     /**
-     * Find clients by manager
+     * Find all clients with optimized joins
+     */
+    public function findAllWithRelations(): array
+    {
+        return $this->createQueryBuilder('c')
+            ->leftJoin('c.manager', 'm')->addSelect('m')
+            ->orderBy('c.companyName', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Find clients by manager with optimized joins
      */
     public function findByManager(User $manager): array
     {
         return $this->createQueryBuilder('c')
+            ->leftJoin('c.manager', 'm')->addSelect('m')
             ->where('c.manager = :manager')
             ->setParameter('manager', $manager)
             ->orderBy('c.companyName', 'ASC')
@@ -31,11 +44,12 @@ class ClientRepository extends ServiceEntityRepository
     }
 
     /**
-     * Search clients by name
+     * Search clients by name with optimized joins
      */
     public function searchByName(string $query, ?User $manager = null): array
     {
         $qb = $this->createQueryBuilder('c')
+            ->leftJoin('c.manager', 'm')->addSelect('m')
             ->where('c.companyName LIKE :query')
             ->setParameter('query', '%' . $query . '%')
             ->orderBy('c.companyName', 'ASC')

@@ -21,9 +21,9 @@ class DealController extends AbstractController
     {
         $user = $this->getUser();
         
-        // Менеджеры видят только свои сделки, админы - все
+        // Менеджеры видят только свои сделки, админы - все (с оптимизированными запросами)
         $deals = $this->isGranted('ROLE_ADMIN') 
-            ? $dealRepository->findAll()
+            ? $dealRepository->findAllWithRelations()
             : $dealRepository->findByManager($user);
 
         return $this->render('deals/index.html.twig', [
@@ -79,7 +79,7 @@ class DealController extends AbstractController
         }
 
         $clients = $this->isGranted('ROLE_ADMIN')
-            ? $clientRepository->findAll()
+            ? $clientRepository->findAllWithRelations()
             : $clientRepository->findByManager($this->getUser());
 
         return $this->render('deals/new.html.twig', [

@@ -20,9 +20,9 @@ class ClientController extends AbstractController
     {
         $user = $this->getUser();
         
-        // Менеджеры видят только своих клиентов, админы - всех
+        // Менеджеры видят только своих клиентов, админы - всех (с оптимизированными запросами)
         $clients = $this->isGranted('ROLE_ADMIN') 
-            ? $clientRepository->findAll()
+            ? $clientRepository->findAllWithRelations()
             : $clientRepository->findByManager($user);
 
         return $this->render('clients/index.html.twig', [
