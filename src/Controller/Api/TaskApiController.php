@@ -2,6 +2,7 @@
 
 namespace App\Controller\Api;
 
+use App\Controller\Traits\ApiResponseTrait;
 use App\Entity\Task;
 use App\Repository\TaskRepository;
 use App\Service\AdvancedSearchService;
@@ -17,6 +18,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class TaskApiController extends AbstractController
 {
+    use ApiResponseTrait;
+
     public function __construct(
         private TaskRepository $taskRepository,
         private EntityManagerInterface $entityManager,
@@ -48,16 +51,19 @@ class TaskApiController extends AbstractController
         $total = count($tasks);
         $tasks = array_slice($tasks, ($page - 1) * $limit, $limit);
         
-        return $this->json([
-            'success' => true,
-            'data' => array_map(fn($task) => $this->serializeTask($task), $tasks),
-            'meta' => [
-                'page' => $page,
-                'limit' => $limit,
-                'total' => $total,
-                'pages' => ceil($total / $limit)
-            ]
-        ]);
+        // Use optimized response with caching
+        $response = $this->jsonPaginated(
+            array_map(fn($task) => $this->serializeTask($task), $tasks),
+            $page,
+            $limit,
+            $total
+        );
+        
+        // Add cache headers for 5 minutes
+        $response->setPublic();
+        $response->setMaxAge(300);
+        
+        return $response;
     }
     
     /**
@@ -68,10 +74,7 @@ class TaskApiController extends AbstractController
     {
         $this->denyAccessUnlessGranted('view', $task);
         
-        return $this->json([
-            'success' => true,
-            'data' => $this->serializeTask($task, true)
-        ]);
+        return $this->jsonSuccess($this->serializeTask($task, true));
     }
     
     /**
@@ -83,10 +86,7 @@ class TaskApiController extends AbstractController
         $data = json_decode($request->getContent(), true);
         
         if (!isset($data['title']) || empty(trim($data['title']))) {
-            return $this->json([
-                'success' => false,
-                'error' => 'Title is required'
-            ], Response::HTTP_BAD_REQUEST);
+            return $this->jsonError('Title is required', Response::HTTP_BAD_REQUEST);
         }
         
         $task = new Task();
@@ -100,21 +100,18 @@ class TaskApiController extends AbstractController
             try {
                 $task->setDeadline(new \DateTime($data['deadline']));
             } catch (\Exception $e) {
-                return $this->json([
-                    'success' => false,
-                    'error' => 'Invalid deadline format'
-                ], Response::HTTP_BAD_REQUEST);
+                return $this->jsonError('Invalid deadline format', Response::HTTP_BAD_REQUEST);
             }
         }
         
         $this->entityManager->persist($task);
         $this->entityManager->flush();
         
-        return $this->json([
-            'success' => true,
-            'data' => $this->serializeTask($task),
-            'message' => 'Task created successfully'
-        ], Response::HTTP_CREATED);
+        return $this->jsonSuccess(
+            $this->serializeTask($task),
+            'Task created successfully',
+            Response::HTTP_CREATED
+        );
     }
     
     /**

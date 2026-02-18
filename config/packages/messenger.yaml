@@ -3,6 +3,7 @@ framework:
         failure_transport: failed
 
         transports:
+            # Async transport with optimized settings
             async:
                 dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
                 options:
@@ -11,23 +12,46 @@ framework:
                     max_retries: 3
                     multiplier: 2
                     delay: 1000
+                    max_delay: 0
+            
+            # High priority transport for critical operations
+            async_priority_high:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    auto_setup: true
+                    queue_name: 'high_priority'
+                retry_strategy:
+                    max_retries: 5
+                    multiplier: 2
+                    delay: 500
+            
+            # Low priority for background tasks
+            async_priority_low:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    auto_setup: true
+                    queue_name: 'low_priority'
+                retry_strategy:
+                    max_retries: 2
+                    multiplier: 3
+                    delay: 5000
             
             failed: 'doctrine://default?queue_name=failed'
             
             sync: 'sync://'
 
         routing:
-            # Commands - synchronous
+            # Commands - synchronous (CQRS pattern)
             'App\Application\Command\CreateTaskCommand': sync
             'App\Application\Command\CompleteTaskCommand': sync
             'App\Application\Command\ChangeTaskStatusCommand': sync
             
-            # Queries - synchronous
+            # Queries - synchronous (CQRS pattern)
             'App\Application\Query\GetTaskQuery': sync
             'App\Application\Query\GetTasksQuery': sync
             
-            # Events - asynchronous
-            'App\Domain\Task\Event\TaskCreated': async
+            # Events - asynchronous (Event-Driven Architecture)
+            'App\Domain\Task\Event\TaskCreated': async_priority_high
             'App\Domain\Task\Event\TaskCompleted': async
-            'App\Domain\Task\Event\TaskAssigned': async
+            'App\Domain\Task\Event\TaskAssigned': async_priority_high
             'App\Domain\Task\Event\TaskStatusChanged': async

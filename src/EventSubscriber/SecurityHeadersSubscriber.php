@@ -24,7 +24,7 @@ class SecurityHeadersSubscriber implements EventSubscriberInterface
         $response = $event->getResponse();
         $headers = $response->headers;
 
-        // Content Security Policy
+        // Content Security Policy (OWASP 2025 compliant)
         $csp = implode('; ', [
             "default-src 'self'",
             "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
@@ -35,19 +35,40 @@ class SecurityHeadersSubscriber implements EventSubscriberInterface
             "frame-ancestors 'none'",
             "base-uri 'self'",
             "form-action 'self'",
+            "upgrade-insecure-requests", // Force HTTPS
         ]);
         $headers->set('Content-Security-Policy', $csp);
 
-        // Additional security headers
+        // OWASP recommended security headers
         $headers->set('X-Content-Type-Options', 'nosniff');
         $headers->set('X-Frame-Options', 'DENY');
-        $headers->set('X-XSS-Protection', '1; mode=block');
+        $headers->set('X-XSS-Protection', '0'); // Modern browsers use CSP instead
         $headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
-        $headers->set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+        
+        // Permissions Policy (formerly Feature-Policy)
+        $headers->set('Permissions-Policy', implode(', ', [
+            'geolocation=()',
+            'microphone=()',
+            'camera=()',
+            'payment=()',
+            'usb=()',
+            'magnetometer=()',
+            'gyroscope=()',
+            'accelerometer=()'
+        ]));
 
         // HSTS (only in production with HTTPS)
         if ($event->getRequest()->isSecure()) {
-            $headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+            $headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
         }
+        
+        // Cross-Origin policies
+        $headers->set('Cross-Origin-Embedder-Policy', 'require-corp');
+        $headers->set('Cross-Origin-Opener-Policy', 'same-origin');
+        $headers->set('Cross-Origin-Resource-Policy', 'same-origin');
+        
+        // Remove server information
+        $headers->remove('X-Powered-By');
+        $headers->remove('Server');
     }
 }
