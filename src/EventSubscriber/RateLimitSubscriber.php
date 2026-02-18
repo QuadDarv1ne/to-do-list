@@ -40,6 +40,11 @@ class RateLimitSubscriber implements EventSubscriberInterface
             return;
         }
 
+        // Skip rate limiting in dev environment for general requests
+        if ($_ENV['APP_ENV'] === 'dev' && !str_starts_with($path, '/api/')) {
+            return;
+        }
+
         // Check general request rate limiting
         if ($this->rateLimitingService->isRequestRateLimited($request)) {
             $this->handleRateLimitExceeded($event, 'Too many requests. Please try again later.');
