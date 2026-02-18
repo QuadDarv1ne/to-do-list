@@ -15,20 +15,32 @@ class Budget
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(name: 'name', length: 255)]
     private ?string $title = null;
+
+    // Virtual property for backward compatibility (not mapped to database)
+    private ?string $name = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $description = null;
 
-    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
+    #[ORM\Column(name: 'total_amount', type: Types::DECIMAL, precision: 10, scale: 2)]
     private ?string $amount = null;
 
-    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
+    // Virtual property for backward compatibility (not mapped to database)
+    private ?string $totalAmount = null;
+
+    #[ORM\Column(name: 'spent_amount', type: Types::DECIMAL, precision: 10, scale: 2)]
     private ?string $usedAmount = null;
 
-    #[ORM\Column]
+    // Virtual property for backward compatibility (not mapped to database)
+    private ?string $spentAmount = null;
+
+    #[ORM\Column(name: 'created_by')]
     private ?int $userId = null;
+
+    // Virtual property for backward compatibility (not mapped to database)
+    private ?int $createdBy = null;
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE)]
     private ?\DateTimeImmutable $startDate = null;
@@ -71,6 +83,25 @@ class Budget
         return $this;
     }
 
+    /**
+     * Alias for getTitle() for backward compatibility
+     */
+    public function getName(): ?string
+    {
+        return $this->title;
+    }
+
+    /**
+     * Alias for setTitle() for backward compatibility
+     */
+    public function setName(string $name): static
+    {
+        $this->title = $name;
+        $this->name = $name;
+
+        return $this;
+    }
+
     public function getDescription(): ?string
     {
         return $this->description;
@@ -91,6 +122,26 @@ class Budget
     public function setAmount(string $amount): static
     {
         $this->amount = $amount;
+        $this->totalAmount = $amount;
+
+        return $this;
+    }
+
+    /**
+     * Alias for getAmount() for backward compatibility
+     */
+    public function getTotalAmount(): ?string
+    {
+        return $this->amount;
+    }
+
+    /**
+     * Alias for setAmount() for backward compatibility
+     */
+    public function setTotalAmount(string $totalAmount): static
+    {
+        $this->amount = $totalAmount;
+        $this->totalAmount = $totalAmount;
 
         return $this;
     }
@@ -103,6 +154,26 @@ class Budget
     public function setUsedAmount(string $usedAmount): static
     {
         $this->usedAmount = $usedAmount;
+        $this->spentAmount = $usedAmount;
+
+        return $this;
+    }
+
+    /**
+     * Alias for getUsedAmount() for backward compatibility
+     */
+    public function getSpentAmount(): ?string
+    {
+        return $this->usedAmount;
+    }
+
+    /**
+     * Alias for setUsedAmount() for backward compatibility
+     */
+    public function setSpentAmount(string $spentAmount): static
+    {
+        $this->usedAmount = $spentAmount;
+        $this->spentAmount = $spentAmount;
 
         return $this;
     }
@@ -115,6 +186,26 @@ class Budget
     public function setUserId(int $userId): static
     {
         $this->userId = $userId;
+        $this->createdBy = $userId;
+
+        return $this;
+    }
+
+    /**
+     * Alias for getUserId() for backward compatibility
+     */
+    public function getCreatedBy(): ?int
+    {
+        return $this->userId;
+    }
+
+    /**
+     * Alias for setUserId() for backward compatibility
+     */
+    public function setCreatedBy(int $createdBy): static
+    {
+        $this->userId = $createdBy;
+        $this->createdBy = $createdBy;
 
         return $this;
     }
@@ -202,5 +293,10 @@ class Budget
     public function isActive(): bool
     {
         return $this->status === 'active';
+    }
+
+    public function getRemainingAmount(): string
+    {
+        return bcsub($this->amount ?? '0', $this->usedAmount ?? '0', 2);
     }
 }

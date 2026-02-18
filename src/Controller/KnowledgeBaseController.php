@@ -2,337 +2,273 @@
 
 namespace App\Controller;
 
-use App\Service\KnowledgeBaseService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Security\Http\Attribute\CurrentUser;
+use App\Entity\User;
 
 #[Route('/knowledge-base')]
 class KnowledgeBaseController extends AbstractController
 {
-    public function __construct(
-        private KnowledgeBaseService $knowledgeBaseService
-    ) {}
-
-    #[Route('/', name: 'app_knowledge_base_index', methods: ['GET'])]
-    public function index(): Response
+    #[Route('', name: 'app_knowledge_base_index', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
+    public function index(#[CurrentUser] User $user): Response
     {
-        $this->denyAccessUnlessGranted('ROLE_USER');
-        
-        // For now, just render a basic template
-        return $this->render('knowledge_base/index.html.twig');
+        return $this->render('knowledge_base/index.html.twig', [
+            'articles' => [], // Placeholder - would load actual articles
+        ]);
+    }
+
+    #[Route('/articles', name: 'app_knowledge_base_articles', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
+    public function getArticles(): JsonResponse
+    {
+        $articles = [
+            [
+                'id' => 1,
+                'title' => 'Getting Started with Task Management',
+                'summary' => 'Learn how to create and manage tasks effectively',
+                'category' => 'Guides',
+                'author' => 'Admin User',
+                'date' => '2026-01-15',
+                'tags' => ['tasks', 'beginner', 'guide'],
+                'views' => 124
+            ],
+            [
+                'id' => 2,
+                'title' => 'Advanced Resource Allocation Techniques',
+                'summary' => 'Optimize your resource allocation with these advanced techniques',
+                'category' => 'Best Practices',
+                'author' => 'Manager User',
+                'date' => '2026-01-20',
+                'tags' => ['resources', 'optimization', 'best-practices'],
+                'views' => 89
+            ],
+            [
+                'id' => 3,
+                'title' => 'Budget Planning Strategies',
+                'summary' => 'Effective strategies for planning and managing project budgets',
+                'category' => 'Finance',
+                'author' => 'Finance User',
+                'date' => '2026-01-25',
+                'tags' => ['budget', 'finance', 'planning'],
+                'views' => 67
+            ]
+        ];
+
+        return $this->json($articles);
     }
 
     #[Route('/categories', name: 'app_knowledge_base_categories', methods: ['GET'])]
-    public function categories(): JsonResponse
+    #[IsGranted('ROLE_USER')]
+    public function getCategories(): JsonResponse
     {
-        $this->denyAccessUnlessGranted('ROLE_USER');
-        
-        $categories = $this->knowledgeBaseService->getCategories();
-        
-        return $this->json([
-            'categories' => $categories
-        ]);
-    }
+        $categories = [
+            [
+                'id' => 1,
+                'name' => 'Guides',
+                'description' => 'Step-by-step guides for common tasks',
+                'article_count' => 12
+            ],
+            [
+                'id' => 2,
+                'name' => 'Best Practices',
+                'description' => 'Industry best practices and tips',
+                'article_count' => 8
+            ],
+            [
+                'id' => 3,
+                'name' => 'Troubleshooting',
+                'description' => 'Solutions to common issues',
+                'article_count' => 5
+            ],
+            [
+                'id' => 4,
+                'name' => 'Finance',
+                'description' => 'Financial planning and management',
+                'article_count' => 7
+            ]
+        ];
 
-    #[Route('/create', name: 'app_knowledge_base_create', methods: ['POST'])]
-    public function create(Request $request): JsonResponse
-    {
-        $this->denyAccessUnlessGranted('ROLE_USER');
-        
-        $data = json_decode($request->getContent(), true);
-        $title = $data['title'] ?? '';
-        $content = $data['content'] ?? '';
-        $tags = $data['tags'] ?? [];
-        
-        if (empty($title) || empty($content)) {
-            return $this->json([
-                'error' => 'Title and content are required'
-            ], 400);
-        }
-        
-        $article = $this->knowledgeBaseService->createArticle($title, $content, $this->getUser(), $tags);
-        
-        return $this->json([
-            'article' => $article
-        ]);
+        return $this->json($categories);
     }
 
     #[Route('/search', name: 'app_knowledge_base_search', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
     public function search(Request $request): JsonResponse
     {
-        $this->denyAccessUnlessGranted('ROLE_USER');
-        
         $query = $request->query->get('q', '');
-        $filters = $request->query->all('filters') ?: [];
-        
-        if (empty($query)) {
-            return $this->json([
-                'error' => 'Search query is required'
-            ], 400);
+        $category = $request->query->get('category', '');
+        $tags = $request->query->get('tags', '');
+
+        // Simulate search results based on query
+        $results = [
+            [
+                'id' => 1,
+                'title' => 'Getting Started with Task Management',
+                'summary' => 'Learn how to create and manage tasks effectively',
+                'category' => 'Guides',
+                'author' => 'Admin User',
+                'date' => '2026-01-15',
+                'relevance' => 0.95
+            ],
+            [
+                'id' => 2,
+                'title' => 'Advanced Resource Allocation Techniques',
+                'summary' => 'Optimize your resource allocation with these advanced techniques',
+                'category' => 'Best Practices',
+                'author' => 'Manager User',
+                'date' => '2026-01-20',
+                'relevance' => 0.87
+            ]
+        ];
+
+        // Filter results based on category if specified
+        if ($category) {
+            $results = array_filter($results, function($item) use ($category) {
+                return stripos($item['category'], $category) !== false;
+            });
         }
-        
-        $results = $this->knowledgeBaseService->searchArticles($query, $filters);
-        
-        return $this->json([
-            'results' => $results
-        ]);
-    }
 
-    #[Route('/popular', name: 'app_knowledge_base_popular', methods: ['GET'])]
-    public function popular(Request $request): JsonResponse
-    {
-        $this->denyAccessUnlessGranted('ROLE_USER');
-        
-        $limit = (int)$request->query->get('limit', 10);
-        
-        $articles = $this->knowledgeBaseService->getPopularArticles($limit);
-        
         return $this->json([
-            'articles' => $articles
-        ]);
-    }
-
-    #[Route('/recent', name: 'app_knowledge_base_recent', methods: ['GET'])]
-    public function recent(Request $request): JsonResponse
-    {
-        $this->denyAccessUnlessGranted('ROLE_USER');
-        
-        $limit = (int)$request->query->get('limit', 10);
-        
-        $articles = $this->knowledgeBaseService->getRecentArticles($limit);
-        
-        return $this->json([
-            'articles' => $articles
-        ]);
-    }
-
-    #[Route('/related/{id}', name: 'app_knowledge_base_related', methods: ['GET'])]
-    public function related(int $id, Request $request): JsonResponse
-    {
-        $this->denyAccessUnlessGranted('ROLE_USER');
-        
-        $limit = (int)$request->query->get('limit', 5);
-        
-        $articles = $this->knowledgeBaseService->getRelatedArticles($id, $limit);
-        
-        return $this->json([
-            'articles' => $articles
-        ]);
-    }
-
-    #[Route('/rate/{id}', name: 'app_knowledge_base_rate', methods: ['POST'])]
-    public function rate(int $id, Request $request): JsonResponse
-    {
-        $this->denyAccessUnlessGranted('ROLE_USER');
-        
-        $data = json_decode($request->getContent(), true);
-        $rating = (int)($data['rating'] ?? 0);
-        
-        if ($rating < 1 || $rating > 5) {
-            return $this->json([
-                'error' => 'Rating must be between 1 and 5'
-            ], 400);
-        }
-        
-        $this->knowledgeBaseService->rateArticle($id, $this->getUser(), $rating);
-        
-        return $this->json([
-            'success' => true
-        ]);
-    }
-
-    #[Route('/comment/{id}', name: 'app_knowledge_base_comment', methods: ['POST'])]
-    public function comment(int $id, Request $request): JsonResponse
-    {
-        $this->denyAccessUnlessGranted('ROLE_USER');
-        
-        $data = json_decode($request->getContent(), true);
-        $comment = $data['comment'] ?? '';
-        
-        if (empty($comment)) {
-            return $this->json([
-                'error' => 'Comment is required'
-            ], 400);
-        }
-        
-        $comment = $this->knowledgeBaseService->addComment($id, $this->getUser(), $comment);
-        
-        return $this->json([
-            'comment' => $comment
+            'query' => $query,
+            'results' => array_values($results),
+            'total_results' => count($results)
         ]);
     }
 
     #[Route('/learning-paths', name: 'app_knowledge_base_learning_paths', methods: ['GET'])]
-    public function learningPaths(): JsonResponse
+    #[IsGranted('ROLE_USER')]
+    public function getLearningPaths(): JsonResponse
     {
-        $this->denyAccessUnlessGranted('ROLE_USER');
-        
-        $paths = $this->knowledgeBaseService->getLearningPaths();
-        
-        return $this->json([
-            'paths' => $paths
-        ]);
+        $paths = [
+            [
+                'id' => 1,
+                'title' => 'Project Management Fundamentals',
+                'description' => 'Learn the basics of project management with our platform',
+                'modules' => [
+                    ['id' => 1, 'title' => 'Introduction to Project Management'],
+                    ['id' => 2, 'title' => 'Task Creation and Assignment'],
+                    ['id' => 3, 'title' => 'Resource Management'],
+                    ['id' => 4, 'title' => 'Budget Planning'],
+                    ['id' => 5, 'title' => 'Reporting and Analytics']
+                ],
+                'estimated_duration' => '2 weeks',
+                'difficulty' => 'Beginner'
+            ],
+            [
+                'id' => 2,
+                'title' => 'Advanced Resource Optimization',
+                'description' => 'Master advanced techniques for optimizing resource allocation',
+                'modules' => [
+                    ['id' => 6, 'title' => 'Understanding Capacity Planning'],
+                    ['id' => 7, 'title' => 'Load Balancing Techniques'],
+                    ['id' => 8, 'title' => 'Forecasting Demand'],
+                    ['id' => 9, 'title' => 'Performance Monitoring']
+                ],
+                'estimated_duration' => '1 week',
+                'difficulty' => 'Intermediate'
+            ]
+        ];
+
+        return $this->json($paths);
     }
 
-    #[Route('/learning-path/create', name: 'app_knowledge_base_learning_path_create', methods: ['POST'])]
-    public function createLearningPath(Request $request): JsonResponse
+    #[Route('/article/{id}', name: 'app_knowledge_base_article', methods: ['GET'], requirements: ['id' => '\d+'])]
+    #[IsGranted('ROLE_USER')]
+    public function getArticle(int $id): JsonResponse
     {
-        $this->denyAccessUnlessGranted('ROLE_USER');
-        
-        $data = json_decode($request->getContent(), true);
-        $name = $data['name'] ?? '';
-        $articleIds = $data['article_ids'] ?? [];
-        $description = $data['description'] ?? '';
-        
-        if (empty($name) || empty($articleIds)) {
-            return $this->json([
-                'error' => 'Name and article IDs are required'
-            ], 400);
-        }
-        
-        $path = $this->knowledgeBaseService->createLearningPath($name, $articleIds, $description);
-        
-        return $this->json([
-            'path' => $path
-        ]);
+        $article = [
+            'id' => $id,
+            'title' => 'Sample Article Title',
+            'content' => '# Sample Article Content
+            
+This is a sample article content that would provide detailed information about the topic.
+
+## Section 1
+Here is some content for the first section of the article.
+
+## Section 2
+Here is content for the second section of the article.
+
+### Subsection
+This is a subsection with more detailed information.',
+            'category' => 'Guides',
+            'author' => 'Admin User',
+            'date' => '2026-01-15',
+            'tags' => ['sample', 'guide', 'help'],
+            'related_articles' => [
+                ['id' => 2, 'title' => 'Related Article 1'],
+                ['id' => 3, 'title' => 'Related Article 2']
+            ]
+        ];
+
+        return $this->json($article);
     }
 
-    #[Route('/progress/{pathId}', name: 'app_knowledge_base_progress', methods: ['GET'])]
-    public function progress(int $pathId): JsonResponse
+    #[Route('/trending', name: 'app_knowledge_base_trending', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
+    public function getTrendingArticles(): JsonResponse
     {
-        $this->denyAccessUnlessGranted('ROLE_USER');
-        
-        $progress = $this->knowledgeBaseService->getUserProgress($this->getUser(), $pathId);
-        
-        return $this->json([
-            'progress' => $progress
-        ]);
+        $trending = [
+            [
+                'id' => 1,
+                'title' => 'New Feature: Advanced Reporting',
+                'summary' => 'Learn how to use our new advanced reporting features',
+                'views' => 156,
+                'week' => 124
+            ],
+            [
+                'id' => 2,
+                'title' => 'Best Practices for Remote Team Collaboration',
+                'summary' => 'Tips and tricks for managing remote teams effectively',
+                'views' => 98,
+                'week' => 87
+            ],
+            [
+                'id' => 3,
+                'title' => 'Integrating Third-Party Tools',
+                'summary' => 'How to connect external tools to enhance productivity',
+                'views' => 76,
+                'week' => 65
+            ]
+        ];
+
+        return $this->json($trending);
     }
 
-    #[Route('/stats/{id}', name: 'app_knowledge_base_stats', methods: ['GET'])]
-    public function stats(int $id): JsonResponse
+    #[Route('/recent-updates', name: 'app_knowledge_base_recent_updates', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
+    public function getRecentUpdates(): JsonResponse
     {
-        $this->denyAccessUnlessGranted('ROLE_USER');
-        
-        $stats = $this->knowledgeBaseService->getArticleStats($id);
-        
-        return $this->json([
-            'stats' => $stats
-        ]);
-    }
+        $updates = [
+            [
+                'id' => 1,
+                'title' => 'Updated Security Guidelines',
+                'summary' => 'New security measures and best practices',
+                'date' => '2026-02-10',
+                'type' => 'update'
+            ],
+            [
+                'id' => 2,
+                'title' => 'New Integration Available',
+                'summary' => 'Added support for popular third-party tools',
+                'date' => '2026-02-08',
+                'type' => 'feature'
+            ],
+            [
+                'id' => 3,
+                'title' => 'API Documentation Updated',
+                'summary' => 'Enhanced documentation for developers',
+                'date' => '2026-02-05',
+                'type' => 'documentation'
+            ]
+        ];
 
-    #[Route('/export', name: 'app_knowledge_base_export', methods: ['GET'])]
-    public function export(Request $request): Response
-    {
-        $this->denyAccessUnlessGranted('ROLE_MANAGER');
-        
-        $format = $request->query->get('format', 'pdf');
-        $supportedFormats = ['pdf', 'docx', 'markdown'];
-        
-        if (!in_array($format, $supportedFormats)) {
-            return $this->json([
-                'error' => 'Unsupported format. Supported formats: ' . implode(', ', $supportedFormats)
-            ], 400);
-        }
-        
-        $export = $this->knowledgeBaseService->exportKnowledgeBase($format);
-        
-        $response = new Response($export);
-        
-        switch ($format) {
-            case 'pdf':
-                $response->headers->set('Content-Type', 'application/pdf');
-                $response->headers->set('Content-Disposition', 'attachment; filename=knowledge_base.pdf');
-                break;
-            case 'docx':
-                $response->headers->set('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-                $response->headers->set('Content-Disposition', 'attachment; filename=knowledge_base.docx');
-                break;
-            case 'markdown':
-                $response->headers->set('Content-Type', 'text/markdown');
-                $response->headers->set('Content-Disposition', 'attachment; filename=knowledge_base.md');
-                break;
-        }
-        
-        return $response;
-    }
-
-    #[Route('/import', name: 'app_knowledge_base_import', methods: ['POST'])]
-    public function import(Request $request): JsonResponse
-    {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
-        
-        $format = $request->query->get('format', 'markdown');
-        $file = $request->files->get('file');
-        
-        if (!$file) {
-            return $this->json([
-                'error' => 'File is required'
-            ], 400);
-        }
-        
-        $importedCount = $this->knowledgeBaseService->importArticles($file->getPathname(), $format);
-        
-        return $this->json([
-            'imported_count' => $importedCount
-        ]);
-    }
-
-    #[Route('/quiz/create', name: 'app_knowledge_base_quiz_create', methods: ['POST'])]
-    public function createQuiz(Request $request): JsonResponse
-    {
-        $this->denyAccessUnlessGranted('ROLE_USER');
-        
-        $data = json_decode($request->getContent(), true);
-        $title = $data['title'] ?? '';
-        $questions = $data['questions'] ?? [];
-        
-        if (empty($title) || empty($questions)) {
-            return $this->json([
-                'error' => 'Title and questions are required'
-            ], 400);
-        }
-        
-        $quiz = $this->knowledgeBaseService->createQuiz($title, $questions);
-        
-        return $this->json([
-            'quiz' => $quiz
-        ]);
-    }
-
-    #[Route('/quiz/take/{id}', name: 'app_knowledge_base_quiz_take', methods: ['POST'])]
-    public function takeQuiz(int $id, Request $request): JsonResponse
-    {
-        $this->denyAccessUnlessGranted('ROLE_USER');
-        
-        $data = json_decode($request->getContent(), true);
-        $answers = $data['answers'] ?? [];
-        
-        if (empty($answers)) {
-            return $this->json([
-                'error' => 'Answers are required'
-            ], 400);
-        }
-        
-        $result = $this->knowledgeBaseService->takeQuiz($id, $this->getUser(), $answers);
-        
-        return $this->json([
-            'result' => $result
-        ]);
-    }
-
-    #[Route('/certifications', name: 'app_knowledge_base_certifications', methods: ['GET'])]
-    public function certifications(): JsonResponse
-    {
-        $this->denyAccessUnlessGranted('ROLE_USER');
-        
-        $certifications = $this->knowledgeBaseService->getCertifications($this->getUser());
-        
-        return $this->json([
-            'certifications' => $certifications
-        ]);
+        return $this->json($updates);
     }
 }
