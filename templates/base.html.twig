@@ -35,19 +35,12 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-    <!-- Critical CSS - Inline for instant first paint (< 14KB) -->
-    <style>{% include 'css/critical.css' %}</style>
-
     {% block stylesheets %}
-        <!-- Non-critical CSS loaded asynchronously -->
-        <link rel="preload" href="/css/critical.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-        <noscript><link rel="stylesheet" href="/css/critical.css"></noscript>
-        
-        <!-- Deferred loading of non-critical styles -->
-        <link rel="preload" href="/css/design-system-tokens.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-        <link rel="preload" href="/css/dark-theme-improved.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-        <link rel="preload" href="/css/button-system.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-        <link rel="preload" href="/css/form-system.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <!-- Main CSS -->
+        <link rel="stylesheet" href="/css/main.css">
+        <link rel="stylesheet" href="/css/themes.css">
+        <link rel="stylesheet" href="/css/components.css">
+        <link rel="stylesheet" href="/css/pages.css">
         <link rel="preload" href="/css/card-system.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
         <link rel="preload" href="/css/layout-system.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
         <link rel="preload" href="/css/navigation-system.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -479,30 +472,16 @@
         {# Environment flag for JS #}
         <meta name="environment" content="{{ app.environment }}" data-environment="{{ app.environment }}">
 
-        {# Critical - Load immediately (synchronous) #}
-        <script src="/js/toast-system.js"></script>
-        <script src="/js/state-manager.js"></script>
-
-        {# Performance Optimizer - Code Splitting & Lazy Loading #}
-        <script src="/js/performance-optimizer.js" defer></script>
-
-        {# Lazy Loaders - CSS & JS #}
-        <script src="/js/css-lazy-loader.js"></script>
-        <script src="/js/js-lazy-loader.js"></script>
-
-        {# Core utilities - Deferred #}
+        {# Essential scripts only #}
         <script src="/js/utils.js" defer></script>
-        <script src="/js/theme-switcher.js" defer></script>
-        <script src="/js/keyboard-navigation.js" defer></script>
-
+        
         {# Page-specific scripts - loaded conditionally #}
         {% if app.request.attributes.get('_route') starts with 'app_task' %}
             <script src="/js/table-enhancements.js" defer></script>
-            <script src="/js/task-inline-edit.js" defer></script>
         {% endif %}
 
         {% if app.request.attributes.get('_route') == 'app_kanban_board' %}
-            <script src="/js/kanban-improved.js" defer></script>
+            <script src="/js/kanban-enhanced.js" defer></script>
         {% endif %}
 
         {% if app.request.attributes.get('_route') == 'app_calendar' %}
