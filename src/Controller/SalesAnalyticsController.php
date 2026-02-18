@@ -39,8 +39,8 @@ class SalesAnalyticsController extends AbstractController
             $user
         );
         
-        // Get managers list for filter
-        $managers = $userRepository->findAll();
+        // Get active managers list for filter (optimized)
+        $managers = $userRepository->findActiveUsers();
         
         // Get categories for filter
         $categories = $taskRepository->createQueryBuilder('t')

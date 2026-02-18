@@ -269,11 +269,12 @@ class CollaborationService
     }
 
     /**
-     * Get collaboration network
+     * Get collaboration network (optimized)
      */
     public function getCollaborationNetwork(): array
     {
-        $users = $this->userRepository->findAll();
+        // Only get active users for collaboration network
+        $users = $this->userRepository->findActiveUsers();
         $network = [];
 
         foreach ($users as $user) {

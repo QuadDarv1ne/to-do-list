@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Нет подключения к интернету</title>
+    <style>
+        :root {
+            --primary: #667eea;
+            --text: #1f2937;
+            --bg: #f9fafb;
+            --card: #ffffff;
+        }
+        
+        [data-theme="dark"] {
+            --primary: #3b82f6;
+            --text: #f1f5f9;
+            --bg: #0f172a;
+            --card: #1e293b;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .offline-container {
+            text-align: center;
+            max-width: 500px;
+        }
+        
+        .offline-icon {
+            font-size: 5rem;
+            margin-bottom: 1.5rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        h1 {
+            font-size: 1.75rem;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+        
+        p {
+            color: var(--text);
+            opacity: 0.8;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .offline-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            font-size: 1rem;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+        }
+        
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        .btn-outline:hover {
+            background: var(--primary);
+            color: #fff;
+        }
+        
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--card);
+            border-radius: 20px;
+            margin-top: 2rem;
+            font-size: 0.875rem;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+            animation: blink 1s ease-in-out infinite;
+        }
+        
+        .status-dot.online {
+            background: #10b981;
+            animation: none;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        .cached-pages {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: var(--card);
+            border-radius: 12px;
+            text-align: left;
+        }
+        
+        .cached-pages h3 {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .cached-pages ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .cached-pages li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .cached-pages li a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        .cached-pages li a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 480px) {
+            .offline-icon {
+                font-size: 3rem;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .offline-actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <div class="offline-icon">📡</div>
+        
+        <h1>Нет подключения к интернету</h1>
+        
+        <p>
+            Похоже, ваше устройство отключено от сети. 
+            Не волнуйтесь, вы можете просматривать некоторые страницы в офлайн-режиме.
+        </p>
+        
+        <div class="offline-actions">
+            <button class="btn btn-primary" onclick="retryConnection()">
+                <i class="fas fa-redo"></i>
+                Попробовать снова
+            </button>
+            <a href="/dashboard" class="btn btn-outline">
+                <i class="fas fa-home"></i>
+                К дашборду
+            </a>
+        </div>
+        
+        <div class="status-indicator">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">Проверка подключения...</span>
+        </div>
+        
+        <div class="cached-pages" id="cachedPages" style="display: none;">
+            <h3><i class="fas fa-download"></i> Доступно офлайн</h3>
+            <ul id="cachedPagesList"></ul>
+        </div>
+    </div>
+    
+    <script>
+        // Check online status
+        function updateStatus() {
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('statusText');
+            
+            if (navigator.onLine) {
+                dot.classList.add('online');
+                text.textContent = 'Подключение есть!';
+                
+                // Redirect after short delay
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 1500);
+            } else {
+                dot.classList.remove('online');
+                text.textContent = 'Нет подключения';
+            }
+        }
+        
+        // Retry connection
+        function retryConnection() {
+            if (navigator.onLine) {
+                window.location.href = '/dashboard';
+            } else {
+                // Try to fetch a resource to check connection
+                fetch('/dashboard', { method: 'HEAD', cache: 'no-store' })
+                    .then(() => {
+                        window.location.href = '/dashboard';
+                    })
+                    .catch(() => {
+                        alert('Пока нет подключения. Попробуйте позже.');
+                    });
+            }
+        }
+        
+        // List cached pages
+        async function listCachedPages() {
+            if ('caches' in window) {
+                try {
+                    const cacheNames = await caches.keys();
+                    const allKeys = [];
+                    
+                    for (const cacheName of cacheNames) {
+                        const cache = await caches.open(cacheName);
+                        const keys = await cache.keys();
+                        allKeys.push(...keys.map(r => r.url));
+                    }
+                    
+                    if (allKeys.length > 0) {
+                        const list = document.getElementById('cachedPagesList');
+                        const container = document.getElementById('cachedPages');
+                        
+                        // Show only relevant pages
+                        const pages = allKeys
+                            .filter(url => url.match(/\/(dashboard|tasks|calendar|kanban)/))
+                            .slice(0, 10);
+                        
+                        if (pages.length > 0) {
+                            pages.forEach(url => {
+                                const li = document.createElement('li');
+                                li.innerHTML = `
+                                    <i class="fas fa-check-circle text-success"></i>
+                                    <a href="${url}">${new URL(url).pathname}</a>
+                                `;
+                                list.appendChild(li);
+                            });
+                            
+                            container.style.display = 'block';
+                        }
+                    }
+                } catch (e) {
+                    console.log('Failed to list cached pages:', e);
+                }
+            }
+        }
+        
+        // Event listeners
+        window.addEventListener('online', updateStatus);
+        window.addEventListener('offline', updateStatus);
+        
+        // Initial check
+        updateStatus();
+        listCachedPages();
+        
+        // Load Font Awesome
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css';
+        document.head.appendChild(link);
+    </script>
+</body>
+</html>

@@ -433,7 +433,7 @@ class TableEnhancements {
         if (!field || !id) return;
 
         try {
-            const response = await fetch(`/api/update/${id}`, {
+            const response = await fetch(`/api/v1/tasks/${id}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',

@@ -442,18 +442,15 @@ class TaskController extends AbstractController
             $performanceMonitor->startTiming('task_controller_api_users');
         }
         $user = $this->getUser();
-        // Get all users except the current user (for assignment purposes)
-        $users = $userRepository->findAll();
+        // Get active users (optimized query)
+        $users = $userRepository->findActiveUsers();
             
         $data = [];
         foreach ($users as $u) {
-            // Only include active users
-            if ($u->isActive()) {
-                $data[] = [
-                    'id' => $u->getId(),
-                    'fullName' => $u->getFullName()
-                ];
-            }
+            $data[] = [
+                'id' => $u->getId(),
+                'fullName' => $u->getFullName()
+            ];
         }
             
         try {

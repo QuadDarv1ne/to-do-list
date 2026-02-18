@@ -1,478 +1,390 @@
 /* ============================================
-   MODERN INTERACTIONS CSS
-   Styles for enhanced UI interactions
+   MODERN INTERACTIONS
    ============================================ */
 
-/* === CURSOR FOLLOWER === */
-.cursor-follower {
-    position: fixed;
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--primary);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 9999;
-    transition: width 0.3s ease, height 0.3s ease, border-color 0.3s ease;
-    transform: translate(-50%, -50%);
+/* === SMOOTH SCROLLING === */
+html {
+    scroll-behavior: smooth;
 }
 
-.cursor-follower.expanded {
-    width: 40px;
-    height: 40px;
-    border-color: var(--success);
+/* === CUSTOM SCROLLBAR === */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
 }
 
-/* === PAGE TRANSITIONS === */
-.page-enter {
-    animation: pageEnter 0.3s ease-out;
+::-webkit-scrollbar-track {
+    background: var(--bg);
 }
 
-.page-exit {
-    animation: pageExit 0.3s ease-out;
+::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 5px;
 }
 
-@keyframes pageEnter {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
 }
 
-@keyframes pageExit {
-    from {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    to {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
+/* === SELECTION STYLING === */
+::selection {
+    background: rgba(102, 126, 234, 0.3);
+    color: var(--text-primary);
 }
 
-/* === SCROLL REVEAL ANIMATIONS === */
-[data-reveal] {
-    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+::-moz-selection {
+    background: rgba(102, 126, 234, 0.3);
+    color: var(--text-primary);
 }
 
-.revealed.reveal-fade-up {
-    animation: revealFadeUp 0.6s ease-out forwards;
+/* === FOCUS VISIBLE === */
+*:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
 }
 
-.revealed.reveal-fade-left {
-    animation: revealFadeLeft 0.6s ease-out forwards;
-}
-
-.revealed.reveal-fade-right {
-    animation: revealFadeRight 0.6s ease-out forwards;
-}
-
-.revealed.reveal-scale {
-    animation: revealScale 0.6s ease-out forwards;
-}
-
-@keyframes revealFadeUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes revealFadeLeft {
-    from {
-        opacity: 0;
-        transform: translateX(-30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-@keyframes revealFadeRight {
-    from {
-        opacity: 0;
-        transform: translateX(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-@keyframes revealScale {
-    from {
-        opacity: 0;
-        transform: scale(0.9);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-/* === CARD TILT EFFECT === */
-[data-tilt] {
-    transition: transform 0.3s ease;
-    transform-style: preserve-3d;
-}
-
-/* === MAGNETIC BUTTONS === */
-[data-magnetic] {
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* === PROGRESS ANIMATIONS === */
-[data-progress] {
-    width: 0;
-    transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* === COUNT UP ANIMATIONS === */
-[data-count] {
-    font-variant-numeric: tabular-nums;
-}
-
-/* === PASSWORD TOGGLE === */
-.password-toggle-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.password-toggle-wrapper input {
-    padding-right: 3rem;
-}
-
-.password-toggle-btn {
-    position: absolute;
-    right: 0.75rem;
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    padding: 0.5rem;
-    transition: color 0.2s ease;
-}
-
-.password-toggle-btn:hover {
-    color: var(--primary);
-}
-
-.password-toggle-btn:focus {
-    outline: none;
-}
-
-/* === FILE UPLOAD PREVIEW === */
-.file-info {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 1rem;
-    background: var(--bg-elevated);
-    border-radius: 8px;
-    margin-top: 0.5rem;
-}
-
-.file-info i {
-    font-size: 1.5rem;
-    color: var(--primary);
-}
-
-/* === CHARACTER COUNTER === */
-.character-counter {
-    text-align: right;
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    margin-top: 0.25rem;
-    transition: color 0.2s ease;
-}
-
-.character-counter.warning {
-    color: var(--warning);
-}
-
-.character-counter.danger {
-    color: var(--danger);
-    font-weight: 600;
-}
-
-/* === FLOATING LABELS ENHANCEMENT === */
-.form-floating input.has-value ~ label,
-.form-floating textarea.has-value ~ label {
-    opacity: 0.65;
-    transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
-}
-
-/* === HOVER GLOW EFFECTS === */
-.hover-glow-primary {
-    transition: all 0.3s ease;
-}
-
-.hover-glow-primary:hover {
-    box-shadow: 0 0 20px rgba(102, 126, 234, 0.4);
-}
-
-.hover-glow-success {
-    transition: all 0.3s ease;
-}
-
-.hover-glow-success:hover {
-    box-shadow: 0 0 20px rgba(40, 167, 69, 0.4);
-}
-
-.hover-glow-danger {
-    transition: all 0.3s ease;
-}
-
-.hover-glow-danger:hover {
-    box-shadow: 0 0 20px rgba(220, 53, 69, 0.4);
-}
-
-/* === PULSE ANIMATIONS === */
-.pulse-primary {
-    animation: pulsePrimary 2s ease-in-out infinite;
-}
-
-@keyframes pulsePrimary {
-    0%, 100% {
-        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7);
-    }
-    50% {
-        box-shadow: 0 0 0 10px rgba(102, 126, 234, 0);
-    }
-}
-
-.pulse-success {
-    animation: pulseSuccess 2s ease-in-out infinite;
-}
-
-@keyframes pulseSuccess {
-    0%, 100% {
-        box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
-    }
-    50% {
-        box-shadow: 0 0 0 10px rgba(40, 167, 69, 0);
-    }
-}
-
-/* === SHIMMER EFFECT === */
-.shimmer {
+/* === RIPPLE EFFECT === */
+.ripple {
     position: relative;
     overflow: hidden;
 }
 
-.shimmer::before {
+.ripple::after {
     content: '';
     position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.ripple:active::after {
+    width: 300px;
+    height: 300px;
+}
+
+/* === PARALLAX EFFECT === */
+.parallax {
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+/* === SMOOTH TRANSITIONS === */
+.smooth-transition {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* === HOVER EFFECTS === */
+.hover-scale {
+    transition: transform 0.3s ease;
+}
+
+.hover-scale:hover {
+    transform: scale(1.05);
+}
+
+.hover-rotate {
+    transition: transform 0.3s ease;
+}
+
+.hover-rotate:hover {
+    transform: rotate(5deg);
+}
+
+.hover-brightness {
+    transition: filter 0.3s ease;
+}
+
+.hover-brightness:hover {
+    filter: brightness(1.1);
+}
+
+/* === DRAG AND DROP === */
+.draggable {
+    cursor: move;
+    transition: all 0.2s ease;
+}
+
+.draggable:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dragging {
+    opacity: 0.5;
+    transform: rotate(5deg);
+}
+
+.drop-zone {
+    border: 2px dashed var(--border);
+    transition: all 0.3s ease;
+}
+
+.drop-zone.drag-over {
+    border-color: var(--primary);
+    background: rgba(102, 126, 234, 0.1);
+}
+
+/* === SWIPE GESTURES === */
+.swipeable {
+    touch-action: pan-y;
+    user-select: none;
+}
+
+/* === LONG PRESS === */
+.long-press {
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* === PULL TO REFRESH === */
+.pull-to-refresh {
+    position: relative;
+    overflow: hidden;
+}
+
+.pull-indicator {
+    position: absolute;
+    top: -50px;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: top 0.3s ease;
+}
+
+.pull-indicator.active {
+    top: 10px;
+}
+
+/* === INFINITE SCROLL LOADER === */
+.infinite-scroll-loader {
+    text-align: center;
+    padding: 2rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.infinite-scroll-loader.visible {
+    opacity: 1;
+}
+
+/* === STICKY ELEMENTS === */
+.sticky-top-enhanced {
+    position: sticky;
     top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
+    z-index: 1020;
+    background: var(--bg-card);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+/* === FLOATING ACTION BUTTON === */
+.fab {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.fab:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* === CONTEXT MENU === */
+.context-menu {
+    position: fixed;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 0.5rem 0;
+    z-index: 9999;
+    min-width: 200px;
+    animation: contextMenuFade 0.2s ease-out;
+}
+
+@keyframes contextMenuFade {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.context-menu-item {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.context-menu-item:hover {
+    background: var(--bg-hover);
+}
+
+/* === TOOLTIP ENHANCED === */
+.tooltip-enhanced {
+    position: relative;
+}
+
+.tooltip-enhanced::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+    padding: 0.5rem 0.75rem;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    font-size: 0.875rem;
+    border-radius: 4px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.tooltip-enhanced:hover::before {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-4px);
+}
+
+/* === ACCORDION SMOOTH === */
+.accordion-item {
+    transition: all 0.3s ease;
+}
+
+.accordion-button {
+    transition: all 0.3s ease;
+}
+
+.accordion-button:not(.collapsed) {
+    background: var(--primary);
+    color: white;
+}
+
+.accordion-collapse {
+    transition: height 0.3s ease;
+}
+
+/* === TAB TRANSITIONS === */
+.tab-content {
+    position: relative;
+}
+
+.tab-pane {
+    animation: tabFade 0.3s ease-in;
+}
+
+@keyframes tabFade {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* === CAROUSEL SMOOTH === */
+.carousel-item {
+    transition: transform 0.6s ease-in-out;
+}
+
+/* === OFFCANVAS SLIDE === */
+.offcanvas {
+    transition: transform 0.3s ease-in-out;
+}
+
+/* === COLLAPSE SMOOTH === */
+.collapse {
+    transition: height 0.35s ease;
+}
+
+.collapsing {
+    transition: height 0.35s ease;
+}
+
+/* === ZOOM ON CLICK === */
+.zoom-on-click {
+    cursor: zoom-in;
+    transition: transform 0.3s ease;
+}
+
+.zoom-on-click.zoomed {
+    transform: scale(2);
+    cursor: zoom-out;
+    z-index: 9999;
+}
+
+/* === IMAGE LAZY LOAD === */
+img[loading="lazy"] {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+img[loading="lazy"].loaded {
+    opacity: 1;
+}
+
+/* === SKELETON SCREEN === */
+.skeleton-box {
     background: linear-gradient(
         90deg,
-        transparent,
-        rgba(255, 255, 255, 0.2),
-        transparent
+        var(--bg) 0%,
+        var(--bg-hover) 50%,
+        var(--bg) 100%
     );
-    animation: shimmer 2s infinite;
+    background-size: 200% 100%;
+    animation: skeletonShimmer 1.5s infinite;
+    border-radius: 4px;
 }
 
-@keyframes shimmer {
-    to {
-        left: 100%;
-    }
+@keyframes skeletonShimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
 }
 
-/* === BOUNCE ENTRANCE === */
-.bounce-in {
-    animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+/* === PERFORMANCE OPTIMIZATIONS === */
+.will-change-transform {
+    will-change: transform;
 }
 
-@keyframes bounceIn {
-    0% {
-        opacity: 0;
-        transform: scale(0.3);
-    }
-    50% {
-        opacity: 1;
-        transform: scale(1.05);
-    }
-    70% {
-        transform: scale(0.9);
-    }
-    100% {
-        transform: scale(1);
-    }
+.will-change-opacity {
+    will-change: opacity;
 }
 
-/* === SLIDE ANIMATIONS === */
-.slide-in-bottom {
-    animation: slideInBottom 0.5s ease-out;
+.gpu-accelerated {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
 }
 
-@keyframes slideInBottom {
-    from {
-        opacity: 0;
-        transform: translateY(50px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.slide-in-top {
-    animation: slideInTop 0.5s ease-out;
-}
-
-@keyframes slideInTop {
-    from {
-        opacity: 0;
-        transform: translateY(-50px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* === ROTATE ANIMATIONS === */
-.rotate-in {
-    animation: rotateIn 0.6s ease-out;
-}
-
-@keyframes rotateIn {
-    from {
-        opacity: 0;
-        transform: rotate(-180deg) scale(0.5);
-    }
-    to {
-        opacity: 1;
-        transform: rotate(0) scale(1);
-    }
-}
-
-/* === FLIP ANIMATIONS === */
-.flip-in-x {
-    animation: flipInX 0.6s ease-out;
-}
-
-@keyframes flipInX {
-    from {
-        opacity: 0;
-        transform: perspective(400px) rotateX(90deg);
-    }
-    to {
-        opacity: 1;
-        transform: perspective(400px) rotateX(0);
-    }
-}
-
-.flip-in-y {
-    animation: flipInY 0.6s ease-out;
-}
-
-@keyframes flipInY {
-    from {
-        opacity: 0;
-        transform: perspective(400px) rotateY(90deg);
-    }
-    to {
-        opacity: 1;
-        transform: perspective(400px) rotateY(0);
-    }
-}
-
-/* === ZOOM ANIMATIONS === */
-.zoom-in {
-    animation: zoomIn 0.5s ease-out;
-}
-
-@keyframes zoomIn {
-    from {
-        opacity: 0;
-        transform: scale(0);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-.zoom-out {
-    animation: zoomOut 0.5s ease-out;
-}
-
-@keyframes zoomOut {
-    from {
-        opacity: 1;
-        transform: scale(1);
-    }
-    to {
-        opacity: 0;
-        transform: scale(0);
-    }
-}
-
-/* === SHAKE ANIMATION === */
-.shake {
-    animation: shake 0.5s ease-in-out;
-}
-
-@keyframes shake {
-    0%, 100% {
-        transform: translateX(0);
-    }
-    10%, 30%, 50%, 70%, 90% {
-        transform: translateX(-10px);
-    }
-    20%, 40%, 60%, 80% {
-        transform: translateX(10px);
-    }
-}
-
-/* === RESPONSIVE === */
-@media (max-width: 768px) {
-    .cursor-follower {
-        display: none;
-    }
-    
-    [data-tilt] {
-        transform: none !important;
-    }
-    
-    [data-magnetic] {
-        transform: none !important;
-    }
-}
-
-/* === REDUCE MOTION === */
+/* === REDUCED MOTION === */
 @media (prefers-reduced-motion: reduce) {
-    .cursor-follower,
-    [data-reveal],
-    [data-tilt],
-    [data-magnetic],
-    .page-enter,
-    .page-exit,
-    .bounce-in,
-    .slide-in-bottom,
-    .slide-in-top,
-    .rotate-in,
-    .flip-in-x,
-    .flip-in-y,
-    .zoom-in,
-    .zoom-out,
-    .shake,
-    .shimmer::before {
-        animation: none !important;
-        transition: none !important;
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
     }
 }

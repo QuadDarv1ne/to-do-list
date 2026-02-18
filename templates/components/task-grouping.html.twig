@@ -1,0 +1,240 @@
+{#
+    Task Grouping Component
+    Компонент группировки задач по датам/приоритетам/статусам
+    
+    Usage:
+    {{ include('components/task-grouping.html.twig', {
+        tasks: tasks,
+        groupBy: 'date', // 'date', 'priority', 'status'
+        showQuickFilters: true
+    }) }}
+#}
+
+{% set groupedTasks = {} %}
+
+{# Group tasks by specified criteria #}
+{% if groupBy == 'date' %}
+    {% for task in tasks %}
+        {% set dateKey = task.dueDate ? task.dueDate|date('Y-m-d') : 'no-date' %}
+        
+        {# Determine date category #}
+        {% if dateKey == 'no-date' %}
+            {% set groupKey = 'no-date' %}
+            {% set groupLabel = 'Без даты' %}
+            {% set groupClass = 'no-date' %}
+        {% elseif dateKey == "now"|date('Y-m-d') %}
+            {% set groupKey = 'today' %}
+            {% set groupLabel = 'Сегодня' %}
+            {% set groupClass = 'today' %}
+        {% elseif dateKey == "now +1 day"|date('Y-m-d') %}
+            {% set groupKey = 'tomorrow' %}
+            {% set groupLabel = 'Завтра' %}
+            {% set groupClass = 'tomorrow' %}
+        {% elseif dateKey < "now"|date('Y-m-d') and task.status != 'completed' %}
+            {% set groupKey = 'overdue' %}
+            {% set groupLabel = 'Просрочено' %}
+            {% set groupClass = 'overdue' %}
+        {% elseif dateKey <= "now +6 days"|date('Y-m-d') %}
+            {% set groupKey = 'this-week' %}
+            {% set groupLabel = 'На этой неделе' %}
+            {% set groupClass = 'this-week' %}
+        {% elseif dateKey <= "now +13 days"|date('Y-m-d') %}
+            {% set groupKey = 'next-week' %}
+            {% set groupLabel = 'На следующей неделе' %}
+            {% set groupClass = 'next-week' %}
+        {% else %}
+            {% set groupKey = 'later' %}
+            {% set groupLabel = 'Позже' %}
+            {% set groupClass = 'later' %}
+        {% endif %}
+        
+        {% if groupedTasks[groupKey] is not defined %}
+            {% set groupedTasks = groupedTasks|merge({(groupKey): {
+                label: groupLabel,
+                class: groupClass,
+                tasks: [],
+                count: 0
+            }}) %}
+        {% endif %}
+        
+        {% set groupedTasks = groupedTasks|merge({
+            (groupKey): {
+                label: groupedTasks[groupKey].label,
+                class: groupedTasks[groupKey].class,
+                tasks: groupedTasks[groupKey].tasks|merge([task]),
+                count: groupedTasks[groupKey].count + 1
+            }
+        }) %}
+    {% endfor %}
+
+{% elseif groupBy == 'priority' %}
+    {% set priorityConfig = {
+        'urgent': { label: 'Критический', class: 'priority-urgent', icon: 'fa-bomb' },
+        'high': { label: 'Высокий', class: 'priority-high', icon: 'fa-arrow-up' },
+        'medium': { label: 'Средний', class: 'priority-medium', icon: 'fa-minus' },
+        'low': { label: 'Низкий', class: 'priority-low', icon: 'fa-arrow-down' }
+    } %}
+    
+    {% for task in tasks %}
+        {% set priority = task.priority %}
+        {% if groupedTasks[priority] is not defined %}
+            {% set groupedTasks = groupedTasks|merge({(priority): {
+                label: priorityConfig[priority].label,
+                class: priorityConfig[priority].class,
+                icon: priorityConfig[priority].icon,
+                tasks: [],
+                count: 0
+            }}) %}
+        {% endif %}
+        
+        {% set groupedTasks = groupedTasks|merge({
+            (priority): {
+                label: groupedTasks[priority].label,
+                class: groupedTasks[priority].class,
+                icon: groupedTasks[priority].icon,
+                tasks: groupedTasks[priority].tasks|merge([task]),
+                count: groupedTasks[priority].count + 1
+            }
+        }) %}
+    {% endfor %}
+
+{% elseif groupBy == 'status' %}
+    {% set statusConfig = {
+        'pending': { label: 'В ожидании', class: 'status-pending', icon: 'fa-clock' },
+        'in_progress': { label: 'В процессе', class: 'status-in-progress', icon: 'fa-play-circle' },
+        'completed': { label: 'Завершено', class: 'status-completed', icon: 'fa-check-circle' }
+    } %}
+    
+    {% for task in tasks %}
+        {% set status = task.status %}
+        {% if groupedTasks[status] is not defined %}
+            {% set groupedTasks = groupedTasks|merge({(status): {
+                label: statusConfig[status].label,
+                class: statusConfig[status].class,
+                icon: statusConfig[status].icon,
+                tasks: [],
+                count: 0
+            }}) %}
+        {% endif %}
+        
+        {% set groupedTasks = groupedTasks|merge({
+            (status): {
+                label: groupedTasks[status].label,
+                class: groupedTasks[status].class,
+                icon: groupedTasks[status].icon,
+                tasks: groupedTasks[status].tasks|merge([task]),
+                count: groupedTasks[status].count + 1
+            }
+        }) %}
+    {% endfor %}
+{% endif %}
+
+{# Render task groups #}
+{% if groupedTasks is not empty %}
+    {# Quick filters #}
+    {% if showQuickFilters|default(true) %}
+        <div class="quick-filters mb-3">
+            <div class="filter-chip active" data-filter="all">
+                <i class="fas fa-th-list chip-icon"></i>
+                <span>Все</span>
+                <span class="chip-count">{{ tasks|length }}</span>
+            </div>
+            {% for key, group in groupedTasks %}
+                <div class="filter-chip" data-filter="{{ key }}">
+                    <i class="fas fa-filter chip-icon"></i>
+                    <span>{{ group.label }}</span>
+                    <span class="chip-count">{{ group.count }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {# Task groups #}
+    {% for key, group in groupedTasks %}
+        {% if group.count > 0 %}
+            <div class="task-group {{ group.class }}" data-group="{{ key }}">
+                <div class="task-group-header" data-bs-toggle="collapse" data-bs-target="#group-{{ key }}">
+                    <h4>
+                        <i class="fas {% if group.icon is defined %}{{ group.icon }}{% else %}fa-calendar{% endif %} me-2"></i>
+                        {{ group.label }}
+                    </h4>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="task-count">{{ group.count }} 
+                            {%- if group.count == 1 -%}
+                                задача
+                            {%- elseif group.count >= 2 and group.count <= 4 -%}
+                                задачи
+                            {%- else -%}
+                                задач
+                            {%- endif -%}
+                        </span>
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </div>
+                </div>
+                
+                <div id="group-{{ key }}" class="task-group-body collapse show">
+                    <div class="list-group list-group-flush">
+                        {% for task in group.tasks %}
+                            {{ include('task/_task_item.html.twig', { task: task }) }}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    {% endfor %}
+{% else %}
+    <div class="empty-state text-center py-5">
+        <i class="fas fa-tasks fa-4x text-muted mb-3" style="opacity: 0.3;"></i>
+        <h5>Нет задач</h5>
+        <p class="text-muted">Задачи не найдены</p>
+    </div>
+{% endif %}
+
+{# JavaScript for filtering #}
+<script>
+(function() {
+    const filterChips = document.querySelectorAll('.filter-chip');
+    const taskGroups = document.querySelectorAll('.task-group');
+    
+    filterChips.forEach(chip => {
+        chip.addEventListener('click', function() {
+            // Update active state
+            filterChips.forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            
+            const filter = this.dataset.filter;
+            
+            // Show/hide groups
+            taskGroups.forEach(group => {
+                if (filter === 'all' || group.dataset.group === filter) {
+                    group.style.display = 'block';
+                } else {
+                    group.style.display = 'none';
+                }
+            });
+            
+            // Save to localStorage
+            localStorage.setItem('taskGroupFilter', filter);
+        });
+    });
+    
+    // Restore filter from localStorage
+    const savedFilter = localStorage.getItem('taskGroupFilter');
+    if (savedFilter) {
+        const chip = document.querySelector(`.filter-chip[data-filter="${savedFilter}"]`);
+        if (chip) {
+            chip.click();
+        }
+    }
+    
+    // Collapse/expand animation
+    document.querySelectorAll('.task-group-header').forEach(header => {
+        header.addEventListener('click', function() {
+            const group = this.closest('.task-group');
+            setTimeout(() => {
+                group.classList.toggle('collapsed');
+            }, 300);
+        });
+    });
+})();
+</script>

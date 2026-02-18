@@ -20,16 +20,22 @@ class ClientApiController extends AbstractController
         $segment = $request->query->get('segment');
         $category = $request->query->get('category');
         
-        $clients = $this->isGranted('ROLE_ADMIN')
-            ? $clientRepository->findAll()
-            : $clientRepository->findByManager($user);
-
-        if ($segment) {
-            $clients = array_filter($clients, fn($client) => $client->getSegment() === $segment);
-        }
-
-        if ($category) {
+        $manager = $this->isGranted('ROLE_ADMIN') ? null : $user;
+        
+        // Use optimized repository methods based on filters
+        if ($segment && $category) {
+            // If both filters, get by segment first then filter by category
+            $clients = $clientRepository->findBySegment($segment, $manager);
             $clients = array_filter($clients, fn($client) => $client->getCategory() === $category);
+        } elseif ($segment) {
+            $clients = $clientRepository->findBySegment($segment, $manager);
+        } elseif ($category) {
+            $clients = $clientRepository->findByCategory($category, $manager);
+        } else {
+            // Use optimized method with joins
+            $clients = $this->isGranted('ROLE_ADMIN')
+                ? $clientRepository->findAllWithRelations()
+                : $clientRepository->findByManager($user);
         }
 
         $data = array_map(function($client) {

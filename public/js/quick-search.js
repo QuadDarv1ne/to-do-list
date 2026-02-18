@@ -141,7 +141,7 @@ class QuickSearch {
         this.showLoading();
         
         try {
-            const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+            const response = await fetch(`/search/api/quick?q=${encodeURIComponent(query)}`);
             const data = await response.json();
             
             this.results = data.results || [];

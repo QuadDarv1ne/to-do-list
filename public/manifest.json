@@ -1,20 +1,155 @@
 {
-    "name": "To-Do List Manager",
-    "short_name": "Tasks",
-    "description": "Modern task management application with offline capabilities",
-    "start_url": "/",
+    "name": "CRM система: Анализ продаж",
+    "short_name": "CRM Задачи",
+    "description": "Современная система управления задачами с офлайн-режимом и push-уведомлениями",
+    "start_url": "/dashboard",
     "display": "standalone",
-    "background_color": "#ffffff",
-    "theme_color": "#0d6efd",
-    "icons": [
-        {
-            "src": "/assets/icons/icon.svg",
-            "sizes": "any",
-            "type": "image/svg+xml"
-        }
-    ],
-    "categories": ["productivity", "utilities"],
+    "background_color": "#f9fafb",
+    "theme_color": "#667eea",
+    "orientation": "portrait-primary",
     "lang": "ru",
     "dir": "ltr",
-    "orientation": "portrait-primary"
+    "categories": ["productivity", "utilities", "business"],
+    "icons": [
+        {
+            "src": "/icons/icon-72x72.png",
+            "sizes": "72x72",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icons/icon-96x96.png",
+            "sizes": "96x96",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icons/icon-128x128.png",
+            "sizes": "128x128",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icons/icon-144x144.png",
+            "sizes": "144x144",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icons/icon-152x152.png",
+            "sizes": "152x152",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icons/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icons/icon-384x384.png",
+            "sizes": "384x384",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icons/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "/screenshots/dashboard.png",
+            "sizes": "1280x720",
+            "type": "image/png",
+            "form_factor": "wide",
+            "label": "Dashboard"
+        },
+        {
+            "src": "/screenshots/tasks.png",
+            "sizes": "750x1334",
+            "type": "image/png",
+            "form_factor": "narrow",
+            "label": "Tasks List"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Новая задача",
+            "short_name": "Новая",
+            "description": "Создать новую задачу",
+            "url": "/task/new",
+            "icons": [
+                {
+                    "src": "/icons/shortcut-new.png",
+                    "sizes": "96x96",
+                    "type": "image/png"
+                }
+            ]
+        },
+        {
+            "name": "Задачи",
+            "short_name": "Задачи",
+            "description": "Просмотр всех задач",
+            "url": "/tasks",
+            "icons": [
+                {
+                    "src": "/icons/shortcut-tasks.png",
+                    "sizes": "96x96",
+                    "type": "image/png"
+                }
+            ]
+        },
+        {
+            "name": "Календарь",
+            "short_name": "Календарь",
+            "description": "Просмотр календаря",
+            "url": "/calendar",
+            "icons": [
+                {
+                    "src": "/icons/shortcut-calendar.png",
+                    "sizes": "96x96",
+                    "type": "image/png"
+                }
+            ]
+        },
+        {
+            "name": "Канбан",
+            "short_name": "Канбан",
+            "description": "Канбан доска",
+            "url": "/kanban",
+            "icons": [
+                {
+                    "src": "/icons/shortcut-kanban.png",
+                    "sizes": "96x96",
+                    "type": "image/png"
+                }
+            ]
+        }
+    ],
+    "share_target": {
+        "action": "/tasks/share",
+        "method": "POST",
+        "enctype": "multipart/form-data",
+        "params": {
+            "title": "title",
+            "text": "description",
+            "url": "url"
+        }
+    },
+    "protocol_handlers": [
+        {
+            "protocol": "web+task",
+            "url": "/tasks/%s"
+        }
+    ],
+    "related_applications": [],
+    "prefer_related_applications": false,
+    "iarc_rating_id": "",
+    "edge_side_panel": {
+        "preferred_width": 400
+    }
 }

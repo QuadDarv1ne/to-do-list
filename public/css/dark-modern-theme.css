@@ -1133,3 +1133,86 @@ body[data-theme='dark'] {
         font-size: 13px;
     }
 }
+
+
+/* === CALENDAR FIX FOR DARK THEME === */
+:root[data-theme='dark'] .calendar-day-number,
+:root[data-theme='dark'] .calendar-day {
+    color: var(--text-primary) !important;
+}
+
+:root[data-theme='dark'] .calendar-header {
+    color: var(--text-primary);
+}
+
+:root[data-theme='dark'] .calendar-grid {
+    background: var(--border-color);
+    border-color: var(--border-color);
+}
+
+:root[data-theme='dark'] .calendar-day {
+    background: var(--bg-card);
+    color: var(--text-primary);
+}
+
+:root[data-theme='dark'] .calendar-day:hover {
+    background: var(--bg-elevated);
+}
+
+:root[data-theme='dark'] .calendar-day.today {
+    background: rgba(107, 138, 253, 0.2);
+    border-color: var(--accent-blue);
+}
+
+/* === STATS ROW CARDS FIX === */
+:root[data-theme='dark'] #stats-row .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+}
+
+:root[data-theme='dark'] #stats-row .card h2 {
+    color: var(--text-primary);
+}
+
+:root[data-theme='dark'] #stats-row .card .text-muted {
+    color: var(--text-secondary) !important;
+}
+
+:root[data-theme='dark'] #stats-row .card .small {
+    color: var(--text-secondary);
+}
+
+/* === CARD HEADER FIX === */
+:root[data-theme='dark'] .card-header.bg-white {
+    background: var(--bg-elevated) !important;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* === GOAL/HABIT WIDGETS FIX === */
+:root[data-theme='dark'] .goal-mini-card,
+:root[data-theme='dark'] .habit-mini-card {
+    background: var(--bg-elevated);
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-subtle);
+}
+
+:root[data-theme='dark'] .stat-circle {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* === TEXT COLORS === */
+:root[data-theme='dark'] .text-muted {
+    color: var(--text-secondary) !important;
+}
+
+:root[data-theme='dark'] h1,
+:root[data-theme='dark'] h2,
+:root[data-theme='dark'] h3,
+:root[data-theme='dark'] h4,
+:root[data-theme='dark'] h5,
+:root[data-theme='dark'] h6 {
+    color: var(--text-primary);
+}

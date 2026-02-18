@@ -30,7 +30,8 @@
                     '/css/navigation-system.css',
                     '/css/table-system.css',
                     '/css/typography-system.css',
-                    '/css/modal-system.css'
+                    '/css/modal-system.css',
+                    '/css/dashboard-styles.css'
                 ],
                 low: [
                     '/css/animations.css',
@@ -43,7 +44,8 @@
                     '/css/performance-optimizations.css',
                     '/css/footer-enhanced.css',
                     '/css/advanced-components.css',
-                    '/css/theme-transitions.css'
+                    '/css/theme-transitions.css',
+                    '/css/mobile-table-adaptation.css'
                 ],
                 // Страничные стили - загружаются только при необходимости
                 page: [
@@ -151,9 +153,11 @@
             
             // Определяем, какие стили нужны для текущей страницы
             const pageMap = {
-                '/dashboard': ['/css/pages.css'],
-                '/calendar': ['/css/main.css'],
-                '/analytics': ['/css/pages.css']
+                '/dashboard': ['/css/pages.css', '/css/main.css'],
+                '/calendar': ['/css/pages.css', '/css/main.css'],
+                '/analytics': ['/css/pages.css', '/css/main.css'],
+                '/profile': ['/css/pages.css'],
+                '/task': ['/css/pages.css']
             };
             
             // Проверяем совпадения
@@ -174,8 +178,9 @@
         // Предзагрузка для следующей страницы
         preloadForRoute(route) {
             const pageMap = {
-                '/dashboard': ['/css/pages.css'],
-                '/calendar': ['/css/main.css']
+                '/dashboard': ['/css/pages.css', '/css/main.css'],
+                '/calendar': ['/css/pages.css', '/css/main.css'],
+                '/profile': ['/css/pages.css']
             };
             
             const files = pageMap[route];

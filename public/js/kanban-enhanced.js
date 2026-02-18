@@ -87,7 +87,7 @@ function getDragAfterElement(container, y) {
  * Update task status
  */
 function updateTaskStatus(taskId, status) {
-    fetch(`/api/tasks/${taskId}/status`, {
+    fetch(`/api/v1/tasks/${taskId}`, {
         method: 'PATCH',
         headers: {
             'Content-Type': 'application/json',
@@ -155,7 +155,7 @@ function initCardActions() {
  * Delete task
  */
 function deleteTask(taskId) {
-    fetch(`/api/tasks/${taskId}`, {
+    fetch(`/api/v1/tasks/${taskId}`, {
         method: 'DELETE',
         headers: {
             'X-Requested-With': 'XMLHttpRequest'
@@ -276,7 +276,7 @@ function showQuickAddForm(column, status) {
  * Create quick task
  */
 function createQuickTask(title, status, form) {
-    fetch('/api/tasks/quick-create', {
+    fetch('/api/v1/tasks/quick-create', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

@@ -1,0 +1,437 @@
+/* ============================================
+   TASK GROUPING STYLES
+   Стили для группировки задач
+   ============================================ */
+
+/* Task group container */
+.task-group {
+    margin-bottom: 2rem;
+    background: var(--bg-card, #fff);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Task group header */
+.task-group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, var(--primary, #667eea) 0%, var(--primary-dark, #5a67d8) 100%);
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.task-group-header:hover {
+    opacity: 0.95;
+}
+
+.task-group-header h4 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.task-group-header .task-count {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.task-group-header .toggle-icon {
+    transition: transform 0.3s ease;
+}
+
+.task-group-header.collapsed .toggle-icon {
+    transform: rotate(-90deg);
+}
+
+/* Task group body */
+.task-group-body {
+    padding: 0;
+}
+
+.task-group-body .list-group-item {
+    border-left: none;
+    border-right: none;
+}
+
+.task-group-body .list-group-item:first-child {
+    border-top: none;
+}
+
+.task-group-body .list-group-item:last-child {
+    border-bottom: none;
+}
+
+/* Group collapse animation */
+.task-group-body.collapse {
+    transition: height 0.3s ease;
+}
+
+/* Empty group */
+.task-group-empty {
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-muted, #9ca3af);
+}
+
+/* ============================================
+   GROUPING BY DATE
+   Группировка по датам
+   ============================================ */
+
+.task-group.today .task-group-header {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.task-group.tomorrow .task-group-header {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.task-group.overdue .task-group-header {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.task-group.this-week .task-group-header {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+.task-group.next-week .task-group-header {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.task-group.later .task-group-header {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+}
+
+.task-group.no-date .task-group-header {
+    background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+}
+
+/* ============================================
+   GROUPING BY PRIORITY
+   Группировка по приоритетам
+   ============================================ */
+
+.task-group.priority-urgent .task-group-header {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+}
+
+.task-group.priority-high .task-group-header {
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+}
+
+.task-group.priority-medium .task-group-header {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.task-group.priority-low .task-group-header {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+/* ============================================
+   GROUPING BY STATUS
+   Группировка по статусам
+   ============================================ */
+
+.task-group.status-completed .task-group-header {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.task-group.status-in-progress .task-group-header {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.task-group.status-pending .task-group-header {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+/* ============================================
+   QUICK FILTER CHIPS
+   Чипсы для быстрых фильтров
+   ============================================ */
+
+.quick-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding: 0;
+}
+
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--bg-card, #fff);
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: 20px;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+    text-decoration: none;
+    color: var(--text-secondary);
+}
+
+.filter-chip:hover {
+    background: var(--primary, #667eea);
+    color: #fff;
+    border-color: var(--primary, #667eea);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+.filter-chip.active {
+    background: var(--primary, #667eea);
+    color: #fff;
+    border-color: var(--primary, #667eea);
+}
+
+.filter-chip .chip-icon {
+    font-size: 0.75rem;
+}
+
+.filter-chip .chip-count {
+    background: rgba(0, 0, 0, 0.1);
+    padding: 0.125rem 0.5rem;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 0.25rem;
+}
+
+.filter-chip.active .chip-count {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Filter chip variants */
+.filter-chip[data-filter="all"] .chip-icon {
+    color: var(--primary, #667eea);
+}
+
+.filter-chip.active[data-filter="all"] .chip-icon {
+    color: #fff;
+}
+
+.filter-chip[data-filter="today"] .chip-icon {
+    color: #10b981;
+}
+
+.filter-chip.active[data-filter="today"] {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.filter-chip[data-filter="overdue"] .chip-icon {
+    color: #ef4444;
+}
+
+.filter-chip.active[data-filter="overdue"] {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.filter-chip[data-filter="high-priority"] .chip-icon {
+    color: #f59e0b;
+}
+
+.filter-chip.active[data-filter="high-priority"] {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+/* Filter chips container */
+.filter-chips-container {
+    background: var(--bg-card, #fff);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.filter-chips-container .filter-chips-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+}
+
+.filter-chips-container .filter-chips-title i {
+    color: var(--primary, #667eea);
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .filter-chip {
+    background: #374151;
+    border-color: #4b5563;
+}
+
+[data-theme="dark"] .filter-chip:hover,
+[data-theme="dark"] .filter-chip.active {
+    background: var(--primary, #667eea);
+    border-color: var(--primary, #667eea);
+}
+
+/* ============================================
+   INLINE EDIT STYLES
+   Стили для inline редактирования
+   ============================================ */
+
+.inline-editable {
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.inline-editable:hover {
+    background: var(--bg, #f9fafb);
+}
+
+.inline-editable .edit-icon {
+    opacity: 0;
+    font-size: 0.75rem;
+    transition: opacity 0.2s ease;
+}
+
+.inline-editable:hover .edit-icon {
+    opacity: 0.7;
+}
+
+.inline-editable select {
+    min-width: 120px;
+    padding: 0.25rem 0.5rem;
+    border: 2px solid var(--primary, #667eea);
+    border-radius: 6px;
+    background: var(--bg-card, #fff);
+    color: var(--text-primary, #1f2937);
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+
+/* Inline edit dropdown */
+.inline-edit-dropdown {
+    position: absolute;
+    z-index: 1000;
+    min-width: 180px;
+    background: var(--bg-card, #fff);
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: 8px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    padding: 0.5rem;
+}
+
+.inline-edit-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.inline-edit-dropdown-item:hover {
+    background: var(--bg, #f9fafb);
+}
+
+.inline-edit-dropdown-item.active {
+    background: var(--primary, #667eea);
+    color: #fff;
+}
+
+/* Status badges with edit capability */
+.badge-editable {
+    position: relative;
+}
+
+.badge-editable .chevron {
+    margin-left: 0.25rem;
+    opacity: 0.7;
+}
+
+/* Toast notification for inline edit */
+.inline-edit-toast {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: var(--bg-card, #fff);
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    z-index: 9999;
+    animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.inline-edit-toast .undo-btn {
+    background: var(--primary, #667eea);
+    color: #fff;
+    border: none;
+    padding: 0.375rem 0.75rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: background 0.2s ease;
+}
+
+.inline-edit-toast .undo-btn:hover {
+    background: var(--primary-dark, #5a67d8);
+}
+
+/* ============================================
+   Mobile adaptations for grouping
+   ============================================ */
+
+@media (max-width: 768px) {
+    .task-group-header {
+        padding: 0.75rem 1rem;
+    }
+    
+    .task-group-header h4 {
+        font-size: 0.9rem;
+    }
+    
+    .task-group-header .task-count {
+        font-size: 0.75rem;
+        padding: 0.2rem 0.5rem;
+    }
+    
+    .quick-filters {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 0.5rem;
+    }
+    
+    .filter-chip {
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+}

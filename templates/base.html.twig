@@ -20,50 +20,138 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token('authenticate') }}">
     
-    <!-- Resource Hints -->
+    <!-- Resource Hints - Preconnect to CDN -->
     <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
-    <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     
+    <!-- Preload critical assets -->
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" as="style">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" as="style">
+
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <!-- Critical CSS - Inline for instant rendering -->
-    <style>
-        :root{--primary:#667eea;--text:#1f2937;--bg:#f9fafb;--border:#e5e7eb;--bg-card:#fff;--text-primary:#1f2937;--text-secondary:#6b7280;--text-muted:#9ca3af}
-        [data-theme='dark']{--primary:#3b82f6;--text:#f9fafb;--bg:#111827;--border:#374151;--bg-card:#1f2937;--text-primary:#f9fafb;--text-secondary:#9ca3af;--text-muted:#6b7280}
-        *{box-sizing:border-box;margin:0;padding:0}
-        body{background:var(--bg);color:var(--text);font:14px/1.5 system-ui,sans-serif;-webkit-font-smoothing:antialiased}
-        .navbar{background:var(--bg-card);border-bottom:1px solid var(--border);padding:.5rem 1rem;position:sticky;top:0;z-index:1030}
-        .container-fluid{padding:0 1rem;max-width:100%}
-        .btn{border-radius:4px;padding:.375rem .875rem;border:1px solid transparent;cursor:pointer;display:inline-flex;align-items:center;gap:.375rem}
-        .btn-primary{background:var(--primary);color:#fff}
-        .d-none{display:none!important}
-        .d-flex{display:flex!important}
-    </style>
-    
+
+    <!-- Critical CSS - Inline for instant first paint (< 14KB) -->
+    <style>{% include 'css/critical.css' %}</style>
+
     {% block stylesheets %}
-        <!-- Header/Footer improvements -->
-        <link rel="stylesheet" href="/css/header-footer-improved.css">
+        <!-- Non-critical CSS loaded asynchronously -->
+        <link rel="preload" href="/css/critical.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="/css/critical.css"></noscript>
         
-        <!-- CSS загружается через CSS Lazy Loader для оптимальной производительности -->
+        <!-- Deferred loading of non-critical styles -->
+        <link rel="preload" href="/css/design-system-tokens.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <link rel="preload" href="/css/dark-theme-improved.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <link rel="preload" href="/css/button-system.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <link rel="preload" href="/css/form-system.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <link rel="preload" href="/css/card-system.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <link rel="preload" href="/css/layout-system.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <link rel="preload" href="/css/navigation-system.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <link rel="preload" href="/css/table-system.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <link rel="preload" href="/css/typography-system.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <link rel="preload" href="/css/modal-system.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        
+        <!-- Page-specific styles loaded on demand -->
+        <link rel="preload" href="/css/pages.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <link rel="preload" href="/css/main.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        
+        <!-- Accessibility & Mobile -->
+        <link rel="preload" href="/css/accessibility-improvements.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <link rel="preload" href="/css/mobile-table-adaptation.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <link rel="preload" href="/css/mobile-bottom-nav.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        
+        <!-- Feature-specific styles -->
+        <link rel="preload" href="/css/task-grouping.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <link rel="preload" href="/css/realtime-notifications.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <link rel="preload" href="/css/dashboard-widgets-improved.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <link rel="preload" href="/css/kanban-improved.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <link rel="preload" href="/css/header-footer-improved.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        
+        <!-- Fallback для браузеров без JavaScript -->
         <noscript>
-            <!-- Fallback для браузеров без JavaScript -->
-            <link rel="stylesheet" href="/css/optimized-core.css">
-            <link rel="stylesheet" href="/css/utilities.css">
-            <link rel="stylesheet" href="/css/components-optimized.css">
-            <link rel="stylesheet" href="/css/themes.css">
-            <link rel="stylesheet" href="/css/dark-modern-theme.css">
+            <link rel="stylesheet" href="/css/design-system-tokens.css">
+            <link rel="stylesheet" href="/css/dark-theme-improved.css">
             <link rel="stylesheet" href="/css/button-system.css">
             <link rel="stylesheet" href="/css/form-system.css">
             <link rel="stylesheet" href="/css/card-system.css">
+            <link rel="stylesheet" href="/css/layout-system.css">
+            <link rel="stylesheet" href="/css/navigation-system.css">
+            <link rel="stylesheet" href="/css/table-system.css">
+            <link rel="stylesheet" href="/css/typography-system.css">
+            <link rel="stylesheet" href="/css/modal-system.css">
+            <link rel="stylesheet" href="/css/pages.css">
+            <link rel="stylesheet" href="/css/main.css">
+            <link rel="stylesheet" href="/css/accessibility-improvements.css">
+            <link rel="stylesheet" href="/css/mobile-table-adaptation.css">
+            <link rel="stylesheet" href="/css/mobile-bottom-nav.css">
+            <link rel="stylesheet" href="/css/task-grouping.css">
+            <link rel="stylesheet" href="/css/realtime-notifications.css">
+            <link rel="stylesheet" href="/css/dashboard-widgets-improved.css">
+            <link rel="stylesheet" href="/css/kanban-improved.css">
+            <link rel="stylesheet" href="/css/header-footer-improved.css">
         </noscript>
     {% endblock %}
 </head>
 <body>
+    <!-- Skip Link for Accessibility -->
+    <a href="#main-content" class="skip-link visually-hidden-focusable">
+        <i class="fas fa-arrow-down me-2"></i>Перейти к основному контенту
+    </a>
+
+    <!-- Keyboard Shortcuts Help Modal -->
+    <div class="modal fade" id="keyboardShortcutsModal" tabindex="-1" aria-labelledby="keyboardShortcutsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="keyboardShortcutsModalLabel">
+                        <i class="fas fa-keyboard me-2"></i>Горячие клавиши
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-tasks me-2"></i>Задачи</span>
+                            <kbd class="bg-light px-2 py-1 rounded">T</kbd>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-chart-line me-2"></i>Дашборд</span>
+                            <kbd class="bg-light px-2 py-1 rounded">D</kbd>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-columns me-2"></i>Канбан</span>
+                            <kbd class="bg-light px-2 py-1 rounded">K</kbd>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-calendar me-2"></i>Календарь</span>
+                            <kbd class="bg-light px-2 py-1 rounded">C</kbd>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-user me-2"></i>Профиль</span>
+                            <kbd class="bg-light px-2 py-1 rounded">P</kbd>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-plus me-2"></i>Новая задача</span>
+                            <kbd class="bg-light px-2 py-1 rounded">N</kbd>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-search me-2"></i>Поиск</span>
+                            <kbd class="bg-light px-2 py-1 rounded">Ctrl</kbd> + <kbd class="bg-light px-2 py-1 rounded">K</kbd>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-question-circle me-2"></i>Справка</span>
+                            <kbd class="bg-light px-2 py-1 rounded">?</kbd>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <nav class="navbar navbar-expand-lg navbar-enhanced">
         <div class="container-fluid">
             <a class="navbar-brand-enhanced" href="{{ path('app_dashboard') }}">
@@ -261,15 +349,92 @@
         </div>
     </nav>
     
-    <main class="container-fluid mt-4">
+    <main class="container-fluid mt-4" id="main-content" role="main" aria-label="Основное содержимое">
         {% block body %}{% endblock %}
     </main>
+
+    <!-- Mobile Bottom Navigation -->
+    {% if app.user %}
+    <nav class="bottom-nav">
+        <div class="bottom-nav-items">
+            <a href="{{ path('app_dashboard') }}" class="bottom-nav-item{{ app.request.attributes.get('_route') == 'app_dashboard' ? ' active' : '' }}">
+                <i class="fas fa-home bottom-nav-item-icon"></i>
+                <span class="bottom-nav-item-label">Главная</span>
+            </a>
+            
+            <a href="{{ path('app_task_index') }}" class="bottom-nav-item{{ 'app_task' in app.request.attributes.get('_route') ? ' active' : '' }}">
+                <i class="fas fa-tasks bottom-nav-item-icon"></i>
+                <span class="bottom-nav-item-label">Задачи</span>
+                {% if task_stats.pending > 0 %}
+                    <span class="nav-badge">{{ task_stats.pending > 9 ? '9+' : task_stats.pending }}</span>
+                {% endif %}
+            </a>
+            
+            <a href="{{ path('app_task_new') }}" class="bottom-nav-item quick-action">
+                <i class="fas fa-plus bottom-nav-item-icon"></i>
+                <span class="bottom-nav-item-label">Новая</span>
+            </a>
+            
+            <a href="{{ path('app_kanban_board') }}" class="bottom-nav-item{{ app.request.attributes.get('_route') == 'app_kanban_board' ? ' active' : '' }}">
+                <i class="fas fa-columns bottom-nav-item-icon"></i>
+                <span class="bottom-nav-item-label">Канбан</span>
+            </a>
+            
+            <a href="{{ path('app_calendar') }}" class="bottom-nav-item{{ app.request.attributes.get('_route') == 'app_calendar' ? ' active' : '' }}">
+                <i class="fas fa-calendar bottom-nav-item-icon"></i>
+                <span class="bottom-nav-item-label">Календарь</span>
+            </a>
+        </div>
+    </nav>
     
+    <!-- FAB Button Alternative -->
+    <button class="bottom-nav-fab" id="fabButton" onclick="toggleFabMenu()">
+        <i class="fas fa-plus"></i>
+    </button>
+    
+    <!-- FAB Menu -->
+    <div class="bottom-nav-fab-menu" id="fabMenu">
+        <a href="{{ path('app_task_new') }}" class="bottom-nav-fab-menu-item">
+            <i class="fas fa-tasks"></i>
+            <span>Новая задача</span>
+        </a>
+        <a href="{{ path('app_deals_new') }}" class="bottom-nav-fab-menu-item">
+            <i class="fas fa-handshake"></i>
+            <span>Новая сделка</span>
+        </a>
+        <a href="{{ path('app_clients_new') }}" class="bottom-nav-fab-menu-item">
+            <i class="fas fa-users"></i>
+            <span>Новый клиент</span>
+        </a>
+    </div>
+    
+    <!-- FAB Backdrop -->
+    <div class="bottom-nav-fab-backdrop" id="fabBackdrop" onclick="toggleFabMenu()"></div>
+    {% endif %}
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
     
     <!-- Service Worker Registration -->
     <script>
+        // FAB Menu toggle
+        function toggleFabMenu() {
+            const menu = document.getElementById('fabMenu');
+            const backdrop = document.getElementById('fabBackdrop');
+            menu.classList.toggle('show');
+            backdrop.classList.toggle('show');
+        }
+
+        // Close FAB menu on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const menu = document.getElementById('fabMenu');
+                const backdrop = document.getElementById('fabBackdrop');
+                menu.classList.remove('show');
+                backdrop.classList.remove('show');
+            }
+        });
+
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
                 navigator.serviceWorker.register('/sw.js')
@@ -310,56 +475,60 @@
     
     {% block javascripts %}
         {% block importmap %}{{ importmap('app') }}{% endblock %}
-        
-        {# Toast System - Load first #}
+
+        {# Environment flag for JS #}
+        <meta name="environment" content="{{ app.environment }}" data-environment="{{ app.environment }}">
+
+        {# Critical - Load immediately (synchronous) #}
         <script src="/js/toast-system.js"></script>
-        
-        {# Critical - Load immediately #}
         <script src="/js/state-manager.js"></script>
-        
-        {# Lazy Loaders #}
+
+        {# Performance Optimizer - Code Splitting & Lazy Loading #}
+        <script src="/js/performance-optimizer.js" defer></script>
+
+        {# Lazy Loaders - CSS & JS #}
         <script src="/js/css-lazy-loader.js"></script>
         <script src="/js/js-lazy-loader.js"></script>
-        
-        {# Core utilities #}
+
+        {# Core utilities - Deferred #}
         <script src="/js/utils.js" defer></script>
         <script src="/js/theme-switcher.js" defer></script>
-        <script src="/js/offline-support.js" defer></script>
+        <script src="/js/keyboard-navigation.js" defer></script>
+
+        {# Page-specific scripts - loaded conditionally #}
+        {% if app.request.attributes.get('_route') starts with 'app_task' %}
+            <script src="/js/table-enhancements.js" defer></script>
+            <script src="/js/task-inline-edit.js" defer></script>
+        {% endif %}
+
+        {% if app.request.attributes.get('_route') == 'app_kanban_board' %}
+            <script src="/js/kanban-improved.js" defer></script>
+        {% endif %}
+
+        {% if app.request.attributes.get('_route') == 'app_calendar' %}
+            <script src="/js/calendar-enhanced.js" defer></script>
+        {% endif %}
+
+        {% if app.request.attributes.get('_route') starts with 'app_dashboard' or app.request.attributes.get('_route') starts with 'app_analytics' %}
+            <script src="/js/dashboard-widgets.js" defer></script>
+        {% endif %}
+
+        {# Common features - Loaded after critical #}
+        {% if app.user %}
+            <script src="/js/realtime-notifications.js" defer></script>
+            <script src="/js/offline-support.js" defer></script>
+        {% endif %}
+
+        {# Non-critical enhancements - Loaded on idle #}
+        <script src="/js/debounced-search.js" defer></script>
         <script src="/js/global-interactions.js" defer></script>
-        
-        {# Performance monitoring - load last #}
-        <script src="/js/performance-optimizer.js" defer></script>
-        <script src="/js/performance-monitor.js" defer></script>
-        <script src="/js/css-deduplicator.js" defer></script>
-        <script src="/js/css-performance-monitor.js" defer></script>
-        <script src="/js/css-master-optimizer.js" defer></script>
-        <script>
-            // Preload important resources
-            if ('requestIdleCallback' in window) {
-                requestIdleCallback(function() {
-                    // Lazy load non-critical functionality
-                    loadNonCriticalFeatures();
-                });
-            } else {
-                setTimeout(function() {
-                    loadNonCriticalFeatures();
-                }, 1000);
-            }
-            
-            function loadNonCriticalFeatures() {
-                // Feature-detect and load polyfills only when needed
-                if (!('IntersectionObserver' in window)) {
-                    // Load intersection observer polyfill
-                    loadScript('https://polyfill.io/v3/polyfill.min.js?features=IntersectionObserver');
-                }
-            }
-            
-            function loadScript(src) {
-                const script = document.createElement('script');
-                script.src = src;
-                document.head.appendChild(script);
-            }
-        </script>
+        <script src="/js/ui-enhancements.js" defer></script>
+        <script src="/js/pwa-install.js" defer></script>
+
+        {# Performance monitoring - only in dev mode #}
+        {% if app.environment == 'dev' %}
+            <script src="/js/performance-monitor.js" defer></script>
+        {% endif %}
     {% endblock %}
     
     <!-- Real-time Notifications JavaScript -->

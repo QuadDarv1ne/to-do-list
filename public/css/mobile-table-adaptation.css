@@ -1,0 +1,341 @@
+/* ============================================
+   MOBILE TABLE ADAPTATION
+   Адаптация таблиц для мобильных устройств
+   ============================================ */
+
+/* Responsive table wrapper */
+.table-responsive-enhanced {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile card view for table rows */
+@media (max-width: 768px) {
+    /* Transform table rows to cards */
+    .task-item,
+    .list-group-item.task-item-enhanced {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 1rem !important;
+        margin-bottom: 0.75rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid var(--border, #e5e7eb) !important;
+        background: var(--bg-card, #fff);
+        position: relative;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .task-item:active,
+    .list-group-item.task-item-enhanced:active {
+        transform: scale(0.98);
+    }
+
+    /* Hide drag handle on mobile */
+    .task-item .drag-handle,
+    .list-group-item.task-item-enhanced .drag-handle {
+        display: none;
+    }
+
+    /* Checkbox positioning */
+    .task-item .form-check,
+    .list-group-item.task-item-enhanced .form-check {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+    }
+
+    .task-item .form-check-input,
+    .list-group-item.task-item-enhanced .form-check-input {
+        width: 20px;
+        height: 20px;
+    }
+
+    /* Task title */
+    .task-item .task-title,
+    .list-group-item.task-item-enhanced .task-title {
+        padding-left: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .task-item .task-title a,
+    .list-group-item.task-item-enhanced .task-title a {
+        font-size: 1.1rem;
+        font-weight: 600;
+        line-height: 1.4;
+        color: var(--text-primary, #1f2937);
+        word-break: break-word;
+    }
+
+    /* Badges row */
+    .task-item .d-flex.gap-2,
+    .list-group-item.task-item-enhanced .d-flex.gap-2 {
+        flex-wrap: wrap;
+        margin-left: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .task-item .badge,
+    .list-group-item.task-item-enhanced .badge {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.65rem;
+        border-radius: 6px;
+    }
+
+    /* Task meta information */
+    .task-item .task-meta,
+    .list-group-item.task-item-enhanced .task-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        color: var(--text-secondary, #6b7280);
+        margin-left: 2rem;
+    }
+
+    .task-item .task-meta i,
+    .list-group-item.task-item-enhanced .task-meta i {
+        width: 16px;
+        text-align: center;
+    }
+
+    .task-item .task-meta .badge,
+    .list-group-item.task-item-enhanced .task-meta .badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    /* Task description */
+    .task-item .task-description,
+    .list-group-item.task-item-enhanced .task-description {
+        margin-left: 2rem;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        color: var(--text-secondary, #6b7280);
+    }
+
+    /* Actions dropdown */
+    .task-item .dropdown,
+    .list-group-item.task-item-enhanced .dropdown {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+    }
+
+    .task-item .dropdown .btn,
+    .list-group-item.task-item-enhanced .dropdown .btn {
+        padding: 0.5rem;
+        background: var(--bg, #f9fafb);
+        border: 1px solid var(--border, #e5e7eb);
+        border-radius: 8px;
+    }
+
+    .task-item .dropdown-menu,
+    .list-group-item.task-item-enhanced .dropdown-menu {
+        min-width: 200px;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        border: none;
+    }
+
+    .task-item .dropdown-item,
+    .list-group-item.task-item-enhanced .dropdown-item {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+        border-radius: 8px;
+        margin: 0 0.5rem;
+    }
+
+    .task-item .dropdown-item:hover,
+    .list-group-item.task-item-enhanced .dropdown-item:hover {
+        background: var(--primary, #667eea);
+        color: #fff;
+    }
+
+    /* Priority indicators for mobile */
+    .task-item.priority-high,
+    .list-group-item.task-item-enhanced.priority-high {
+        border-left: 4px solid #dc3545 !important;
+    }
+
+    .task-item.priority-medium,
+    .list-group-item.task-item-enhanced.priority-medium {
+        border-left: 4px solid #ffc107 !important;
+    }
+
+    .task-item.priority-low,
+    .list-group-item.task-item-enhanced.priority-low {
+        border-left: 4px solid #28a745 !important;
+    }
+
+    /* Glow effects for high priority */
+    .task-item.priority-high-glow,
+    .list-group-item.task-item-enhanced.priority-high-glow {
+        box-shadow: 0 2px 12px rgba(220, 53, 69, 0.2);
+    }
+
+    /* Statistics cards on mobile */
+    .col-md-3 .card.dashboard-card,
+    .col-md-3 .card.border-0.shadow-sm {
+        margin-bottom: 1rem;
+    }
+
+    /* Filter form on mobile */
+    .card-body form.row.g-3 {
+        gap: 0.75rem !important;
+    }
+
+    .card-body form.row.g-3 .col-md-4,
+    .card-body form.row.g-3 .col-md-2 {
+        width: 100%;
+        flex: 0 0 100%;
+    }
+
+    /* Button groups on mobile */
+    .btn-group.w-100,
+    .btn-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .btn-group .btn,
+    .btn-group.w-100 .btn {
+        flex: 1 1 auto;
+        min-width: calc(50% - 0.25rem);
+    }
+
+    /* Advanced filters collapse */
+    #advancedFilters .row.g-3 .col-md-3,
+    #advancedFilters .row.g-3 .col-md-2 {
+        width: 100%;
+        flex: 0 0 100%;
+    }
+
+    /* Bulk actions on mobile */
+    #bulk-actions-container {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    #bulk-actions-container .btn-group {
+        width: 100%;
+    }
+
+    #bulk-actions-container #bulk-action-select {
+        width: 100% !important;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Table header hidden on mobile */
+    .task-list-header {
+        display: none;
+    }
+
+    /* Dashboard widgets on mobile */
+    .dashboard-welcome .row {
+        flex-direction: column;
+    }
+
+    .dashboard-welcome .col-lg-4 {
+        margin-top: 1rem !important;
+    }
+
+    .dashboard-welcome .d-flex.gap-2 {
+        flex-wrap: wrap;
+    }
+
+    .dashboard-welcome .btn {
+        flex: 1 1 auto;
+    }
+
+    /* Stats row on mobile */
+    #stats-row .col-md-3 {
+        margin-bottom: 1rem;
+    }
+
+    /* Goals and habits widgets */
+    .row.mb-4 .col-lg-6 {
+        margin-bottom: 1rem;
+    }
+
+    /* Activity chart on mobile */
+    .activity-stats {
+        margin-top: 1rem;
+    }
+
+    .activity-stat-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .activity-stat-icon {
+        flex-shrink: 0;
+    }
+}
+
+/* Extra small devices (phones, less than 576px) */
+@media (max-width: 576px) {
+    .task-item .task-title a,
+    .list-group-item.task-item-enhanced .task-title a {
+        font-size: 1rem;
+    }
+
+    .task-item .badge,
+    .list-group-item.task-item-enhanced .badge {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .task-item .task-meta,
+    .list-group-item.task-item-enhanced .task-meta {
+        font-size: 0.8rem;
+    }
+
+    /* Single column buttons */
+    .btn-group .btn,
+    .btn-group.w-100 .btn {
+        min-width: 100%;
+    }
+
+    /* Compact dropdown menu */
+    .task-item .dropdown-menu,
+    .list-group-item.task-item-enhanced .dropdown-menu {
+        min-width: 180px;
+    }
+}
+
+/* Touch-friendly interactions */
+@media (hover: none) and (pointer: coarse) {
+    /* Larger touch targets */
+    .btn,
+    .form-control,
+    .form-select {
+        min-height: 44px;
+    }
+
+    /* Remove hover effects on touch devices */
+    .task-item:hover,
+    .list-group-item.task-item-enhanced:hover {
+        transform: none;
+    }
+
+    /* Active state instead */
+    .task-item:active,
+    .list-group-item.task-item-enhanced:active {
+        transform: scale(0.98);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    }
+}
+
+/* Print styles for mobile */
+@media print and (max-width: 768px) {
+    .task-item,
+    .list-group-item.task-item-enhanced {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+}

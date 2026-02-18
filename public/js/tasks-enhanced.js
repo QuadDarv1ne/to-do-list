@@ -73,7 +73,7 @@ function initTaskActions() {
  * Update task status
  */
 function updateTaskStatus(taskId, status) {
-    fetch(`/api/tasks/${taskId}/status`, {
+    fetch(`/api/v1/tasks/${taskId}`, {
         method: 'PATCH',
         headers: {
             'Content-Type': 'application/json',
@@ -108,7 +108,7 @@ function updateTaskStatus(taskId, status) {
  * Update task priority
  */
 function updateTaskPriority(taskId, priority) {
-    fetch(`/api/tasks/${taskId}/priority`, {
+    fetch(`/api/v1/tasks/${taskId}`, {
         method: 'PATCH',
         headers: {
             'Content-Type': 'application/json',

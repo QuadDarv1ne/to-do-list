@@ -19,10 +19,12 @@ class DealApiController extends AbstractController
         $user = $this->getUser();
         $status = $request->query->get('status');
         
+        // Use optimized repository method with joins
         $deals = $this->isGranted('ROLE_ADMIN')
-            ? $dealRepository->findAll()
+            ? $dealRepository->findAllWithRelations()
             : $dealRepository->findByManager($user);
 
+        // Filter by status if provided (already loaded with joins, no N+1)
         if ($status) {
             $deals = array_filter($deals, fn($deal) => $deal->getStatus() === $status);
         }

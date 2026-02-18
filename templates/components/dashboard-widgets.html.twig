@@ -1,0 +1,326 @@
+{#
+    Dashboard Widgets Component
+    Улучшенные виджеты для дашборда
+    
+    Usage:
+    {{ include('components/dashboard-widgets.html.twig', {
+        tasks: tasks,
+        goals: goals,
+        activityData: activityData
+    }) }}
+#}
+
+<div class="dashboard-widgets-container">
+    
+    {# Quick Stats Row #}
+    <div class="quick-stats-row">
+        <div class="quick-stat-item">
+            <div class="quick-stat-icon total">
+                <i class="fas fa-tasks"></i>
+            </div>
+            <div class="quick-stat-value">{{ stats.total ?? 0 }}</div>
+            <div class="quick-stat-label">Всего</div>
+        </div>
+        
+        <div class="quick-stat-item">
+            <div class="quick-stat-icon pending">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="quick-stat-value">{{ stats.pending ?? 0 }}</div>
+            <div class="quick-stat-label">В ожидании</div>
+        </div>
+        
+        <div class="quick-stat-item">
+            <div class="quick-stat-icon progress">
+                <i class="fas fa-play-circle"></i>
+            </div>
+            <div class="quick-stat-value">{{ stats.in_progress ?? 0 }}</div>
+            <div class="quick-stat-label">В работе</div>
+        </div>
+        
+        <div class="quick-stat-item">
+            <div class="quick-stat-icon completed">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="quick-stat-value">{{ stats.completed ?? 0 }}</div>
+            <div class="quick-stat-label">Завершено</div>
+        </div>
+        
+        <div class="quick-stat-item">
+            <div class="quick-stat-icon overdue">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="quick-stat-value">{{ stats.overdue ?? 0 }}</div>
+            <div class="quick-stat-label">Просрочено</div>
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        {# Today's Tasks Widget #}
+        <div class="col-lg-6 col-xl-4">
+            <div class="today-widget h-100">
+                <div class="today-widget-header">
+                    <h5 class="today-widget-title">
+                        <i class="fas fa-sun"></i>
+                        Сегодня
+                    </h5>
+                    <a href="{{ path('app_task_index') }}" class="btn btn-sm btn-link p-0">
+                        Все задачи
+                    </a>
+                </div>
+                <div class="today-widget-body">
+                    {% if today_tasks is not empty %}
+                        {% for task in today_tasks|slice(0, 5) %}
+                            <div class="today-task-item">
+                                <input type="checkbox" 
+                                       class="today-task-checkbox" 
+                                       data-task-id="{{ task.id }}"
+                                       {{ task.status == 'completed' ? 'checked' : '' }}>
+                                <div class="today-task-content">
+                                    <h6 class="today-task-title">
+                                        <a href="{{ path('app_task_show', {id: task.id}) }}" class="text-decoration-none">
+                                            {{ task.title }}
+                                        </a>
+                                    </h6>
+                                    <div class="today-task-meta">
+                                        <span>
+                                            <i class="fas fa-folder"></i>
+                                            {{ task.category ? task.category.name : 'Без категории' }}
+                                        </span>
+                                        <span class="today-task-priority {{ task.priority }}">
+                                            {{ task.priority|trans }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="today-widget-empty">
+                            <i class="fas fa-check-circle"></i>
+                            <p>Нет задач на сегодня</p>
+                            <a href="{{ path('app_task_new') }}" class="btn btn-sm btn-primary mt-2">
+                                <i class="fas fa-plus me-1"></i>Создать
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        {# Upcoming Deadlines Widget #}
+        <div class="col-lg-6 col-xl-4">
+            <div class="deadlines-widget h-100">
+                <div class="deadlines-widget-header">
+                    <h5 class="deadlines-widget-title">
+                        <i class="fas fa-hourglass-half"></i>
+                        Дедлайны
+                    </h5>
+                    <a href="{{ path('app_calendar') }}" class="btn btn-sm btn-link p-0">
+                        Календарь
+                    </a>
+                </div>
+                <div class="deadlines-widget-body">
+                    {% if upcoming_deadlines is not empty %}
+                        {% for task in upcoming_deadlines|slice(0, 5) %}
+                            {% set daysUntil = task.dueDate.diff('now').days %}
+                            {% set isOverdue = task.dueDate < 'now' and task.status != 'completed' %}
+                            {% set isSoon = daysUntil <= 2 and not isOverdue %}
+                            
+                            <div class="deadline-item {{ isOverdue ? 'overdue' : (isSoon ? 'soon' : '') }}">
+                                <div class="deadline-icon {{ isOverdue ? 'overdue' : (isSoon ? 'soon' : 'normal') }}">
+                                    <i class="fas {{ isOverdue ? 'fa-exclamation-triangle' : 'fa-clock' }}"></i>
+                                </div>
+                                <div class="deadline-content">
+                                    <h6 class="deadline-title">
+                                        <a href="{{ path('app_task_show', {id: task.id}) }}" class="text-decoration-none">
+                                            {{ task.title }}
+                                        </a>
+                                    </h6>
+                                    <div class="deadline-meta">
+                                        <span>
+                                            <i class="fas fa-calendar"></i>
+                                            {{ task.dueDate|date('d.m.Y') }}
+                                        </span>
+                                        <span class="deadline-days {{ isOverdue ? 'overdue' : (isSoon ? 'soon' : '') }}">
+                                            {% if isOverdue %}
+                                                <i class="fas fa-arrow-up"></i> {{ daysUntil }} дн. назад
+                                            {% elseif daysUntil == 0 %}
+                                                Сегодня
+                                            {% elseif daysUntil == 1 %}
+                                                Завтра
+                                            {% else %}
+                                                Через {{ daysUntil }} дн.
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="today-widget-empty">
+                            <i class="fas fa-calendar-check"></i>
+                            <p>Нет предстоящих дедлайнов</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        {# Goals Progress Widget #}
+        <div class="col-lg-6 col-xl-4">
+            <div class="goals-progress-widget h-100">
+                <div class="goals-widget-header">
+                    <h5 class="goals-widget-title">
+                        <i class="fas fa-bullseye"></i>
+                        Цели
+                    </h5>
+                    <a href="{{ path('app_goals_index') }}" class="btn btn-sm btn-link p-0">
+                        Все цели
+                    </a>
+                </div>
+                <div class="goals-widget-body">
+                    {% if goals is not empty %}
+                        {% for goal in goals|slice(0, 4) %}
+                            {% set progress = goal.progress %}
+                            {% set progressClass = progress < 30 ? 'low' : (progress < 70 ? 'medium' : 'high') %}
+                            
+                            <div class="goal-progress-item">
+                                <div class="goal-progress-header">
+                                    <h6 class="goal-title">{{ goal.title }}</h6>
+                                    <span class="goal-percentage">{{ progress|number_format(0) }}%</span>
+                                </div>
+                                <div class="goal-progress-bar">
+                                    <div class="goal-progress-fill {{ progressClass }}" 
+                                         style="width: {{ progress }}%"></div>
+                                </div>
+                                <div class="goal-meta">
+                                    <span>
+                                        <i class="fas fa-flag"></i>
+                                        {{ goal.milestonesCompleted ?? 0 }}/{{ goal.milestonesTotal ?? 0 }} этапов
+                                    </span>
+                                    <span>
+                                        <i class="fas fa-calendar"></i>
+                                        {{ goal.deadline ? goal.deadline|date('d.m.Y') : 'Без срока' }}
+                                    </span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="today-widget-empty">
+                            <i class="fas fa-bullseye"></i>
+                            <p>Нет активных целей</p>
+                            <a href="{{ path('app_goals_index') }}" class="btn btn-sm btn-primary mt-2">
+                                <i class="fas fa-plus me-1"></i>Создать цель
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        {# Activity Heatmap Widget #}
+        <div class="col-12">
+            <div class="activity-heatmap-widget">
+                <div class="heatmap-widget-header">
+                    <h5 class="heatmap-widget-title">
+                        <i class="fas fa-fire"></i>
+                        Активность за неделю
+                    </h5>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-primary active" data-period="week">Неделя</button>
+                        <button type="button" class="btn btn-outline-primary" data-period="month">Месяц</button>
+                    </div>
+                </div>
+                <div class="heatmap-container">
+                    <div class="heatmap-grid" id="activityHeatmap">
+                        {# Will be populated by JavaScript #}
+                        {% for i in 0..6 %}
+                            <div class="heatmap-day level-{{ activityData[i].level ?? 0 }}" 
+                                 data-date="{{ activityData[i].date ?? '' }}"
+                                 data-count="{{ activityData[i].count ?? 0 }}"
+                                 title="{{ activityData[i].date ?? '' }}: {{ activityData[i].count ?? 0 }} задач"></div>
+                        {% endfor %}
+                    </div>
+                    <div class="heatmap-legend">
+                        <span>Завершено задач</span>
+                        <div class="heatmap-legend-colors">
+                            <div class="heatmap-legend-color" style="background: var(--bg-subtle, #f3f4f6);"></div>
+                            <div class="heatmap-legend-color" style="background: #dbeafe;"></div>
+                            <div class="heatmap-legend-color" style="background: #93c5fd;"></div>
+                            <div class="heatmap-legend-color" style="background: #3b82f6;"></div>
+                            <div class="heatmap-legend-color" style="background: #1d4ed8;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    'use strict';
+    
+    // Today's tasks checkbox handler
+    document.querySelectorAll('.today-task-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', async function() {
+            const taskId = this.dataset.taskId;
+            const newStatus = this.checked ? 'completed' : 'pending';
+            
+            try {
+                const response = await fetch(`/api/tasks/${taskId}/status`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                
+                if (response.ok) {
+                    showToast(
+                        this.checked ? 'Задача выполнена!' : 'Статус изменён',
+                        this.checked ? 'success' : 'info'
+                    );
+                    
+                    // Reload widget after delay
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    this.checked = !this.checked;
+                    showToast('Ошибка при обновлении', 'error');
+                }
+            } catch (error) {
+                this.checked = !this.checked;
+                console.error('Error updating task:', error);
+                showToast('Ошибка при обновлении', 'error');
+            }
+        });
+    });
+    
+    // Heatmap tooltip
+    document.querySelectorAll('.heatmap-day').forEach(day => {
+        day.addEventListener('mouseenter', function() {
+            const date = this.dataset.date;
+            const count = this.dataset.count;
+            
+            if (date && count) {
+                this.title = `${date}: ${count} задач`;
+            }
+        });
+    });
+    
+    // Period toggle for heatmap
+    document.querySelectorAll('[data-period]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('[data-period]').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            const period = this.dataset.period;
+            console.log('Switching to period:', period);
+            // Could load different data here
+        });
+    });
+})();
+</script>

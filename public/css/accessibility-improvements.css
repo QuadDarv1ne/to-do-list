@@ -1,0 +1,355 @@
+/* ============================================
+   ACCESSIBILITY IMPROVEMENTS
+   Улучшения доступности
+   ============================================ */
+
+/* Skip Link - Hidden by default, visible on focus */
+.skip-link {
+    position: absolute;
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10000;
+    background: var(--primary, #667eea);
+    color: #fff;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0 0 8px 8px;
+    text-decoration: none;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: top 0.3s ease;
+}
+
+.skip-link:hover,
+.skip-link:focus {
+    top: 0;
+    color: #fff;
+    text-decoration: none;
+}
+
+/* Visually hidden but accessible to screen readers */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Visually hidden but focusable */
+.visually-hidden-focusable {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.visually-hidden-focusable:focus {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: 0.75rem 1.5rem;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+}
+
+/* ============================================
+   FOCUS INDICATORS
+   Видимые индикаторы фокуса для keyboard navigation
+   ============================================ */
+
+/* Global focus styles */
+*:focus {
+    outline: 2px solid var(--primary, #667eea);
+    outline-offset: 2px;
+}
+
+/* Enhanced focus for interactive elements */
+*:focus-visible {
+    outline: 3px solid var(--primary, #667eea);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+}
+
+/* Remove default focus for mouse users, keep for keyboard */
+*:focus:not(:focus-visible) {
+    outline: none;
+    box-shadow: none;
+}
+
+/* Buttons - Enhanced focus */
+.btn:focus,
+.btn:focus-visible {
+    outline: 3px solid var(--primary, #667eea);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+}
+
+.btn-primary:focus,
+.btn-primary:focus-visible {
+    outline-color: #fff;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.4);
+}
+
+/* Links - Enhanced focus */
+a:focus,
+a:focus-visible {
+    outline: 2px solid var(--primary, #667eea);
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
+/* Form inputs - Enhanced focus */
+.form-control:focus,
+.form-control:focus-visible,
+.form-select:focus,
+.form-select:focus-visible {
+    border-color: var(--primary, #667eea);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+}
+
+/* Checkboxes and radio buttons */
+.form-check-input:focus,
+.form-check-input:focus-visible {
+    border-color: var(--primary, #667eea);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+}
+
+/* Cards - Focus for clickable cards */
+.card:focus,
+.card:focus-visible {
+    border-color: var(--primary, #667eea);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+}
+
+/* List group items */
+.list-group-item-action:focus,
+.list-group-item-action:focus-visible {
+    outline: 3px solid var(--primary, #667eea);
+    outline-offset: -3px;
+}
+
+/* Dropdown items */
+.dropdown-item:focus,
+.dropdown-item:focus-visible {
+    outline: 2px solid var(--primary, #667eea);
+    outline-offset: -2px;
+}
+
+/* Nav links */
+.nav-link:focus,
+.nav-link:focus-visible {
+    outline: 2px solid var(--primary, #667eea);
+    outline-offset: 2px;
+}
+
+/* Table rows - Focus for interactive rows */
+tr:focus,
+tr:focus-visible {
+    outline: 2px solid var(--primary, #667eea);
+    outline-offset: -2px;
+}
+
+/* Task items - Focus for interactive task cards */
+.task-item:focus,
+.task-item:focus-visible,
+.list-group-item.task-item-enhanced:focus,
+.list-group-item.task-item-enhanced:focus-visible {
+    outline: 3px solid var(--primary, #667eea);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+}
+
+/* Badge focus */
+.badge:focus,
+.badge:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+
+/* Modal focus */
+.modal-content:focus,
+.modal-content:focus-visible {
+    outline: 3px solid var(--primary, #667eea);
+    outline-offset: 3px;
+}
+
+/* Close button focus */
+.btn-close:focus,
+.btn-close:focus-visible {
+    outline: 2px solid var(--primary, #667eea);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+}
+
+/* ============================================
+   HIGH CONTRAST MODE SUPPORT
+   Поддержка режима высокой контрастности
+   ============================================ */
+
+@media (prefers-contrast: high) {
+    *:focus,
+    *:focus-visible {
+        outline: 3px solid currentColor;
+        outline-offset: 3px;
+    }
+    
+    .btn:focus,
+    .btn:focus-visible {
+        outline-width: 3px;
+    }
+    
+    .form-control:focus,
+    .form-control:focus-visible {
+        border-width: 2px;
+    }
+}
+
+/* ============================================
+   REDUCED MOTION SUPPORT
+   Поддержка уменьшенного движения
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    
+    .skip-link {
+        transition: none;
+    }
+}
+
+/* ============================================
+   SCREEN READER UTILITIES
+   Утилиты для скринридеров
+   ============================================ */
+
+/* Live region for dynamic content announcements */
+.sr-live-region {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Announcer for screen readers */
+.sr-announcer {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ============================================
+   KEYBOARD NAVIGATION HIGHLIGHTS
+   Подсветка keyboard navigation
+   ============================================ */
+
+/* Show focus only for keyboard navigation */
+body.keyboard-mode *:focus {
+    outline: 3px solid var(--primary, #667eea);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+}
+
+body.keyboard-mode a:focus,
+body.keyboard-mode button:focus,
+body.keyboard-mode input:focus,
+body.keyboard-mode select:focus,
+body.keyboard-mode textarea:focus {
+    outline: 3px solid var(--primary, #667eea);
+    outline-offset: 3px;
+}
+
+/* ============================================
+   ACCESSIBILITY UTILITIES
+   Утилиты доступности
+   ============================================ */
+
+/* Skip to main content link styles */
+#main-content {
+    scroll-margin-top: 100px; /* Account for fixed navbar */
+}
+
+/* Focus trap for modals */
+.modal[aria-modal="true"] {
+    outline: none;
+}
+
+/* Ensure sufficient color contrast */
+.text-muted {
+    color: #6b7280 !important;
+}
+
+[data-theme="dark"] .text-muted {
+    color: #9ca3af !important;
+}
+
+/* Large touch targets for mobile */
+@media (max-width: 768px) {
+    .btn,
+    .form-control,
+    .form-select,
+    a,
+    [role="button"] {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    /* Exception for small buttons in groups */
+    .btn-sm {
+        min-height: 36px;
+        min-width: 36px;
+    }
+}
+
+/* ============================================
+   PRINT STYLES
+   Стили для печати
+   ============================================ */
+
+@media print {
+    .skip-link,
+    .navbar,
+    .btn,
+    nav,
+    footer {
+        display: none !important;
+    }
+    
+    #main-content {
+        margin: 0;
+        padding: 0;
+    }
+    
+    *:focus {
+        outline: none;
+    }
+}

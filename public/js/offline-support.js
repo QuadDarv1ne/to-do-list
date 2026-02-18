@@ -194,8 +194,8 @@ class OfflineSupport {
      */
     async checkConnection() {
         try {
-            // Проверяем соединение через существующий endpoint
-            const response = await fetch('/task/category', {
+            // Проверяем соединение через публичный endpoint
+            const response = await fetch('/login', {
                 method: 'HEAD',
                 cache: 'no-cache'
             });

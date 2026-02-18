@@ -144,20 +144,16 @@ class TaskApiController extends AbstractController
             try {
                 $task->setDeadline($data['deadline'] ? new \DateTime($data['deadline']) : null);
             } catch (\Exception $e) {
-                return $this->json([
-                    'success' => false,
-                    'error' => 'Invalid deadline format'
-                ], Response::HTTP_BAD_REQUEST);
+                return $this->jsonError('Invalid deadline format', Response::HTTP_BAD_REQUEST);
             }
         }
         
         $this->entityManager->flush();
         
-        return $this->json([
-            'success' => true,
-            'data' => $this->serializeTask($task),
-            'message' => 'Task updated successfully'
-        ]);
+        return $this->jsonSuccess(
+            $this->serializeTask($task),
+            'Task updated successfully'
+        );
     }
     
     /**
@@ -171,10 +167,7 @@ class TaskApiController extends AbstractController
         $this->entityManager->remove($task);
         $this->entityManager->flush();
         
-        return $this->json([
-            'success' => true,
-            'message' => 'Task deleted successfully'
-        ]);
+        return $this->jsonSuccess(null, 'Task deleted successfully');
     }
     
     /**
@@ -186,10 +179,7 @@ class TaskApiController extends AbstractController
         $user = $this->getUser();
         $stats = $this->taskRepository->getQuickStats($user);
         
-        return $this->json([
-            'success' => true,
-            'data' => $stats
-        ]);
+        return $this->jsonSuccess($stats);
     }
     
     /**
@@ -202,18 +192,121 @@ class TaskApiController extends AbstractController
         $query = $request->query->get('q', '');
         
         if (strlen($query) < 2) {
-            return $this->json([
-                'success' => false,
-                'error' => 'Query must be at least 2 characters'
-            ], Response::HTTP_BAD_REQUEST);
+            return $this->jsonError('Query must be at least 2 characters', Response::HTTP_BAD_REQUEST);
         }
         
         $suggestions = $this->searchService->getSuggestions($user, $query, 10);
         
-        return $this->json([
-            'success' => true,
-            'data' => $suggestions
-        ]);
+        return $this->jsonSuccess($suggestions);
+    }
+    
+    /**
+     * Reorder tasks
+     */
+    #[Route('/reorder', name: 'api_task_reorder', methods: ['POST'])]
+    public function reorderTasks(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        
+        if (!isset($data['positions']) || !is_array($data['positions'])) {
+            return $this->jsonError('Positions array is required', Response::HTTP_BAD_REQUEST);
+        }
+        
+        foreach ($data['positions'] as $position) {
+            if (!isset($position['id']) || !isset($position['position'])) {
+                continue;
+            }
+            
+            $task = $this->taskRepository->find($position['id']);
+            if ($task && $task->getUser() === $this->getUser()) {
+                $task->setPosition($position['position']);
+            }
+        }
+        
+        $this->entityManager->flush();
+        
+        return $this->jsonSuccess(null, 'Task order updated successfully');
+    }
+    
+    /**
+     * Quick create task
+     */
+    #[Route('/quick-create', name: 'api_task_quick_create', methods: ['POST'])]
+    public function quickCreateTask(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        
+        if (!isset($data['title']) || empty(trim($data['title']))) {
+            return $this->jsonError('Title is required', Response::HTTP_BAD_REQUEST);
+        }
+        
+        $task = new Task();
+        $task->setTitle($data['title']);
+        $task->setStatus($data['status'] ?? 'pending');
+        $task->setPriority($data['priority'] ?? 'medium');
+        $task->setUser($this->getUser());
+        
+        $this->entityManager->persist($task);
+        $this->entityManager->flush();
+        
+        return $this->jsonSuccess(
+            $this->serializeTask($task),
+            'Task created successfully',
+            Response::HTTP_CREATED
+        );
+    }
+    
+    /**
+     * Get categories
+     */
+    #[Route('/categories', name: 'api_task_categories', methods: ['GET'])]
+    public function getCategories(): JsonResponse
+    {
+        $user = $this->getUser();
+        $categories = $this->entityManager->getRepository('App:TaskCategory')
+            ->findBy(['user' => $user]);
+        
+        $data = array_map(fn($category) => [
+            'id' => $category->getId(),
+            'name' => $category->getName()
+        ], $categories);
+        
+        return $this->jsonSuccess($data);
+    }
+    
+    /**
+     * Get users
+     */
+    #[Route('/users', name: 'api_task_users', methods: ['GET'])]
+    public function getUsers(): JsonResponse
+    {
+        $users = $this->entityManager->getRepository('App:User')->findAll();
+        
+        $data = array_map(fn($user) => [
+            'id' => $user->getId(),
+            'name' => $user->getFullName(),
+            'email' => $user->getEmail()
+        ], $users);
+        
+        return $this->jsonSuccess($data);
+    }
+    
+    /**
+     * Get tags
+     */
+    #[Route('/tags', name: 'api_task_tags', methods: ['GET'])]
+    public function getTags(): JsonResponse
+    {
+        $user = $this->getUser();
+        $tags = $this->entityManager->getRepository('App:Tag')
+            ->findBy(['user' => $user]);
+        
+        $data = array_map(fn($tag) => [
+            'id' => $tag->getId(),
+            'name' => $tag->getName()
+        ], $tags);
+        
+        return $this->jsonSuccess($data);
     }
     
     /**

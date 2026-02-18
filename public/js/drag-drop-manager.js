@@ -149,7 +149,7 @@ class DragDropManager {
         const taskId = data.id;
 
         try {
-            const response = await fetch(`/api/tasks/${taskId}/status`, {
+            const response = await fetch(`/api/v1/tasks/${taskId}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -464,7 +464,7 @@ class DragDropManager {
         }));
 
         try {
-            await fetch('/api/reorder', {
+            await fetch('/api/v1/tasks/reorder', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
