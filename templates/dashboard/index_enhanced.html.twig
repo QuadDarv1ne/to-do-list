@@ -4,6 +4,7 @@
 
 {% block stylesheets %}
 {{ parent() }}
+<script src="/js/dashboard-widgets.js" defer></script>
 <style>
 .dashboard-header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -155,68 +156,49 @@
 
     <!-- Statistics Cards -->
     <div class="row g-4 mb-4">
-        <div class="col-md-3">
-            <div class="stat-card primary">
-                <div class="icon">
-                    <i class="fas fa-tasks"></i>
-                </div>
-                <div class="stat-value">{{ task_stats.total ?? 0 }}</div>
-                <div class="stat-label">Всего задач</div>
-                <div class="stat-change positive">
-                    <i class="fas fa-arrow-up me-1"></i>
-                    +{{ task_stats.new_this_week ?? 0 }} за неделю
-                </div>
-            </div>
-        </div>
+        {{ include('components/stat_card.html.twig', {
+            icon: 'fa-tasks',
+            value: task_stats.total ?? 0,
+            label: 'Всего задач',
+            color: 'primary',
+            trend: '+' ~ (task_stats.new_this_week ?? 0) ~ ' за неделю',
+            trendPositive: true,
+            animated: true,
+            colClass: 'col-md-3'
+        }) }}
 
-        <div class="col-md-3">
-            <div class="stat-card success">
-                <div class="icon">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                <div class="stat-value">{{ task_stats.completed ?? 0 }}</div>
-                <div class="stat-label">Завершено</div>
-                <div class="stat-change positive">
-                    <i class="fas fa-percentage me-1"></i>
-                    {{ task_stats.completion_rate ?? 0 }}% выполнено
-                </div>
-            </div>
-        </div>
+        {{ include('components/stat_card.html.twig', {
+            icon: 'fa-check-circle',
+            value: task_stats.completed ?? 0,
+            label: 'Завершено',
+            color: 'success',
+            progress: task_stats.completion_rate ?? 0,
+            trend: (task_stats.completion_rate ?? 0) ~ '% выполнено',
+            trendPositive: true,
+            animated: true,
+            colClass: 'col-md-3'
+        }) }}
 
-        <div class="col-md-3">
-            <div class="stat-card warning">
-                <div class="icon">
-                    <i class="fas fa-spinner"></i>
-                </div>
-                <div class="stat-value">{{ task_stats.in_progress ?? 0 }}</div>
-                <div class="stat-label">В процессе</div>
-                <div class="stat-change">
-                    <i class="fas fa-clock me-1"></i>
-                    {{ task_stats.avg_completion_days ?? 0 }} дн. в среднем
-                </div>
-            </div>
-        </div>
+        {{ include('components/stat_card.html.twig', {
+            icon: 'fa-spinner',
+            value: task_stats.in_progress ?? 0,
+            label: 'В процессе',
+            color: 'warning',
+            trend: (task_stats.avg_completion_days ?? 0) ~ ' дн. в среднем',
+            animated: true,
+            colClass: 'col-md-3'
+        }) }}
 
-        <div class="col-md-3">
-            <div class="stat-card danger">
-                <div class="icon">
-                    <i class="fas fa-exclamation-triangle"></i>
-                </div>
-                <div class="stat-value">{{ task_stats.overdue ?? 0 }}</div>
-                <div class="stat-label">Просрочено</div>
-                {% if task_stats.overdue > 0 %}
-                <div class="stat-change negative">
-                    <i class="fas fa-arrow-down me-1"></i>
-                    Требует внимания
-                </div>
-                {% else %}
-                <div class="stat-change positive">
-                    <i class="fas fa-check me-1"></i>
-                    Все в порядке
-                </div>
-                {% endif %}
-            </div>
-        </div>
+        {{ include('components/stat_card.html.twig', {
+            icon: 'fa-exclamation-triangle',
+            value: task_stats.overdue ?? 0,
+            label: 'Просрочено',
+            color: 'danger',
+            trend: (task_stats.overdue ?? 0) > 0 ? 'Требует внимания' : 'Все в порядке',
+            trendPositive: (task_stats.overdue ?? 0) == 0,
+            animated: true,
+            colClass: 'col-md-3'
+        }) }}
     </div>
 
     <!-- Quick Actions -->

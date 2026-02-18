@@ -1,0 +1,211 @@
+{% extends 'base_modern.html.twig' %}
+
+{% block title %}Edit {{ budget.title }} - Budget{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+            <div class="position-sticky pt-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_budget_index') }}">
+                            <i class="fas fa-home"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_budget_create') }}">
+                            <i class="fas fa-plus-circle"></i> Create Budget
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-chart-bar"></i> Reports
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_budget_export') }}">
+                            <i class="fas fa-file-export"></i> Export Data
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Edit Budget: {{ budget.title }}</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <a href="{{ path('app_budget_show', {'id': budget.id}) }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Details
+                    </a>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Budget Details</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="budgetEditForm" method="post" action="{{ path('app_budget_edit', {'id': budget.id}) }}">
+                                <div class="mb-3">
+                                    <label for="title" class="form-label">Title *</label>
+                                    <input type="text" class="form-control" id="title" name="title" value="{{ budget.title }}" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">Description</label>
+                                    <textarea class="form-control" id="description" name="description" rows="3">{{ budget.description }}</textarea>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="amount" class="form-label">Total Amount *</label>
+                                            <input type="number" step="0.01" class="form-control" id="amount" name="amount" value="{{ budget.amount }}" required>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="used_amount" class="form-label">Used Amount</label>
+                                            <input type="number" step="0.01" class="form-control" id="used_amount" name="used_amount" value="{{ budget.usedAmount }}">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="start_date" class="form-label">Start Date *</label>
+                                            <input type="date" class="form-control" id="start_date" name="start_date" value="{{ budget.startDate|date('Y-m-d') }}" required>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="end_date" class="form-label">End Date</label>
+                                            <input type="date" class="form-control" id="end_date" name="end_date" value="{{ budget.endDate ? budget.endDate|date('Y-m-d') : '' }}">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="status" class="form-label">Status</label>
+                                            <select class="form-select" id="status" name="status">
+                                                <option value="active" {% if budget.status == 'active' %}selected{% endif %}>Active</option>
+                                                <option value="inactive" {% if budget.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                                                <option value="completed" {% if budget.status == 'completed' %}selected{% endif %}>Completed</option>
+                                                <option value="pending" {% if budget.status == 'pending' %}selected{% endif %}>Pending</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="currency" class="form-label">Currency</label>
+                                            <select class="form-select" id="currency" name="currency">
+                                                <option value="USD" {% if budget.currency == 'USD' %}selected{% endif %}>USD</option>
+                                                <option value="EUR" {% if budget.currency == 'EUR' %}selected{% endif %}>EUR</option>
+                                                <option value="GBP" {% if budget.currency == 'GBP' %}selected{% endif %}>GBP</option>
+                                                <option value="JPY" {% if budget.currency == 'JPY' %}selected{% endif %}>JPY</option>
+                                                <option value="RUB" {% if budget.currency == 'RUB' %}selected{% endif %}>RUB</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">Update Budget</button>
+                                <a href="{{ path('app_budget_show', {'id': budget.id}) }}" class="btn btn-secondary">Cancel</a>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Current Status</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <h6>Remaining Amount</h6>
+                                <p class="mb-0">${{ budget.getRemainingAmount }}</p>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6>Percentage Used</h6>
+                                <div class="mb-0">
+                                    <div class="progress">
+                                        <div class="progress-bar 
+                                            {% if budget.getPercentageUsed > 80 %}bg-danger
+                                            {% elseif budget.getPercentageUsed > 60 %}bg-warning
+                                            {% else %}bg-success{% endif %}"
+                                             role="progressbar" 
+                                             style="width: {{ budget.getPercentageUsed }}%">
+                                            {{ budget.getPercentageUsed|number_format(2) }}%
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6>Over Budget?</h6>
+                                <p class="mb-0">
+                                    {% if budget.isOverBudget %}
+                                        <span class="text-danger"><i class="fas fa-times"></i> Yes</span>
+                                    {% else %}
+                                        <span class="text-success"><i class="fas fa-check"></i> No</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            
+                            <div class="alert alert-info mt-4">
+                                <h6><i class="fas fa-info-circle"></i> Note</h6>
+                                <p class="mb-0">Changes will be saved immediately after clicking "Update Budget". Make sure all values are correct before submitting.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+document.getElementById('budgetEditForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData);
+    
+    fetch('{{ path('app_budget_edit', {'id': budget.id}) }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': '{{ csrf_token("edit" ~ budget.id) }}'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            window.location.href = '{{ path('app_budget_show', {'id': budget.id}) }}';
+        } else {
+            alert('Error updating budget: ' + result.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while updating the budget.');
+    });
+});
+</script>
+{% endblock %}

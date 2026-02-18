@@ -1,25 +1,87 @@
-{% extends 'base.html.twig' %}
+{% extends 'base_modern.html.twig' %}
 
-{% block title %}Управление бюджетом{% endblock %}
+{% block title %}Budget Management{% endblock %}
 
 {% block body %}
 <div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Управление бюджетом</h1>
-    
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Обзор бюджета</h6>
-        </div>
-        <div class="card-body">
-            <div class="row">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+            <div class="position-sticky pt-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ path('app_budget_index') }}">
+                            <i class="fas fa-home"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_budget_create') }}">
+                            <i class="fas fa-plus-circle"></i> Create Budget
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-chart-bar"></i> Reports
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_budget_export') }}">
+                            <i class="fas fa-file-export"></i> Export Data
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Budget Management</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="btn-group me-2">
+                        <a href="{{ path('app_budget_create') }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-plus"></i> New Budget
+                        </a>
+                        <button type="button" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Budget Summary Cards -->
+            <div class="row mb-4">
                 <div class="col-xl-3 col-md-6 mb-4">
                     <div class="card border-left-primary shadow h-100 py-2">
                         <div class="card-body">
                             <div class="row no-gutters align-items-center">
                                 <div class="col mr-2">
                                     <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                        Общий бюджет</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">$100,000</div>
+                                        Total Budgets</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ budgets|length }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-wallet fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-success shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                        Total Allocated</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                        {% set totalAllocated = 0 %}
+                                        {% for budget in budgets %}
+                                            {% set totalAllocated = totalAllocated + (budget.amount|number_format(2, '.', '')|round(2)) %}
+                                        {% endfor %}
+                                        {{ totalAllocated|number_format(2) }}
+                                    </div>
                                 </div>
                                 <div class="col-auto">
                                     <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
@@ -28,100 +90,120 @@
                         </div>
                     </div>
                 </div>
-                
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card border-left-success shadow h-100 py-2">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                        Потрачено</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">$45,000</div>
-                                </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-chart-line fa-2x text-gray-300"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
+
                 <div class="col-xl-3 col-md-6 mb-4">
                     <div class="card border-left-info shadow h-100 py-2">
                         <div class="card-body">
                             <div class="row no-gutters align-items-center">
                                 <div class="col mr-2">
                                     <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                        Осталось</div>
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col-auto">
-                                            <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">$55,000</div>
-                                        </div>
-                                        <div class="col">
-                                            <div class="progress progress-sm mr-2">
-                                                <div class="progress-bar bg-info" role="progressbar" style="width: 55%" aria-valuenow="55" aria-valuemin="0" aria-valuemax="100"></div>
-                                            </div>
-                                        </div>
+                                        Total Spent</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                        {% set totalSpent = 0 %}
+                                        {% for budget in budgets %}
+                                            {% set totalSpent = totalSpent + (budget.usedAmount|number_format(2, '.', '')|round(2)) %}
+                                        {% endfor %}
+                                        {{ totalSpent|number_format(2) }}
                                     </div>
                                 </div>
                                 <div class="col-auto">
-                                    <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                                    <i class="fas fa-money-bill-wave fa-2x text-gray-300"></i>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="col-xl-3 col-md-6 mb-4">
                     <div class="card border-left-warning shadow h-100 py-2">
                         <div class="card-body">
                             <div class="row no-gutters align-items-center">
                                 <div class="col mr-2">
                                     <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                        Статус</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">В норме</div>
+                                        Remaining</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                        {% set totalRemaining = 0 %}
+                                        {% for budget in budgets %}
+                                            {% set totalRemaining = totalRemaining + (budget.getRemainingAmount|number_format(2, '.', '')|round(2)) %}
+                                        {% endfor %}
+                                        {{ totalRemaining|number_format(2) }}
+                                    </div>
                                 </div>
                                 <div class="col-auto">
-                                    <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                                    <i class="fas fa-piggy-bank fa-2x text-gray-300"></i>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            
-            <div class="row">
-                <div class="col-lg-6">
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">Распределение бюджета</h6>
-                        </div>
-                        <div class="card-body">
-                            <div id="budget-breakdown-chart"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-lg-6">
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">Прогноз</h6>
-                        </div>
-                        <div class="card-body">
-                            <div id="budget-forecast-chart"></div>
-                        </div>
-                    </div>
-                </div>
+
+            <!-- Budget Table -->
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                            <th>Used Amount</th>
+                            <th>Remaining</th>
+                            <th>Percentage Used</th>
+                            <th>Status</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for budget in budgets %}
+                        <tr>
+                            <td>{{ budget.title }}</td>
+                            <td>{{ budget.description|default('N/A') }}</td>
+                            <td>${{ budget.amount }}</td>
+                            <td>${{ budget.usedAmount }}</td>
+                            <td>${{ budget.getRemainingAmount }}</td>
+                            <td>
+                                <div class="progress">
+                                    <div class="progress-bar 
+                                        {% if budget.getPercentageUsed > 80 %}bg-danger
+                                        {% elseif budget.getPercentageUsed > 60 %}bg-warning
+                                        {% else %}bg-success{% endif %}"
+                                         role="progressbar" 
+                                         style="width: {{ budget.getPercentageUsed }}%">
+                                        {{ budget.getPercentageUsed|number_format(2) }}%
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge 
+                                    {% if budget.status == 'active' %}bg-success
+                                    {% elseif budget.status == 'inactive' %}bg-secondary
+                                    {% elseif budget.status == 'completed' %}bg-info
+                                    {% else %}bg-warning{% endif %}">
+                                    {{ budget.status|capitalize }}
+                                </span>
+                            </td>
+                            <td>{{ budget.startDate ? budget.startDate|date('Y-m-d') : 'N/A' }}</td>
+                            <td>{{ budget.endDate ? budget.endDate|date('Y-m-d') : 'N/A' }}</td>
+                            <td>
+                                <a href="{{ path('app_budget_show', {'id': budget.id}) }}" class="btn btn-sm btn-primary">View</a>
+                                <a href="{{ path('app_budget_edit', {'id': budget.id}) }}" class="btn btn-sm btn-warning">Edit</a>
+                                <form method="post" action="{{ path('app_budget_delete', {'id': budget.id}) }}" style="display: inline-block;" onsubmit="return confirm('Are you sure you want to delete this budget?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ budget.id) }}">
+                                    <button class="btn btn-sm btn-danger" type="submit">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="10" class="text-center">No budgets found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
-        </div>
+        </main>
     </div>
 </div>
-
-<script>
-// Budget charts would be implemented here
-document.addEventListener('DOMContentLoaded', function() {
-    // Placeholder for chart initialization
-    console.log('Budget dashboard initialized');
-});
-</script>
 {% endblock %}

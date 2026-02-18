@@ -6,6 +6,7 @@
 
 {% block stylesheets %}
     {{ parent() }}
+    <script src="/js/table-enhancements.js" defer></script>
     <style>
         .user-avatar {
             width: 40px;
@@ -53,6 +54,13 @@
 
 {% block body %}
 <div class="container-fluid">
+    {{ include('components/breadcrumbs.html.twig', {
+        items: [
+            {label: 'Главная', url: path('app_dashboard')},
+            {label: 'Пользователи', active: true}
+        ]
+    }) }}
+    
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0 text-gray-800">
             <i class="fas fa-users me-2"></i>Управление пользователями
@@ -64,89 +72,52 @@
 
     <!-- Статистика -->
     <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Всего пользователей
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {{ statistics.total }}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-users fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Активные
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {{ statistics.active }}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-user-check fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Администраторы
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {{ statistics.admins }}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-crown fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                Менеджеры
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {{ statistics.managers }}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-user-tie fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        {{ include('components/stat_card.html.twig', {
+            icon: 'fa-users',
+            value: statistics.total,
+            label: 'Всего пользователей',
+            color: 'primary',
+            trend: '+' ~ (statistics.new_this_month ?? 0) ~ ' за месяц',
+            trendPositive: true,
+            colClass: 'col-xl-3 col-md-6 mb-4'
+        }) }}
+        
+        {{ include('components/stat_card.html.twig', {
+            icon: 'fa-user-check',
+            value: statistics.active,
+            label: 'Активные',
+            color: 'success',
+            progress: statistics.total > 0 ? (statistics.active / statistics.total * 100)|round : 0,
+            colClass: 'col-xl-3 col-md-6 mb-4'
+        }) }}
+        
+        {{ include('components/stat_card.html.twig', {
+            icon: 'fa-crown',
+            value: statistics.admins,
+            label: 'Администраторы',
+            color: 'warning',
+            colClass: 'col-xl-3 col-md-6 mb-4'
+        }) }}
+        
+        {{ include('components/stat_card.html.twig', {
+            icon: 'fa-user-tie',
+            value: statistics.managers,
+            label: 'Менеджеры',
+            color: 'info',
+            colClass: 'col-xl-3 col-md-6 mb-4'
+        }) }}
     </div>
 
     <!-- Таблица пользователей -->
     <div class="card shadow">
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-hover" id="usersTable">
+                <table class="table table-hover data-table" 
+                       id="usersTable"
+                       data-sortable="true"
+                       data-filterable="true"
+                       data-export-filename="users"
+                       data-print-title="Список пользователей">
                     <thead class="table-light">
                         <tr>
                             <th>#</th>
@@ -298,12 +269,14 @@
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="8" class="text-center py-4">
-                                <i class="fas fa-users fa-2x text-muted mb-3"></i>
-                                <p class="text-muted">Пользователи не найдены</p>
-                                <a href="{{ path('app_user_new') }}" class="btn btn-primary">
-                                    Добавить первого пользователя
-                                </a>
+                            <td colspan="8">
+                                {{ include('components/empty_state.html.twig', {
+                                    icon: 'fa-users',
+                                    title: 'Пользователи не найдены',
+                                    message: 'Добавьте первого пользователя в систему',
+                                    actionText: 'Добавить пользователя',
+                                    actionUrl: path('app_user_new')
+                                }) }}
                             </td>
                         </tr>
                         {% endfor %}

@@ -16,13 +16,19 @@ class Budget
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $name = null;
+    private ?string $title = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $description = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
-    private ?string $totalAmount = null;
+    private ?string $amount = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
-    private ?string $spentAmount = null;
+    private ?string $usedAmount = null;
+
+    #[ORM\Column]
+    private ?int $userId = null;
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE)]
     private ?\DateTimeImmutable $startDate = null;
@@ -30,20 +36,17 @@ class Budget
     #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $endDate = null;
 
-    #[ORM\Column]
-    private ?int $createdBy = null;
+    #[ORM\Column(length: 20)]
+    private ?string $status = null;
+
+    #[ORM\Column(length: 10, options: ['default' => 'USD'])]
+    private ?string $currency = 'USD';
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
-
-    #[ORM\Column(length: 50)]
-    private ?string $status = null;
-
-    #[ORM\Column(length: 10, options: ['default' => 'RUB'])]
-    private ?string $currency = 'RUB';
 
     public function __construct()
     {
@@ -56,45 +59,64 @@ class Budget
         return $this->id;
     }
 
-    public function getName(): ?string
+    public function getTitle(): ?string
     {
-        return $this->name;
+        return $this->title;
     }
 
-    public function setName(string $name): static
+    public function setTitle(string $title): static
     {
-        $this->name = $name;
+        $this->title = $title;
 
         return $this;
     }
 
-    public function getTotalAmount(): ?string
+    public function getDescription(): ?string
     {
-        return $this->totalAmount;
+        return $this->description;
     }
 
-    public function setTotalAmount(string $totalAmount): static
+    public function setDescription(?string $description): static
     {
-        $this->totalAmount = $totalAmount;
+        $this->description = $description;
 
         return $this;
     }
 
-    public function getSpentAmount(): ?string
+    public function getAmount(): ?string
     {
-        return $this->spentAmount;
+        return $this->amount;
     }
 
-    public function setSpentAmount(string $spentAmount): static
+    public function setAmount(string $amount): static
     {
-        $this->spentAmount = $spentAmount;
+        $this->amount = $amount;
 
         return $this;
     }
 
-    public function getRemainingAmount(): string
+    public function getUsedAmount(): ?string
     {
-        return bcsub($this->totalAmount, $this->spentAmount ?? '0', 2);
+        return $this->usedAmount;
+    }
+
+    public function setUsedAmount(string $usedAmount): static
+    {
+        $this->usedAmount = $usedAmount;
+
+        return $this;
+    }
+
+    public function getUserId(): ?int
+    {
+        return $this->userId;
+    }
+
+    public function setUserId(int $userId): static
+    {
+        $this->userId = $userId;
+
+        return $this;
     }
 
     public function getStartDate(): ?\DateTimeImmutable
@@ -117,18 +139,6 @@ class Budget
     public function setEndDate(?\DateTimeImmutable $endDate): static
     {
         $this->endDate = $endDate;
-
-        return $this;
-    }
-
-    public function getCreatedBy(): ?int
-    {
-        return $this->createdBy;
-    }
-
-    public function setCreatedBy(int $createdBy): static
-    {
-        $this->createdBy = $createdBy;
 
         return $this;
     }
@@ -176,17 +186,17 @@ class Budget
 
     public function getPercentageUsed(): float
     {
-        if ($this->totalAmount == 0) {
+        if ($this->amount == 0) {
             return 0;
         }
         
-        $percentage = (bcdiv($this->spentAmount ?? '0', $this->totalAmount, 4) * 100);
+        $percentage = (bcdiv($this->usedAmount ?? '0', $this->amount, 4) * 100);
         return round((float)$percentage, 2);
     }
 
     public function isOverBudget(): bool
     {
-        return bccomp($this->spentAmount ?? '0', $this->totalAmount, 2) > 0;
+        return bccomp($this->usedAmount ?? '0', $this->amount, 2) > 0;
     }
 
     public function isActive(): bool

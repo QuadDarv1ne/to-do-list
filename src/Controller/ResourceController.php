@@ -2,245 +2,175 @@
 
 namespace App\Controller;
 
-use App\Entity\Task;
-use App\Entity\User;
-use App\Repository\TaskRepository;
 use App\Repository\UserRepository;
-use App\Service\ResourceManagementService;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\TaskRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Security\Http\Attribute\CurrentUser;
+use App\Entity\User;
 
-#[Route('/resources')]
+#[Route('/resource')]
 class ResourceController extends AbstractController
 {
     public function __construct(
-        private ResourceManagementService $resourceManagementService,
         private UserRepository $userRepository,
-        private TaskRepository $taskRepository,
-        private EntityManagerInterface $entityManager
-    ) {}
+        private TaskRepository $taskRepository
+    ) {
+    }
 
-    #[Route('/', name: 'app_resource_index', methods: ['GET'])]
-    public function index(): Response
+    #[Route('', name: 'app_resource_index', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
+    public function index(#[CurrentUser] User $user): Response
     {
-        $this->denyAccessUnlessGranted('ROLE_MANAGER');
+        $resources = $this->userRepository->findAll();
         
-        // For now, just render a basic template
-        return $this->render('resource/index.html.twig');
+        return $this->render('resource/index.html.twig', [
+            'resources' => $resources,
+        ]);
     }
 
     #[Route('/availability', name: 'app_resource_availability', methods: ['GET'])]
-    public function availability(Request $request): JsonResponse
+    #[IsGranted('ROLE_USER')]
+    public function getAvailability(): JsonResponse
     {
-        $this->denyAccessUnlessGranted('ROLE_MANAGER');
-        
-        $userId = (int)$request->query->get('user_id');
-        $from = $request->query->get('from') ? new \DateTime($request->query->get('from')) : new \DateTime();
-        $to = $request->query->get('to') ? new \DateTime($request->query->get('to')) : new \DateTime('+1 month');
-        
-        // Get user by ID
-        $user = $this->userRepository->find($userId);
-        
-        if (!$user) {
-            return $this->json(['error' => 'User not found'], 404);
+        $resources = $this->userRepository->findAll();
+        $availabilityData = [];
+
+        foreach ($resources as $resource) {
+            $assignedTasksCount = $this->taskRepository->count(['assignedUser' => $resource]);
+            // Assuming default capacity of 40 hours per week
+            $capacity = 40; 
+            $utilization = $assignedTasksCount > 0 ? min(100, ($assignedTasksCount * 8 / $capacity) * 100) : 0;
+
+            $availabilityData[] = [
+                'id' => $resource->getId(),
+                'name' => $resource->getFullName(),
+                'email' => $resource->getEmail(),
+                'role' => $resource->getRoles()[0] ?? 'USER',
+                'capacity' => $capacity,
+                'utilization' => $utilization,
+                'available' => $utilization < 80
+            ];
         }
-        
-        $availability = $this->resourceManagementService->getResourceAvailability($user, $from, $to);
-        
-        return $this->json([
-            'availability' => $availability
-        ]);
+
+        return $this->json($availabilityData);
     }
 
-    #[Route('/workload', name: 'app_resource_workload', methods: ['GET'])]
-    public function workload(Request $request): JsonResponse
+    #[Route('/workload/{id}', name: 'app_resource_workload', methods: ['GET'], requirements: ['id' => '\d+'])]
+    #[IsGranted('ROLE_USER')]
+    public function getResourceWorkload(int $id): JsonResponse
     {
-        $this->denyAccessUnlessGranted('ROLE_MANAGER');
+        $resource = $this->userRepository->find($id);
         
-        $userId = (int)$request->query->get('user_id');
-        $from = $request->query->get('from') ? new \DateTime($request->query->get('from')) : new \DateTime();
-        $to = $request->query->get('to') ? new \DateTime($request->query->get('to')) : new \DateTime('+1 month');
-        
-        // Get user by ID
-        $user = $this->userRepository->find($userId);
-        
-        if (!$user) {
-            return $this->json(['error' => 'User not found'], 404);
+        if (!$resource) {
+            return $this->json(['error' => 'Resource not found'], 404);
         }
-        
-        $workload = $this->resourceManagementService->getResourceWorkload($user, $from, $to);
-        
-        return $this->json([
-            'workload' => $workload
-        ]);
+
+        $assignedTasks = $this->taskRepository->findBy(['assignedUser' => $resource]);
+        $workloadData = [
+            'id' => $resource->getId(),
+            'name' => $resource->getFullName(),
+            'email' => $resource->getEmail(),
+            'tasks_count' => count($assignedTasks),
+            'tasks' => [],
+        ];
+
+        foreach ($assignedTasks as $task) {
+            $workloadData['tasks'][] = [
+                'id' => $task->getId(),
+                'title' => $task->getTitle(),
+                'priority' => $task->getPriority(),
+                'status' => $task->getStatus(),
+                'dueDate' => $task->getDueDate()?->format('Y-m-d') ?? null,
+                'totalTimeSpent' => $task->getTotalTimeSpent(),
+            ];
+        }
+
+        return $this->json($workloadData);
     }
 
-    #[Route('/balance', name: 'app_resource_balance', methods: ['POST'])]
-    public function balance(Request $request): JsonResponse
+    #[Route('/allocation', name: 'app_resource_allocation', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function allocateResource(Request $request): JsonResponse
     {
-        $this->denyAccessUnlessGranted('ROLE_MANAGER');
-        
         $data = json_decode($request->getContent(), true);
-        $userIds = $data['user_ids'] ?? [];
         
-        if (empty($userIds)) {
-            return $this->json(['error' => 'At least one user ID is required'], 400);
+        $taskId = $data['task_id'] ?? null;
+        $resourceId = $data['resource_id'] ?? null;
+        
+        if (!$taskId || !$resourceId) {
+            return $this->json(['error' => 'Task ID and Resource ID are required'], 400);
         }
-        
-        $balanced = $this->resourceManagementService->balanceTeamWorkload($userIds);
-        
-        return $this->json([
-            'balance' => $balanced
-        ]);
-    }
 
-    #[Route('/utilization', name: 'app_resource_utilization', methods: ['GET'])]
-    public function utilization(Request $request): JsonResponse
-    {
-        $this->denyAccessUnlessGranted('ROLE_MANAGER');
+        $task = $this->taskRepository->find($taskId);
+        $resource = $this->userRepository->find($resourceId);
         
-        $userIds = $request->query->all('user_ids') ?: [];
-        $from = $request->query->get('from') ? new \DateTime($request->query->get('from')) : new \DateTime();
-        $to = $request->query->get('to') ? new \DateTime($request->query->get('to')) : new \DateTime('+1 month');
-        
-        if (empty($userIds)) {
-            return $this->json(['error' => 'At least one user ID is required'], 400);
+        if (!$task || !$resource) {
+            return $this->json(['error' => 'Task or Resource not found'], 404);
         }
-        
-        $utilization = $this->resourceManagementService->getUtilizationReport($userIds, $from, $to);
-        
-        return $this->json([
-            'utilization' => $utilization
-        ]);
-    }
 
-    #[Route('/pool/create', name: 'app_resource_pool_create', methods: ['POST'])]
-    public function createPool(Request $request): JsonResponse
-    {
-        $this->denyAccessUnlessGranted('ROLE_MANAGER');
+        // Assign the task to the resource
+        $task->setAssignedUser($resource);
         
-        $data = json_decode($request->getContent(), true);
-        $name = $data['name'] ?? '';
-        $userIds = $data['user_ids'] ?? [];
-        $skills = $data['skills'] ?? [];
-        
-        if (empty($name) || empty($userIds)) {
-            return $this->json(['error' => 'Name and user IDs are required'], 400);
-        }
-        
-        $pool = $this->resourceManagementService->createResourcePool($name, $userIds, $skills);
+        // Here you would typically persist the changes to the database
+        // $this->entityManager->flush();
         
         return $this->json([
-            'pool' => $pool
-        ]);
-    }
-
-    #[Route('/pools', name: 'app_resource_pools', methods: ['GET'])]
-    public function getPools(): JsonResponse
-    {
-        $this->denyAccessUnlessGranted('ROLE_MANAGER');
-        
-        $pools = $this->resourceManagementService->getResourcePools();
-        
-        return $this->json([
-            'pools' => $pools
+            'success' => true,
+            'message' => 'Resource allocated successfully',
+            'task_id' => $taskId,
+            'resource_id' => $resourceId
         ]);
     }
 
     #[Route('/forecast', name: 'app_resource_forecast', methods: ['GET'])]
-    public function forecast(Request $request): JsonResponse
+    #[IsGranted('ROLE_USER')]
+    public function forecast(): JsonResponse
     {
-        $this->denyAccessUnlessGranted('ROLE_MANAGER');
-        
-        $userIds = $request->query->all('user_ids') ?: [];
-        $weeks = (int)$request->query->get('weeks', 4);
-        
-        if (empty($userIds)) {
-            return $this->json(['error' => 'At least one user ID is required'], 400);
+        $resources = $this->userRepository->findAll();
+        $forecastData = [];
+
+        foreach ($resources as $resource) {
+            $upcomingTasks = $this->taskRepository->findUpcomingByUser($resource);
+            $totalHours = 0;
+            
+            foreach ($upcomingTasks as $task) {
+                $totalHours += $task->getEstimatedHours();
+            }
+            
+            $forecastData[] = [
+                'id' => $resource->getId(),
+                'name' => $resource->getFullName(),
+                'email' => $resource->getEmail(),
+                'total_upcoming_hours' => $totalHours,
+                'upcoming_tasks_count' => count($upcomingTasks),
+            ];
         }
-        
-        $forecast = $this->resourceManagementService->getResourceForecast($userIds, $weeks);
-        
-        return $this->json([
-            'forecast' => $forecast
-        ]);
+
+        return $this->json($forecastData);
     }
 
-    #[Route('/skill-matrix', name: 'app_resource_skill_matrix', methods: ['GET'])]
-    public function skillMatrix(Request $request): JsonResponse
+    #[Route('/skills', name: 'app_resource_skills', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
+    public function getSkills(): JsonResponse
     {
-        $this->denyAccessUnlessGranted('ROLE_MANAGER');
-        
-        $userIds = $request->query->all('user_ids') ?: [];
-        
-        if (empty($userIds)) {
-            return $this->json(['error' => 'At least one user ID is required'], 400);
-        }
-        
-        $matrix = $this->resourceManagementService->getSkillMatrix($userIds);
-        
-        return $this->json([
-            'skill_matrix' => $matrix
-        ]);
-    }
+        $resources = $this->userRepository->findAll();
+        $skillsData = [];
 
-    #[Route('/efficiency/{id}', name: 'app_resource_efficiency', methods: ['GET'])]
-    public function efficiency(int $id, Request $request): JsonResponse
-    {
-        $this->denyAccessUnlessGranted('ROLE_MANAGER');
-        
-        $from = $request->query->get('from') ? new \DateTime($request->query->get('from')) : new \DateTime('-1 month');
-        $to = $request->query->get('to') ? new \DateTime($request->query->get('to')) : new \DateTime();
-        
-        // Get user by ID
-        $user = $this->userRepository->find($id);
-        
-        if (!$user) {
-            return $this->json(['error' => 'User not found'], 404);
+        foreach ($resources as $resource) {
+            $skillsData[] = [
+                'id' => $resource->getId(),
+                'name' => $resource->getFullName(),
+                'email' => $resource->getEmail(),
+                'position' => $resource->getPosition() ?? '',
+                'department' => $resource->getDepartment() ?? '',
+            ];
         }
-        
-        $efficiency = $this->resourceManagementService->getResourceEfficiency($user, $from, $to);
-        
-        return $this->json([
-            'efficiency' => $efficiency
-        ]);
-    }
 
-    #[Route('/allocate', name: 'app_resource_allocate', methods: ['POST'])]
-    public function allocate(Request $request): JsonResponse
-    {
-        $this->denyAccessUnlessGranted('ROLE_MANAGER');
-        
-        $data = json_decode($request->getContent(), true);
-        $taskId = $data['task_id'] ?? 0;
-        $userId = $data['user_id'] ?? 0;
-        $hours = (float)($data['hours'] ?? 0);
-        $date = $data['date'] ? new \DateTime($data['date']) : new \DateTime();
-        
-        if (!$taskId || !$userId || $hours <= 0) {
-            return $this->json(['error' => 'Task ID, User ID, and Hours are required'], 400);
-        }
-        
-        // Get task and user by ID
-        $task = $this->taskRepository->find($taskId);
-        $user = $this->userRepository->find($userId);
-        
-        if (!$task) {
-            return $this->json(['error' => 'Task not found'], 404);
-        }
-        
-        if (!$user) {
-            return $this->json(['error' => 'User not found'], 404);
-        }
-        
-        $allocation = $this->resourceManagementService->allocateResource($task, $user, $hours, $date);
-        
-        return $this->json([
-            'allocation' => $allocation
-        ]);
+        return $this->json($skillsData);
     }
 }

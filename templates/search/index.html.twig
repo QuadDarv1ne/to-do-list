@@ -184,6 +184,13 @@
 {% endblock %}
 
 {% block body %}
+{{ include('components/breadcrumbs.html.twig', {
+    items: [
+        {label: 'Главная', url: path('app_dashboard')},
+        {label: 'Поиск', active: true}
+    ]
+}) }}
+
 <div class="container py-4 search-container">
     <div class="search-header">
         <h1 class="mb-3">

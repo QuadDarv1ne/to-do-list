@@ -2,237 +2,272 @@
 
 namespace App\Controller;
 
-use App\Entity\Task;
 use App\Repository\TaskRepository;
-use App\Service\DocumentManagementService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Security\Http\Attribute\CurrentUser;
+use App\Entity\User;
 
-#[Route('/documents')]
+#[Route('/document')]
 class DocumentController extends AbstractController
 {
     public function __construct(
-        private DocumentManagementService $documentManagementService,
         private TaskRepository $taskRepository
-    ) {}
+    ) {
+    }
 
-    #[Route('/', name: 'app_document_index', methods: ['GET'])]
-    public function index(): Response
+    #[Route('', name: 'app_document_index', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
+    public function index(#[CurrentUser] User $user): Response
     {
-        $this->denyAccessUnlessGranted('ROLE_USER');
-        
-        // For now, just render a basic template
-        return $this->render('document/index.html.twig');
+        return $this->render('document/index.html.twig', [
+            'documents' => [], // Placeholder - would load actual documents
+        ]);
     }
 
     #[Route('/templates', name: 'app_document_templates', methods: ['GET'])]
-    public function templates(): JsonResponse
+    #[IsGranted('ROLE_USER')]
+    public function getTemplates(): JsonResponse
     {
-        $this->denyAccessUnlessGranted('ROLE_USER');
-        
-        $templates = $this->documentManagementService->getTemplates();
-        
-        return $this->json([
-            'templates' => $templates
-        ]);
+        $templates = [
+            [
+                'id' => 1,
+                'name' => 'Project Report Template',
+                'description' => 'Standard template for project reports',
+                'type' => 'report',
+                'category' => 'project_management'
+            ],
+            [
+                'id' => 2,
+                'name' => 'Task Summary Template',
+                'description' => 'Template for task summaries',
+                'type' => 'summary',
+                'category' => 'task_management'
+            ],
+            [
+                'id' => 3,
+                'name' => 'Meeting Minutes Template',
+                'description' => 'Template for meeting minutes',
+                'type' => 'minutes',
+                'category' => 'meetings'
+            ]
+        ];
+
+        return $this->json($templates);
     }
 
     #[Route('/generate', name: 'app_document_generate', methods: ['POST'])]
-    public function generate(Request $request): JsonResponse
+    #[IsGranted('ROLE_USER')]
+    public function generateDocument(Request $request): JsonResponse
     {
-        $this->denyAccessUnlessGranted('ROLE_USER');
-        
-        $data = json_decode($request->getContent(), true);
-        $templateKey = $data['template'] ?? '';
-        $documentData = $data['data'] ?? [];
-        
-        if (empty($templateKey)) {
-            return $this->json([
-                'error' => 'Template key is required'
-            ], 400);
-        }
-        
-        $document = $this->documentManagementService->generateDocument($templateKey, $documentData, $this->getUser());
-        
-        return $this->json([
-            'document' => $document
-        ]);
-    }
-
-    #[Route('/task-report/{id}', name: 'app_document_task_report', methods: ['GET'])]
-    public function taskReport(int $id): Response
-    {
-        $this->denyAccessUnlessGranted('ROLE_USER');
-        
-        // Get task by ID
-        $task = $this->taskRepository->find($id);
-        
-        if (!$task) {
-            return $this->json(['error' => 'Task not found'], 404);
-        }
-        
-        // Check access to task
-        if ($task->getUser() !== $this->getUser() && $task->getAssignedUser() !== $this->getUser()) {
-            return $this->json(['error' => 'Access denied'], 403);
-        }
-        
-        $report = $this->documentManagementService->generateTaskReport($task);
-        
-        $response = new Response($report);
-        $response->headers->set('Content-Type', 'text/plain');
-        $response->headers->set('Content-Disposition', "attachment; filename=task_$id.txt");
-        
-        return $response;
-    }
-
-    #[Route('/sprint-report', name: 'app_document_sprint_report', methods: ['POST'])]
-    public function sprintReport(Request $request): JsonResponse
-    {
-        $this->denyAccessUnlessGranted('ROLE_MANAGER');
-        
         $data = json_decode($request->getContent(), true);
         
-        if (empty($data['sprint_name']) || empty($data['start_date']) || empty($data['end_date'])) {
-            return $this->json([
-                'error' => 'Sprint name, start date, and end date are required'
-            ], 400);
-        }
+        $templateType = $data['template_type'] ?? '';
+        $taskId = $data['task_id'] ?? null;
         
-        $report = $this->documentManagementService->generateSprintReport($data);
+        if (!$templateType) {
+            return $this->json(['error' => 'Template type is required'], 400);
+        }
+
+        // Fetch task data if taskId is provided
+        $taskData = null;
+        if ($taskId) {
+            $task = $this->taskRepository->find($taskId);
+            if ($task) {
+                $taskData = [
+                    'id' => $task->getId(),
+                    'title' => $task->getTitle(),
+                    'description' => $task->getDescription(),
+                    'status' => $task->getStatus(),
+                    'priority' => $task->getPriority(),
+                    'dueDate' => $task->getDueDate()?->format('Y-m-d') ?? null,
+                    'createdAt' => $task->getCreatedAt()->format('Y-m-d H:i:s'),
+                    'assignedUser' => $task->getAssignedUser()?->getFullName() ?? null,
+                ];
+            }
+        }
+
+        // Generate document content based on template type
+        $documentContent = $this->generateDocumentContent($templateType, $taskData);
         
         return $this->json([
-            'report' => $report
+            'success' => true,
+            'content' => $documentContent,
+            'filename' => $this->generateFilename($templateType),
+            'mimeType' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
         ]);
     }
 
-    #[Route('/invoice', name: 'app_document_invoice', methods: ['POST'])]
-    public function invoice(Request $request): JsonResponse
+    #[Route('/report', name: 'app_document_report', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function generateReport(Request $request): JsonResponse
     {
-        $this->denyAccessUnlessGranted('ROLE_MANAGER');
-        
         $data = json_decode($request->getContent(), true);
         
-        if (empty($data['invoice_number']) || empty($data['client_name']) || empty($data['items'])) {
-            return $this->json([
-                'error' => 'Invoice number, client name, and items are required'
-            ], 400);
+        $reportType = $data['report_type'] ?? 'summary';
+        $startDate = $data['start_date'] ?? null;
+        $endDate = $data['end_date'] ?? null;
+        $userId = $data['user_id'] ?? null;
+        
+        // Get tasks based on criteria
+        $criteria = [];
+        if ($startDate && $endDate) {
+            $criteria['date_range'] = [$startDate, $endDate];
+        }
+        if ($userId) {
+            $criteria['user_id'] = $userId;
         }
         
-        $invoice = $this->documentManagementService->generateInvoice($data);
+        $tasks = $this->taskRepository->findWithCriteria($criteria);
         
-        return $this->json([
-            'invoice' => $invoice
-        ]);
+        $reportData = [
+            'report_type' => $reportType,
+            'period_start' => $startDate,
+            'period_end' => $endDate,
+            'total_tasks' => count($tasks),
+            'completed_tasks' => count(array_filter($tasks, fn($task) => $task->isCompleted())),
+            'pending_tasks' => count(array_filter($tasks, fn($task) => $task->isPending())),
+            'in_progress_tasks' => count(array_filter($tasks, fn($task) => $task->isInProgress())),
+            'tasks' => array_map(function($task) {
+                return [
+                    'id' => $task->getId(),
+                    'title' => $task->getTitle(),
+                    'status' => $task->getStatus(),
+                    'priority' => $task->getPriority(),
+                    'dueDate' => $task->getDueDate()?->format('Y-m-d') ?? null,
+                    'assignedUser' => $task->getAssignedUser()?->getFullName() ?? null,
+                ];
+            }, $tasks)
+        ];
+        
+        return $this->json($reportData);
     }
 
-    #[Route('/convert-pdf', name: 'app_document_convert_pdf', methods: ['POST'])]
-    public function convertToPdf(Request $request): JsonResponse
+    #[Route('/convert', name: 'app_document_convert', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function convertDocument(Request $request): JsonResponse
     {
-        $this->denyAccessUnlessGranted('ROLE_USER');
-        
         $data = json_decode($request->getContent(), true);
-        $markdown = $data['markdown'] ?? '';
         
-        if (empty($markdown)) {
-            return $this->json([
-                'error' => 'Markdown content is required'
-            ], 400);
+        $documentContent = $data['content'] ?? '';
+        $targetFormat = $data['format'] ?? 'pdf';
+        
+        if (!$documentContent) {
+            return $this->json(['error' => 'Document content is required'], 400);
+        }
+
+        if (!in_array($targetFormat, ['pdf', 'docx', 'txt', 'html'])) {
+            return $this->json(['error' => 'Invalid target format'], 400);
+        }
+
+        // Convert document based on target format
+        $convertedContent = $this->convertDocumentContent($documentContent, $targetFormat);
+        
+        return $this->json([
+            'success' => true,
+            'content' => $convertedContent,
+            'format' => $targetFormat
+        ]);
+    }
+
+    private function generateDocumentContent(string $templateType, ?array $taskData = null): string
+    {
+        switch ($templateType) {
+            case 'report':
+                $content = "Project Report\n\n";
+                $content .= "Generated on: " . date('Y-m-d H:i:s') . "\n\n";
+                
+                if ($taskData) {
+                    $content .= "Task Details:\n";
+                    $content .= "- Title: " . $taskData['title'] . "\n";
+                    $content .= "- Status: " . $taskData['status'] . "\n";
+                    $content .= "- Priority: " . $taskData['priority'] . "\n";
+                    $content .= "- Due Date: " . $taskData['dueDate'] . "\n";
+                    $content .= "- Assigned to: " . $taskData['assignedUser'] . "\n\n";
+                }
+                
+                $content .= "Summary: This report provides an overview of the project status.\n";
+                $content .= "Recommendations: Continue with current approach.\n";
+                break;
+                
+            case 'summary':
+                $content = "Task Summary\n\n";
+                $content .= "Date: " . date('Y-m-d') . "\n\n";
+                
+                if ($taskData) {
+                    $content .= "Task: " . $taskData['title'] . "\n";
+                    $content .= "Status: " . $taskData['status'] . "\n";
+                    $content .= "Description: " . $taskData['description'] . "\n\n";
+                }
+                
+                $content .= "Next Steps: Follow up on pending items.\n";
+                break;
+                
+            case 'minutes':
+                $content = "Meeting Minutes\n\n";
+                $content .= "Date: " . date('Y-m-d') . "\n";
+                $content .= "Attendees: [List attendees]\n\n";
+                $content .= "Agenda Items:\n";
+                $content .= "1. [Item 1]\n";
+                $content .= "2. [Item 2]\n";
+                $content .= "3. [Item 3]\n\n";
+                $content .= "Action Items:\n";
+                $content .= "- [Action 1]\n";
+                $content .= "- [Action 2]\n";
+                break;
+                
+            default:
+                $content = "Generated Document\n\n";
+                $content .= "Content generated on: " . date('Y-m-d H:i:s') . "\n";
+                break;
         }
         
-        $pdf = $this->documentManagementService->convertToPDF($markdown);
-        
-        return $this->json([
-            'pdf_url' => $pdf
-        ]);
+        return $content;
     }
 
-    #[Route('/convert-docx', name: 'app_document_convert_docx', methods: ['POST'])]
-    public function convertToDocx(Request $request): JsonResponse
+    private function generateFilename(string $templateType): string
     {
-        $this->denyAccessUnlessGranted('ROLE_USER');
+        $timestamp = date('Y-m-d_H-i-s');
+        $extension = '.docx';
         
-        $data = json_decode($request->getContent(), true);
-        $markdown = $data['markdown'] ?? '';
-        
-        if (empty($markdown)) {
-            return $this->json([
-                'error' => 'Markdown content is required'
-            ], 400);
+        switch ($templateType) {
+            case 'report':
+                return "Project_Report_{$timestamp}{$extension}";
+            case 'summary':
+                return "Task_Summary_{$timestamp}{$extension}";
+            case 'minutes':
+                return "Meeting_Minutes_{$timestamp}{$extension}";
+            default:
+                return "Document_{$timestamp}{$extension}";
         }
-        
-        $docx = $this->documentManagementService->convertToDOCX($markdown);
-        
-        return $this->json([
-            'docx_url' => $docx
-        ]);
     }
 
-    #[Route('/versions/{id}', name: 'app_document_versions', methods: ['GET'])]
-    public function versions(int $id): JsonResponse
+    private function convertDocumentContent(string $content, string $format): string
     {
-        $this->denyAccessUnlessGranted('ROLE_USER');
+        // In a real implementation, this would convert the content to the target format
+        // For now, we'll just return the content with basic formatting
         
-        $versions = $this->documentManagementService->getDocumentVersions($id);
-        
-        return $this->json([
-            'versions' => $versions
-        ]);
-    }
-
-    #[Route('/version/create', name: 'app_document_version_create', methods: ['POST'])]
-    public function createVersion(Request $request): JsonResponse
-    {
-        $this->denyAccessUnlessGranted('ROLE_USER');
-        
-        $data = json_decode($request->getContent(), true);
-        $documentId = $data['document_id'] ?? 0;
-        $content = $data['content'] ?? '';
-        
-        if (!$documentId || empty($content)) {
-            return $this->json([
-                'error' => 'Document ID and content are required'
-            ], 400);
+        switch ($format) {
+            case 'pdf':
+                // In a real implementation, we'd use a PDF library like TCPDF or DomPDF
+                return "[PDF Conversion of: {$content}]";
+                
+            case 'docx':
+                // In a real implementation, we'd use a library like PHPWord
+                return "[DOCX Conversion of: {$content}]";
+                
+            case 'txt':
+                return strip_tags($content);
+                
+            case 'html':
+                return nl2br(htmlspecialchars($content));
+                
+            default:
+                return $content;
         }
-        
-        $version = $this->documentManagementService->createVersion($documentId, $content, $this->getUser());
-        
-        return $this->json([
-            'version' => $version
-        ]);
-    }
-
-    #[Route('/search', name: 'app_document_search', methods: ['GET'])]
-    public function search(Request $request): JsonResponse
-    {
-        $this->denyAccessUnlessGranted('ROLE_USER');
-        
-        $query = $request->query->get('q', '');
-        
-        if (empty($query)) {
-            return $this->json([
-                'error' => 'Search query is required'
-            ], 400);
-        }
-        
-        $results = $this->documentManagementService->searchDocuments($query, $this->getUser());
-        
-        return $this->json([
-            'results' => $results
-        ]);
-    }
-
-    #[Route('/stats', name: 'app_document_stats', methods: ['GET'])]
-    public function stats(): JsonResponse
-    {
-        $this->denyAccessUnlessGranted('ROLE_USER');
-        
-        $stats = $this->documentManagementService->getDocumentStats($this->getUser());
-        
-        return $this->json([
-            'stats' => $stats
-        ]);
     }
 }

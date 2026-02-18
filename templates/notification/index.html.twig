@@ -278,6 +278,13 @@
 {% endblock %}
 
 {% block body %}
+{{ include('components/breadcrumbs.html.twig', {
+    items: [
+        {label: 'Главная', url: path('app_dashboard')},
+        {label: 'Уведомления', active: true}
+    ]
+}) }}
+
 <div class="container py-4 notifications-container">
     <div class="card border-0 shadow-sm mb-4">
         <div class="notifications-header">

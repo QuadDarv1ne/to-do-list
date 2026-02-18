@@ -1,299 +1,359 @@
 /**
- * Global Hotkeys System
- * Provides keyboard shortcuts for quick navigation and actions
+ * Global Hotkeys Manager
+ * Centralized keyboard shortcuts management
  */
 
-class HotkeyManager {
+class HotkeysManager {
     constructor() {
         this.shortcuts = new Map();
-        this.sequenceKeys = [];
-        this.sequenceTimeout = null;
-        this.isModalOpen = false;
-        
+        this.enabled = true;
         this.init();
     }
     
     init() {
-        // Register default shortcuts
-        this.registerDefaults();
-        
-        // Listen for keydown events
-        document.addEventListener('keydown', this.handleKeyDown.bind(this));
-        
-        // Track modal state
-        this.trackModals();
+        this.registerDefaultShortcuts();
+        this.bindEvents();
+        this.createHelpModal();
     }
     
-    registerDefaults() {
-        // Global shortcuts
-        this.register('ctrl+k', () => this.openQuickSearch(), 'Быстрый поиск');
-        this.register('ctrl+n', () => this.createNewTask(), 'Новая задача');
-        this.register('ctrl+/', () => this.showShortcuts(), 'Показать горячие клавиши');
-        this.register('escape', () => this.closeModal(), 'Закрыть модальное окно');
-        
-        // Navigation shortcuts (sequence)
-        this.register('g d', () => this.navigate('/'), 'Перейти к дашборду');
-        this.register('g t', () => this.navigate('/tasks'), 'Перейти к задачам');
-        this.register('g k', () => this.navigate('/kanban'), 'Перейти к канбану');
-        this.register('g r', () => this.navigate('/reports'), 'Перейти к отчетам');
-        this.register('g a', () => this.navigate('/analytics/advanced'), 'Перейти к аналитике');
+    registerDefaultShortcuts() {
+        // Navigation shortcuts
+        this.register('g d', () => this.navigate('/dashboard'), 'Перейти на панель управления');
+        this.register('g t', () => this.navigate('/task'), 'Перейти к задачам');
+        this.register('g k', () => this.navigate('/kanban'), 'Перейти к канбан-доске');
+        this.register('g c', () => this.navigate('/calendar'), 'Перейти к календарю');
+        this.register('g u', () => this.navigate('/user'), 'Перейти к пользователям');
+        this.register('g p', () => this.navigate('/profile'), 'Перейти к профилю');
         this.register('g s', () => this.navigate('/settings'), 'Перейти к настройкам');
         
-        // Task actions (when on task page)
-        this.register('e', () => this.editCurrentTask(), 'Редактировать задачу');
-        this.register('d', () => this.deleteCurrentTask(), 'Удалить задачу');
-        this.register('c', () => this.completeCurrentTask(), 'Отметить как завершенную');
-        this.register('a', () => this.assignCurrentTask(), 'Назначить пользователю');
+        // Action shortcuts
+        this.register('n', () => this.createTask(), 'Создать новую задачу');
+        this.register('/', () => this.openSearch(), 'Открыть поиск');
+        this.register('ctrl+k', () => this.openQuickSearch(), 'Быстрый поиск');
+        this.register('?', () => this.showHelp(), 'Показать справку по горячим клавишам');
+        this.register('r', () => this.refresh(), 'Обновить страницу');
+        this.register('esc', () => this.closeModals(), 'Закрыть модальные окна');
+        
+        // Theme toggle
+        this.register('t', () => this.toggleTheme(), 'Переключить тему');
+        
+        // Bulk actions (only on list pages)
+        this.register('ctrl+a', () => this.selectAll(), 'Выбрать все');
+        this.register('ctrl+shift+a', () => this.deselectAll(), 'Снять выделение');
     }
     
     register(keys, callback, description = '') {
         const normalizedKeys = this.normalizeKeys(keys);
-        this.shortcuts.set(normalizedKeys, { callback, description });
+        this.shortcuts.set(normalizedKeys, {
+            callback,
+            description,
+            keys: keys
+        });
+    }
+    
+    unregister(keys) {
+        const normalizedKeys = this.normalizeKeys(keys);
+        this.shortcuts.delete(normalizedKeys);
     }
     
     normalizeKeys(keys) {
         return keys.toLowerCase()
             .replace(/\s+/g, ' ')
             .split(' ')
-            .map(key => key.split('+').sort().join('+'))
+            .map(key => key.trim())
+            .filter(key => key.length > 0)
             .join(' ');
     }
     
-    handleKeyDown(event) {
-        // Ignore if typing in input/textarea
-        if (this.isTyping(event.target)) {
-            return;
-        }
+    bindEvents() {
+        let keySequence = [];
+        let sequenceTimeout = null;
         
-        const key = this.getKeyString(event);
-        
-        // Handle sequence keys (like "g d")
-        if (this.sequenceKeys.length > 0 || this.isSequenceStarter(key)) {
-            this.handleSequence(key, event);
-            return;
-        }
-        
-        // Handle single key shortcuts
-        const shortcut = this.shortcuts.get(key);
-        if (shortcut) {
-            event.preventDefault();
-            shortcut.callback();
-        }
+        document.addEventListener('keydown', (e) => {
+            // Skip if typing in input/textarea or shortcuts disabled
+            if (!this.enabled || ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) {
+                return;
+            }
+            
+            // Skip if contenteditable
+            if (e.target.isContentEditable) {
+                return;
+            }
+            
+            // Build key combination
+            const key = this.getKeyString(e);
+            
+            // Clear previous sequence timeout
+            clearTimeout(sequenceTimeout);
+            
+            // Add to sequence
+            keySequence.push(key);
+            
+            // Try to match shortcut
+            const matched = this.matchShortcut(keySequence);
+            
+            if (matched) {
+                e.preventDefault();
+                keySequence = [];
+                matched.callback();
+            } else {
+                // Set timeout to reset sequence
+                sequenceTimeout = setTimeout(() => {
+                    keySequence = [];
+                }, 1000);
+            }
+        });
     }
     
-    handleSequence(key, event) {
-        this.sequenceKeys.push(key);
-        
-        // Clear previous timeout
-        if (this.sequenceTimeout) {
-            clearTimeout(this.sequenceTimeout);
-        }
-        
-        // Check if we have a matching shortcut
-        const sequenceString = this.sequenceKeys.join(' ');
-        const shortcut = this.shortcuts.get(sequenceString);
-        
-        if (shortcut) {
-            event.preventDefault();
-            shortcut.callback();
-            this.sequenceKeys = [];
-        } else {
-            // Wait for next key (1 second timeout)
-            this.sequenceTimeout = setTimeout(() => {
-                this.sequenceKeys = [];
-            }, 1000);
-        }
-    }
-    
-    isSequenceStarter(key) {
-        // Keys that start sequences (like 'g' for navigation)
-        return key === 'g';
-    }
-    
-    getKeyString(event) {
+    getKeyString(e) {
         const parts = [];
         
-        if (event.ctrlKey) parts.push('ctrl');
-        if (event.altKey) parts.push('alt');
-        if (event.shiftKey && event.key.length > 1) parts.push('shift');
-        if (event.metaKey) parts.push('meta');
+        if (e.ctrlKey) parts.push('ctrl');
+        if (e.altKey) parts.push('alt');
+        if (e.shiftKey) parts.push('shift');
+        if (e.metaKey) parts.push('meta');
         
-        const key = event.key.toLowerCase();
-        if (key !== 'control' && key !== 'alt' && key !== 'shift' && key !== 'meta') {
+        // Add the actual key
+        const key = e.key.toLowerCase();
+        if (!['control', 'alt', 'shift', 'meta'].includes(key)) {
             parts.push(key);
         }
         
-        return parts.sort().join('+');
+        return parts.join('+');
     }
     
-    isTyping(element) {
-        const tagName = element.tagName.toLowerCase();
-        return (
-            tagName === 'input' ||
-            tagName === 'textarea' ||
-            tagName === 'select' ||
-            element.isContentEditable
-        );
-    }
-    
-    trackModals() {
-        // Track Bootstrap modals
-        document.addEventListener('shown.bs.modal', () => {
-            this.isModalOpen = true;
-        });
+    matchShortcut(sequence) {
+        const sequenceString = sequence.join(' ');
         
-        document.addEventListener('hidden.bs.modal', () => {
-            this.isModalOpen = false;
-        });
-    }
-    
-    // Action methods
-    
-    openQuickSearch() {
-        console.log('Opening quick search...');
-        if (window.quickSearch) {
-            window.quickSearch.open();
-        } else {
-            // Fallback if quick search not loaded
-            console.warn('Quick search not initialized');
-        }
-    }
-    
-    createNewTask() {
-        console.log('Creating new task...');
-        window.location.href = '/tasks/new';
-    }
-    
-    showShortcuts() {
-        console.log('Showing shortcuts...');
-        window.location.href = '/settings/shortcuts';
-    }
-    
-    closeModal() {
-        if (this.isModalOpen) {
-            // Close Bootstrap modal
-            const modal = document.querySelector('.modal.show');
-            if (modal) {
-                const bsModal = bootstrap.Modal.getInstance(modal);
-                if (bsModal) {
-                    bsModal.hide();
-                }
+        for (const [keys, shortcut] of this.shortcuts) {
+            if (keys === sequenceString) {
+                return shortcut;
             }
         }
+        
+        return null;
     }
     
+    // Action handlers
     navigate(path) {
-        console.log('Navigating to:', path);
         window.location.href = path;
     }
     
-    editCurrentTask() {
-        const taskId = this.getCurrentTaskId();
-        if (taskId) {
-            window.location.href = `/tasks/${taskId}/edit`;
+    createTask() {
+        const quickTaskBtn = document.getElementById('quick-task-fab');
+        if (quickTaskBtn) {
+            quickTaskBtn.click();
+        } else {
+            this.navigate('/task/new');
         }
     }
     
-    deleteCurrentTask() {
-        const taskId = this.getCurrentTaskId();
-        if (taskId && confirm('Вы уверены, что хотите удалить эту задачу?')) {
-            // TODO: Implement delete via AJAX
-            console.log('Deleting task:', taskId);
+    openSearch() {
+        const searchInput = document.querySelector('input[name="search"], input[type="search"]');
+        if (searchInput) {
+            searchInput.focus();
+            searchInput.select();
         }
     }
     
-    completeCurrentTask() {
-        const taskId = this.getCurrentTaskId();
-        if (taskId) {
-            // TODO: Implement complete via AJAX
-            console.log('Completing task:', taskId);
+    openQuickSearch() {
+        if (window.quickSearch) {
+            window.quickSearch.open();
+        } else {
+            this.openSearch();
         }
     }
     
-    assignCurrentTask() {
-        const taskId = this.getCurrentTaskId();
-        if (taskId) {
-            // TODO: Open assign modal
-            console.log('Assigning task:', taskId);
+    refresh() {
+        window.location.reload();
+    }
+    
+    closeModals() {
+        const modals = document.querySelectorAll('.modal.show');
+        modals.forEach(modal => {
+            const bsModal = bootstrap.Modal.getInstance(modal);
+            if (bsModal) {
+                bsModal.hide();
+            }
+        });
+    }
+    
+    toggleTheme() {
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) {
+            themeToggle.click();
         }
     }
     
-    getCurrentTaskId() {
-        // Try to get task ID from URL
-        const match = window.location.pathname.match(/\/tasks\/(\d+)/);
-        return match ? match[1] : null;
+    selectAll() {
+        const selectAllCheckbox = document.getElementById('select-all-tasks');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.checked = true;
+            selectAllCheckbox.dispatchEvent(new Event('change'));
+        }
     }
     
-    // Public API
+    deselectAll() {
+        const selectAllCheckbox = document.getElementById('select-all-tasks');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.dispatchEvent(new Event('change'));
+        }
+    }
     
-    getShortcuts() {
-        return Array.from(this.shortcuts.entries()).map(([keys, data]) => ({
-            keys,
-            description: data.description
-        }));
+    showHelp() {
+        const modal = document.getElementById('hotkeysHelpModal');
+        if (modal) {
+            const bsModal = new bootstrap.Modal(modal);
+            bsModal.show();
+        }
+    }
+    
+    createHelpModal() {
+        const shortcuts = Array.from(this.shortcuts.entries());
+        const grouped = this.groupShortcuts(shortcuts);
+        
+        let groupsHTML = '';
+        for (const [group, items] of Object.entries(grouped)) {
+            groupsHTML += `
+                <div class="col-md-6 mb-4">
+                    <h6 class="text-uppercase text-muted mb-3">${group}</h6>
+                    <div class="list-group list-group-flush">
+                        ${items.map(([keys, shortcut]) => `
+                            <div class="list-group-item border-0 px-0 py-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>${shortcut.description}</span>
+                                    <div class="hotkey-combo">
+                                        ${this.renderKeys(shortcut.keys)}
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        const modalHTML = `
+            <div class="modal fade" id="hotkeysHelpModal" tabindex="-1" aria-labelledby="hotkeysHelpLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="hotkeysHelpLabel">
+                                <i class="fas fa-keyboard me-2"></i>
+                                Горячие клавиши
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                ${groupsHTML}
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+    }
+    
+    groupShortcuts(shortcuts) {
+        const groups = {
+            'Навигация': [],
+            'Действия': [],
+            'Прочее': []
+        };
+        
+        shortcuts.forEach(([keys, shortcut]) => {
+            if (keys.startsWith('g ')) {
+                groups['Навигация'].push([keys, shortcut]);
+            } else if (['n', 'ctrl+k', '/'].includes(keys)) {
+                groups['Действия'].push([keys, shortcut]);
+            } else {
+                groups['Прочее'].push([keys, shortcut]);
+            }
+        });
+        
+        return groups;
+    }
+    
+    renderKeys(keys) {
+        return keys.split(' ')
+            .map(combo => {
+                const parts = combo.split('+');
+                return parts.map(key => {
+                    const displayKey = this.getKeyDisplay(key);
+                    return `<kbd>${displayKey}</kbd>`;
+                }).join('<span class="mx-1">+</span>');
+            })
+            .join('<span class="mx-2">затем</span>');
+    }
+    
+    getKeyDisplay(key) {
+        const displays = {
+            'ctrl': 'Ctrl',
+            'alt': 'Alt',
+            'shift': 'Shift',
+            'meta': 'Cmd',
+            'escape': 'Esc',
+            'arrowup': '↑',
+            'arrowdown': '↓',
+            'arrowleft': '←',
+            'arrowright': '→',
+            'enter': 'Enter',
+            ' ': 'Space'
+        };
+        
+        return displays[key.toLowerCase()] || key.toUpperCase();
+    }
+    
+    enable() {
+        this.enabled = true;
     }
     
     disable() {
-        document.removeEventListener('keydown', this.handleKeyDown);
+        this.enabled = false;
     }
 }
 
-// Initialize hotkey manager when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    window.hotkeyManager = new HotkeyManager();
-    
-    // Add visual indicator for sequence keys
-    document.addEventListener('keydown', (e) => {
-        if (window.hotkeyManager.sequenceKeys.length > 0) {
-            showSequenceIndicator(window.hotkeyManager.sequenceKeys);
-        }
-    });
-});
-
-// Show sequence indicator
-function showSequenceIndicator(keys) {
-    let indicator = document.getElementById('sequence-indicator');
-    
-    if (!indicator) {
-        indicator = document.createElement('div');
-        indicator.id = 'sequence-indicator';
-        indicator.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-family: monospace;
-            font-size: 14px;
-            z-index: 9999;
-            animation: fadeIn 0.2s;
-        `;
-        document.body.appendChild(indicator);
-    }
-    
-    indicator.textContent = keys.join(' ') + ' ...';
-    
-    // Remove after 1 second
-    setTimeout(() => {
-        if (indicator.parentNode) {
-            indicator.remove();
-        }
-    }, 1000);
+// Styles for hotkeys
+const hotkeysStyles = `
+<style>
+.hotkey-combo {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
 }
 
-// Add CSS animation
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
+.hotkey-combo kbd {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    min-width: 24px;
+    text-align: center;
+}
+
+[data-theme="dark"] .hotkey-combo kbd {
+    background: linear-gradient(135deg, #343a40 0%, #495057 100%);
+    border-color: #495057;
+    color: #f8f9fa;
+}
+</style>
 `;
-document.head.appendChild(style);
 
-// Export for use in other scripts
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = HotkeyManager;
-}
+// Inject styles
+document.head.insertAdjacentHTML('beforeend', hotkeysStyles);
+
+// Initialize on DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+    window.hotkeysManager = new HotkeysManager();
+});

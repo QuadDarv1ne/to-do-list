@@ -1,191 +1,323 @@
-{# templates/task/show.html.twig #}
-
 {% extends 'base.html.twig' %}
 
 {% block title %}{{ task.title }}{% endblock %}
 
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.task-detail-container {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.task-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 16px 16px 0 0;
+    margin-bottom: 0;
+}
+
+.task-content {
+    background: white;
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+}
+
+.info-card {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.info-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.info-value {
+    font-weight: 500;
+}
+
+.description-box {
+    background: #f8f9fa;
+    border-left: 4px solid #667eea;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: 1.5rem 0;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.timeline-item {
+    position: relative;
+    padding-left: 2rem;
+    padding-bottom: 1.5rem;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e9ecef;
+}
+
+.timeline-item::after {
+    content: '';
+    position: absolute;
+    left: -4px;
+    top: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #667eea;
+}
+
+.timeline-item:last-child::before {
+    display: none;
+}
+</style>
+{% endblock %}
+
 {% block body %}
-<div class="container">
+{{ include('components/breadcrumbs.html.twig', {
+    items: [
+        {label: 'Главная', url: path('app_dashboard')},
+        {label: 'Задачи', url: path('app_task_index')},
+        {label: task.title, active: true}
+    ]
+}) }}
+
+<div class="container task-detail-container">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card card-enhanced border-0 shadow-sm">
-                <div class="card-header d-flex justify-content-between align-items-center bg-white">
-                    <h3 class="card-title mb-0">
-                        <i class="fas fa-tasks me-2 text-primary"></i>{{ task.title }}
-                    </h3>
-                    <span class="badge badge-{{ task.status|lower }}">
-                        {{ task.status|trans }}
-                    </span>
-                </div>
-                <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <p><strong>Название:</strong> {{ task.title }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>Статус:</strong> 
-                                <span class="badge badge-{{ task.status|lower }}">
+        <div class="col-lg-10">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="task-header">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h1 class="mb-2">
+                                <i class="fas fa-tasks me-2"></i>{{ task.title }}
+                            </h1>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <span class="badge badge-{{ task.status|lower }} badge-animated">
                                     {{ task.status|trans }}
                                 </span>
-                            </p>
-                        </div>
-                    </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <p><strong>Приоритет:</strong> 
                                 {% if task.priority == 'high' %}
-                                    <span class="badge bg-danger">
-                                        <i class="fas fa-exclamation-triangle me-1"></i>Высокий
+                                    <span class="badge bg-danger badge-animated">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>Высокий приоритет
                                     </span>
                                 {% elseif task.priority == 'medium' %}
-                                    <span class="badge bg-warning text-dark">
-                                        <i class="fas fa-exclamation me-1"></i>Средний
+                                    <span class="badge bg-warning text-dark badge-animated">
+                                        <i class="fas fa-exclamation me-1"></i>Средний приоритет
                                     </span>
                                 {% else %}
-                                    <span class="badge bg-success">
-                                        <i class="fas fa-arrow-down me-1"></i>Низкий
+                                    <span class="badge bg-success badge-animated">
+                                        <i class="fas fa-arrow-down me-1"></i>Низкий приоритет
                                     </span>
                                 {% endif %}
-                            </p>
+                                {% if task.isOverdue %}
+                                    <span class="badge bg-danger badge-animated">
+                                        <i class="fas fa-exclamation-circle me-1"></i>Просрочено
+                                    </span>
+                                {% endif %}
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <p><strong>Срок:</strong> 
-                                {% if task.dueDate %}
-                                    <span {% if task.isOverdue %}class="text-danger fw-bold"{% endif %}>
-                                        {{ task.dueDate|date('d.m.Y') }}
-                                        {% if task.isOverdue %}
-                                            <span class="badge bg-danger ms-1">Просрочено</span>
+                    </div>
+                </div>
+                
+                <div class="task-content p-4">
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <!-- Description -->
+                            <div class="mb-4">
+                                <h5 class="mb-3">
+                                    <i class="fas fa-align-left me-2 text-primary"></i>
+                                    Описание
+                                </h5>
+                                <div class="description-box">
+                                    {% if task.description %}
+                                        {{ task.description|nl2br }}
+                                    {% else %}
+                                        <span class="text-muted">Описание отсутствует</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Tags -->
+                            {% if task.tags is not empty %}
+                            <div class="mb-4">
+                                <h5 class="mb-3">
+                                    <i class="fas fa-tags me-2 text-primary"></i>
+                                    Теги
+                                </h5>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    {% for tag in task.tags %}
+                                        <span class="badge" style="background-color: {{ tag.color }}; color: white; font-size: 0.875rem; padding: 0.5rem 1rem;">
+                                            {{ tag.name }}
+                                        </span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Dependencies -->
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-link me-2 text-primary"></i>
+                                        Зависимости
+                                    </h5>
+                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addDependencyModal">
+                                        <i class="fas fa-plus me-1"></i>Добавить
+                                    </button>
+                                </div>
+                                <div id="dependencies-container">
+                                    {{ include('components/loading_skeleton.html.twig', {type: 'list', count: 2}) }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-4">
+                            <!-- Info Card -->
+                            <div class="info-card">
+                                <h6 class="mb-3">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Информация
+                                </h6>
+                                
+                                <div class="info-row">
+                                    <span class="info-label">
+                                        <i class="fas fa-user"></i>
+                                        Назначена
+                                    </span>
+                                    <span class="info-value">
+                                        {% if task.assignedUser %}
+                                            {{ task.assignedUser.fullName }}
+                                        {% else %}
+                                            <span class="text-muted">Не назначена</span>
                                         {% endif %}
                                     </span>
-                                {% else %}
-                                    <span class="text-muted">Не указан</span>
+                                </div>
+                                
+                                <div class="info-row">
+                                    <span class="info-label">
+                                        <i class="fas fa-calendar-plus"></i>
+                                        Создана
+                                    </span>
+                                    <span class="info-value">
+                                        {{ task.createdAt|date('d.m.Y H:i') }}
+                                    </span>
+                                </div>
+                                
+                                <div class="info-row">
+                                    <span class="info-label">
+                                        <i class="fas fa-calendar-check"></i>
+                                        Обновлена
+                                    </span>
+                                    <span class="info-value">
+                                        {{ task.updatedAt|date('d.m.Y H:i') }}
+                                    </span>
+                                </div>
+                                
+                                {% if task.dueDate %}
+                                <div class="info-row">
+                                    <span class="info-label">
+                                        <i class="fas fa-clock"></i>
+                                        Срок
+                                    </span>
+                                    <span class="info-value {% if task.isOverdue %}text-danger fw-bold{% endif %}">
+                                        {{ task.dueDate|date('d.m.Y') }}
+                                    </span>
+                                </div>
                                 {% endif %}
-                            </p>
-                        </div>
-                    </div>
-                    
-                    {% if task.category %}
-                    <div class="row mb-3">
-                        <div class="col-12">
-                            <p><strong>Категория:</strong></p>
-                            <span class="badge bg-secondary">{{ task.category.name }}</span>
-                        </div>
-                    </div>
-                    {% endif %}
-                    
-                    <div class="mb-3">
-                        <p><strong>Описание:</strong></p>
-                        <div class="border p-3 bg-light rounded">
-                            {% if task.description %}
-                                {{ task.description|nl2br }}
-                            {% else %}
-                                <span class="text-muted">Описание отсутствует</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <p><strong>Назначена:</strong> 
-                                {% if task.assignedUser %}
-                                    {{ task.assignedUser.fullName }}
-                                {% else %}
-                                    <span class="text-muted">Не назначена</span>
+                                
+                                {% if task.category %}
+                                <div class="info-row">
+                                    <span class="info-label">
+                                        <i class="fas fa-folder"></i>
+                                        Категория
+                                    </span>
+                                    <span class="info-value">
+                                        <span class="badge bg-secondary">{{ task.category.name }}</span>
+                                    </span>
+                                </div>
                                 {% endif %}
-                            </p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>Создана:</strong> {{ task.createdAt|date('d.m.Y H:i') }}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <p><strong>Обновлена:</strong> {{ task.updatedAt|date('d.m.Y H:i') }}</p>
-                        </div>
-                    </div>
-                    
-                    {% if task.tags is not empty %}
-                    <div class="row mb-3">
-                        <div class="col-md-12">
-                            <p><strong>Теги:</strong></p>
-                            <div class="mt-2">
-                                {% for tag in task.tags %}
-                                    <span class="badge me-1" style="background-color: {{ tag.color }}; color: white;">{{ tag.name }}</span>
-                                {% endfor %}
                             </div>
-                        </div>
-                    </div>
-                    {% endif %}
-                    
-                    <!-- Dependencies Section -->
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <div class="card card-enhanced border-0 shadow-sm">
-                                <div class="card-header bg-light py-3">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <h5 class="card-title mb-0">
-                                            <i class="fas fa-link me-2 text-primary"></i>Зависимости задач
-                                        </h5>
-                                        <button class="btn btn-primary btn-enhanced btn-sm" data-bs-toggle="modal" data-bs-target="#addDependencyModal">
-                                            <i class="fas fa-plus me-1"></i>Добавить
+                            
+                            <!-- Actions -->
+                            <div class="action-buttons">
+                                <a href="{{ path('app_task_edit', {'id': task.id}) }}" class="btn btn-warning btn-enhanced flex-fill">
+                                    <i class="fas fa-edit me-2"></i>Редактировать
+                                </a>
+                                
+                                {% if task.status != 'completed' %}
+                                    <form action="{{ path('app_task_toggle', {'id': task.id}) }}" method="post" class="flex-fill">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ task.id) }}">
+                                        <button type="submit" class="btn btn-success btn-enhanced w-100">
+                                            <i class="fas fa-check me-2"></i>Завершить
                                         </button>
-                                    </div>
-                                </div>
-                                <div class="card-body">
-                                    <div id="dependencies-container">
-                                        <!-- Dependencies will be loaded here -->
-                                        <div class="text-center py-4">
-                                            <div class="spinner-border text-primary" role="status">
-                                                <span class="visually-hidden">Загрузка...</span>
-                                            </div>
-                                            <p class="mt-2 text-muted">Загрузка зависимостей...</p>
-                                        </div>
-                                    </div>
-                                </div>
+                                    </form>
+                                {% else %}
+                                    <form action="{{ path('app_task_toggle', {'id': task.id}) }}" method="post" class="flex-fill">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ task.id) }}">
+                                        <button type="submit" class="btn btn-secondary btn-enhanced w-100">
+                                            <i class="fas fa-redo me-2"></i>Вернуть
+                                        </button>
+                                    </form>
+                                {% endif %}
+                                
+                                <form action="{{ path('app_task_clone', {'id': task.id}) }}" method="post" class="flex-fill">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('clone' ~ task.id) }}">
+                                    <button type="submit" class="btn btn-info btn-enhanced w-100" 
+                                            onclick="return confirm('Клонировать задачу?')">
+                                        <i class="fas fa-copy me-2"></i>Клонировать
+                                    </button>
+                                </form>
+                                
+                                <a href="{{ path('app_task_index') }}" class="btn btn-outline-secondary btn-enhanced flex-fill">
+                                    <i class="fas fa-arrow-left me-2"></i>Назад
+                                </a>
                             </div>
                         </div>
-                    </div>
-                                    
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <a href="{{ path('app_task_index') }}" class="btn btn-outline-secondary btn-enhanced me-md-2">
-                            <i class="fas fa-arrow-left me-2"></i>Назад
-                        </a>
-                        <a href="{{ path('app_task_edit', {'id': task.id}) }}" class="btn btn-warning btn-enhanced me-md-2">
-                            <i class="fas fa-edit me-2"></i>Редактировать
-                        </a>
-                        {% if task.status != 'completed' %}
-                            <form action="{{ path('app_task_toggle', {'id': task.id}) }}" 
-                                  method="post" 
-                                  class="d-inline">
-                                <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ task.id) }}">
-                                <button type="submit" class="btn btn-success btn-enhanced">
-                                    <i class="fas fa-check me-2"></i>Отметить выполненным
-                                </button>
-                            </form>
-                        {% else %}
-                            <form action="{{ path('app_task_toggle', {'id': task.id}) }}" 
-                                  method="post" 
-                                  class="d-inline">
-                                <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ task.id) }}">
-                                <button type="submit" class="btn btn-secondary btn-enhanced">
-                                    <i class="fas fa-redo me-2"></i>Вернуть в работу
-                                </button>
-                            </form>
-                        {% endif %}
-                        <form action="{{ path('app_task_clone', {'id': task.id}) }}" 
-                              method="post" 
-                              class="d-inline">
-                            <input type="hidden" name="_token" value="{{ csrf_token('clone' ~ task.id) }}">
-                            <button type="submit" class="btn btn-info btn-enhanced" 
-                                    onclick="return confirm('Вы уверены, что хотите скопировать эту задачу?')">
-                                <i class="fas fa-copy me-2"></i>Клонировать
-                            </button>
-                        </form>
-                        <a href="{{ path('app_task_recurrence', {'id': task.id}) }}" class="btn btn-primary btn-enhanced">
-                            <i class="fas fa-sync-alt me-2"></i>Повторение
-                        </a>
                     </div>
                 </div>
             </div>

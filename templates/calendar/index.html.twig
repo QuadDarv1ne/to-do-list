@@ -323,6 +323,13 @@
 {% endblock %}
 
 {% block body %}
+{{ include('components/breadcrumbs.html.twig', {
+    items: [
+        {label: 'Главная', url: path('app_dashboard')},
+        {label: 'Календарь', active: true}
+    ]
+}) }}
+
 <div class="container-fluid mt-4 calendar-container">
     <div class="row mb-4">
         <div class="col-12">

@@ -19,10 +19,10 @@
 ###< symfony/asset-mapper ###
 
 ###> Редакторы кода (IDE) ###
-/.idea/
-/.vscode/
-/.kiro/
-/.qoder/
+/.idea
+/.vscode
+/.kiro
+/.qoder
 *.sublime-*
 ###< Редакторы кода (IDE) ###
 

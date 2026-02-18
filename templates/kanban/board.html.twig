@@ -294,6 +294,13 @@
 {% endblock %}
 
 {% block body %}
+{{ include('components/breadcrumbs.html.twig', {
+    items: [
+        {label: 'Главная', url: path('app_dashboard')},
+        {label: 'Kanban доска', active: true}
+    ]
+}) }}
+
 <div class="container-fluid mt-4 kanban-container">
     <div class="card border-0 shadow-sm mb-4">
         <div class="kanban-header">

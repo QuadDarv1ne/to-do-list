@@ -1,0 +1,213 @@
+{% extends 'base_modern.html.twig' %}
+
+{% block title %}{{ budget.title }} - Budget Details{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+            <div class="position-sticky pt-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_budget_index') }}">
+                            <i class="fas fa-home"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_budget_create') }}">
+                            <i class="fas fa-plus-circle"></i> Create Budget
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-chart-bar"></i> Reports
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_budget_export') }}">
+                            <i class="fas fa-file-export"></i> Export Data
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">{{ budget.title }}</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="btn-group me-2">
+                        <a href="{{ path('app_budget_edit', {'id': budget.id}) }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <a href="{{ path('app_budget_export') }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-download"></i> Export
+                        </a>
+                    </div>
+                    <a href="{{ path('app_budget_index') }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Budgets
+                    </a>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Budget Overview</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Title</h6>
+                                    <p class="mb-3">{{ budget.title }}</p>
+                                    
+                                    <h6>Description</h6>
+                                    <p class="mb-3">{{ budget.description|default('N/A') }}</p>
+                                    
+                                    <h6>Amount</h6>
+                                    <p class="mb-3">${{ budget.amount }}</p>
+                                    
+                                    <h6>Used Amount</h6>
+                                    <p class="mb-3">${{ budget.usedAmount }}</p>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <h6>Remaining Amount</h6>
+                                    <p class="mb-3">${{ budget.getRemainingAmount }}</p>
+                                    
+                                    <h6>Status</h6>
+                                    <p class="mb-3">
+                                        <span class="badge 
+                                            {% if budget.status == 'active' %}bg-success
+                                            {% elseif budget.status == 'inactive' %}bg-secondary
+                                            {% elseif budget.status == 'completed' %}bg-info
+                                            {% else %}bg-warning{% endif %}">
+                                            {{ budget.status|capitalize }}
+                                        </span>
+                                    </p>
+                                    
+                                    <h6>Currency</h6>
+                                    <p class="mb-3">{{ budget.currency }}</p>
+                                    
+                                    <h6>Percentage Used</h6>
+                                    <div class="mb-3">
+                                        <div class="progress">
+                                            <div class="progress-bar 
+                                                {% if budget.getPercentageUsed > 80 %}bg-danger
+                                                {% elseif budget.getPercentageUsed > 60 %}bg-warning
+                                                {% else %}bg-success{% endif %}"
+                                                 role="progressbar" 
+                                                 style="width: {{ budget.getPercentageUsed }}%">
+                                                {{ budget.getPercentageUsed|number_format(2) }}%
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Timeline</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Start Date</h6>
+                                    <p class="mb-0">{{ budget.startDate ? budget.startDate|date('F j, Y') : 'N/A' }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>End Date</h6>
+                                    <p class="mb-0">{{ budget.endDate ? budget.endDate|date('F j, Y') : 'N/A' }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Budget Status</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-center mb-3">
+                                {% if budget.isOverBudget %}
+                                    <div class="alert alert-danger">
+                                        <i class="fas fa-exclamation-triangle"></i> Over Budget
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-success">
+                                        <i class="fas fa-check-circle"></i> Within Budget
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6>Budget Health</h6>
+                                <p class="mb-0">
+                                    {% if budget.getPercentageUsed <= 50 %}
+                                        Healthy: {{ budget.getPercentageUsed|number_format(2) }}% used
+                                    {% elseif budget.getPercentageUsed <= 75 %}
+                                        Good: {{ budget.getPercentageUsed|number_format(2) }}% used
+                                    {% elseif budget.getPercentageUsed <= 90 %}
+                                        Caution: {{ budget.getPercentageUsed|number_format(2) }}% used
+                                    {% else %}
+                                        Critical: {{ budget.getPercentageUsed|number_format(2) }}% used
+                                    {% endif %}
+                                </p>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6>Duration</h6>
+                                <p class="mb-0">
+                                    {% if budget.endDate %}
+                                        {{ budget.startDate|date('M j') }} - {{ budget.endDate|date('M j, Y') }}
+                                    {% else %}
+                                        Started {{ budget.startDate|date('M j, Y') }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <a href="{{ path('app_budget_edit', {'id': budget.id}) }}" class="btn btn-primary w-100 mb-2">
+                                    <i class="fas fa-edit"></i> Edit Budget
+                                </a>
+                                <button type="button" class="btn btn-danger w-100" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                    <i class="fas fa-trash"></i> Delete Budget
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete the budget "{{ budget.title }}"?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" action="{{ path('app_budget_delete', {'id': budget.id}) }}" style="display: inline;">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ budget.id) }}">
+                    <button class="btn btn-danger" type="submit">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

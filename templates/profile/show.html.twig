@@ -2,14 +2,187 @@
 
 {% block title %}Мой профиль{% endblock %}
 
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.profile-container {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.profile-header {
+    position: relative;
+}
+
+.profile-cover {
+    height: 200px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: relative;
+    border-radius: 16px 16px 0 0;
+}
+
+.profile-cover::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(to bottom, transparent, white);
+}
+
+.profile-avatar {
+    position: relative;
+    margin-top: -100px;
+    z-index: 10;
+}
+
+.avatar-circle-large {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: white;
+    border: 6px solid white;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    color: #667eea;
+    margin: 0 auto;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.avatar-circle-large:hover {
+    transform: scale(1.05);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+}
+
+.avatar-circle-large img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-status {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #28a745;
+    border: 4px solid white;
+    position: absolute;
+    bottom: 20px;
+    right: calc(50% - 70px);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 10px rgba(40, 167, 69, 0);
+    }
+}
+
+.info-item {
+    padding: 1rem 0;
+    border-bottom: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-item:hover {
+    background: #f8f9fa;
+    padding-left: 1rem;
+    margin-left: -1rem;
+    margin-right: -1rem;
+    padding-right: 1rem;
+    border-radius: 8px;
+}
+
+.info-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.info-value {
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.stat-card {
+    padding: 1.5rem;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.stat-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+.stat-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    margin: 0 auto 1rem;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-bottom: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+</style>
+{% endblock %}
+
 {% block body %}
-<div class="container mt-4">
+{{ include('components/breadcrumbs.html.twig', {
+    items: [
+        {label: 'Главная', url: path('app_dashboard')},
+        {label: 'Профиль', active: true}
+    ]
+}) }}
+
+<div class="container mt-4 profile-container">
     <!-- Profile Header -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="profile-header card border-0 shadow-sm overflow-hidden">
                 <div class="profile-cover"></div>
-                <div class="card-body position-relative">
+                <div class="card-body position-relative pt-0">
                     <div class="row">
                         <div class="col-md-3 text-center">
                             <div class="profile-avatar">
@@ -17,45 +190,45 @@
                                     {% if user.avatar %}
                                         <img src="{{ asset('uploads/avatars/' ~ user.avatar) }}" alt="{{ user.fullName }}">
                                     {% else %}
-                                        <i class="fas fa-user"></i>
+                                        {{ user.firstName|first }}{{ user.lastName|first }}
                                     {% endif %}
                                 </div>
                                 <div class="avatar-status"></div>
                             </div>
                         </div>
-                        <div class="col-md-9">
-                            <div class="d-flex justify-content-between align-items-start">
+                        <div class="col-md-9 mt-4">
+                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
                                 <div>
-                                    <h2 class="mb-1">{{ user.fullName }}</h2>
-                                    <p class="text-muted mb-2">
-                                        <i class="fas fa-briefcase me-2"></i>{{ user.position ?? 'Менеджер' }}
-                                        {% if user.department %}
-                                            <span class="mx-2">•</span>
-                                            <i class="fas fa-building me-2"></i>{{ user.department }}
-                                        {% endif %}
+                                    <h2 class="mb-2">{{ user.fullName }}</h2>
+                                    <p class="text-muted mb-3">
+                                        <i class="fas fa-at me-2"></i>{{ user.username }}
+                                        <span class="mx-2">•</span>
+                                        <i class="fas fa-envelope me-2"></i>{{ user.email }}
                                     </p>
-                                    <div class="d-flex gap-2 mb-3">
+                                    <div class="d-flex gap-2 flex-wrap">
                                         {% if user.hasRole('ROLE_ADMIN') %}
-                                            <span class="badge bg-danger">
+                                            <span class="badge bg-danger badge-animated">
                                                 <i class="fas fa-crown me-1"></i>Администратор
                                             </span>
                                         {% elseif user.hasRole('ROLE_MANAGER') %}
-                                            <span class="badge bg-warning">
+                                            <span class="badge bg-warning badge-animated">
                                                 <i class="fas fa-user-tie me-1"></i>Менеджер
                                             </span>
                                         {% else %}
-                                            <span class="badge bg-info">
+                                            <span class="badge bg-info badge-animated">
                                                 <i class="fas fa-user me-1"></i>Пользователь
                                             </span>
                                         {% endif %}
                                         
                                         {% if user.isActive %}
-                                            <span class="badge bg-success">
+                                            <span class="badge bg-success badge-animated">
                                                 <i class="fas fa-check-circle me-1"></i>Активен
                                             </span>
-                                        {% else %}
-                                            <span class="badge bg-secondary">
-                                                <i class="fas fa-ban me-1"></i>Деактивирован
+                                        {% endif %}
+                                        
+                                        {% if user.isTotpEnabled %}
+                                            <span class="badge bg-primary badge-animated">
+                                                <i class="fas fa-shield-alt me-1"></i>2FA включена
                                             </span>
                                         {% endif %}
                                     </div>
@@ -64,37 +237,9 @@
                                     <a href="{{ path('app_profile_edit') }}" class="btn btn-primary btn-enhanced">
                                         <i class="fas fa-edit me-2"></i>Редактировать
                                     </a>
-                                    <a href="{{ path('app_profile_change_password') }}" class="btn btn-outline-primary btn-enhanced">
-                                        <i class="fas fa-key me-2"></i>Пароль
+                                    <a href="{{ path('app_settings') }}" class="btn btn-outline-primary btn-enhanced">
+                                        <i class="fas fa-cog me-2"></i>Настройки
                                     </a>
-                                    <div class="dropdown">
-                                        <button class="btn btn-outline-secondary btn-enhanced dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                            <i class="fas fa-ellipsis-v"></i>
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-end">
-                                            <li>
-                                                <a class="dropdown-item" href="{{ path('app_dashboard') }}">
-                                                    <i class="fas fa-home me-2"></i>На главную
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a class="dropdown-item" href="{{ path('app_settings') }}">
-                                                    <i class="fas fa-cog me-2"></i>Настройки
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a class="dropdown-item" href="{{ path('app_2fa_setup') }}">
-                                                    <i class="fas fa-shield-alt me-2"></i>Безопасность
-                                                </a>
-                                            </li>
-                                            <li><hr class="dropdown-divider"></li>
-                                            <li>
-                                                <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
-                                                    <i class="fas fa-sign-out-alt me-2"></i>Выйти из аккаунта
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -202,57 +347,50 @@
                 </div>
                 <div class="card-body">
                     <div class="row text-center">
-                        <div class="col-md-3 mb-3">
-                            <div class="stat-card">
-                                <div class="stat-icon bg-primary bg-opacity-10">
-                                    <i class="fas fa-tasks text-primary"></i>
-                                </div>
-                                <h3 class="stat-number text-primary">{{ user.tasks|length }}</h3>
-                                <p class="stat-label">Всего задач</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="stat-card">
-                                <div class="stat-icon bg-success bg-opacity-10">
-                                    <i class="fas fa-check-circle text-success"></i>
-                                </div>
-                                <h3 class="stat-number text-success">
-                                    {{ user.tasks|filter(t => t.isCompleted)|length }}
-                                </h3>
-                                <p class="stat-label">Завершено</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="stat-card">
-                                <div class="stat-icon bg-info bg-opacity-10">
-                                    <i class="fas fa-play-circle text-info"></i>
-                                </div>
-                                <h3 class="stat-number text-info">
-                                    {{ user.tasks|filter(t => t.status == 'in_progress')|length }}
-                                </h3>
-                                <p class="stat-label">В работе</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="stat-card">
-                                <div class="stat-icon bg-warning bg-opacity-10">
-                                    <i class="fas fa-clock text-warning"></i>
-                                </div>
-                                <h3 class="stat-number text-warning">
-                                    {{ user.tasks|filter(t => t.status == 'pending')|length }}
-                                </h3>
-                                <p class="stat-label">В ожидании</p>
-                            </div>
-                        </div>
+                        {{ include('components/stat_card.html.twig', {
+                            icon: 'fa-tasks',
+                            value: user.tasks|length,
+                            label: 'Всего задач',
+                            color: 'primary',
+                            animated: true,
+                            colClass: 'col-md-3 mb-3'
+                        }) }}
+                        
+                        {{ include('components/stat_card.html.twig', {
+                            icon: 'fa-check-circle',
+                            value: user.tasks|filter(t => t.isCompleted)|length,
+                            label: 'Завершено',
+                            color: 'success',
+                            animated: true,
+                            colClass: 'col-md-3 mb-3'
+                        }) }}
+                        
+                        {{ include('components/stat_card.html.twig', {
+                            icon: 'fa-play-circle',
+                            value: user.tasks|filter(t => t.status == 'in_progress')|length,
+                            label: 'В работе',
+                            color: 'info',
+                            animated: true,
+                            colClass: 'col-md-3 mb-3'
+                        }) }}
+                        
+                        {{ include('components/stat_card.html.twig', {
+                            icon: 'fa-clock',
+                            value: user.tasks|filter(t => t.status == 'pending')|length,
+                            label: 'В ожидании',
+                            color: 'warning',
+                            animated: true,
+                            colClass: 'col-md-3 mb-3'
+                        }) }}
                     </div>
                     
                     <hr class="my-4">
                     
                     <div class="row">
                         <div class="col-md-6">
-                            <div class="info-item mb-3">
+                            <div class="info-item">
                                 <div class="info-label">
-                                    <i class="fas fa-sign-in-alt text-muted me-2"></i>Последний вход
+                                    <i class="fas fa-sign-in-alt"></i>Последний вход
                                 </div>
                                 <div class="info-value">
                                     {% if user.lastLoginAt %}
@@ -264,17 +402,17 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="info-item mb-3">
+                            <div class="info-item">
                                 <div class="info-label">
-                                    <i class="fas fa-percentage text-muted me-2"></i>Процент завершения
+                                    <i class="fas fa-percentage"></i>Процент завершения
                                 </div>
                                 <div class="info-value">
                                     {% set total = user.tasks|length %}
                                     {% set completed = user.tasks|filter(t => t.isCompleted)|length %}
                                     {% set percentage = total > 0 ? (completed / total * 100)|round(1) : 0 %}
                                     <div class="d-flex align-items-center">
-                                        <div class="progress flex-grow-1 me-2" style="height: 8px;">
-                                            <div class="progress-bar bg-success" 
+                                        <div class="progress flex-grow-1 me-2" style="height: 10px;">
+                                            <div class="progress-bar bg-success progress-bar-animated" 
                                                  role="progressbar" 
                                                  style="width: {{ percentage }}%">
                                             </div>

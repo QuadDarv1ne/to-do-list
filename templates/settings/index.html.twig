@@ -73,6 +73,13 @@
 {% endblock %}
 
 {% block body %}
+{{ include('components/breadcrumbs.html.twig', {
+    items: [
+        {label: 'Главная', url: path('app_dashboard')},
+        {label: 'Настройки', active: true}
+    ]
+}) }}
+
 <div class="container-fluid mt-4">
     <div class="row">
         <div class="col-md-3">
