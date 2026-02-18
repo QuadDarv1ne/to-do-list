@@ -2,23 +2,233 @@
 
 {% block title %}Отчеты{% endblock %}
 
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.reports-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    animation: fadeInDown 0.6s ease-out;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.report-sidebar {
+    position: sticky;
+    top: 20px;
+    animation: fadeInLeft 0.6s ease-out;
+}
+
+@keyframes fadeInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.report-item {
+    border: none;
+    border-left: 4px solid transparent;
+    transition: all 0.3s ease;
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+}
+
+.report-item:hover {
+    background: linear-gradient(to right, rgba(102, 126, 234, 0.1) 0%, #ffffff 100%);
+    border-left-color: #667eea;
+    padding-left: 1.5rem;
+    transform: translateX(5px);
+}
+
+.report-item.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-left-color: #764ba2;
+    font-weight: 600;
+}
+
+.report-item i {
+    width: 24px;
+    text-align: center;
+    margin-right: 0.75rem;
+}
+
+.report-content {
+    animation: fadeInRight 0.6s ease-out;
+}
+
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.stat-card-report {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    border-left: 4px solid #667eea;
+    animation: slideInUp 0.5s ease-out backwards;
+}
+
+.stat-card-report:nth-child(1) { animation-delay: 0.1s; }
+.stat-card-report:nth-child(2) { animation-delay: 0.2s; }
+.stat-card-report:nth-child(3) { animation-delay: 0.3s; }
+.stat-card-report:nth-child(4) { animation-delay: 0.4s; }
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.stat-card-report:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.stat-number-report {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.stat-label-report {
+    color: #6c757d;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.empty-report-state {
+    text-align: center;
+    padding: 5rem 2rem;
+}
+
+.empty-report-state i {
+    font-size: 5rem;
+    color: #dee2e6;
+    margin-bottom: 2rem;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+    margin: 2rem 0;
+}
+
+.export-btn {
+    transition: all 0.3s ease;
+}
+
+.export-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 2rem;
+    height: 2rem;
+    border: 3px solid rgba(102, 126, 234, 0.3);
+    border-radius: 50%;
+    border-top-color: #667eea;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}
+
 {% block body %}
-<div class="container-fluid mt-4">
-    <div class="row">
-        <div class="col-12">
-            <h1><i class="fas fa-chart-bar"></i> Отчеты</h1>
+{{ include('components/breadcrumbs.html.twig', {
+    items: [
+        {label: 'Главная', url: path('app_dashboard')},
+        {label: 'Отчеты', active: true}
+    ]
+}) }}
+
+<div class="container-fluid py-4">
+    <div class="reports-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1 class="mb-1">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Отчеты и аналитика
+                </h1>
+                <p class="mb-0 opacity-75">Анализируйте эффективность работы</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-light export-btn" onclick="exportReport()">
+                    <i class="fas fa-download me-2"></i>
+                    Экспорт
+                </button>
+                <a href="{{ path('app_dashboard') }}" class="btn btn-light">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Назад
+                </a>
+            </div>
         </div>
     </div>
 
-    <div class="row mt-4">
+    <div class="row">
         <div class="col-md-3">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Готовые отчеты</h5>
+            <div class="card border-0 shadow-sm report-sidebar">
+                <div class="card-header bg-white border-0">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2 text-primary"></i>
+                        Готовые отчеты
+                    </h5>
                 </div>
                 <div class="list-group list-group-flush">
                     {% for key, report in predefined_reports %}
-                    <a href="#" class="list-group-item list-group-item-action predefined-report" data-key="{{ key }}">
+                    <a href="#" class="list-group-item list-group-item-action report-item" data-key="{{ key }}">
+                        <i class="fas fa-{{ report.icon|default('chart-line') }}"></i>
                         {{ report.title }}
                     </a>
                     {% endfor %}
@@ -27,45 +237,169 @@
         </div>
 
         <div class="col-md-9">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Результаты отчета</h5>
+            <div class="card border-0 shadow-sm report-content">
+                <div class="card-header bg-white border-0">
+                    <h5 class="mb-0" id="report-title">
+                        <i class="fas fa-chart-line me-2 text-primary"></i>
+                        Результаты отчета
+                    </h5>
                 </div>
                 <div class="card-body" id="report-results">
-                    <p class="text-muted">Выберите отчет из списка слева</p>
+                    <div class="empty-report-state">
+                        <i class="fas fa-chart-pie"></i>
+                        <h3 class="mb-3">Выберите отчет</h3>
+                        <p class="text-muted mb-0">Выберите отчет из списка слева для просмотра данных</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+{% block javascripts %}
+{{ parent() }}
 <script>
-document.querySelectorAll('.predefined-report').forEach(link => {
+let currentReportData = null;
+
+document.querySelectorAll('.report-item').forEach(link => {
     link.addEventListener('click', async (e) => {
         e.preventDefault();
-        const key = e.target.dataset.key;
+        const key = e.currentTarget.dataset.key;
         
-        const response = await fetch(`/reports/predefined/${key}`);
-        const report = await response.json();
+        // Update active state
+        document.querySelectorAll('.report-item').forEach(item => item.classList.remove('active'));
+        e.currentTarget.classList.add('active');
         
-        displayReport(report);
+        // Show loading
+        const container = document.getElementById('report-results');
+        container.innerHTML = `
+            <div class="text-center py-5">
+                <div class="loading-spinner mx-auto mb-3"></div>
+                <p class="text-muted">Загрузка отчета...</p>
+            </div>
+        `;
+        
+        try {
+            const response = await fetch(\`/reports/predefined/\${key}\`);
+            const report = await response.json();
+            currentReportData = report;
+            
+            displayReport(report);
+        } catch (error) {
+            container.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Ошибка загрузки отчета
+                </div>
+            `;
+        }
     });
 });
 
 function displayReport(report) {
     const container = document.getElementById('report-results');
+    const titleElement = document.getElementById('report-title');
     
-    let html = `<h3>${report.title}</h3>`;
-    html += `<p class="text-muted">Период: ${report.period}</p>`;
-    html += `<hr>`;
+    titleElement.innerHTML = `
+        <i class="fas fa-chart-line me-2 text-primary"></i>
+        ${report.title}
+    `;
     
-    for (const [key, value] of Object.entries(report.data)) {
-        html += `<div class="mb-3">`;
-        html += `<strong>${key}:</strong> ${JSON.stringify(value)}`;
+    let html = `
+        <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-1">${report.title}</h4>
+                    <p class="text-muted mb-0">
+                        <i class="fas fa-calendar me-2"></i>
+                        Период: ${report.period || 'Все время'}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <hr class="mb-4">
+    `;
+    
+    if (report.data && Object.keys(report.data).length > 0) {
+        html += `<div class="row g-3 mb-4">`;
+        
+        let index = 0;
+        for (const [key, value] of Object.entries(report.data)) {
+            const colors = ['primary', 'success', 'info', 'warning'];
+            const color = colors[index % colors.length];
+            
+            html += `
+                <div class="col-md-6 col-lg-3">
+                    <div class="stat-card-report">
+                        <div class="stat-number-report">${formatValue(value)}</div>
+                        <div class="stat-label-report mt-2">${formatKey(key)}</div>
+                    </div>
+                </div>
+            `;
+            index++;
+        }
+        
         html += `</div>`;
+    } else {
+        html += `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                Нет данных для отображения
+            </div>
+        `;
     }
     
     container.innerHTML = html;
+}
+
+function formatKey(key) {
+    return key
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, l => l.toUpperCase());
+}
+
+function formatValue(value) {
+    if (typeof value === 'number') {
+        return value.toLocaleString('ru-RU');
+    }
+    if (typeof value === 'object') {
+        return JSON.stringify(value);
+    }
+    return value;
+}
+
+function exportReport() {
+    if (!currentReportData) {
+        alert('Сначала выберите отчет для экспорта');
+        return;
+    }
+    
+    const dataStr = JSON.stringify(currentReportData, null, 2);
+    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = \`report_\${Date.now()}.json\`;
+    link.click();
+    URL.revokeObjectURL(url);
+    
+    showToast('Отчет экспортирован', 'success');
+}
+
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = \`alert alert-\${type} position-fixed top-0 end-0 m-3\`;
+    toast.style.zIndex = '9999';
+    toast.innerHTML = \`
+        <i class="fas fa-\${type === 'success' ? 'check-circle' : 'info-circle'} me-2"></i>
+        \${message}
+    \`;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
 }
 </script>
 {% endblock %}

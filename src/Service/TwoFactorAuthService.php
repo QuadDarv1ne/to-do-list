@@ -210,12 +210,13 @@ class TwoFactorAuthService
         try {
             $result = Builder::create()
                 ->writer(new PngWriter())
+                ->writerOptions([])
+                ->data($content)
                 ->encoding(new Encoding('UTF-8'))
-                ->errorCorrectionLevel(new ErrorCorrectionLevelHigh())
+                ->errorCorrectionLevel(ErrorCorrectionLevelHigh::class)
                 ->size(300)
                 ->margin(10)
-                ->roundBlockSizeMode(new RoundBlockSizeModeMargin())
-                ->data($content)
+                ->roundBlockSizeMode(RoundBlockSizeModeMargin::class)
                 ->build();
 
             return 'data:image/png;base64,' . base64_encode($result->getString());

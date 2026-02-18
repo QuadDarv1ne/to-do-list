@@ -25,26 +25,81 @@
     </div>
 
     {% if categories %}
+    <!-- Statistics Row -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <i class="fas fa-tags stat-icon"></i>
+                <h3 class="stat-value" data-count="{{ categories|length }}">0</h3>
+                <p class="stat-label">Всего категорий</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <i class="fas fa-tasks stat-icon text-primary"></i>
+                {% set totalTasks = 0 %}
+                {% for category in categories %}
+                    {% set totalTasks = totalTasks + category.tasks|length %}
+                {% endfor %}
+                <h3 class="stat-value" data-count="{{ totalTasks }}">0</h3>
+                <p class="stat-label">Всего задач</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <i class="fas fa-check-circle stat-icon text-success"></i>
+                {% set completedTasks = 0 %}
+                {% for category in categories %}
+                    {% set completedTasks = completedTasks + category.tasks|filter(t => t.status == 'completed')|length %}
+                {% endfor %}
+                <h3 class="stat-value" data-count="{{ completedTasks }}">0</h3>
+                <p class="stat-label">Завершено</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <i class="fas fa-spinner stat-icon text-warning"></i>
+                {% set activeTasks = 0 %}
+                {% for category in categories %}
+                    {% set activeTasks = activeTasks + category.tasks|filter(t => t.status == 'in_progress')|length %}
+                {% endfor %}
+                <h3 class="stat-value" data-count="{{ activeTasks }}">0</h3>
+                <p class="stat-label">В работе</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Categories Grid -->
     <div class="row">
         {% for category in categories %}
         <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card card-enhanced border-0 shadow-sm h-100">
+            <div class="card card-enhanced border-0 shadow-sm h-100 category-card" data-category-id="{{ category.id }}">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start mb-3">
-                        <h5 class="card-title mb-0">{{ category.name }}</h5>
+                        <h5 class="card-title mb-0">
+                            <a href="{{ path('app_task_category_show', {'id': category.id}) }}" class="text-decoration-none text-dark">
+                                {{ category.name }}
+                            </a>
+                        </h5>
                         <div class="dropdown">
                             <button class="btn btn-light btn-sm btn-enhanced" type="button" data-bs-toggle="dropdown">
                                 <i class="fas fa-ellipsis-v"></i>
                             </button>
                             <ul class="dropdown-menu">
                                 <li>
+                                    <a class="dropdown-item" href="{{ path('app_task_category_show', {'id': category.id}) }}">
+                                        <i class="fas fa-eye me-2"></i>Просмотр
+                                    </a>
+                                </li>
+                                <li>
                                     <a class="dropdown-item" href="{{ path('app_task_category_edit', {'id': category.id}) }}">
                                         <i class="fas fa-edit me-2"></i>Редактировать
                                     </a>
                                 </li>
+                                <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <a class="dropdown-item text-danger" href="#" 
-                                       onclick="if(confirm('Удалить категорию?')) { window.location='{{ path('app_task_category_delete', {'id': category.id}) }}'; }">
+                                       onclick="if(confirm('Удалить категорию?')) { document.getElementById('delete-form-{{ category.id }}').submit(); } return false;">
                                         <i class="fas fa-trash me-2"></i>Удалить
                                     </a>
                                 </li>
@@ -60,15 +115,35 @@
                         <p class="card-text text-muted mb-3">Нет описания</p>
                     {% endif %}
                     
+                    <!-- Progress Bar -->
+                    {% set completed = category.tasks|filter(t => t.status == 'completed')|length %}
+                    {% set total = category.tasks|length %}
+                    {% set percentage = total > 0 ? (completed / total * 100)|round : 0 %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small class="text-muted">Прогресс</small>
+                            <small class="text-muted">{{ percentage }}%</small>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ percentage }}%"></div>
+                        </div>
+                    </div>
+                    
                     <div class="d-flex justify-content-between align-items-center">
                         <small class="text-muted">
                             <i class="fas fa-calendar me-1"></i>
                             {{ category.createdAt|date('d.m.Y') }}
                         </small>
-                        <span class="badge bg-secondary">
-                            {{ category.tasks|length }} задач
-                        </span>
+                        <div>
+                            <span class="badge bg-primary me-1">{{ category.tasks|length }}</span>
+                            <span class="badge bg-success">{{ completed }}</span>
+                        </div>
                     </div>
+                    
+                    <!-- Hidden delete form -->
+                    <form id="delete-form-{{ category.id }}" method="post" action="{{ path('app_task_category_delete', {'id': category.id}) }}" style="display: none;">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ category.id) }}">
+                    </form>
                 </div>
             </div>
         </div>

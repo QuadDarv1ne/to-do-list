@@ -2,73 +2,294 @@
 
 {% block title %}Статистика{% endblock %}
 
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.statistics-container {
+    animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.statistics-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    animation: fadeInDown 0.6s ease-out;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.stat-card-modern {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    border-left: 4px solid;
+    animation: slideInUp 0.5s ease-out backwards;
+}
+
+.stat-card-modern:nth-child(1) { animation-delay: 0.1s; border-left-color: #667eea; }
+.stat-card-modern:nth-child(2) { animation-delay: 0.2s; border-left-color: #28a745; }
+.stat-card-modern:nth-child(3) { animation-delay: 0.3s; border-left-color: #ffc107; }
+.stat-card-modern:nth-child(4) { animation-delay: 0.4s; border-left-color: #17a2b8; }
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.stat-card-modern:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.15);
+}
+
+.stat-number-modern {
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label-modern {
+    color: #6c757d;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-icon-modern {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    margin-bottom: 1rem;
+}
+
+.chart-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.6s ease-out backwards;
+}
+
+.chart-card:nth-child(1) { animation-delay: 0.2s; }
+.chart-card:nth-child(2) { animation-delay: 0.3s; }
+.chart-card:nth-child(3) { animation-delay: 0.4s; }
+.chart-card:nth-child(4) { animation-delay: 0.5s; }
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.chart-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+.chart-header {
+    background: linear-gradient(to right, #f8f9fa 0%, #ffffff 100%);
+    padding: 1.5rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.chart-header h5 {
+    margin: 0;
+    font-weight: 700;
+    color: #212529;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.chart-body {
+    padding: 2rem;
+}
+
+.period-selector {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    margin-bottom: 2rem;
+}
+
+.btn-modern {
+    border-radius: 10px;
+    padding: 0.625rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.btn-info-modern {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+}
+
+.btn-success-modern {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+}
+
+.btn-primary-modern {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.form-control-modern {
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control-modern:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.form-label-modern {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+</style>
+{% endblock %}
+
 {% block body %}
-<div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="fas fa-chart-bar"></i> Статистика</h1>
-        <div>
-            <a href="{{ path('app_statistics_compare') }}" class="btn btn-info">
-                <i class="fas fa-exchange-alt"></i> Сравнить периоды
-            </a>
-            <a href="{{ path('app_statistics_export') }}" class="btn btn-success">
-                <i class="fas fa-download"></i> Экспорт
-            </a>
+{{ include('components/breadcrumbs.html.twig', {
+    items: [
+        {label: 'Главная', url: path('app_dashboard')},
+        {label: 'Статистика', active: true}
+    ]
+}) }}
+
+<div class="container-fluid py-4 statistics-container">
+    <div class="statistics-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1 class="mb-1">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Статистика и аналитика
+                </h1>
+                <p class="mb-0 opacity-75">Анализируйте свою продуктивность</p>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{{ path('app_statistics_compare') }}" class="btn btn-modern btn-info-modern">
+                    <i class="fas fa-exchange-alt"></i>
+                    Сравнить периоды
+                </a>
+                <a href="{{ path('app_statistics_export') }}" class="btn btn-modern btn-success-modern">
+                    <i class="fas fa-download"></i>
+                    Экспорт
+                </a>
+            </div>
         </div>
     </div>
 
     <!-- Period Selector -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <form method="get" class="row g-3">
-                <div class="col-md-5">
-                    <label class="form-label">От</label>
-                    <input type="date" name="from" class="form-control" value="{{ from|date('Y-m-d') }}">
-                </div>
-                <div class="col-md-5">
-                    <label class="form-label">До</label>
-                    <input type="date" name="to" class="form-control" value="{{ to|date('Y-m-d') }}">
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-search"></i> Показать
-                    </button>
-                </div>
-            </form>
-        </div>
+    <div class="period-selector">
+        <h5 class="mb-3">
+            <i class="fas fa-calendar-alt me-2 text-primary"></i>
+            Выбор периода
+        </h5>
+        <form method="get" class="row g-3">
+            <div class="col-md-5">
+                <label class="form-label-modern">От</label>
+                <input type="date" name="from" class="form-control form-control-modern" value="{{ from|date('Y-m-d') }}">
+            </div>
+            <div class="col-md-5">
+                <label class="form-label-modern">До</label>
+                <input type="date" name="to" class="form-control form-control-modern" value="{{ to|date('Y-m-d') }}">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-modern btn-primary-modern w-100">
+                    <i class="fas fa-search"></i>
+                    Показать
+                </button>
+            </div>
+        </form>
     </div>
 
     <!-- Overview -->
     <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h3 class="text-primary">{{ stats.overview.total }}</h3>
-                    <p class="text-muted mb-0">Всего задач</p>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card-modern text-center">
+                <div class="stat-icon-modern bg-primary bg-opacity-10 mx-auto">
+                    <i class="fas fa-tasks text-primary"></i>
                 </div>
+                <div class="stat-number-modern text-primary">{{ stats.overview.total }}</div>
+                <div class="stat-label-modern">Всего задач</div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h3 class="text-success">{{ stats.overview.completed }}</h3>
-                    <p class="text-muted mb-0">Завершено</p>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card-modern text-center">
+                <div class="stat-icon-modern bg-success bg-opacity-10 mx-auto">
+                    <i class="fas fa-check-circle text-success"></i>
                 </div>
+                <div class="stat-number-modern text-success">{{ stats.overview.completed }}</div>
+                <div class="stat-label-modern">Завершено</div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h3 class="text-warning">{{ stats.overview.in_progress }}</h3>
-                    <p class="text-muted mb-0">В процессе</p>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card-modern text-center">
+                <div class="stat-icon-modern bg-warning bg-opacity-10 mx-auto">
+                    <i class="fas fa-spinner text-warning"></i>
                 </div>
+                <div class="stat-number-modern text-warning">{{ stats.overview.in_progress }}</div>
+                <div class="stat-label-modern">В процессе</div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h3 class="text-info">{{ stats.overview.completion_rate }}%</h3>
-                    <p class="text-muted mb-0">Процент завершения</p>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card-modern text-center">
+                <div class="stat-icon-modern bg-info bg-opacity-10 mx-auto">
+                    <i class="fas fa-percentage text-info"></i>
                 </div>
+                <div class="stat-number-modern text-info">{{ stats.overview.completion_rate }}%</div>
+                <div class="stat-label-modern">Процент завершения</div>
             </div>
         </div>
     </div>
@@ -77,11 +298,14 @@
     <div class="row">
         <!-- By Status -->
         <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5>По статусу</h5>
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5>
+                        <i class="fas fa-circle-notch text-primary"></i>
+                        По статусу
+                    </h5>
                 </div>
-                <div class="card-body">
+                <div class="chart-body">
                     <canvas id="statusChart"></canvas>
                 </div>
             </div>
@@ -89,11 +313,14 @@
 
         <!-- By Priority -->
         <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5>По приоритету</h5>
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5>
+                        <i class="fas fa-exclamation-triangle text-warning"></i>
+                        По приоритету
+                    </h5>
                 </div>
-                <div class="card-body">
+                <div class="chart-body">
                     <canvas id="priorityChart"></canvas>
                 </div>
             </div>
@@ -101,11 +328,14 @@
 
         <!-- By Day -->
         <div class="col-md-12 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5>По дням</h5>
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5>
+                        <i class="fas fa-chart-line text-success"></i>
+                        Динамика по дням
+                    </h5>
                 </div>
-                <div class="card-body">
+                <div class="chart-body">
                     <canvas id="dayChart"></canvas>
                 </div>
             </div>
@@ -113,11 +343,14 @@
 
         <!-- By Category -->
         <div class="col-md-12 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5>По категориям</h5>
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5>
+                        <i class="fas fa-folder text-info"></i>
+                        По категориям
+                    </h5>
                 </div>
-                <div class="card-body">
+                <div class="chart-body">
                     <canvas id="categoryChart"></canvas>
                 </div>
             </div>
@@ -127,6 +360,11 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
+// Chart.js default configuration
+Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+Chart.defaults.plugins.legend.labels.usePointStyle = true;
+Chart.defaults.plugins.legend.labels.padding = 15;
+
 // Status Chart
 new Chart(document.getElementById('statusChart'), {
     type: 'pie',
@@ -134,8 +372,49 @@ new Chart(document.getElementById('statusChart'), {
         labels: Object.keys({{ stats.by_status|json_encode|raw }}),
         datasets: [{
             data: Object.values({{ stats.by_status|json_encode|raw }}),
-            backgroundColor: ['#6c757d', '#ffc107', '#28a745', '#dc3545']
+            backgroundColor: [
+                'rgba(108, 117, 125, 0.8)',
+                'rgba(255, 193, 7, 0.8)',
+                'rgba(40, 167, 69, 0.8)',
+                'rgba(220, 53, 69, 0.8)'
+            ],
+            borderWidth: 0,
+            hoverOffset: 10
         }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    padding: 20,
+                    font: {
+                        size: 13,
+                        weight: '600'
+                    }
+                }
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                padding: 12,
+                titleFont: {
+                    size: 14,
+                    weight: 'bold'
+                },
+                bodyFont: {
+                    size: 13
+                },
+                cornerRadius: 8
+            }
+        },
+        animation: {
+            animateRotate: true,
+            animateScale: true,
+            duration: 1000,
+            easing: 'easeOutQuart'
+        }
     }
 });
 
@@ -146,8 +425,50 @@ new Chart(document.getElementById('priorityChart'), {
         labels: Object.keys({{ stats.by_priority|json_encode|raw }}),
         datasets: [{
             data: Object.values({{ stats.by_priority|json_encode|raw }}),
-            backgroundColor: ['#6c757d', '#17a2b8', '#ffc107', '#dc3545']
+            backgroundColor: [
+                'rgba(108, 117, 125, 0.8)',
+                'rgba(23, 162, 184, 0.8)',
+                'rgba(255, 193, 7, 0.8)',
+                'rgba(220, 53, 69, 0.8)'
+            ],
+            borderWidth: 0,
+            hoverOffset: 10
         }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        cutout: '60%',
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    padding: 20,
+                    font: {
+                        size: 13,
+                        weight: '600'
+                    }
+                }
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                padding: 12,
+                titleFont: {
+                    size: 14,
+                    weight: 'bold'
+                },
+                bodyFont: {
+                    size: 13
+                },
+                cornerRadius: 8
+            }
+        },
+        animation: {
+            animateRotate: true,
+            animateScale: true,
+            duration: 1000,
+            easing: 'easeOutQuart'
+        }
     }
 });
 
@@ -159,9 +480,74 @@ new Chart(document.getElementById('dayChart'), {
         datasets: [{
             label: 'Задачи',
             data: Object.values({{ stats.by_day|json_encode|raw }}),
-            borderColor: '#007bff',
-            tension: 0.1
+            borderColor: 'rgba(102, 126, 234, 1)',
+            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+            borderWidth: 3,
+            tension: 0.4,
+            fill: true,
+            pointRadius: 5,
+            pointHoverRadius: 7,
+            pointBackgroundColor: 'rgba(102, 126, 234, 1)',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'rgba(102, 126, 234, 1)',
+            pointHoverBorderWidth: 3
         }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                padding: 12,
+                titleFont: {
+                    size: 14,
+                    weight: 'bold'
+                },
+                bodyFont: {
+                    size: 13
+                },
+                cornerRadius: 8
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.05)',
+                    drawBorder: false
+                },
+                ticks: {
+                    font: {
+                        size: 12,
+                        weight: '600'
+                    },
+                    padding: 10
+                }
+            },
+            x: {
+                grid: {
+                    display: false,
+                    drawBorder: false
+                },
+                ticks: {
+                    font: {
+                        size: 12,
+                        weight: '600'
+                    },
+                    padding: 10
+                }
+            }
+        },
+        animation: {
+            duration: 1500,
+            easing: 'easeOutQuart'
+        }
     }
 });
 
@@ -173,8 +559,73 @@ new Chart(document.getElementById('categoryChart'), {
         datasets: [{
             label: 'Задачи',
             data: Object.values({{ stats.by_category|json_encode|raw }}),
-            backgroundColor: '#007bff'
+            backgroundColor: 'rgba(102, 126, 234, 0.8)',
+            borderColor: 'rgba(102, 126, 234, 1)',
+            borderWidth: 0,
+            borderRadius: 8,
+            hoverBackgroundColor: 'rgba(102, 126, 234, 1)'
         }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                padding: 12,
+                titleFont: {
+                    size: 14,
+                    weight: 'bold'
+                },
+                bodyFont: {
+                    size: 13
+                },
+                cornerRadius: 8
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.05)',
+                    drawBorder: false
+                },
+                ticks: {
+                    font: {
+                        size: 12,
+                        weight: '600'
+                    },
+                    padding: 10
+                }
+            },
+            x: {
+                grid: {
+                    display: false,
+                    drawBorder: false
+                },
+                ticks: {
+                    font: {
+                        size: 12,
+                        weight: '600'
+                    },
+                    padding: 10
+                }
+            }
+        },
+        animation: {
+            duration: 1500,
+            easing: 'easeOutQuart',
+            delay: (context) => {
+                let delay = 0;
+                if (context.type === 'data' && context.mode === 'default') {
+                    delay = context.dataIndex * 100;
+                }
+                return delay;
+            }
+        }
     }
 });
 </script>
