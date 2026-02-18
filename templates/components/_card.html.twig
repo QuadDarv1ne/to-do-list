@@ -1,4 +1,5 @@
 {# Reusable card component #}
+{# SECURITY: Use content_html only for trusted HTML. For user data, use content (auto-escaped) #}
 {% set card_class = card_class|default('card') %}
 {% set header_class = header_class|default('card-header') %}
 {% set body_class = body_class|default('card-body') %}
@@ -19,7 +20,11 @@
     {% endif %}
     
     <div class="{{ body_class }}">
-        {{ content|raw }}
+        {% if content_html is defined %}
+            {{ content_html|raw }}
+        {% else %}
+            {{ content }}
+        {% endif %}
     </div>
     
     {% if footer_content is defined %}

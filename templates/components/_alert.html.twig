@@ -15,7 +15,11 @@
         <i class="fas {{ icon_map[type] }} me-2"></i>
     {% endif %}
     
-    {{ message|raw }}
+    {% if message_html is defined %}
+        {{ message_html|raw }}
+    {% else %}
+        {{ message }}
+    {% endif %}
     
     {% if dismissible %}
     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>

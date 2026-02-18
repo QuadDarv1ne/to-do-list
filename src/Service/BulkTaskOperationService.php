@@ -39,46 +39,65 @@ class BulkTaskOperationService
         $updatedCount = 0;
         $failedTasks = [];
 
-        foreach ($tasks as $task) {
-            // Check if user has permission to edit this task
-            if (!$this->hasEditPermission($task, $currentUser)) {
-                $failedTasks[] = [
-                    'id' => $task->getId(),
-                    'title' => $task->getTitle(),
-                    'reason' => 'Insufficient permissions'
-                ];
-                continue;
+        $this->entityManager->beginTransaction();
+        try {
+            foreach ($tasks as $task) {
+                // Check if user has permission to edit this task
+                if (!$this->hasEditPermission($task, $currentUser)) {
+                    $failedTasks[] = [
+                        'id' => $task->getId(),
+                        'title' => $task->getTitle(),
+                        'reason' => 'Insufficient permissions'
+                    ];
+                    continue;
+                }
+
+                $originalStatus = $task->getStatus();
+                $task->setStatus($newStatus);
+
+                // Set completion time if marking as completed
+                if ($newStatus === 'completed' && $originalStatus !== 'completed') {
+                    $task->setCompletedAt(new \DateTime());
+                } elseif ($newStatus !== 'completed' && $originalStatus === 'completed') {
+                    $task->setCompletedAt(null);
+                }
+
+                $updatedCount++;
             }
 
-            $originalStatus = $task->getStatus();
-            $task->setStatus($newStatus);
-
-            // Set completion time if marking as completed
-            if ($newStatus === 'completed' && $originalStatus !== 'completed') {
-                $task->setCompletedAt(new \DateTime());
-            } elseif ($newStatus !== 'completed' && $originalStatus === 'completed') {
-                $task->setCompletedAt(null);
+            if ($updatedCount > 0) {
+                $this->entityManager->flush();
             }
+            
+            $this->entityManager->commit();
 
-            $updatedCount++;
-        }
-
-        if ($updatedCount > 0) {
-            $this->entityManager->flush();
-
-            // Send notifications for completed tasks
-            if ($newStatus === 'completed') {
+            // Send notifications for completed tasks (after commit)
+            if ($newStatus === 'completed' && $updatedCount > 0) {
                 foreach ($tasks as $task) {
                     if ($task->getUser()->getId() !== $currentUser->getId()) {
-                        $this->notificationService->sendTaskCompletionNotification(
-                            $task->getUser(),
-                            $currentUser,
-                            $task->getId(),
-                            $task->getTitle()
-                        );
+                        try {
+                            $this->notificationService->sendTaskCompletionNotification(
+                                $task->getUser(),
+                                $currentUser,
+                                $task->getId(),
+                                $task->getTitle()
+                            );
+                        } catch (\Exception $e) {
+                            $this->logger->warning("Failed to send notification", [
+                                'task_id' => $task->getId(),
+                                'error' => $e->getMessage()
+                            ]);
+                        }
                     }
                 }
             }
+        } catch (\Exception $e) {
+            $this->entityManager->rollback();
+            $this->logger->error("Bulk status update failed", [
+                'user_id' => $currentUser->getId(),
+                'error' => $e->getMessage()
+            ]);
+            throw $e;
         }
 
         $this->logger->info("Bulk status update completed", [
@@ -201,23 +220,35 @@ class BulkTaskOperationService
         $deletedCount = 0;
         $failedTasks = [];
 
-        foreach ($tasks as $task) {
-            // Check if user has permission to delete this task
-            if (!$this->hasDeletePermission($task, $currentUser)) {
-                $failedTasks[] = [
-                    'id' => $task->getId(),
-                    'title' => $task->getTitle(),
-                    'reason' => 'Insufficient permissions'
-                ];
-                continue;
+        $this->entityManager->beginTransaction();
+        try {
+            foreach ($tasks as $task) {
+                // Check if user has permission to delete this task
+                if (!$this->hasDeletePermission($task, $currentUser)) {
+                    $failedTasks[] = [
+                        'id' => $task->getId(),
+                        'title' => $task->getTitle(),
+                        'reason' => 'Insufficient permissions'
+                    ];
+                    continue;
+                }
+
+                $this->entityManager->remove($task);
+                $deletedCount++;
             }
 
-            $this->entityManager->remove($task);
-            $deletedCount++;
-        }
-
-        if ($deletedCount > 0) {
-            $this->entityManager->flush();
+            if ($deletedCount > 0) {
+                $this->entityManager->flush();
+            }
+            
+            $this->entityManager->commit();
+        } catch (\Exception $e) {
+            $this->entityManager->rollback();
+            $this->logger->error("Bulk task deletion failed", [
+                'user_id' => $currentUser->getId(),
+                'error' => $e->getMessage()
+            ]);
+            throw $e;
         }
 
         $this->logger->info("Bulk task deletion completed", [
