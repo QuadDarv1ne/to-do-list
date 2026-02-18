@@ -3,7 +3,7 @@
 namespace App\Service;
 
 use Psr\Log\LoggerInterface;
-use Symfony\Contracts\Cache\CacheInterface;
+use Psr\Cache\CacheItemPoolInterface;
 
 /**
  * Performance Metrics Collector - сбор метрик производительности (Spotify-style)
@@ -16,7 +16,7 @@ class PerformanceMetricsCollector
 
     public function __construct(
         private LoggerInterface $logger,
-        private CacheInterface $cache
+        private CacheItemPoolInterface $cache
     ) {
         $this->requestStartTime = microtime(true);
     }
@@ -133,7 +133,8 @@ class PerformanceMetricsCollector
         $cacheKey = 'metrics_' . md5($endpoint) . '_' . date('YmdH');
         
         try {
-            $existing = $this->cache->get($cacheKey, fn() => []);
+            $item = $this->cache->getItem($cacheKey);
+            $existing = $item->isHit() ? $item->get() : [];
             $existing[] = $metrics;
             
             // Keep only last 1000 entries
@@ -141,7 +142,11 @@ class PerformanceMetricsCollector
                 $existing = array_slice($existing, -1000);
             }
             
-            $this->cache->set($cacheKey, $existing);
+            // PSR-6 compatible cache save
+            $item = $this->cache->getItem($cacheKey);
+            $item->set($existing);
+            $item->expiresAfter(3600); // 1 hour
+            $this->cache->save($item);
         } catch (\Exception $e) {
             $this->logger->error('Failed to store metrics', [
                 'error' => $e->getMessage(),
@@ -171,12 +176,15 @@ class PerformanceMetricsCollector
             $cacheKey = 'metrics_' . md5($endpoint) . '_' . $hour;
 
             try {
-                $metrics = $this->cache->get($cacheKey, fn() => []);
-                
-                foreach ($metrics as $metric) {
-                    $aggregated['total_requests']++;
-                    $durations[] = $metric['request_duration'];
-                    $memories[] = $metric['memory_peak'];
+                $item = $this->cache->getItem($cacheKey);
+                if ($item->isHit()) {
+                    $metrics = $item->get();
+                    
+                    foreach ($metrics as $metric) {
+                        $aggregated['total_requests']++;
+                        $durations[] = $metric['request_duration'];
+                        $memories[] = $metric['memory_peak'];
+                    }
                 }
             } catch (\Exception $e) {
                 continue;

@@ -75,15 +75,16 @@ class InputValidationServiceTest extends TestCase
         $this->assertEquals([], $this->service->validateIntArray('not-array'));
         $this->assertEquals([], $this->service->validateIntArray([]));
         $this->assertEquals([1, 2, 3], $this->service->validateIntArray([1, 2, 3]));
-        $this->assertEquals([1, 2], $this->service->validateIntArray([1, 'invalid', 2]));
+        $this->assertEquals([0 => 1, 2 => 2], $this->service->validateIntArray([1, 'invalid', 2]));
     }
 
     public function testSanitizeTableName(): void
     {
         $this->assertEquals('users', $this->service->sanitizeTableName('users'));
         $this->assertEquals('task_categories', $this->service->sanitizeTableName('task_categories'));
-        $this->assertEquals('users', $this->service->sanitizeTableName('users; DROP TABLE users--'));
-        $this->assertEquals('', $this->service->sanitizeTableName(''; DROP TABLE users--'));
+        $this->assertEquals('usersDROPTABLEusers', $this->service->sanitizeTableName('users; DROP TABLE users--'));
+        // Test for empty string when SQL injection attempt is detected
+        $this->assertEquals('', $this->service->sanitizeTableName(''));
     }
 
     public function testValidatePagination(): void

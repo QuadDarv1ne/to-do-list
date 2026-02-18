@@ -124,6 +124,8 @@ class Task
         $this->attachments = new ArrayCollection();
         $this->timeTrackings = new ArrayCollection();
         $this->tags = new ArrayCollection();
+        $this->dependencies = new ArrayCollection();
+        $this->dependents = new ArrayCollection();
         $this->createdAt = new \DateTime();
     }
 

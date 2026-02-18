@@ -134,7 +134,7 @@ trait CachedRepositoryTrait
     /**
      * Cache list queries with filters
      */
-    protected function cachedFindBy(array $criteria, array $orderBy = null, int $limit = null, int $offset = null, int $ttl = 120): array
+    protected function cachedFindBy(array $criteria, ?array $orderBy = null, ?int $limit = null, ?int $offset = null, int $ttl = 120): array
     {
         $keyParams = [
             'criteria' => $criteria,
@@ -156,7 +156,7 @@ trait CachedRepositoryTrait
     /**
      * Cache single result queries
      */
-    protected function cachedFindOneBy(array $criteria, array $orderBy = null, int $ttl = 300)
+    protected function cachedFindOneBy(array $criteria, ?array $orderBy = null, int $ttl = 300)
     {
         $keyParams = [
             'criteria' => $criteria,

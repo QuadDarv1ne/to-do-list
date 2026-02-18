@@ -68,7 +68,7 @@ class ActivityLogRepository extends ServiceEntityRepository
     /**
      * Log a user login event
      */
-    public function logLoginEvent(User $user, string $ipAddress = null): void
+    public function logLoginEvent(User $user, ?string $ipAddress = null): void
     {
         $log = new ActivityLog();
         $log->setUser($user);
@@ -84,7 +84,7 @@ class ActivityLogRepository extends ServiceEntityRepository
     /**
      * Log a user logout event
      */
-    public function logLogoutEvent(User $user, string $ipAddress = null): void
+    public function logLogoutEvent(User $user, ?string $ipAddress = null): void
     {
         $log = new ActivityLog();
         $log->setUser($user);
