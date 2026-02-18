@@ -1,0 +1,480 @@
+/* ============================================
+   PAGES - Dashboard, Profile, CRM, etc.
+   ============================================ */
+
+/* === DASHBOARD === */
+.dashboard-welcome {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--primary);
+    padding: 0.875rem var(--spacing-lg);
+    border-radius: var(--radius);
+    margin-bottom: var(--spacing-md);
+}
+
+.dashboard-welcome h2 {
+    font-size: 1.25rem;
+    margin-bottom: 0.125rem;
+}
+
+.dashboard-welcome p {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+#stats-row .card {
+    text-align: center;
+}
+
+#stats-row .card h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1;
+    margin-bottom: 0.375rem;
+}
+
+#stats-row .card .small {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+/* === TASKS === */
+.task-item-enhanced {
+    border-left: 3px solid transparent;
+    padding: 0.625rem 0.875rem;
+    transition: var(--transition);
+}
+
+.task-item-enhanced:hover {
+    background: #fafafa;
+}
+
+[data-theme='dark'] .task-item-enhanced:hover {
+    background: #374151;
+}
+
+.task-item-enhanced.priority-high {
+    border-left-color: var(--danger);
+}
+
+.task-item-enhanced.priority-medium {
+    border-left-color: var(--warning);
+}
+
+.task-item-enhanced.priority-low {
+    border-left-color: var(--success);
+}
+
+.task-title {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.task-meta {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.task-description {
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: var(--text-secondary);
+}
+
+/* === PROFILE === */
+.profile-header-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: var(--spacing-lg);
+}
+
+.profile-cover {
+    height: 120px;
+    background: linear-gradient(135deg, var(--primary) 0%, #764ba2 100%);
+}
+
+.profile-avatar-section {
+    position: relative;
+    margin-top: -40px;
+    padding: 0 var(--spacing-lg) var(--spacing-lg);
+}
+
+.profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: white;
+    border: 4px solid white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: white;
+    background: var(--primary);
+    overflow: hidden;
+    margin: 0 auto;
+}
+
+.profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    text-align: center;
+    margin: 0.75rem 0 0.25rem;
+}
+
+.profile-role {
+    text-align: center;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-md);
+}
+
+.profile-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.profile-stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.75rem;
+    text-align: center;
+    transition: var(--transition);
+}
+
+.profile-stat-card:hover {
+    border-color: #d0d0d0;
+}
+
+.profile-stat-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+.profile-stat-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.profile-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+.profile-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--border);
+}
+
+.profile-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.profile-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-md);
+}
+
+.profile-info-item {
+    padding: 0.5rem;
+}
+
+.profile-info-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.25rem;
+}
+
+.profile-info-value {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* === CRM (Clients & Deals) === */
+.clients-header,
+.deals-header {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--primary);
+    padding: 0.875rem var(--spacing-lg);
+    border-radius: var(--radius);
+    margin-bottom: var(--spacing-md);
+}
+
+.clients-header h1,
+.deals-header h1 {
+    font-size: 1.25rem;
+    margin-bottom: 0.125rem;
+}
+
+.stats-row,
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+}
+
+.stat-card-client,
+.stat-card-deal {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.75rem;
+    text-align: center;
+    transition: var(--transition);
+}
+
+.stat-card-client:hover,
+.stat-card-deal:hover {
+    border-color: #d0d0d0;
+}
+
+.stat-number-client,
+.stat-number-deal {
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label-client,
+.stat-label-deal {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.search-box,
+.filter-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.75rem;
+    margin-bottom: var(--spacing-md);
+}
+
+.client-card,
+.deal-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.75rem;
+    margin-bottom: 0.625rem;
+    transition: var(--transition);
+}
+
+.client-card:hover,
+.deal-card:hover {
+    border-color: #d0d0d0;
+}
+
+.deal-card.status-won {
+    border-left: 3px solid var(--success);
+}
+
+.deal-card.status-lost {
+    border-left: 3px solid var(--danger);
+}
+
+.deal-card.status-in_progress {
+    border-left: 3px solid var(--primary);
+}
+
+.client-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius);
+    background: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.client-info h5 {
+    margin: 0 0 0.25rem 0;
+    font-weight: 600;
+    font-size: 0.9375rem;
+}
+
+.client-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    margin-top: 0.5rem;
+}
+
+.client-badge,
+.deal-badge {
+    padding: 0.1875rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.6875rem;
+    font-weight: 500;
+}
+
+.deal-amount {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+/* === EMPTY STATE === */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.empty-state i {
+    font-size: 3rem;
+    opacity: 0.2;
+    margin-bottom: var(--spacing-lg);
+    color: var(--text-secondary);
+}
+
+.empty-state h4 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-lg);
+}
+
+/* === RESPONSIVE === */
+@media (min-width: 2560px) {
+    .stats-row,
+    .stats-grid {
+        grid-template-columns: repeat(6, 1fr);
+    }
+}
+
+@media (min-width: 1024px) and (max-width: 1365px) {
+    .stats-row,
+    .stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+    .stats-row,
+    .stats-grid,
+    .profile-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .profile-info-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 767px) {
+    .dashboard-welcome h2 {
+        font-size: 1.125rem;
+    }
+    
+    #stats-row .card h2 {
+        font-size: 1.25rem;
+    }
+    
+    .stats-row,
+    .stats-grid,
+    .profile-stats {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    
+    .profile-cover {
+        height: 80px;
+    }
+    
+    .profile-avatar {
+        width: 60px;
+        height: 60px;
+        font-size: 1.25rem;
+    }
+    
+    .profile-avatar-section {
+        margin-top: -30px;
+        padding: 0 0.75rem 0.75rem;
+    }
+    
+    .profile-info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .client-avatar {
+        width: 36px;
+        height: 36px;
+        font-size: 0.875rem;
+    }
+    
+    .client-card,
+    .deal-card {
+        padding: 0.625rem;
+    }
+}
+
+@media (max-width: 575px) {
+    .dashboard-welcome {
+        padding: 0.75rem;
+    }
+    
+    .dashboard-welcome h2 {
+        font-size: 1rem;
+    }
+    
+    .dashboard-welcome p {
+        font-size: 0.75rem;
+    }
+    
+    #stats-row .card h2 {
+        font-size: 1.125rem;
+    }
+    
+    .profile-section {
+        padding: 0.75rem;
+    }
+    
+    .search-box,
+    .filter-box {
+        padding: 0.625rem;
+    }
+}

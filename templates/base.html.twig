@@ -32,14 +32,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     {% block stylesheets %}
-        <link rel="preload" href="{{ asset('styles/app.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
-        <noscript><link rel="stylesheet" href="{{ asset('styles/app.css') }}"></noscript>
-        <link rel="stylesheet" href="/css/global-enhancements.css">
-        <link rel="stylesheet" href="/css/page-transitions.css">
-        <link rel="stylesheet" href="/css/button-enhancements.css">
-        <link rel="stylesheet" href="/css/responsive-header.css">
-        <link rel="stylesheet" href="/css/responsive-optimized.css">
-        <link rel="stylesheet" href="/css/header-footer-enhanced.css">
+        <link rel="stylesheet" href="/css/main.css">
+        <link rel="stylesheet" href="/css/components.css">
+        <link rel="stylesheet" href="/css/pages.css">
+        <link rel="stylesheet" href="/css/dark-theme.css">
     {% endblock %}
 </head>
 <body>
