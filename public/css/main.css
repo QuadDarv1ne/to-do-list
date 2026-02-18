@@ -3,19 +3,6 @@
    ============================================ */
 
 :root {
-    /* Colors */
-    --primary: #667eea;
-    --success: #28a745;
-    --warning: #ffc107;
-    --danger: #dc3545;
-    --info: #17a2b8;
-    --text-primary: #212529;
-    --text-secondary: #6c757d;
-    --text-muted: #adb5bd;
-    --border: #e0e0e0;
-    --bg-body: #f5f5f5;
-    --bg-card: #ffffff;
-    
     /* Spacing */
     --spacing-xs: 0.25rem;
     --spacing-sm: 0.5rem;
@@ -27,71 +14,8 @@
     --radius: 4px;
     --radius-lg: 8px;
     
-    /* Shadows */
-    --shadow: 0 1px 2px rgba(0,0,0,0.05);
-    --shadow-hover: 0 1px 4px rgba(0,0,0,0.08);
-    
     /* Transitions */
     --transition: all 0.15s ease;
-}
-
-/* Dark Theme */
-[data-theme='dark'] {
-    --primary: #3b82f6;
-    --success: #10b981;
-    --warning: #f59e0b;
-    --danger: #ef4444;
-    --info: #06b6d4;
-    --text-primary: #f9fafb;
-    --text-secondary: #9ca3af;
-    --text-muted: #6b7280;
-    --border: #374151;
-    --bg-body: #111827;
-    --bg-card: #1f2937;
-    --shadow: 0 1px 2px rgba(0,0,0,0.3);
-    --shadow-hover: 0 2px 8px rgba(0,0,0,0.4);
-}
-
-/* Orange Theme */
-[data-theme='orange'] {
-    --primary: #f97316;
-    --success: #22c55e;
-    --warning: #eab308;
-    --danger: #ef4444;
-    --info: #06b6d4;
-    --text-primary: #1c1917;
-    --text-secondary: #78716c;
-    --text-muted: #a8a29e;
-    --border: #e7e5e4;
-    --bg-body: #fef3f2;
-    --bg-card: #ffffff;
-    --shadow: 0 1px 2px rgba(249,115,22,0.1);
-    --shadow-hover: 0 2px 8px rgba(249,115,22,0.15);
-}
-
-/* Purple Theme */
-[data-theme='purple'] {
-    --primary: #a855f7;
-    --success: #22c55e;
-    --warning: #f59e0b;
-    --danger: #ef4444;
-    --info: #06b6d4;
-    --text-primary: #1e1b4b;
-    --text-secondary: #6b7280;
-    --text-muted: #9ca3af;
-    --border: #e9d5ff;
-    --bg-body: #faf5ff;
-    --bg-card: #ffffff;
-    --shadow: 0 1px 2px rgba(168,85,247,0.1);
-    --shadow-hover: 0 2px 8px rgba(168,85,247,0.15);
-}
-
-/* Custom Theme */
-[data-theme='custom'] {
-    --primary: var(--custom-primary, #667eea);
-    --text-primary: var(--custom-text-primary, #212529);
-    --bg-body: var(--custom-bg-body, #f5f5f5);
-    --bg-card: var(--custom-bg-card, #ffffff);
 }
 
 /* Base */

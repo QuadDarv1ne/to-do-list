@@ -77,7 +77,7 @@ class Task
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
 
-    #[ORM\ManyToOne(inversedBy: 'assignedTasks')]
+    #[ORM\ManyToOne(inversedBy: 'assignedTasks', cascade: ['persist'])]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $assignedUser = null;
 

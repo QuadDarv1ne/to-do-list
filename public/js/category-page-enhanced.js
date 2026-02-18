@@ -162,8 +162,6 @@ if (!document.getElementById('categoryPageStyles')) {
 
 // Listen for theme changes and update animations
 window.addEventListener('themechange', function(e) {
-    console.log('Theme changed to:', e.detail.theme);
-    
     // Re-initialize any theme-dependent features
     const cards = document.querySelectorAll('.category-card');
     cards.forEach(card => {

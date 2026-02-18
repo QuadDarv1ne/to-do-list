@@ -287,7 +287,6 @@ function showQuickEventForm() {
  */
 function initThemeAwareCalendar() {
     window.addEventListener('themechange', function(e) {
-        console.log('Calendar: Theme changed to', e.detail.theme);
         updateCalendarColors(e.detail.theme);
     });
 }

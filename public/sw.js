@@ -16,7 +16,6 @@ self.addEventListener('install', function(event) {
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(function(cache) {
-                console.log('Opened cache');
                 // Use addAll with error handling to not block on failures
                 return cache.addAll(urlsToCache).catch(err => {
                     console.warn('Some resources failed to cache:', err);
@@ -66,7 +65,6 @@ self.addEventListener('fetch', function(event) {
                 return caches.match(event.request)
                     .then(function(response) {
                         if (response) {
-                            console.log('Serving from cache:', event.request.url);
                             return response;
                         }
                         
@@ -94,7 +92,6 @@ self.addEventListener('activate', function(event) {
                 return Promise.all(
                     cacheNames.map(function(cacheName) {
                         if (cacheName !== CACHE_NAME) {
-                            console.log('Deleting old cache:', cacheName);
                             return caches.delete(cacheName);
                         }
                     })
@@ -148,7 +145,6 @@ function syncTasks() {
                 .then(responses => {
                     // Clear only successfully synced tasks
                     const successCount = responses.filter(r => r && r.ok).length;
-                    console.log(`Synced ${successCount}/${pendingTasks.length} tasks`);
                     
                     if (successCount === pendingTasks.length) {
                         localStorage.removeItem('pendingTasks');
@@ -171,7 +167,6 @@ function syncTasks() {
 self.addEventListener('push', function(event) {
     // Check if notifications are supported and permitted
     if (!(self.Notification && self.Notification.permission === 'granted')) {
-        console.log('Notifications not permitted');
         return;
     }
     

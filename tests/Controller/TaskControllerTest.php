@@ -17,17 +17,21 @@ class TaskControllerTest extends WebTestCase
     protected function setUp(): void
     {
         $this->client = static::createClient();
-        $container = static::getContainer();
-        $this->userRepository = $container->get(UserRepository::class);
+        $this->userRepository = static::getContainer()->get(UserRepository::class);
         
         // Create a test user
         $this->testUser = $this->userRepository->findOneBy(['email' => 'test@example.com']);
         if (!$this->testUser) {
             $this->testUser = new User();
             $this->testUser->setEmail('test@example.com');
-            $this->testUser->setUsername('testuser');
-            $this->testUser->setPassword('$2y$13$example_hash'); // Not a real hash, just for testing
+            $this->testUser->setUsername('testuser_unique_' . uniqid());
+            $this->testUser->setPassword('$2y$13$example_hash');
             $this->testUser->setRoles(['ROLE_USER']);
+            $this->testUser->setIsActive(true);
+            
+            $entityManager = static::getContainer()->get('doctrine')->getManager();
+            $entityManager->persist($this->testUser);
+            $entityManager->flush();
         }
     }
 

@@ -7,7 +7,6 @@ export default class extends Controller {
     };
 
     connect() {
-        console.log('Quick task controller connected');
     }
 
     async submit(event) {

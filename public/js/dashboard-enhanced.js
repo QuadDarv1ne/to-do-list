@@ -331,8 +331,6 @@ function initLoadingStates() {
 function initThemeAwareComponents() {
     // Update components when theme changes
     window.addEventListener('themechange', function(e) {
-        console.log('Dashboard: Theme changed to', e.detail.theme);
-        
         // Update any theme-dependent components
         updateStatCircles(e.detail.theme);
         updateBadges(e.detail.theme);
