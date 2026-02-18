@@ -911,7 +911,8 @@ class TaskController extends AbstractController
         // Assign to a category if provided
         if (!empty($data['category'])) {
             $category = $entityManager->find(\App\Entity\TaskCategory::class, (int)$data['category']);
-            if ($category && $category->getUser()->getId() === $this->getUser()->getId()) { // Ensure user owns the category
+            $currentUser = $this->getUser();
+            if ($category && $category->getUser() && $currentUser && $category->getUser()->getId() === $currentUser->getId()) {
                 $task->setCategory($category);
             }
         }

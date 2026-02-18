@@ -129,8 +129,8 @@ class DashboardWidgetService
         $available = array_keys($this->getAvailableWidgets());
         $validWidgets = array_intersect($widgets, $available);
         
-        // Store in session for now
-        $_SESSION['dashboard_widgets'] = $validWidgets;
+        // TODO: Store in database instead of session
+        // This is a placeholder implementation
     }
     
     // Widget data methods

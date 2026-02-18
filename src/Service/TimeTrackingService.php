@@ -24,8 +24,8 @@ class TimeTrackingService
             'status' => 'active'
         ];
 
-        // Store in session for now
-        $_SESSION['time_tracking'] = $session;
+        // TODO: Store in database instead of session
+        // For now, this is a placeholder implementation
 
         return $session;
     }
@@ -33,32 +33,21 @@ class TimeTrackingService
     /**
      * Stop time tracking
      */
-    public function stopTracking(): ?array
+    public function stopTracking(int $taskId, int $userId): ?array
     {
-        if (!isset($_SESSION['time_tracking'])) {
-            return null;
-        }
+        // TODO: Implement database-based tracking
+        // This is a placeholder implementation
 
-        $session = $_SESSION['time_tracking'];
-        $session['stopped_at'] = new \DateTime();
-        $session['status'] = 'stopped';
-        
-        $duration = $session['stopped_at']->getTimestamp() - $session['started_at']->getTimestamp();
-        $session['duration'] = $duration;
-
-        // TODO: Save to database
-        
-        unset($_SESSION['time_tracking']);
-
-        return $session;
+        return null;
     }
 
     /**
      * Get active tracking session
      */
-    public function getActiveSession(): ?array
+    public function getActiveSession(int $userId): ?array
     {
-        return $_SESSION['time_tracking'] ?? null;
+        // TODO: Get from database
+        return null;
     }
 
     /**
@@ -113,16 +102,16 @@ class TimeTrackingService
         $to = new \DateTime();
 
         $stats = $this->getStatistics($user, $from, $to);
-        
+
         // Calculate score based on:
         // - Total time tracked
         // - Number of tasks completed
         // - Average time per task
-        
+
         $score = 0;
-        
+
         // TODO: Implement scoring algorithm
-        
+
         return min(100, max(0, $score));
     }
 
@@ -153,3 +142,4 @@ class TimeTrackingService
         ];
     }
 }
+

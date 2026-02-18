@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/search')]
+#[Route('/quick-search')]
 #[IsGranted('ROLE_USER')]
 class QuickSearchController extends AbstractController
 {
@@ -20,7 +20,7 @@ class QuickSearchController extends AbstractController
     /**
      * Quick search API
      */
-    #[Route('/quick', name: 'app_search_quick', methods: ['GET'])]
+    #[Route('', name: 'app_search_quick', methods: ['GET'])]
     public function quick(Request $request): JsonResponse
     {
         $query = $request->query->get('q', '');

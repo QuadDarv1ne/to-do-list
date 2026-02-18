@@ -37,16 +37,17 @@ class TaskHistoryController extends AbstractController
         $history = $this->historyService->getTaskHistory($task);
 
         $data = array_map(function($item) {
+            $user = $item->getUser();
             return [
                 'id' => $item->getId(),
                 'action' => $item->getAction(),
                 'field' => $item->getField(),
                 'oldValue' => $item->getOldValue(),
                 'newValue' => $item->getNewValue(),
-                'user' => [
-                    'id' => $item->getUser()->getId(),
-                    'name' => $item->getUser()->getFullName()
-                ],
+                'user' => $user ? [
+                    'id' => $user->getId(),
+                    'name' => $user->getFullName()
+                ] : null,
                 'createdAt' => $item->getCreatedAt()->format('Y-m-d H:i:s'),
                 'description' => $this->historyService->getChangeDescription($item)
             ];
