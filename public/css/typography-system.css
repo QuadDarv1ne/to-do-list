@@ -1,0 +1,458 @@
+/* ============================================
+   ADVANCED TYPOGRAPHY SYSTEM
+   Modern text styles and effects
+   ============================================ */
+
+/* === HEADINGS === */
+.heading-modern {
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+}
+
+.heading-xl {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 800;
+}
+
+.heading-lg {
+    font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.heading-md {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+.heading-sm {
+    font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+}
+
+.heading-xs {
+    font-size: clamp(1rem, 2vw, 1.25rem);
+}
+
+/* === GRADIENT TEXT === */
+.text-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.text-gradient-blue {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.text-gradient-green {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.text-gradient-orange {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.text-gradient-pink {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* === ANIMATED GRADIENT TEXT === */
+.text-gradient-animated {
+    background: linear-gradient(90deg, #667eea, #764ba2, #667eea);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradient-shift 3s linear infinite;
+}
+
+@keyframes gradient-shift {
+    0% { background-position: 0% center; }
+    100% { background-position: 200% center; }
+}
+
+/* === TEXT EFFECTS === */
+.text-shadow-sm {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.text-shadow-lg {
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.text-glow {
+    text-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+}
+
+.text-outline {
+    -webkit-text-stroke: 1px var(--text-primary);
+    -webkit-text-fill-color: transparent;
+}
+
+/* === HIGHLIGHT TEXT === */
+.text-highlight {
+    background: linear-gradient(180deg, transparent 60%, rgba(255, 193, 7, 0.3) 60%);
+    padding: 0 0.25rem;
+}
+
+.text-highlight-primary {
+    background: linear-gradient(180deg, transparent 60%, rgba(102, 126, 234, 0.3) 60%);
+}
+
+.text-highlight-success {
+    background: linear-gradient(180deg, transparent 60%, rgba(40, 167, 69, 0.3) 60%);
+}
+
+/* === UNDERLINE EFFECTS === */
+.text-underline-animated {
+    position: relative;
+    text-decoration: none;
+}
+
+.text-underline-animated::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--primary);
+    transition: width 0.3s ease;
+}
+
+.text-underline-animated:hover::after {
+    width: 100%;
+}
+
+.text-underline-gradient {
+    position: relative;
+    text-decoration: none;
+}
+
+.text-underline-gradient::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+}
+
+/* === PARAGRAPH STYLES === */
+.paragraph-modern {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.paragraph-lead {
+    font-size: 1.25rem;
+    line-height: 1.6;
+    font-weight: 300;
+    color: var(--text-secondary);
+}
+
+.paragraph-small {
+    font-size: 0.875rem;
+    line-height: 1.6;
+}
+
+/* === DROPCAP === */
+.dropcap::first-letter {
+    float: left;
+    font-size: 4rem;
+    line-height: 0.8;
+    margin: 0.1rem 0.5rem 0 0;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+/* === BLOCKQUOTE === */
+.blockquote-modern {
+    position: relative;
+    padding: 1.5rem 2rem;
+    margin: 2rem 0;
+    border-left: 4px solid var(--primary);
+    background: rgba(102, 126, 234, 0.05);
+    border-radius: 0 8px 8px 0;
+}
+
+.blockquote-modern::before {
+    content: '"';
+    position: absolute;
+    top: -10px;
+    left: 10px;
+    font-size: 4rem;
+    color: var(--primary);
+    opacity: 0.2;
+    font-family: Georgia, serif;
+}
+
+.blockquote-modern p {
+    font-size: 1.125rem;
+    font-style: italic;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.blockquote-author {
+    display: block;
+    margin-top: 1rem;
+    font-size: 0.875rem;
+    font-style: normal;
+    color: var(--text-secondary);
+}
+
+.blockquote-author::before {
+    content: '— ';
+}
+
+/* === CODE BLOCKS === */
+.code-inline {
+    padding: 0.2rem 0.5rem;
+    background: rgba(102, 126, 234, 0.1);
+    color: var(--primary);
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875em;
+}
+
+.code-block {
+    padding: 1.5rem;
+    background: #1e1e1e;
+    color: #d4d4d4;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    margin: 1.5rem 0;
+}
+
+.code-block-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: #2d2d2d;
+    border-radius: 8px 8px 0 0;
+    margin-bottom: -1.5rem;
+}
+
+.code-language {
+    font-size: 0.75rem;
+    color: #858585;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* === LISTS === */
+.list-modern {
+    list-style: none;
+    padding: 0;
+}
+
+.list-modern li {
+    position: relative;
+    padding-left: 2rem;
+    margin-bottom: 0.75rem;
+}
+
+.list-modern li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.list-checkmark li::before {
+    content: '✓';
+    color: var(--success);
+}
+
+.list-numbered {
+    counter-reset: list-counter;
+}
+
+.list-numbered li {
+    counter-increment: list-counter;
+}
+
+.list-numbered li::before {
+    content: counter(list-counter);
+    position: absolute;
+    left: 0;
+    width: 24px;
+    height: 24px;
+    background: var(--primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* === BADGES === */
+.text-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    background: rgba(102, 126, 234, 0.1);
+    color: var(--primary);
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.text-badge-success {
+    background: rgba(40, 167, 69, 0.1);
+    color: var(--success);
+}
+
+.text-badge-danger {
+    background: rgba(220, 53, 69, 0.1);
+    color: var(--danger);
+}
+
+.text-badge-warning {
+    background: rgba(255, 193, 7, 0.1);
+    color: #856404;
+}
+
+/* === DIVIDERS === */
+.divider-modern {
+    height: 1px;
+    background: var(--border);
+    margin: 2rem 0;
+    border: none;
+}
+
+.divider-gradient {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--primary), transparent);
+    margin: 2rem 0;
+    border: none;
+}
+
+.divider-text {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 2rem 0;
+}
+
+.divider-text::before,
+.divider-text::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+
+.divider-text span {
+    padding: 0 1rem;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* === TOOLTIPS TEXT === */
+.text-tooltip {
+    position: relative;
+    border-bottom: 1px dotted var(--text-secondary);
+    cursor: help;
+}
+
+.text-tooltip::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+    padding: 0.5rem 0.75rem;
+    background: #333;
+    color: white;
+    font-size: 0.8125rem;
+    border-radius: 4px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.text-tooltip:hover::after {
+    opacity: 1;
+}
+
+/* === RESPONSIVE TYPOGRAPHY === */
+@media (max-width: 768px) {
+    .heading-xl {
+        font-size: 2.5rem;
+    }
+    
+    .heading-lg {
+        font-size: 2rem;
+    }
+    
+    .paragraph-lead {
+        font-size: 1.125rem;
+    }
+    
+    .blockquote-modern {
+        padding: 1rem 1.5rem;
+    }
+    
+    .blockquote-modern p {
+        font-size: 1rem;
+    }
+}
+
+/* === PRINT STYLES === */
+@media print {
+    .text-gradient,
+    .text-gradient-animated {
+        -webkit-text-fill-color: var(--text-primary);
+        color: var(--text-primary);
+    }
+    
+    .text-shadow,
+    .text-shadow-lg,
+    .text-glow {
+        text-shadow: none;
+    }
+}
+
+/* === ACCESSIBILITY === */
+@media (prefers-reduced-motion: reduce) {
+    .text-gradient-animated {
+        animation: none;
+    }
+    
+    .text-underline-animated::after {
+        transition: none;
+    }
+}

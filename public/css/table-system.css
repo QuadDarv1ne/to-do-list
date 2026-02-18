@@ -1,0 +1,508 @@
+/* ============================================
+   ADVANCED TABLE SYSTEM
+   Modern tables with sorting and filtering
+   ============================================ */
+
+/* === BASE TABLE === */
+.table-modern {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--bg-card);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.table-modern thead {
+    background: rgba(102, 126, 234, 0.05);
+}
+
+[data-theme='dark'] .table-modern thead {
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.table-modern th {
+    padding: 1rem;
+    text-align: left;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+}
+
+.table-modern td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-primary);
+    font-size: 0.9375rem;
+}
+
+.table-modern tbody tr {
+    transition: all 0.2s ease;
+}
+
+.table-modern tbody tr:hover {
+    background: rgba(102, 126, 234, 0.03);
+}
+
+[data-theme='dark'] .table-modern tbody tr:hover {
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.table-modern tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* === SORTABLE COLUMNS === */
+.table-sortable th {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    padding-right: 2rem;
+}
+
+.table-sortable th::after {
+    content: '⇅';
+    position: absolute;
+    right: 0.75rem;
+    opacity: 0.3;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.table-sortable th:hover::after {
+    opacity: 0.6;
+}
+
+.table-sortable th.sort-asc::after {
+    content: '↑';
+    opacity: 1;
+    color: var(--primary);
+}
+
+.table-sortable th.sort-desc::after {
+    content: '↓';
+    opacity: 1;
+    color: var(--primary);
+}
+
+/* === STRIPED TABLE === */
+.table-striped tbody tr:nth-child(odd) {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+[data-theme='dark'] .table-striped tbody tr:nth-child(odd) {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* === BORDERED TABLE === */
+.table-bordered {
+    border: 1px solid var(--border);
+}
+
+.table-bordered th,
+.table-bordered td {
+    border-right: 1px solid var(--border);
+}
+
+.table-bordered th:last-child,
+.table-bordered td:last-child {
+    border-right: none;
+}
+
+/* === COMPACT TABLE === */
+.table-compact th,
+.table-compact td {
+    padding: 0.625rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+/* === TABLE WITH ACTIONS === */
+.table-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.table-action-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.table-action-btn:hover {
+    background: rgba(102, 126, 234, 0.1);
+    color: var(--primary);
+}
+
+.table-action-btn.danger:hover {
+    background: rgba(220, 53, 69, 0.1);
+    color: var(--danger);
+}
+
+/* === TABLE STATUS === */
+.table-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+}
+
+.table-status::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.table-status.active {
+    background: rgba(40, 167, 69, 0.1);
+    color: var(--success);
+}
+
+.table-status.active::before {
+    background: var(--success);
+}
+
+.table-status.pending {
+    background: rgba(255, 193, 7, 0.1);
+    color: #856404;
+}
+
+.table-status.pending::before {
+    background: var(--warning);
+}
+
+.table-status.inactive {
+    background: rgba(108, 117, 125, 0.1);
+    color: var(--text-muted);
+}
+
+.table-status.inactive::before {
+    background: var(--text-muted);
+}
+
+/* === TABLE AVATAR === */
+.table-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.table-avatar-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.table-avatar-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.table-avatar-name {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.table-avatar-email {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+}
+
+/* === TABLE CHECKBOX === */
+.table-checkbox {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.table-checkbox:checked {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+/* === TABLE PAGINATION === */
+.table-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.table-pagination-info {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.table-pagination-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.table-pagination-btn {
+    padding: 0.5rem 0.875rem;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.table-pagination-btn:hover:not(:disabled) {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.table-pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.table-pagination-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* === TABLE SEARCH === */
+.table-search-wrapper {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.table-search {
+    position: relative;
+}
+
+.table-search input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 3rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    font-size: 0.9375rem;
+    transition: all 0.2s ease;
+}
+
+.table-search input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.table-search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+}
+
+/* === TABLE FILTERS === */
+.table-filters {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+}
+
+.table-filter-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-primary);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.table-filter-btn:hover {
+    background: rgba(102, 126, 234, 0.1);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.table-filter-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* === EXPANDABLE ROWS === */
+.table-expandable tbody tr {
+    cursor: pointer;
+}
+
+.table-expand-icon {
+    transition: transform 0.3s ease;
+}
+
+.table-expandable tbody tr.expanded .table-expand-icon {
+    transform: rotate(90deg);
+}
+
+.table-expanded-content {
+    display: none;
+    padding: 1rem;
+    background: rgba(102, 126, 234, 0.03);
+}
+
+.table-expandable tbody tr.expanded + tr .table-expanded-content {
+    display: block;
+}
+
+/* === RESPONSIVE TABLE === */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table-responsive::-webkit-scrollbar {
+    height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: var(--bg-card);
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
+/* === MOBILE CARD VIEW === */
+@media (max-width: 768px) {
+    .table-mobile-cards {
+        display: none;
+    }
+    
+    .table-mobile-cards.active {
+        display: block;
+    }
+    
+    .table-mobile-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .table-mobile-card-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--border);
+    }
+    
+    .table-mobile-card-row:last-child {
+        border-bottom: none;
+    }
+    
+    .table-mobile-card-label {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+    }
+    
+    .table-mobile-card-value {
+        font-size: 0.9375rem;
+        color: var(--text-primary);
+        text-align: right;
+    }
+}
+
+/* === TABLE LOADING === */
+.table-loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.table-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 32px;
+    height: 32px;
+    margin: -16px 0 0 -16px;
+    border: 3px solid var(--primary);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: table-spin 0.8s linear infinite;
+}
+
+@keyframes table-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* === TABLE EMPTY STATE === */
+.table-empty {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-secondary);
+}
+
+.table-empty-icon {
+    font-size: 3rem;
+    opacity: 0.3;
+    margin-bottom: 1rem;
+}
+
+.table-empty-text {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.table-empty-subtext {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+/* === ACCESSIBILITY === */
+.table-modern th:focus,
+.table-modern td:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .table-modern tbody tr,
+    .table-action-btn,
+    .table-expand-icon {
+        transition: none;
+    }
+}

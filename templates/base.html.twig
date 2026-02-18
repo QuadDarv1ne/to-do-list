@@ -31,7 +31,13 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
+    <!-- Critical CSS - Inline for instant rendering -->
+    <style>
+        {% include 'inline-critical.css' ignore missing %}
+    </style>
+    
     {% block stylesheets %}
+        <!-- Core styles - Load immediately -->
         <link rel="stylesheet" href="/css/main.css">
         <link rel="stylesheet" href="/css/utilities.css">
         <link rel="stylesheet" href="/css/components.css">
@@ -41,9 +47,28 @@
         <link rel="stylesheet" href="/css/pages.css">
         <link rel="stylesheet" href="/css/modern-interactions.css">
         <link rel="stylesheet" href="/css/micro-animations.css">
-        <link rel="stylesheet" href="/css/gradient-effects.css">
         <link rel="stylesheet" href="/css/responsive-enhancements.css">
         <link rel="stylesheet" href="/css/accessibility.css">
+        <link rel="stylesheet" href="/css/performance-optimizations.css">
+        <link rel="stylesheet" href="/css/footer-enhanced.css">
+        <link rel="stylesheet" href="/css/card-system.css">
+        <link rel="stylesheet" href="/css/button-system.css">
+        <link rel="stylesheet" href="/css/form-system.css">
+        <link rel="stylesheet" href="/css/typography-system.css">
+        <link rel="stylesheet" href="/css/modal-system.css">
+        <link rel="stylesheet" href="/css/table-system.css">
+        <link rel="stylesheet" href="/css/navigation-system.css">
+        <link rel="stylesheet" href="/css/layout-system.css">
+        
+        <!-- Progressive enhancement - Load async -->
+        <link rel="preload" href="/css/gradient-effects.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <link rel="preload" href="/css/advanced-components.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <link rel="preload" href="/css/theme-transitions.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript>
+            <link rel="stylesheet" href="/css/gradient-effects.css">
+            <link rel="stylesheet" href="/css/advanced-components.css">
+            <link rel="stylesheet" href="/css/theme-transitions.css">
+        </noscript>
     {% endblock %}
 </head>
 <body>
@@ -287,9 +312,14 @@
     {% block javascripts %}
         {% block importmap %}{{ importmap('app') }}{% endblock %}
         
-        {# Core utilities - loaded first #}
-        <script src="/js/utils.js"></script>
-        <script src="/js/performance-optimizer.js"></script>
+        {# Critical - Load immediately #}
+        <script src="/js/state-manager.js"></script>
+        <script src="/js/font-loader.js"></script>
+        
+        {# Core utilities #}
+        <script src="/js/utils.js" defer></script>
+        <script src="/js/performance-optimizer.js" defer></script>
+        <script src="/js/css-loader.js" defer></script>
         
         {# Critical functionality #}
         <script src="/js/notification-system.js" defer></script>
@@ -301,6 +331,7 @@
         {# UI Enhancements #}
         <script src="/js/ui-enhancements.js" defer></script>
         <script src="/js/modern-interactions.js" defer></script>
+        <script src="/js/component-manager.js" defer></script>
         <script src="/js/hotkeys.js" defer></script>
         <script src="/js/quick-search.js" defer></script>
         <script src="/js/keyboard-shortcuts.js" defer></script>
@@ -309,11 +340,8 @@
         <script src="/js/lazy-load.js" defer></script>
         <script src="/js/auto-save.js" defer></script>
         <script src="/js/drag-drop-manager.js" defer></script>
-        <script src="/js/breadcrumbs-enhanced.js" defer></script>
-        <script src="/js/task-templates.js" defer></script>
-        <script src="/js/time-tracking.js" defer></script>
-        <script src="/js/quick-notes.js" defer></script>
-        <script src="/js/task-dependencies.js" defer></script>
+        <script src="/js/image-optimizer.js" defer></script>
+        <script src="/js/performance-monitor.js" defer></script>
         <script>
             // Preload important resources
             if ('requestIdleCallback' in window) {
