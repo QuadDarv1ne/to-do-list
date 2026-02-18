@@ -26,10 +26,18 @@ class QuickActionsController extends AbstractController
     public function create(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
+        
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($data)) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Неверный формат данных'
+            ], 400);
+        }
+        
         $user = $this->getUser();
 
         $task = $this->quickActionsService->quickCreateTask(
-            $data['title'],
+            $data['title'] ?? '',
             $user,
             $data['options'] ?? []
         );
