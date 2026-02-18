@@ -2,6 +2,76 @@
 
 {% block title %}Настройки{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .settings-sidebar {
+            position: sticky;
+            top: 20px;
+        }
+        
+        .settings-menu .list-group-item {
+            border: none;
+            border-left: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .settings-menu .list-group-item:hover {
+            background-color: #f8f9fa;
+            border-left-color: #667eea;
+            padding-left: 1.5rem;
+        }
+        
+        .settings-menu .list-group-item.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-left-color: #764ba2;
+        }
+        
+        .settings-menu .list-group-item.active i {
+            color: white;
+        }
+        
+        .theme-card {
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .theme-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+        
+        .theme-card.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+        
+        .form-check-input:checked {
+            background-color: #667eea;
+            border-color: #667eea;
+        }
+        
+        .widget-card {
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 2px solid #e9ecef;
+        }
+        
+        .widget-card:hover {
+            border-color: #667eea;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .widget-card.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+        }
+    </style>
+{% endblock %}
+
 {% block body %}
 <div class="container-fluid mt-4">
     <div class="row">
@@ -73,75 +143,160 @@
 
                 <!-- Dashboard Tab -->
                 <div class="tab-pane fade" id="dashboard">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5>Настройки дашборда</h5>
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white border-0">
+                            <h5 class="mb-0">
+                                <i class="fas fa-th-large me-2 text-primary"></i>
+                                Настройки дашборда
+                            </h5>
                         </div>
                         <div class="card-body">
-                            <p class="text-muted mb-3">Выберите виджеты для отображения на главной странице</p>
+                            <p class="text-muted mb-4">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Выберите виджеты для отображения на главной странице
+                            </p>
                             
                             <div class="row" id="widget-selector">
                                 {% for id, widget in available_widgets %}
                                 <div class="col-md-6 mb-3">
-                                    <div class="form-check">
-                                        <input class="form-check-input widget-checkbox" type="checkbox" 
-                                               value="{{ id }}" id="widget_{{ id }}"
-                                               {% if id in user_widgets %}checked{% endif %}>
-                                        <label class="form-check-label" for="widget_{{ id }}">
-                                            <i class="fas {{ widget.icon }}"></i> {{ widget.name }}
-                                            <br>
-                                            <small class="text-muted">{{ widget.description }}</small>
-                                        </label>
+                                    <div class="card widget-card h-100 {% if id in user_widgets %}selected{% endif %}" 
+                                         data-widget-id="{{ id }}">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-start">
+                                                <div class="form-check me-3">
+                                                    <input class="form-check-input widget-checkbox" 
+                                                           type="checkbox" 
+                                                           value="{{ id }}" 
+                                                           id="widget_{{ id }}"
+                                                           {% if id in user_widgets %}checked{% endif %}>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <label class="form-check-label w-100" for="widget_{{ id }}" style="cursor: pointer;">
+                                                        <div class="d-flex align-items-center mb-2">
+                                                            <i class="fas {{ widget.icon }} fa-2x text-primary me-3"></i>
+                                                            <h6 class="mb-0">{{ widget.name }}</h6>
+                                                        </div>
+                                                        <small class="text-muted">{{ widget.description }}</small>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 {% endfor %}
                             </div>
                             
-                            <button type="button" class="btn btn-primary" id="save-widgets">
-                                <i class="fas fa-save"></i> Сохранить настройки
-                            </button>
+                            <div class="d-flex justify-content-end mt-4">
+                                <button type="button" class="btn btn-primary btn-lg" id="save-widgets">
+                                    <i class="fas fa-save me-2"></i>Сохранить настройки
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Notifications Tab -->
                 <div class="tab-pane fade" id="notifications">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5>Настройки уведомлений</h5>
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white border-0">
+                            <h5 class="mb-0">
+                                <i class="fas fa-bell me-2 text-warning"></i>
+                                Настройки уведомлений
+                            </h5>
                         </div>
                         <div class="card-body">
-                            <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" id="email_notifications" checked>
-                                <label class="form-check-label" for="email_notifications">
-                                    Email уведомления
-                                </label>
+                            <p class="text-muted mb-4">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Управляйте способами получения уведомлений
+                            </p>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-4">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <i class="fas fa-envelope fa-2x text-primary me-3"></i>
+                                                <div>
+                                                    <h6 class="mb-0">Email уведомления</h6>
+                                                    <small class="text-muted">Получать письма на почту</small>
+                                                </div>
+                                            </div>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="email_notifications" checked>
+                                                <label class="form-check-label" for="email_notifications">
+                                                    Включено
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-4">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <i class="fas fa-mobile-alt fa-2x text-success me-3"></i>
+                                                <div>
+                                                    <h6 class="mb-0">Push уведомления</h6>
+                                                    <small class="text-muted">Уведомления в браузере</small>
+                                                </div>
+                                            </div>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="push_notifications" checked>
+                                                <label class="form-check-label" for="push_notifications">
+                                                    Включено
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-4">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <i class="fas fa-clock fa-2x text-danger me-3"></i>
+                                                <div>
+                                                    <h6 class="mb-0">Напоминания о дедлайнах</h6>
+                                                    <small class="text-muted">За день до срока</small>
+                                                </div>
+                                            </div>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="deadline_reminders" checked>
+                                                <label class="form-check-label" for="deadline_reminders">
+                                                    Включено
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-4">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <i class="fas fa-tasks fa-2x text-info me-3"></i>
+                                                <div>
+                                                    <h6 class="mb-0">Назначение задач</h6>
+                                                    <small class="text-muted">Новые задачи для вас</small>
+                                                </div>
+                                            </div>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="task_assignments" checked>
+                                                <label class="form-check-label" for="task_assignments">
+                                                    Включено
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             
-                            <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" id="push_notifications" checked>
-                                <label class="form-check-label" for="push_notifications">
-                                    Push уведомления
-                                </label>
+                            <div class="d-flex justify-content-end mt-4">
+                                <button type="button" class="btn btn-primary btn-lg" id="save-notifications">
+                                    <i class="fas fa-save me-2"></i>Сохранить настройки
+                                </button>
                             </div>
-                            
-                            <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" id="deadline_reminders" checked>
-                                <label class="form-check-label" for="deadline_reminders">
-                                    Напоминания о дедлайнах
-                                </label>
-                            </div>
-                            
-                            <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" id="task_assignments" checked>
-                                <label class="form-check-label" for="task_assignments">
-                                    Уведомления о назначении задач
-                                </label>
-                            </div>
-                            
-                            <button type="button" class="btn btn-primary" id="save-notifications">
-                                <i class="fas fa-save"></i> Сохранить настройки
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -207,8 +362,27 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Save widgets
+    // Widget card click handling
+    document.querySelectorAll('.widget-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            if (e.target.type !== 'checkbox') {
+                const checkbox = this.querySelector('.widget-checkbox');
+                checkbox.checked = !checkbox.checked;
+                this.classList.toggle('selected', checkbox.checked);
+            } else {
+                this.classList.toggle('selected', e.target.checked);
+            }
+        });
+    });
+    
+    // Save widgets with animation
     document.getElementById('save-widgets')?.addEventListener('click', function() {
+        const button = this;
+        const originalText = button.innerHTML;
+        
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Сохранение...';
+        
         const widgets = Array.from(document.querySelectorAll('.widget-checkbox:checked'))
             .map(cb => cb.value);
         
@@ -219,12 +393,38 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(r => r.json())
         .then(data => {
-            alert(data.message);
+            button.innerHTML = '<i class="fas fa-check me-2"></i>Сохранено!';
+            button.classList.remove('btn-primary');
+            button.classList.add('btn-success');
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.classList.remove('btn-success');
+                button.classList.add('btn-primary');
+                button.disabled = false;
+            }, 2000);
+        })
+        .catch(error => {
+            button.innerHTML = '<i class="fas fa-times me-2"></i>Ошибка';
+            button.classList.add('btn-danger');
+            button.disabled = false;
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.classList.remove('btn-danger');
+                button.classList.add('btn-primary');
+            }, 2000);
         });
     });
     
-    // Save notifications
+    // Save notifications with animation
     document.getElementById('save-notifications')?.addEventListener('click', function() {
+        const button = this;
+        const originalText = button.innerHTML;
+        
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Сохранение...';
+        
         const preferences = {
             email_notifications: document.getElementById('email_notifications').checked,
             push_notifications: document.getElementById('push_notifications').checked,
@@ -239,14 +439,38 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(r => r.json())
         .then(data => {
-            alert(data.message);
+            button.innerHTML = '<i class="fas fa-check me-2"></i>Сохранено!';
+            button.classList.remove('btn-primary');
+            button.classList.add('btn-success');
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.classList.remove('btn-success');
+                button.classList.add('btn-primary');
+                button.disabled = false;
+            }, 2000);
+        })
+        .catch(error => {
+            button.innerHTML = '<i class="fas fa-times me-2"></i>Ошибка';
+            button.classList.add('btn-danger');
+            button.disabled = false;
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.classList.remove('btn-danger');
+                button.classList.add('btn-primary');
+            }, 2000);
         });
     });
     
-    // Theme selection
+    // Theme selection with animation
     document.querySelectorAll('.theme-card').forEach(card => {
         card.addEventListener('click', function() {
             const theme = this.dataset.theme;
+            
+            // Remove selected class from all cards
+            document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
             
             fetch('{{ path('app_settings_theme') }}', {
                 method: 'POST',
@@ -256,7 +480,25 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(r => r.json())
             .then(data => {
                 document.body.classList.toggle('dark-theme', theme === 'dark');
-                alert('Тема изменена на: ' + (theme === 'dark' ? 'Темная' : 'Светлая'));
+                
+                // Show success toast
+                const toast = document.createElement('div');
+                toast.className = 'alert alert-success position-fixed top-0 end-0 m-3';
+                toast.style.zIndex = '9999';
+                toast.innerHTML = `<i class="fas fa-check-circle me-2"></i>Тема изменена на: ${theme === 'dark' ? 'Темная' : 'Светлая'}`;
+                document.body.appendChild(toast);
+                
+                setTimeout(() => toast.remove(), 3000);
+            });
+        });
+    });
+    
+    // Add smooth scroll to tabs
+    document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
             });
         });
     });

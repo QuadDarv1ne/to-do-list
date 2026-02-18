@@ -8,20 +8,33 @@
     <style>
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
         }
         
         .login-card {
             background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             width: 100%;
             max-width: 450px;
             overflow: hidden;
+            animation: slideUp 0.5s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
         .login-header {
@@ -29,18 +42,40 @@
             color: white;
             padding: 2.5rem;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .login-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 3s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
         }
         
         .login-logo {
-            font-size: 2.2rem;
+            font-size: 2.5rem;
             font-weight: 700;
             margin-bottom: 0.5rem;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
+            position: relative;
+            z-index: 1;
         }
         
         .login-subtitle {
-            opacity: 0.9;
+            opacity: 0.95;
             font-size: 1rem;
+            position: relative;
+            z-index: 1;
         }
         
         .login-body {
@@ -51,36 +86,82 @@
             font-weight: 600;
             color: #2c3e50;
             margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .input-group-custom {
+            position: relative;
+            margin-bottom: 1.5rem;
         }
         
         .form-control {
             border: 2px solid #e9ecef;
-            border-radius: 10px;
-            padding: 12px 18px;
+            border-radius: 12px;
+            padding: 14px 18px;
             font-size: 1rem;
             transition: all 0.3s;
         }
         
         .form-control:focus {
             border-color: #3498db;
-            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+            box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #6c757d;
+            transition: color 0.3s;
+        }
+        
+        .password-toggle:hover {
+            color: #3498db;
         }
         
         .btn-login {
             background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
             border: none;
             color: white;
-            padding: 14px;
-            border-radius: 10px;
+            padding: 16px;
+            border-radius: 12px;
             font-weight: 600;
-            font-size: 1rem;
+            font-size: 1.05rem;
             width: 100%;
-            transition: transform 0.3s, box-shadow 0.3s;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-login::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .btn-login:hover::before {
+            width: 300px;
+            height: 300px;
         }
         
         .btn-login:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(52, 152, 219, 0.4);
+        }
+        
+        .btn-login:active {
+            transform: translateY(-1px);
         }
         
         .login-footer {
@@ -91,20 +172,62 @@
         }
         
         .alert-danger {
-            background-color: #f8d7da;
-            border-color: #f5c6cb;
-            color: #721c24;
-            border-radius: 10px;
-            padding: 12px;
+            background-color: #fee;
+            border: 2px solid #fcc;
+            color: #c33;
+            border-radius: 12px;
+            padding: 14px;
+            animation: shake 0.5s;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
         }
         
         .session-expired {
             background-color: #fff3cd;
-            border-color: #ffeaa7;
+            border: 2px solid #ffc107;
             color: #856404;
-            border-radius: 10px;
-            padding: 12px;
+            border-radius: 12px;
+            padding: 14px;
             margin-bottom: 1.5rem;
+            animation: slideDown 0.5s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .form-check-input:checked {
+            background-color: #3498db;
+            border-color: #3498db;
+        }
+        
+        a {
+            color: #3498db;
+            transition: color 0.3s;
+        }
+        
+        a:hover {
+            color: #2c3e50;
+        }
+        
+        .loading-spinner {
+            display: none;
+            margin-left: 10px;
+        }
+        
+        .btn-login.loading .loading-spinner {
+            display: inline-block;
         }
     </style>
 {% endblock %}
@@ -112,7 +235,9 @@
 {% block body %}
 <div class="login-card">
     <div class="login-header">
-        <div class="login-logo">CRM система</div>
+        <div class="login-logo">
+            <i class="fas fa-chart-line me-2"></i>CRM система
+        </div>
         <div class="login-subtitle">Анализ продаж ООО «Дальневосточный фермер»</div>
     </div>
     
@@ -131,10 +256,10 @@
             </div>
         {% endif %}
         
-        <form method="post" action="{{ path('app_login') }}">
+        <form method="post" action="{{ path('app_login') }}" id="loginForm">
             <div class="mb-4">
                 <label for="inputEmail" class="form-label">
-                    <i class="fas fa-envelope me-2"></i>Введите логин (Email)
+                    <i class="fas fa-envelope me-2"></i>Email
                 </label>
                 <input type="email" 
                        value="{{ last_username }}" 
@@ -149,15 +274,18 @@
             
             <div class="mb-4">
                 <label for="inputPassword" class="form-label">
-                    <i class="fas fa-lock me-2"></i>Введите пароль
+                    <i class="fas fa-lock me-2"></i>Пароль
                 </label>
-                <input type="password" 
-                       name="password" 
-                       id="inputPassword" 
-                       class="form-control" 
-                       placeholder="Ваш пароль"
-                       autocomplete="current-password"
-                       required>
+                <div class="input-group-custom">
+                    <input type="password" 
+                           name="password" 
+                           id="inputPassword" 
+                           class="form-control" 
+                           placeholder="Введите пароль"
+                           autocomplete="current-password"
+                           required>
+                    <i class="fas fa-eye password-toggle" id="togglePassword"></i>
+                </div>
             </div>
             
             <div class="mb-4 d-flex justify-content-between align-items-center">
@@ -174,19 +302,22 @@
             
             <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
             
-            <button type="submit" class="btn btn-login mb-4">
-                <i class="fas fa-sign-in-alt me-2"></i>Войти в кабинет
+            <button type="submit" class="btn btn-login mb-4" id="loginBtn">
+                <span class="btn-text">
+                    <i class="fas fa-sign-in-alt me-2"></i>Войти в систему
+                </span>
+                <span class="loading-spinner">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </span>
             </button>
         </form>
         
         <div class="login-footer">
-            <p class="text-muted mb-2">
+            <p class="text-muted mb-3">
                 <i class="fas fa-info-circle me-2"></i>
-                Для доступа к системе требуется авторизация
-            </p>
-            <p class="text-center mb-3">
-                <a href="{{ path('app_register') }}" class="text-decoration-none">
-                    <i class="fas fa-user-plus me-1"></i>Регистрация
+                Нет аккаунта? 
+                <a href="{{ path('app_register') }}" class="text-decoration-none fw-bold">
+                    Зарегистрироваться
                 </a>
             </p>
             <small class="text-muted">
@@ -195,4 +326,38 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Password toggle
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('inputPassword');
+    
+    if (togglePassword && passwordInput) {
+        togglePassword.addEventListener('click', function() {
+            const type = passwordInput.type === 'password' ? 'text' : 'password';
+            passwordInput.type = type;
+            this.classList.toggle('fa-eye');
+            this.classList.toggle('fa-eye-slash');
+        });
+    }
+    
+    // Form submission with loading state
+    const loginForm = document.getElementById('loginForm');
+    const loginBtn = document.getElementById('loginBtn');
+    
+    if (loginForm && loginBtn) {
+        loginForm.addEventListener('submit', function() {
+            loginBtn.classList.add('loading');
+            loginBtn.disabled = true;
+        });
+    }
+    
+    // Auto-focus on email input
+    const emailInput = document.getElementById('inputEmail');
+    if (emailInput && !emailInput.value) {
+        emailInput.focus();
+    }
+});
+</script>
 {% endblock %}

@@ -34,6 +34,46 @@
     {% block stylesheets %}
         <link rel="preload" href="{{ asset('styles/app.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
         <noscript><link rel="stylesheet" href="{{ asset('styles/app.css') }}"></noscript>
+        <style>
+            .user-avatar-small {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 600;
+                font-size: 0.75rem;
+                text-transform: uppercase;
+            }
+            
+            .dropdown-menu {
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                border: none;
+                border-radius: 8px;
+            }
+            
+            .dropdown-item {
+                padding: 0.6rem 1.2rem;
+                transition: all 0.2s;
+            }
+            
+            .dropdown-item:hover {
+                background-color: #f8f9fa;
+                padding-left: 1.5rem;
+            }
+            
+            .dropdown-item i {
+                width: 20px;
+                text-align: center;
+            }
+            
+            .dropdown-header {
+                padding: 0.8rem 1.2rem;
+            }
+        </style>
     {% endblock %}
 </head>
 <body>
@@ -71,17 +111,86 @@
                 
                 {% if app.user %}
                 <ul class="navbar-nav">
-                    <!-- User Dropdown -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" 
+                    <!-- Notifications -->
+                    <li class="nav-item dropdown me-2">
+                        <a class="nav-link position-relative" 
                            href="#" 
                            role="button" 
-                           data-bs-toggle="dropdown">
-                            {{ app.user.fullName }}
+                           data-bs-toggle="dropdown"
+                           aria-expanded="false">
+                            <i class="fas fa-bell"></i>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
+                                3
+                            </span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" style="min-width: 300px;">
+                            <li>
+                                <h6 class="dropdown-header">Уведомления</h6>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="#">
+                                    <div class="d-flex">
+                                        <div class="flex-shrink-0">
+                                            <i class="fas fa-info-circle text-info"></i>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <div class="small">Новая задача назначена</div>
+                                            <div class="text-muted" style="font-size: 0.75rem;">5 минут назад</div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-center small" href="{{ path('app_notification_index') }}">
+                                    Все уведомления
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    <!-- User Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" 
+                           href="#" 
+                           role="button" 
+                           data-bs-toggle="dropdown"
+                           aria-expanded="false">
+                            <div class="user-avatar-small me-2">
+                                {{ app.user.firstName|first }}{{ app.user.lastName|first }}
+                            </div>
+                            <span class="d-none d-md-inline">{{ app.user.fullName }}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{{ path('app_profile_show') }}">Профиль</a></li>
-                            <li><a class="dropdown-item" href="{{ path('app_logout') }}">Выход</a></li>
+                            <li>
+                                <div class="dropdown-header">
+                                    <strong>{{ app.user.fullName }}</strong>
+                                    <div class="small text-muted">{{ app.user.email }}</div>
+                                </div>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="{{ path('app_profile_show') }}">
+                                    <i class="fas fa-user me-2"></i>Мой профиль
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ path('app_settings') }}">
+                                    <i class="fas fa-cog me-2"></i>Настройки
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ path('app_2fa_setup') }}">
+                                    <i class="fas fa-shield-alt me-2"></i>Безопасность
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Выход
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 </ul>
@@ -1103,5 +1212,81 @@
             © {{ "now"|date("Y") }} ООО «Дальневосточный фермер». Все права защищены.
         </div>
     </footer>
+    
+    <!-- Logout Confirmation Modal -->
+    {% if app.user %}
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="logoutModalLabel">
+                        <i class="fas fa-sign-out-alt me-2 text-danger"></i>Выход из системы
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <div class="mb-3">
+                        <i class="fas fa-question-circle fa-3x text-warning"></i>
+                    </div>
+                    <h6 class="mb-3">Вы уверены, что хотите выйти?</h6>
+                    <p class="text-muted mb-0">
+                        Вы сможете войти снова, используя свои учетные данные
+                    </p>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Отмена
+                    </button>
+                    <a href="{{ path('app_logout') }}" class="btn btn-danger">
+                        <i class="fas fa-sign-out-alt me-2"></i>Да, выйти
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <script>
+        // Enhanced dropdown menu behavior
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add smooth animations to dropdowns
+            const dropdowns = document.querySelectorAll('.dropdown-toggle');
+            dropdowns.forEach(dropdown => {
+                dropdown.addEventListener('show.bs.dropdown', function() {
+                    const menu = this.nextElementSibling;
+                    if (menu && menu.classList.contains('dropdown-menu')) {
+                        menu.style.animation = 'slideDown 0.3s ease-out';
+                    }
+                });
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.dropdown')) {
+                    const openDropdowns = document.querySelectorAll('.dropdown-menu.show');
+                    openDropdowns.forEach(menu => {
+                        const dropdown = bootstrap.Dropdown.getInstance(menu.previousElementSibling);
+                        if (dropdown) dropdown.hide();
+                    });
+                }
+            });
+        });
+        
+        // Add CSS animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideDown {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
 </body>
 </html>

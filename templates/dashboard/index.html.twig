@@ -14,12 +14,37 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h2 class="mb-1">{{ app.user.firstName }}</h2>
+                    <h2 class="mb-1">Привет, {{ app.user.firstName }}!</h2>
                     <p class="text-muted mb-0">{{ "now"|date("d.m.Y") }}</p>
                 </div>
-                <a href="{{ path('app_task_new') }}" class="btn btn-primary">
-                    <i class="fas fa-plus me-2"></i>Новая сделка
-                </a>
+                <div class="d-flex gap-2">
+                    <a href="{{ path('app_task_new') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Новая задача
+                    </a>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-circle me-2"></i>{{ app.user.fullName }}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item" href="{{ path('app_profile_show') }}">
+                                    <i class="fas fa-user me-2"></i>Мой профиль
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ path('app_settings') }}">
+                                    <i class="fas fa-cog me-2"></i>Настройки
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Выйти из аккаунта
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
