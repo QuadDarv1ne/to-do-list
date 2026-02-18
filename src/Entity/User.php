@@ -424,7 +424,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
     // Google Authenticator Interface methods
     public function isGoogleAuthenticatorEnabled(): bool
     {
-        return $this->isTotpEnabled;
+        return $this->isTotpEnabled && $this->totpSecret !== null;
     }
 
     public function getGoogleAuthenticatorUsername(): string
@@ -434,7 +434,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
 
     public function getGoogleAuthenticatorSecret(): ?string
     {
-        return $this->totpSecret;
+        // Return temp secret during setup, or main secret if enabled
+        if ($this->totpSecretTemp !== null) {
+            return $this->totpSecretTemp;
+        }
+        
+        return $this->isTotpEnabled ? $this->totpSecret : null;
     }
 
     /**

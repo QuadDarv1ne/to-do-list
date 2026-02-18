@@ -2,81 +2,307 @@
 
 {% block title %}Поиск{% endblock %}
 
-{% block body %}
-<div class="container mt-4">
-    <h1><i class="fas fa-search"></i> Поиск</h1>
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.search-container {
+    animation: fadeInUp 0.6s ease-out;
+}
 
-    <!-- Search Form -->
-    <form action="{{ path('app_search') }}" method="get" class="mb-4">
-        <div class="input-group input-group-lg">
-            <input type="text" 
-                   name="q" 
-                   class="form-control" 
-                   placeholder="Поиск задач, комментариев, пользователей..."
-                   value="{{ query }}"
-                   autofocus>
-            <button class="btn btn-primary" type="submit">
-                <i class="fas fa-search"></i> Искать
-            </button>
-            <a href="{{ path('app_search_advanced') }}" class="btn btn-outline-secondary">
-                <i class="fas fa-sliders-h"></i> Расширенный поиск
-            </a>
-        </div>
-    </form>
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.search-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 3rem 2rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.search-box {
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.search-input {
+    border-radius: 50px;
+    padding: 1.25rem 3rem 1.25rem 3.5rem;
+    border: none;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    font-size: 1.125rem;
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    box-shadow: 0 15px 50px rgba(0,0,0,0.2);
+    transform: translateY(-2px);
+}
+
+.search-icon {
+    position: absolute;
+    left: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    font-size: 1.25rem;
+}
+
+.search-btn {
+    border-radius: 50px;
+    padding: 1.25rem 2.5rem;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    transition: all 0.3s ease;
+}
+
+.search-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.filter-sidebar {
+    position: sticky;
+    top: 20px;
+}
+
+.filter-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+.filter-item {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.filter-item:hover {
+    background: #f8f9fa;
+    transform: translateX(4px);
+}
+
+.filter-item.active {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    border-left: 3px solid #667eea;
+}
+
+.result-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+    animation: slideIn 0.5s ease-out backwards;
+}
+
+.result-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.result-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.result-icon.task {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.result-icon.comment {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+}
+
+.result-icon.user {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+}
+
+.highlight {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.3) 0%, rgba(255, 152, 0, 0.3) 100%);
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: 600;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 5rem 2rem;
+}
+
+.empty-state i {
+    font-size: 5rem;
+    color: #dee2e6;
+    margin-bottom: 2rem;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-20px);
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container py-4 search-container">
+    <div class="search-header">
+        <h1 class="mb-3">
+            <i class="fas fa-search me-2"></i>
+            Поиск по системе
+        </h1>
+        <p class="mb-4 opacity-75">Найдите задачи, комментарии и пользователей</p>
+        
+        <!-- Search Form -->
+        <form action="{{ path('app_search') }}" method="get">
+            <div class="search-box">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" 
+                       name="q" 
+                       class="form-control search-input" 
+                       placeholder="Введите запрос для поиска..."
+                       value="{{ query }}"
+                       autofocus>
+            </div>
+            <div class="mt-3 d-flex gap-2 justify-content-center">
+                <button class="btn btn-light search-btn" type="submit">
+                    <i class="fas fa-search me-2"></i>Искать
+                </button>
+            </div>
+        </form>
+    </div>
 
     {% if query %}
         <!-- Results -->
         <div class="row">
-            <div class="col-md-3">
-                <div class="card">
-                    <div class="card-header">
-                        <h6>Фильтры</h6>
+            <div class="col-lg-3">
+                <div class="filter-card filter-sidebar">
+                    <div class="card-header bg-white border-0">
+                        <h6 class="mb-0">
+                            <i class="fas fa-filter me-2"></i>
+                            Фильтры
+                        </h6>
                     </div>
-                    <div class="list-group list-group-flush">
-                        <a href="#tasks" class="list-group-item list-group-item-action">
-                            <i class="fas fa-tasks"></i> Задачи
-                            <span class="badge bg-primary float-end">{{ results.tasks|length }}</span>
-                        </a>
-                        <a href="#comments" class="list-group-item list-group-item-action">
-                            <i class="fas fa-comments"></i> Комментарии
-                            <span class="badge bg-primary float-end">{{ results.comments|length }}</span>
-                        </a>
-                        <a href="#users" class="list-group-item list-group-item-action">
-                            <i class="fas fa-users"></i> Пользователи
-                            <span class="badge bg-primary float-end">{{ results.users|length }}</span>
-                        </a>
+                    <div class="card-body">
+                        <div class="filter-item active" data-filter="all">
+                            <span><i class="fas fa-list me-2"></i>Все результаты</span>
+                            <span class="badge bg-primary">{{ results.total }}</span>
+                        </div>
+                        <div class="filter-item" data-filter="tasks">
+                            <span><i class="fas fa-tasks me-2"></i>Задачи</span>
+                            <span class="badge bg-secondary">{{ results.tasks|length }}</span>
+                        </div>
+                        <div class="filter-item" data-filter="comments">
+                            <span><i class="fas fa-comments me-2"></i>Комментарии</span>
+                            <span class="badge bg-secondary">{{ results.comments|length }}</span>
+                        </div>
+                        <div class="filter-item" data-filter="users">
+                            <span><i class="fas fa-users me-2"></i>Пользователи</span>
+                            <span class="badge bg-secondary">{{ results.users|length }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-9">
+            <div class="col-lg-9">
                 {% if results.total == 0 %}
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i>
-                        Ничего не найдено по запросу "{{ query }}"
+                    <div class="card border-0 shadow-sm">
+                        <div class="empty-state">
+                            <i class="fas fa-search-minus"></i>
+                            <h3 class="mb-3">Ничего не найдено</h3>
+                            <p class="text-muted mb-4">По запросу "{{ query }}" результатов не найдено</p>
+                            <div class="d-flex gap-2 justify-content-center">
+                                <a href="{{ path('app_search') }}" class="btn btn-primary">
+                                    <i class="fas fa-search me-2"></i>Новый поиск
+                                </a>
+                                <a href="{{ path('app_dashboard') }}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-home me-2"></i>На главную
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 {% else %}
-                    <p class="text-muted">Найдено результатов: {{ results.total }}</p>
+                    <div class="mb-3">
+                        <h5 class="text-muted">
+                            Найдено результатов: <strong>{{ results.total }}</strong>
+                        </h5>
+                    </div>
 
                     <!-- Tasks -->
                     {% if results.tasks is not empty %}
-                        <h3 id="tasks" class="mt-4">Задачи</h3>
-                        <div class="list-group mb-4">
+                        <div class="results-section" data-section="tasks">
+                            <h4 class="mb-3">
+                                <i class="fas fa-tasks me-2 text-primary"></i>
+                                Задачи
+                            </h4>
                             {% for task in results.tasks %}
                                 <a href="{{ path('app_task_show', {id: task.id}) }}" 
-                                   class="list-group-item list-group-item-action">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <h5 class="mb-1">{{ task.title }}</h5>
-                                            <p class="mb-1 text-muted">{{ task.description|slice(0, 150) }}...</p>
-                                            <small>
-                                                <span class="badge bg-{{ task.priority == 'urgent' ? 'danger' : 'info' }}">
-                                                    {{ task.priority }}
-                                                </span>
-                                                <span class="badge bg-secondary">{{ task.status }}</span>
-                                            </small>
+                                   class="text-decoration-none">
+                                    <div class="card result-card" style="animation-delay: {{ loop.index * 0.1 }}s">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-start gap-3">
+                                                <div class="result-icon task">
+                                                    <i class="fas fa-tasks"></i>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <h5 class="mb-2">{{ task.title|raw }}</h5>
+                                                    <p class="text-muted mb-2">
+                                                        {{ task.description|striptags|slice(0, 150) }}...
+                                                    </p>
+                                                    <div class="d-flex gap-2 flex-wrap">
+                                                        <span class="badge bg-{{ task.priority == 'high' ? 'danger' : (task.priority == 'medium' ? 'warning' : 'success') }}">
+                                                            {{ task.priority == 'high' ? 'Высокий' : (task.priority == 'medium' ? 'Средний' : 'Низкий') }}
+                                                        </span>
+                                                        <span class="badge bg-{{ task.status == 'completed' ? 'success' : (task.status == 'in_progress' ? 'info' : 'secondary') }}">
+                                                            {{ task.status|trans }}
+                                                        </span>
+                                                        <span class="badge bg-light text-dark">
+                                                            <i class="fas fa-calendar me-1"></i>
+                                                            {{ task.createdAt|date('d.m.Y') }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <small class="text-muted">{{ task.createdAt|date('d.m.Y') }}</small>
                                     </div>
                                 </a>
                             {% endfor %}
@@ -85,19 +311,35 @@
 
                     <!-- Comments -->
                     {% if results.comments is not empty %}
-                        <h3 id="comments" class="mt-4">Комментарии</h3>
-                        <div class="list-group mb-4">
+                        <div class="results-section mt-4" data-section="comments">
+                            <h4 class="mb-3">
+                                <i class="fas fa-comments me-2 text-info"></i>
+                                Комментарии
+                            </h4>
                             {% for comment in results.comments %}
                                 <a href="{{ path('app_task_show', {id: comment.task.id}) }}#comment-{{ comment.id }}" 
-                                   class="list-group-item list-group-item-action">
-                                    <div class="d-flex justify-content-between">
-                                        <div>
-                                            <p class="mb-1">{{ comment.content|slice(0, 200) }}...</p>
-                                            <small class="text-muted">
-                                                в задаче: {{ comment.task.title }}
-                                            </small>
+                                   class="text-decoration-none">
+                                    <div class="card result-card" style="animation-delay: {{ loop.index * 0.1 }}s">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-start gap-3">
+                                                <div class="result-icon comment">
+                                                    <i class="fas fa-comment"></i>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <p class="mb-2">{{ comment.content|striptags|slice(0, 200) }}...</p>
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-tasks me-1"></i>
+                                                        в задаче: <strong>{{ comment.task.title }}</strong>
+                                                    </small>
+                                                    <div class="mt-2">
+                                                        <span class="badge bg-light text-dark">
+                                                            <i class="fas fa-calendar me-1"></i>
+                                                            {{ comment.createdAt|date('d.m.Y H:i') }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <small class="text-muted">{{ comment.createdAt|date('d.m.Y') }}</small>
                                     </div>
                                 </a>
                             {% endfor %}
@@ -106,18 +348,26 @@
 
                     <!-- Users -->
                     {% if results.users is not empty %}
-                        <h3 id="users" class="mt-4">Пользователи</h3>
-                        <div class="list-group mb-4">
+                        <div class="results-section mt-4" data-section="users">
+                            <h4 class="mb-3">
+                                <i class="fas fa-users me-2 text-success"></i>
+                                Пользователи
+                            </h4>
                             {% for user in results.users %}
-                                <div class="list-group-item">
-                                    <div class="d-flex align-items-center">
-                                        <img src="{{ user.avatarUrl }}" 
-                                             alt="{{ user.fullName }}" 
-                                             class="rounded-circle me-3"
-                                             style="width: 48px; height: 48px;">
-                                        <div>
-                                            <h6 class="mb-0">{{ user.fullName }}</h6>
-                                            <small class="text-muted">@{{ user.username }} • {{ user.email }}</small>
+                                <div class="card result-card" style="animation-delay: {{ loop.index * 0.1 }}s">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="result-icon user">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1">{{ user.fullName }}</h6>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-at me-1"></i>{{ user.username }}
+                                                    <span class="mx-2">•</span>
+                                                    <i class="fas fa-envelope me-1"></i>{{ user.email }}
+                                                </small>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -129,4 +379,37 @@
         </div>
     {% endif %}
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Filter functionality
+    const filterItems = document.querySelectorAll('.filter-item');
+    const resultsSections = document.querySelectorAll('.results-section');
+    
+    filterItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const filter = this.dataset.filter;
+            
+            // Update active state
+            filterItems.forEach(f => f.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Show/hide sections
+            if (filter === 'all') {
+                resultsSections.forEach(section => {
+                    section.style.display = '';
+                });
+            } else {
+                resultsSections.forEach(section => {
+                    if (section.dataset.section === filter) {
+                        section.style.display = '';
+                    } else {
+                        section.style.display = 'none';
+                    }
+                });
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

@@ -25,7 +25,7 @@ class QueryCacheService
     /**
      * Cache a query result
      */
-    public function cacheQuery(string $key, callable $queryCallback, int $ttl = null): mixed
+    public function cacheQuery(string $key, callable $queryCallback, ?int $ttl = null): mixed
     {
         $ttl = $ttl ?? $this->defaultTtl;
         
@@ -53,7 +53,7 @@ class QueryCacheService
     /**
      * Cache with tags for easier invalidation
      */
-    public function cacheWithTags(string $key, array $tags, callable $queryCallback, int $ttl = null): mixed
+    public function cacheWithTags(string $key, array $tags, callable $queryCallback, ?int $ttl = null): mixed
     {
         return $this->cacheQuery($key, $queryCallback, $ttl);
     }
@@ -83,7 +83,7 @@ class QueryCacheService
     /**
      * Cache with automatic key generation based on parameters
      */
-    public function cacheWithAutoKey(string $prefix, array $parameters, callable $queryCallback, int $ttl = null): mixed
+    public function cacheWithAutoKey(string $prefix, array $parameters, callable $queryCallback, ?int $ttl = null): mixed
     {
         $key = $prefix . '_' . md5(serialize($parameters));
         return $this->cacheQuery($key, $queryCallback, $ttl);

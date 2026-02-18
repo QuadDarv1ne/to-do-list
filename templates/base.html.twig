@@ -34,6 +34,9 @@
     {% block stylesheets %}
         <link rel="preload" href="{{ asset('styles/app.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
         <noscript><link rel="stylesheet" href="{{ asset('styles/app.css') }}"></noscript>
+        <link rel="stylesheet" href="/css/global-enhancements.css">
+        <link rel="stylesheet" href="/css/page-transitions.css">
+        <link rel="stylesheet" href="/css/button-enhancements.css">
         <style>
             .user-avatar-small {
                 width: 32px;
@@ -96,22 +99,66 @@
                             <a class="nav-link" href="{{ path('app_dashboard') }}">Панель</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_task_index') }}">Задачи</a>
+                            <a class="nav-link" href="{{ path('app_task_index') }}">
+                                <i class="fas fa-tasks me-1"></i>Задачи
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_deals_index') }}">Сделки</a>
+                            <a class="nav-link" href="{{ path('app_kanban_board') }}">
+                                <i class="fas fa-columns me-1"></i>Канбан
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_clients_index') }}">Клиенты</a>
+                            <a class="nav-link" href="{{ path('app_calendar') }}">
+                                <i class="fas fa-calendar me-1"></i>Календарь
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-briefcase me-1"></i>CRM
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ path('app_deals_index') }}">
+                                    <i class="fas fa-handshake me-2"></i>Сделки
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ path('app_clients_index') }}">
+                                    <i class="fas fa-users me-2"></i>Клиенты
+                                </a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-chart-line me-1"></i>Аналитика
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ path('app_analytics_dashboard') }}">
+                                    <i class="fas fa-chart-pie me-2"></i>Дашборд
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ path('app_advanced_analytics') }}">
+                                    <i class="fas fa-chart-area me-2"></i>Расширенная
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ path('app_sales_analytics') }}">
+                                    <i class="fas fa-dollar-sign me-2"></i>Продажи
+                                </a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-bullseye me-1"></i>Цели
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ path('app_goals_index') }}">
+                                    <i class="fas fa-flag me-2"></i>Мои цели
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ path('app_habits_index') }}">
+                                    <i class="fas fa-check-double me-2"></i>Привычки
+                                </a></li>
+                            </ul>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_goals_index') }}">Цели</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_habits_index') }}">Привычки</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_task_category_index') }}">Категории</a>
+                            <a class="nav-link" href="{{ path('app_task_category_index') }}">
+                                <i class="fas fa-folder me-1"></i>Категории
+                            </a>
                         </li>
                         {% if app.user.hasRole('ROLE_ADMIN') %}
                             <li class="nav-item">
@@ -262,6 +309,10 @@
     
     {% block javascripts %}
         {% block importmap %}{{ importmap('app') }}{% endblock %}
+        <script src="/js/notification-system.js" defer></script>
+        <script src="/js/form-utilities.js" defer></script>
+        <script src="/js/global-interactions.js" defer></script>
+        <script src="/js/scroll-animations.js" defer></script>
         <script>
             // Preload important resources
             if ('requestIdleCallback' in window) {

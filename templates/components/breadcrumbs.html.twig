@@ -1,0 +1,90 @@
+{# 
+    Breadcrumbs Component
+    Usage: {% include 'components/breadcrumbs.html.twig' with {
+        items: [
+            {label: 'Главная', url: path('app_dashboard')},
+            {label: 'Задачи', url: path('app_task_index')},
+            {label: 'Просмотр'}
+        ]
+    } %}
+#}
+
+{% if items is defined and items|length > 0 %}
+<nav aria-label="breadcrumb" class="breadcrumb-nav fade-in">
+    <ol class="breadcrumb">
+        {% for item in items %}
+            {% if loop.last %}
+                <li class="breadcrumb-item active" aria-current="page">
+                    {{ item.label }}
+                </li>
+            {% else %}
+                <li class="breadcrumb-item">
+                    <a href="{{ item.url }}">
+                        {% if loop.first %}
+                            <i class="fas fa-home me-1"></i>
+                        {% endif %}
+                        {{ item.label }}
+                    </a>
+                </li>
+            {% endif %}
+        {% endfor %}
+    </ol>
+</nav>
+{% endif %}
+
+<style>
+.breadcrumb-nav {
+    margin-bottom: 1.5rem;
+}
+
+.breadcrumb {
+    background: transparent;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0;
+    border-radius: 10px;
+    background: rgba(13, 110, 253, 0.05);
+}
+
+.breadcrumb-item {
+    font-size: 0.875rem;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    content: "›";
+    font-size: 1.2rem;
+    color: #6c757d;
+}
+
+.breadcrumb-item a {
+    color: #0d6efd;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.breadcrumb-item a:hover {
+    color: #0a58ca;
+    transform: translateX(2px);
+    display: inline-block;
+}
+
+.breadcrumb-item.active {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+[data-theme='dark'] .breadcrumb {
+    background: rgba(66, 153, 225, 0.1);
+}
+
+[data-theme='dark'] .breadcrumb-item a {
+    color: #4299e1;
+}
+
+[data-theme='dark'] .breadcrumb-item a:hover {
+    color: #63b3ed;
+}
+
+[data-theme='dark'] .breadcrumb-item.active {
+    color: #a0aec0;
+}
+</style>

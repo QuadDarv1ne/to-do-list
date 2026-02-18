@@ -1,0 +1,115 @@
+{# 
+    Advanced Filter Panel Component
+    Usage: {% include 'components/filter_panel.html.twig' with {
+        filters: filters_array,
+        action: path('app_task_index')
+    } %}
+#}
+
+<div class="card border-0 shadow-sm mb-4 fade-in">
+    <div class="card-header bg-gradient-primary text-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-filter me-2"></i>
+                Фильтры
+            </h5>
+            <button class="btn btn-sm btn-light" type="button" data-bs-toggle="collapse" data-bs-target="#filterPanel">
+                <i class="fas fa-chevron-down"></i>
+            </button>
+        </div>
+    </div>
+    <div class="collapse show" id="filterPanel">
+        <div class="card-body">
+            <form method="get" action="{{ action }}" class="row g-3" id="filter-form">
+                {{ filter_content|raw }}
+                
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-enhanced">
+                                <i class="fas fa-search me-2"></i>Применить
+                            </button>
+                            <a href="{{ action }}" class="btn btn-outline-secondary btn-enhanced">
+                                <i class="fas fa-times me-2"></i>Сбросить
+                            </a>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="saveFilters">
+                            <label class="form-check-label" for="saveFilters">
+                                Сохранить фильтры
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+#filterPanel {
+    transition: all 0.3s ease;
+}
+
+#filter-form .form-control:focus,
+#filter-form .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Save filters to localStorage
+    const saveFiltersCheckbox = document.getElementById('saveFilters');
+    const filterForm = document.getElementById('filter-form');
+    
+    if (saveFiltersCheckbox && filterForm) {
+        // Load saved preference
+        const savedPreference = localStorage.getItem('saveFilters');
+        if (savedPreference === 'true') {
+            saveFiltersCheckbox.checked = true;
+            loadSavedFilters();
+        }
+        
+        saveFiltersCheckbox.addEventListener('change', function() {
+            localStorage.setItem('saveFilters', this.checked);
+            if (!this.checked) {
+                localStorage.removeItem('savedFilters');
+            }
+        });
+        
+        filterForm.addEventListener('submit', function() {
+            if (saveFiltersCheckbox.checked) {
+                const formData = new FormData(this);
+                const filters = {};
+                for (let [key, value] of formData.entries()) {
+                    filters[key] = value;
+                }
+                localStorage.setItem('savedFilters', JSON.stringify(filters));
+            }
+        });
+    }
+    
+    function loadSavedFilters() {
+        const savedFilters = localStorage.getItem('savedFilters');
+        if (savedFilters) {
+            const filters = JSON.parse(savedFilters);
+            for (let [key, value] of Object.entries(filters)) {
+                const input = filterForm.querySelector(`[name="${key}"]`);
+                if (input) {
+                    if (input.type === 'checkbox') {
+                        input.checked = value === 'on' || value === '1';
+                    } else {
+                        input.value = value;
+                    }
+                }
+            }
+        }
+    }
+});
+</script>

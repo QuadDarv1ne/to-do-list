@@ -84,7 +84,7 @@ class KanbanController extends AbstractController
         $users = [];
         if (in_array('ROLE_MANAGER', $user->getRoles()) || in_array('ROLE_ADMIN', $user->getRoles())) {
             $users = $this->entityManager->getRepository('App\Entity\User')
-                ->findBy(['isActive' => true], ['fullName' => 'ASC']);
+                ->findBy(['isActive' => true], ['firstName' => 'ASC', 'lastName' => 'ASC']);
         }
         
         return $this->render('kanban/board.html.twig', [

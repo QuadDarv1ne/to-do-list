@@ -34,8 +34,8 @@ class RateLimitingService
      */
     public function isRateLimited(
         string $identifier,
-        int $limit = null,
-        int $window = null
+        ?int $limit = null,
+        ?int $window = null
     ): bool {
         if ($this->performanceMonitor) {
             $this->performanceMonitor->startTiming('rate_limiting_service_is_rate_limited');
@@ -79,8 +79,8 @@ class RateLimitingService
      */
     public function getRateLimitInfo(
         string $identifier,
-        int $limit = null,
-        int $window = null
+        ?int $limit = null,
+        ?int $window = null
     ): array {
         if ($this->performanceMonitor) {
             $this->performanceMonitor->startTiming('rate_limiting_service_get_rate_limit_info');

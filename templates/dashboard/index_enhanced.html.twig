@@ -146,8 +146,214 @@
                     <i class="fas fa-users me-2"></i>Пользователи
                 </a>
                 {% endif %}
+                <a href="{{ path('app_task_new') }}" class="btn btn-light">
+                    <i class="fas fa-plus me-2"></i>Новая задача
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card primary">
+                <div class="icon">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <div class="stat-value">{{ task_stats.total ?? 0 }}</div>
+                <div class="stat-label">Всего задач</div>
+                <div class="stat-change positive">
+                    <i class="fas fa-arrow-up me-1"></i>
+                    +{{ task_stats.new_this_week ?? 0 }} за неделю
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card success">
+                <div class="icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-value">{{ task_stats.completed ?? 0 }}</div>
+                <div class="stat-label">Завершено</div>
+                <div class="stat-change positive">
+                    <i class="fas fa-percentage me-1"></i>
+                    {{ task_stats.completion_rate ?? 0 }}% выполнено
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card warning">
+                <div class="icon">
+                    <i class="fas fa-spinner"></i>
+                </div>
+                <div class="stat-value">{{ task_stats.in_progress ?? 0 }}</div>
+                <div class="stat-label">В процессе</div>
+                <div class="stat-change">
+                    <i class="fas fa-clock me-1"></i>
+                    {{ task_stats.avg_completion_days ?? 0 }} дн. в среднем
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card danger">
+                <div class="icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stat-value">{{ task_stats.overdue ?? 0 }}</div>
+                <div class="stat-label">Просрочено</div>
+                {% if task_stats.overdue > 0 %}
+                <div class="stat-change negative">
+                    <i class="fas fa-arrow-down me-1"></i>
+                    Требует внимания
+                </div>
+                {% else %}
+                <div class="stat-change positive">
+                    <i class="fas fa-check me-1"></i>
+                    Все в порядке
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <a href="{{ path('app_task_new') }}" class="quick-action-btn bg-primary text-white">
+            <i class="fas fa-plus fa-2x mb-2"></i>
+            <div>Создать задачу</div>
+        </a>
+        <a href="{{ path('app_task_index') }}" class="quick-action-btn bg-info text-white">
+            <i class="fas fa-list fa-2x mb-2"></i>
+            <div>Все задачи</div>
+        </a>
+        <a href="{{ path('app_kanban_index') }}" class="quick-action-btn bg-success text-white">
+            <i class="fas fa-columns fa-2x mb-2"></i>
+            <div>Канбан</div>
+        </a>
+        <a href="{{ path('app_calendar_index') }}" class="quick-action-btn bg-warning text-dark">
+            <i class="fas fa-calendar fa-2x mb-2"></i>
+            <div>Календарь</div>
+        </a>
+        <a href="{{ path('app_analytics_index') }}" class="quick-action-btn bg-secondary text-white">
+            <i class="fas fa-chart-line fa-2x mb-2"></i>
+            <div>Аналитика</div>
+        </a>
+    </div>
+
+    <!-- Recent Tasks -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="chart-container">
+                <h5 class="mb-4">
+                    <i class="fas fa-clock me-2"></i>
+                    Последние задачи
+                </h5>
+                {% if recent_tasks is defined and recent_tasks is not empty %}
+                    <div class="list-group list-group-flush">
+                        {% for task in recent_tasks|slice(0, 5) %}
+                            <a href="{{ path('app_task_show', {'id': task.id}) }}" class="task-list-item list-group-item list-group-item-action">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">{{ task.title }}</h6>
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar me-1"></i>
+                                            {{ task.createdAt|date('d.m.Y H:i') }}
+                                        </small>
+                                    </div>
+                                    <div>
+                                        {% if task.priority == 'high' %}
+                                            <span class="priority-badge priority-high">Высокий</span>
+                                        {% elseif task.priority == 'medium' %}
+                                            <span class="priority-badge priority-medium">Средний</span>
+                                        {% else %}
+                                            <span class="priority-badge priority-low">Низкий</span>
+                                        {% endif %}
+                                        <span class="badge bg-{{ task.status == 'completed' ? 'success' : (task.status == 'in_progress' ? 'info' : 'secondary') }} ms-2">
+                                            {{ task.status|trans }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-inbox fa-3x mb-3"></i>
+                        <p>Нет задач для отображения</p>
+                        <a href="{{ path('app_task_new') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Создать первую задачу
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="chart-container">
+                <h5 class="mb-4">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    Статистика по статусам
+                </h5>
+                <div class="text-center">
+                    <canvas id="statusChart" width="200" height="200"></canvas>
+                </div>
+                <div class="mt-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span><i class="fas fa-circle text-secondary me-2"></i>В ожидании</span>
+                        <strong>{{ task_stats.pending ?? 0 }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span><i class="fas fa-circle text-info me-2"></i>В процессе</span>
+                        <strong>{{ task_stats.in_progress ?? 0 }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span><i class="fas fa-circle text-success me-2"></i>Завершено</span>
+                        <strong>{{ task_stats.completed ?? 0 }}</strong>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Status Chart
+    const statusCtx = document.getElementById('statusChart');
+    if (statusCtx) {
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['В ожидании', 'В процессе', 'Завершено'],
+                datasets: [{
+                    data: [
+                        {{ task_stats.pending ?? 0 }},
+                        {{ task_stats.in_progress ?? 0 }},
+                        {{ task_stats.completed ?? 0 }}
+                    ],
+                    backgroundColor: [
+                        '#6c757d',
+                        '#0dcaf0',
+                        '#198754'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
 {% endblock %}      

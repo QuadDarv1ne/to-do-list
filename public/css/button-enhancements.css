@@ -1,0 +1,371 @@
+/* ============================================
+   BUTTON ENHANCEMENTS
+   Advanced button styles and interactions
+   ============================================ */
+
+/* === RIPPLE EFFECT === */
+.btn-ripple {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-ripple::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.6);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn-ripple:active::before {
+    width: 300px;
+    height: 300px;
+    transition: width 0s, height 0s;
+}
+
+/* === GRADIENT BUTTONS === */
+.btn-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.btn-gradient-primary:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-gradient-success {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    border: none;
+    color: white;
+}
+
+.btn-gradient-success:hover {
+    background: linear-gradient(135deg, #38ef7d 0%, #11998e 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(17, 153, 142, 0.4);
+}
+
+.btn-gradient-danger {
+    background: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%);
+    border: none;
+    color: white;
+}
+
+.btn-gradient-danger:hover {
+    background: linear-gradient(135deg, #ff6a00 0%, #ee0979 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(238, 9, 121, 0.4);
+}
+
+/* === GLOW EFFECT === */
+.btn-glow {
+    box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+    animation: glow 2s ease-in-out infinite;
+}
+
+@keyframes glow {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(102, 126, 234, 0.8);
+    }
+}
+
+/* === 3D BUTTON === */
+.btn-3d {
+    position: relative;
+    box-shadow: 0 6px 0 #5a67d8, 0 8px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.1s ease;
+}
+
+.btn-3d:hover {
+    box-shadow: 0 4px 0 #5a67d8, 0 6px 8px rgba(0, 0, 0, 0.3);
+    transform: translateY(2px);
+}
+
+.btn-3d:active {
+    box-shadow: 0 2px 0 #5a67d8, 0 4px 6px rgba(0, 0, 0, 0.3);
+    transform: translateY(4px);
+}
+
+/* === OUTLINE GLOW === */
+.btn-outline-glow {
+    position: relative;
+    border: 2px solid #667eea;
+    color: #667eea;
+    background: transparent;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-glow::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+.btn-outline-glow:hover::before {
+    left: 100%;
+}
+
+.btn-outline-glow:hover {
+    color: white;
+    background: #667eea;
+    box-shadow: 0 0 20px rgba(102, 126, 234, 0.6);
+}
+
+/* === ICON BUTTONS === */
+.btn-icon {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.btn-icon:hover {
+    transform: rotate(360deg) scale(1.1);
+}
+
+.btn-icon-square {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+}
+
+/* === LOADING BUTTON === */
+.btn-loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.btn-loading::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin-left: -8px;
+    margin-top: -8px;
+    border: 2px solid currentColor;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: btnSpinner 0.6s linear infinite;
+}
+
+@keyframes btnSpinner {
+    to { transform: rotate(360deg); }
+}
+
+/* === PULSE BUTTON === */
+.btn-pulse {
+    animation: btnPulse 2s infinite;
+}
+
+@keyframes btnPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(102, 126, 234, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0);
+    }
+}
+
+/* === SPLIT BUTTON === */
+.btn-split {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-split::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+.btn-split:hover::before {
+    left: 100%;
+}
+
+/* === NEON BUTTON === */
+.btn-neon {
+    border: 2px solid #667eea;
+    color: #667eea;
+    background: transparent;
+    text-shadow: 0 0 10px rgba(102, 126, 234, 0.8);
+    box-shadow: 
+        0 0 10px rgba(102, 126, 234, 0.5),
+        inset 0 0 10px rgba(102, 126, 234, 0.2);
+    transition: all 0.3s ease;
+}
+
+.btn-neon:hover {
+    color: white;
+    background: #667eea;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+    box-shadow: 
+        0 0 20px rgba(102, 126, 234, 0.8),
+        0 0 40px rgba(102, 126, 234, 0.6),
+        inset 0 0 20px rgba(102, 126, 234, 0.4);
+}
+
+/* === GLASS BUTTON === */
+.btn-glass {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.btn-glass:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+/* === SHADOW LIFT === */
+.btn-shadow-lift {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.btn-shadow-lift:hover {
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    transform: translateY(-3px);
+}
+
+.btn-shadow-lift:active {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transform: translateY(0);
+}
+
+/* === BORDER ANIMATION === */
+.btn-border-animate {
+    position: relative;
+    border: 2px solid transparent;
+    background: linear-gradient(white, white) padding-box,
+                linear-gradient(135deg, #667eea, #764ba2) border-box;
+    transition: all 0.3s ease;
+}
+
+.btn-border-animate:hover {
+    background: linear-gradient(135deg, #667eea, #764ba2) padding-box,
+                linear-gradient(135deg, #667eea, #764ba2) border-box;
+    color: white;
+}
+
+/* === SLIDE BUTTON === */
+.btn-slide {
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.btn-slide::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    transition: left 0.3s ease;
+    z-index: -1;
+}
+
+.btn-slide:hover::before {
+    left: 0;
+}
+
+.btn-slide:hover {
+    color: white;
+}
+
+/* === BUTTON GROUP ENHANCEMENTS === */
+.btn-group-enhanced .btn {
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.btn-group-enhanced .btn:hover {
+    z-index: 2;
+    transform: scale(1.05);
+}
+
+/* === FLOATING ACTION BUTTON === */
+.btn-fab {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.btn-fab:hover {
+    transform: scale(1.1) rotate(90deg);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+}
+
+/* === DARK THEME SUPPORT === */
+[data-theme='dark'] .btn-glass {
+    background: rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='dark'] .btn-glass:hover {
+    background: rgba(0, 0, 0, 0.5);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* === ACCESSIBILITY === */
+.btn:focus-visible {
+    outline: 3px solid rgba(102, 126, 234, 0.5);
+    outline-offset: 2px;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+    .btn-fab {
+        width: 50px;
+        height: 50px;
+        bottom: 20px;
+        right: 20px;
+    }
+}

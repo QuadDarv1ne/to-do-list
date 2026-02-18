@@ -30,7 +30,7 @@ class DashboardController extends AbstractController
         
         // Cache dashboard data for 2 minutes
         $cacheKey = 'dashboard_data_' . $user->getId();
-        $dashboardData = $cacheService->get($cacheKey, function() use (
+        $dashboardData = $cacheService->cacheQuery($cacheKey, function() use (
             $user, $taskRepository, $analyticsService, $goalRepository, 
             $habitRepository, $dealRepository, $clientRepository, $performanceMonitor
         ) {

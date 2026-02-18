@@ -1,152 +1,69 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Аналитика и отчеты{% endblock %}
+{% block title %}Аналитика{% endblock %}
 
 {% block stylesheets %}
 {{ parent() }}
 <style>
-.analytics-container {
-    animation: fadeInUp 0.6s ease-out;
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
 .analytics-header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    padding: 2.5rem;
+    padding: 2rem;
     border-radius: 16px;
     margin-bottom: 2rem;
-    position: relative;
-    overflow: hidden;
-}
-
-.analytics-header::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -10%;
-    width: 400px;
-    height: 400px;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-    animation: rotate 20s linear infinite;
-}
-
-@keyframes rotate {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
 }
 
 .metric-card {
     background: white;
-    border-radius: 16px;
+    border-radius: 12px;
     padding: 1.5rem;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
     transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
+    height: 100%;
 }
 
 .metric-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 28px rgba(0,0,0,0.15);
-}
-
-.metric-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
 }
 
 .metric-icon {
-    width: 64px;
-    height: 64px;
-    border-radius: 16px;
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 2rem;
+    font-size: 1.5rem;
     margin-bottom: 1rem;
-}
-
-.metric-icon.primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-}
-
-.metric-icon.success {
-    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-    color: white;
-}
-
-.metric-icon.warning {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    color: white;
-}
-
-.metric-icon.info {
-    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    color: white;
 }
 
 .metric-value {
     font-size: 2.5rem;
     font-weight: 700;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    line-height: 1;
     margin-bottom: 0.5rem;
 }
 
 .metric-label {
     color: #6c757d;
-    font-weight: 600;
-    font-size: 0.875rem;
+    font-size: 0.9rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
-.metric-change {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.25rem 0.75rem;
-    border-radius: 12px;
+.metric-trend {
     font-size: 0.875rem;
-    font-weight: 600;
     margin-top: 0.5rem;
 }
 
-.metric-change.positive {
-    background: #d4edda;
-    color: #155724;
-}
-
-.metric-change.negative {
-    background: #f8d7da;
-    color: #721c24;
-}
+.trend-up { color: #28a745; }
+.trend-down { color: #dc3545; }
 
 .chart-card {
     background: white;
-    border-radius: 16px;
-    padding: 2rem;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
     margin-bottom: 2rem;
 }
 
@@ -155,260 +72,130 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid #f8f9fa;
 }
 
 .chart-title {
     font-size: 1.25rem;
-    font-weight: 700;
-    color: #212529;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.chart-title i {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    font-weight: 600;
+    margin: 0;
 }
 
 .period-selector {
     display: flex;
     gap: 0.5rem;
-    background: #f8f9fa;
-    padding: 0.25rem;
-    border-radius: 10px;
 }
 
 .period-btn {
     padding: 0.5rem 1rem;
-    border: none;
-    background: transparent;
+    border: 1px solid #dee2e6;
+    background: white;
     border-radius: 8px;
-    font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
-    color: #6c757d;
+    transition: all 0.3s;
 }
 
 .period-btn:hover {
-    background: white;
-    color: #667eea;
+    background: #f8f9fa;
 }
 
 .period-btn.active {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #667eea;
     color: white;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
-.insights-card {
-    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-    border-radius: 16px;
-    padding: 1.5rem;
-    border-left: 4px solid #667eea;
-    margin-bottom: 1rem;
-}
-
-.insight-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-}
-
-.insight-title {
-    font-weight: 700;
-    color: #212529;
-    margin-bottom: 0.5rem;
-}
-
-.insight-text {
-    color: #6c757d;
-    line-height: 1.6;
-}
-
-.export-buttons {
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-}
-
-.btn-export {
-    padding: 0.75rem 1.5rem;
-    border-radius: 12px;
-    font-weight: 600;
-    border: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.3s ease;
-}
-
-.btn-export:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-}
-
-.loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255,255,255,0.9);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-}
-
-.loading-overlay.active {
-    opacity: 1;
-    pointer-events: all;
-}
-
-.spinner {
-    width: 64px;
-    height: 64px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #667eea;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-@media (max-width: 768px) {
-    .analytics-header {
-        padding: 1.5rem;
-    }
-    
-    .chart-card {
-        padding: 1rem;
-    }
-    
-    .period-selector {
-        flex-direction: column;
-    }
+    border-color: #667eea;
 }
 </style>
 {% endblock %}
 
 {% block body %}
-<div class="container-fluid py-4 analytics-container">
+<div class="container-fluid mt-4">
     <div class="analytics-header">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-            <div style="position: relative; z-index: 1;">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
                 <h1 class="mb-1">
                     <i class="fas fa-chart-line me-2"></i>
-                    Аналитика и отчеты
+                    Аналитика и статистика
                 </h1>
-                <p class="mb-0 opacity-75">Глубокий анализ вашей продуктивности</p>
+                <p class="mb-0 opacity-75">Детальный анализ вашей продуктивности</p>
             </div>
-            <div class="export-buttons" style="position: relative; z-index: 1;">
-                <a href="{{ path('app_analytics_export_csv') }}" class="btn btn-export btn-light">
-                    <i class="fas fa-file-csv"></i>
-                    Экспорт CSV
+            <div class="d-flex gap-2">
+                <a href="{{ path('app_analytics_export_csv') }}" class="btn btn-light">
+                    <i class="fas fa-download me-2"></i>Экспорт CSV
                 </a>
-                <button class="btn btn-export btn-light" onclick="window.print()">
-                    <i class="fas fa-print"></i>
-                    Печать
-                </button>
-                <button class="btn btn-export btn-light" onclick="refreshData()">
-                    <i class="fas fa-sync-alt"></i>
-                    Обновить
+                <button class="btn btn-light" onclick="location.reload()">
+                    <i class="fas fa-sync-alt me-2"></i>Обновить
                 </button>
             </div>
         </div>
     </div>
 
     <!-- Key Metrics -->
-    <div class="row mb-4">
-        <div class="col-lg-3 col-md-6 mb-3">
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
             <div class="metric-card">
-                <div class="metric-icon primary">
-                    <i class="fas fa-tasks"></i>
+                <div class="metric-icon bg-primary bg-opacity-10">
+                    <i class="fas fa-tasks text-primary"></i>
                 </div>
-                <div class="metric-value" id="total-tasks">{{ analytics.overview.total_tasks }}</div>
+                <div class="metric-value text-primary">{{ analytics.overview.total_tasks ?? 0 }}</div>
                 <div class="metric-label">Всего задач</div>
-                <div class="metric-change positive">
-                    <i class="fas fa-arrow-up"></i>
-                    +12% за месяц
+                <div class="metric-trend trend-up">
+                    <i class="fas fa-arrow-up me-1"></i>
+                    +{{ analytics.overview.new_this_week ?? 0 }} за неделю
                 </div>
             </div>
         </div>
-        
-        <div class="col-lg-3 col-md-6 mb-3">
+
+        <div class="col-md-3">
             <div class="metric-card">
-                <div class="metric-icon success">
-                    <i class="fas fa-check-circle"></i>
+                <div class="metric-icon bg-success bg-opacity-10">
+                    <i class="fas fa-check-circle text-success"></i>
                 </div>
-                <div class="metric-value text-success" id="completed-tasks">{{ analytics.overview.completed_tasks }}</div>
+                <div class="metric-value text-success">{{ analytics.overview.completed_tasks ?? 0 }}</div>
                 <div class="metric-label">Завершено</div>
-                <div class="metric-change positive">
-                    <i class="fas fa-arrow-up"></i>
-                    +8% за неделю
+                <div class="metric-trend">
+                    <i class="fas fa-percentage me-1"></i>
+                    {{ analytics.overview.completion_rate ?? 0 }}% выполнено
                 </div>
             </div>
         </div>
-        
-        <div class="col-lg-3 col-md-6 mb-3">
+
+        <div class="col-md-3">
             <div class="metric-card">
-                <div class="metric-icon warning">
-                    <i class="fas fa-clock"></i>
+                <div class="metric-icon bg-info bg-opacity-10">
+                    <i class="fas fa-clock text-info"></i>
                 </div>
-                <div class="metric-value text-warning" id="pending-tasks">{{ analytics.overview.pending_tasks }}</div>
-                <div class="metric-label">В ожидании</div>
-                <div class="metric-change negative">
-                    <i class="fas fa-arrow-down"></i>
-                    -5% за неделю
+                <div class="metric-value text-info">{{ analytics.overview.avg_completion_time ?? 0 }}</div>
+                <div class="metric-label">Среднее время (дни)</div>
+                <div class="metric-trend">
+                    <i class="fas fa-calendar me-1"></i>
+                    До завершения задачи
                 </div>
             </div>
         </div>
-        
-        <div class="col-lg-3 col-md-6 mb-3">
+
+        <div class="col-md-3">
             <div class="metric-card">
-                <div class="metric-icon info">
-                    <i class="fas fa-percentage"></i>
+                <div class="metric-icon bg-warning bg-opacity-10">
+                    <i class="fas fa-fire text-warning"></i>
                 </div>
-                <div class="metric-value text-info" id="completion-rate">{{ analytics.overview.completion_rate|number_format(1) }}%</div>
-                <div class="metric-label">Процент завершения</div>
-                <div class="metric-change positive">
-                    <i class="fas fa-arrow-up"></i>
-                    +3.2%
+                <div class="metric-value text-warning">{{ analytics.productivity_trends.current_streak ?? 0 }}</div>
+                <div class="metric-label">Текущая серия</div>
+                <div class="metric-trend">
+                    <i class="fas fa-trophy me-1"></i>
+                    Дней подряд
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Charts Row 1 -->
+    <!-- Charts Row -->
     <div class="row">
         <div class="col-lg-8 mb-4">
             <div class="chart-card">
                 <div class="chart-header">
-                    <div class="chart-title">
-                        <i class="fas fa-chart-area"></i>
+                    <h5 class="chart-title">
+                        <i class="fas fa-chart-area me-2 text-primary"></i>
                         Динамика выполнения задач
-                    </div>
+                    </h5>
                     <div class="period-selector">
                         <button class="period-btn active" data-period="week">Неделя</button>
                         <button class="period-btn" data-period="month">Месяц</button>
@@ -418,468 +205,182 @@
                 <canvas id="completionTrendChart" height="80"></canvas>
             </div>
         </div>
-        
+
         <div class="col-lg-4 mb-4">
             <div class="chart-card">
                 <div class="chart-header">
-                    <div class="chart-title">
-                        <i class="fas fa-chart-pie"></i>
+                    <h5 class="chart-title">
+                        <i class="fas fa-chart-pie me-2 text-success"></i>
                         По статусам
-                    </div>
+                    </h5>
                 </div>
-                <canvas id="statusChart"></canvas>
+                <canvas id="statusChart" height="200"></canvas>
             </div>
         </div>
     </div>
 
-    <!-- Charts Row 2 -->
+    <!-- Category & Priority Analysis -->
     <div class="row">
         <div class="col-lg-6 mb-4">
             <div class="chart-card">
                 <div class="chart-header">
-                    <div class="chart-title">
-                        <i class="fas fa-chart-bar"></i>
-                        По приоритетам
-                    </div>
+                    <h5 class="chart-title">
+                        <i class="fas fa-folder me-2 text-info"></i>
+                        Анализ по категориям
+                    </h5>
                 </div>
-                <canvas id="priorityChart" height="100"></canvas>
+                <canvas id="categoryChart" height="120"></canvas>
             </div>
         </div>
-        
-        <div class="col-lg-6 mb-4">
-            <div class="chart-card">
-                <div class="chart-header">
-                    <div class="chart-title">
-                        <i class="fas fa-chart-line"></i>
-                        По категориям
-                    </div>
-                </div>
-                <canvas id="categoryChart" height="100"></canvas>
-            </div>
-        </div>
-    </div>
 
-    <!-- Insights -->
-    <div class="row">
-        <div class="col-12 mb-4">
+        <div class="col-lg-6 mb-4">
             <div class="chart-card">
                 <div class="chart-header">
-                    <div class="chart-title">
-                        <i class="fas fa-lightbulb"></i>
-                        Умные рекомендации
-                    </div>
+                    <h5 class="chart-title">
+                        <i class="fas fa-exclamation-triangle me-2 text-warning"></i>
+                        Анализ по приоритетам
+                    </h5>
                 </div>
-                
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <div class="insights-card">
-                            <div class="d-flex gap-3">
-                                <div class="insight-icon">
-                                    <i class="fas fa-trophy"></i>
-                                </div>
-                                <div>
-                                    <div class="insight-title">Отличная продуктивность!</div>
-                                    <div class="insight-text">
-                                        Вы завершили {{ analytics.overview.completed_tasks }} задач за последний месяц. 
-                                        Это на 15% больше, чем в прошлом месяце!
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-6 mb-3">
-                        <div class="insights-card">
-                            <div class="d-flex gap-3">
-                                <div class="insight-icon">
-                                    <i class="fas fa-clock"></i>
-                                </div>
-                                <div>
-                                    <div class="insight-title">Оптимальное время</div>
-                                    <div class="insight-text">
-                                        Вы наиболее продуктивны в утренние часы (9:00-12:00). 
-                                        Планируйте сложные задачи на это время.
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-6 mb-3">
-                        <div class="insights-card">
-                            <div class="d-flex gap-3">
-                                <div class="insight-icon">
-                                    <i class="fas fa-exclamation-triangle"></i>
-                                </div>
-                                <div>
-                                    <div class="insight-title">Внимание к приоритетам</div>
-                                    <div class="insight-text">
-                                        У вас {{ analytics.overview.pending_tasks }} задач в ожидании. 
-                                        Рекомендуем начать с задач высокого приоритета.
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-6 mb-3">
-                        <div class="insights-card">
-                            <div class="d-flex gap-3">
-                                <div class="insight-icon">
-                                    <i class="fas fa-chart-line"></i>
-                                </div>
-                                <div>
-                                    <div class="insight-title">Тренд роста</div>
-                                    <div class="insight-text">
-                                        Ваша продуктивность растет! Средний процент завершения 
-                                        увеличился с {{ (analytics.overview.completion_rate - 5)|number_format(1) }}% до {{ analytics.overview.completion_rate|number_format(1) }}%.
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <canvas id="priorityChart" height="120"></canvas>
             </div>
         </div>
     </div>
 </div>
 
-<div class="loading-overlay" id="loadingOverlay">
-    <div class="spinner"></div>
-</div>
-{% endblock %}
-
-{% block javascripts %}
-{{ parent() }}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-const analyticsData = {{ analytics|json_encode|raw }};
-
-// Chart colors
-const colors = {
-    primary: 'rgba(102, 126, 234, 1)',
-    primaryLight: 'rgba(102, 126, 234, 0.2)',
-    success: 'rgba(17, 153, 142, 1)',
-    successLight: 'rgba(17, 153, 142, 0.2)',
-    warning: 'rgba(240, 147, 251, 1)',
-    warningLight: 'rgba(240, 147, 251, 0.2)',
-    info: 'rgba(79, 172, 254, 1)',
-    infoLight: 'rgba(79, 172, 254, 0.2)',
-    danger: 'rgba(245, 87, 108, 1)',
-    dangerLight: 'rgba(245, 87, 108, 0.2)'
-};
-
-// Completion Trend Chart
-const completionCtx = document.getElementById('completionTrendChart').getContext('2d');
-const completionChart = new Chart(completionCtx, {
-    type: 'line',
-    data: {
-        labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
-        datasets: [{
-            label: 'Завершено',
-            data: [12, 19, 15, 25, 22, 18, 24],
-            borderColor: colors.primary,
-            backgroundColor: colors.primaryLight,
-            fill: true,
-            tension: 0.4,
-            pointRadius: 6,
-            pointHoverRadius: 8,
-            pointBackgroundColor: colors.primary,
-            pointBorderColor: '#fff',
-            pointBorderWidth: 2
-        }, {
-            label: 'Создано',
-            data: [15, 22, 18, 28, 25, 20, 26],
-            borderColor: colors.info,
-            backgroundColor: colors.infoLight,
-            fill: true,
-            tension: 0.4,
-            pointRadius: 6,
-            pointHoverRadius: 8,
-            pointBackgroundColor: colors.info,
-            pointBorderColor: '#fff',
-            pointBorderWidth: 2
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: {
-            legend: {
-                display: true,
-                position: 'top',
-                labels: {
-                    usePointStyle: true,
-                    padding: 20,
-                    font: {
-                        size: 14,
-                        weight: '600'
-                    }
-                }
+document.addEventListener('DOMContentLoaded', function() {
+    const analytics = {{ analytics|json_encode|raw }};
+    
+    // Completion Trend Chart
+    const completionCtx = document.getElementById('completionTrendChart');
+    if (completionCtx) {
+        new Chart(completionCtx, {
+            type: 'line',
+            data: {
+                labels: analytics.productivity_trends?.labels || [],
+                datasets: [{
+                    label: 'Завершено задач',
+                    data: analytics.productivity_trends?.completed || [],
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
             },
-            tooltip: {
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                padding: 12,
-                titleFont: {
-                    size: 14,
-                    weight: 'bold'
-                },
-                bodyFont: {
-                    size: 13
-                },
-                cornerRadius: 8
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                grid: {
-                    color: 'rgba(0, 0, 0, 0.05)'
-                },
-                ticks: {
-                    font: {
-                        size: 12,
-                        weight: '600'
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
                     }
-                }
-            },
-            x: {
-                grid: {
-                    display: false
                 },
-                ticks: {
-                    font: {
-                        size: 12,
-                        weight: '600'
+                scales: {
+                    y: {
+                        beginAtZero: true
                     }
                 }
             }
-        }
+        });
     }
-});
 
-// Status Chart
-const statusCtx = document.getElementById('statusChart').getContext('2d');
-const statusChart = new Chart(statusCtx, {
-    type: 'doughnut',
-    data: {
-        labels: ['Завершено', 'В процессе', 'В ожидании', 'Отменено'],
-        datasets: [{
-            data: [
-                analyticsData.overview.completed_tasks,
-                analyticsData.overview.in_progress_tasks || 0,
-                analyticsData.overview.pending_tasks,
-                analyticsData.overview.cancelled_tasks || 0
-            ],
-            backgroundColor: [
-                colors.success,
-                colors.info,
-                colors.warning,
-                'rgba(108, 117, 125, 1)'
-            ],
-            borderWidth: 0,
-            hoverOffset: 10
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: {
-            legend: {
-                position: 'bottom',
-                labels: {
-                    usePointStyle: true,
-                    padding: 15,
-                    font: {
-                        size: 13,
-                        weight: '600'
+    // Status Chart
+    const statusCtx = document.getElementById('statusChart');
+    if (statusCtx) {
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['В ожидании', 'В процессе', 'Завершено'],
+                datasets: [{
+                    data: [
+                        analytics.overview?.pending_tasks || 0,
+                        analytics.overview?.in_progress_tasks || 0,
+                        analytics.overview?.completed_tasks || 0
+                    ],
+                    backgroundColor: ['#ffc107', '#0dcaf0', '#198754'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
                     }
                 }
-            },
-            tooltip: {
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                padding: 12,
-                cornerRadius: 8
             }
-        }
+        });
     }
-});
 
-// Priority Chart
-const priorityCtx = document.getElementById('priorityChart').getContext('2d');
-const priorityChart = new Chart(priorityCtx, {
-    type: 'bar',
-    data: {
-        labels: ['Высокий', 'Средний', 'Низкий'],
-        datasets: [{
-            label: 'Количество задач',
-            data: [
-                analyticsData.priority_analysis?.high || 0,
-                analyticsData.priority_analysis?.medium || 0,
-                analyticsData.priority_analysis?.low || 0
-            ],
-            backgroundColor: [
-                colors.danger,
-                colors.warning,
-                colors.success
-            ],
-            borderRadius: 8,
-            barThickness: 60
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: {
-            legend: {
-                display: false
-            },
-            tooltip: {
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                padding: 12,
-                cornerRadius: 8
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                grid: {
-                    color: 'rgba(0, 0, 0, 0.05)'
-                },
-                ticks: {
-                    font: {
-                        size: 12,
-                        weight: '600'
-                    }
-                }
-            },
-            x: {
-                grid: {
-                    display: false
-                },
-                ticks: {
-                    font: {
-                        size: 12,
-                        weight: '600'
-                    }
-                }
-            }
-        }
-    }
-});
-
-// Category Chart
-const categoryCtx = document.getElementById('categoryChart').getContext('2d');
-const categoryLabels = Object.keys(analyticsData.category_analysis || {});
-const categoryData = Object.values(analyticsData.category_analysis || {});
-
-const categoryChart = new Chart(categoryCtx, {
-    type: 'bar',
-    data: {
-        labels: categoryLabels.length > 0 ? categoryLabels : ['Без категории'],
-        datasets: [{
-            label: 'Задач',
-            data: categoryData.length > 0 ? categoryData : [0],
-            backgroundColor: colors.primary,
-            borderRadius: 8,
-            barThickness: 40
-        }]
-    },
-    options: {
-        indexAxis: 'y',
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: {
-            legend: {
-                display: false
-            },
-            tooltip: {
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                padding: 12,
-                cornerRadius: 8
-            }
-        },
-        scales: {
-            x: {
-                beginAtZero: true,
-                grid: {
-                    color: 'rgba(0, 0, 0, 0.05)'
-                },
-                ticks: {
-                    font: {
-                        size: 12,
-                        weight: '600'
-                    }
-                }
-            },
-            y: {
-                grid: {
-                    display: false
-                },
-                ticks: {
-                    font: {
-                        size: 12,
-                        weight: '600'
-                    }
-                }
-            }
-        }
-    }
-});
-
-// Period selector
-document.querySelectorAll('.period-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
+    // Category Chart
+    const categoryCtx = document.getElementById('categoryChart');
+    if (categoryCtx && analytics.category_analysis) {
+        const categories = Object.keys(analytics.category_analysis);
+        const values = Object.values(analytics.category_analysis);
         
-        const period = this.dataset.period;
-        updateChartData(period);
+        new Chart(categoryCtx, {
+            type: 'bar',
+            data: {
+                labels: categories,
+                datasets: [{
+                    label: 'Задач',
+                    data: values,
+                    backgroundColor: '#667eea',
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+
+    // Priority Chart
+    const priorityCtx = document.getElementById('priorityChart');
+    if (priorityCtx && analytics.priority_analysis) {
+        new Chart(priorityCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Низкий', 'Средний', 'Высокий'],
+                datasets: [{
+                    label: 'Задач',
+                    data: [
+                        analytics.priority_analysis.low || 0,
+                        analytics.priority_analysis.medium || 0,
+                        analytics.priority_analysis.high || 0
+                    ],
+                    backgroundColor: ['#38ef7d', '#fdcb6e', '#f5576c'],
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+
+    // Period selector
+    document.querySelectorAll('.period-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            // Here you would reload data for the selected period
+        });
     });
-});
-
-function updateChartData(period) {
-    const overlay = document.getElementById('loadingOverlay');
-    overlay.classList.add('active');
-    
-    // Simulate API call
-    setTimeout(() => {
-        // Update chart with new data based on period
-        overlay.classList.remove('active');
-    }, 500);
-}
-
-function refreshData() {
-    const overlay = document.getElementById('loadingOverlay');
-    overlay.classList.add('active');
-    
-    setTimeout(() => {
-        location.reload();
-    }, 1000);
-}
-
-// Animate numbers on load
-function animateValue(element, start, end, duration) {
-    const range = end - start;
-    const increment = range / (duration / 16);
-    let current = start;
-    
-    const timer = setInterval(() => {
-        current += increment;
-        if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
-            element.textContent = Math.round(end);
-            clearInterval(timer);
-        } else {
-            element.textContent = Math.round(current);
-        }
-    }, 16);
-}
-
-// Animate metrics on page load
-window.addEventListener('load', () => {
-    animateValue(document.getElementById('total-tasks'), 0, {{ analytics.overview.total_tasks }}, 1000);
-    animateValue(document.getElementById('completed-tasks'), 0, {{ analytics.overview.completed_tasks }}, 1200);
-    animateValue(document.getElementById('pending-tasks'), 0, {{ analytics.overview.pending_tasks }}, 1400);
 });
 </script>
 {% endblock %}

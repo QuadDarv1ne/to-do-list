@@ -41,16 +41,16 @@ class TwoFactorAuthService
         // Generate secret key
         $secret = $this->googleAuthenticator->generateSecret();
         
-        // Create QR code URL
+        // Store secret temporarily (will be moved to main secret after verification)
+        $user->setTotpSecretTemp($secret);
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+        
+        // Create QR code URL (getGoogleAuthenticatorSecret will return temp secret)
         $qrCodeUrl = $this->googleAuthenticator->getQRContent($user);
         
         // Generate QR code image
         $qrCodeImage = $this->generateQrCode($qrCodeUrl);
-
-        // Store secret temporarily (will be saved after verification)
-        $user->setTotpSecretTemp($secret);
-        $this->entityManager->persist($user);
-        $this->entityManager->flush();
 
         $this->logger->info("2FA enabled initiated for user {$user->getId()}");
 

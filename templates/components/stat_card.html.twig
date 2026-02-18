@@ -1,0 +1,117 @@
+{# 
+    Stat Card Component
+    Usage: {% include 'components/stat_card.html.twig' with {
+        icon: 'fa-tasks',
+        value: 42,
+        label: 'Всего задач',
+        color: 'primary',
+        trend: '+12%',
+        trend_positive: true
+    } %}
+#}
+
+{% set card_color = color|default('primary') %}
+{% set card_icon = icon|default('fa-chart-line') %}
+{% set card_value = value|default(0) %}
+{% set card_label = label|default('Статистика') %}
+
+<div class="stat-card-enhanced card border-0 shadow-sm h-100 hover-lift card-entrance">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <div class="stat-icon-wrapper bg-{{ card_color }} bg-opacity-10 rounded-circle p-3">
+                <i class="fas {{ card_icon }} fa-2x text-{{ card_color }}"></i>
+            </div>
+            {% if trend is defined %}
+                <span class="badge bg-{{ trend_positive|default(true) ? 'success' : 'danger' }} badge-animated">
+                    <i class="fas fa-arrow-{{ trend_positive|default(true) ? 'up' : 'down' }} me-1"></i>
+                    {{ trend }}
+                </span>
+            {% endif %}
+        </div>
+        
+        <h2 class="stat-value mb-2 text-{{ card_color }}" data-count="{{ card_value }}">
+            {{ card_value }}
+        </h2>
+        
+        <p class="stat-label text-muted mb-0">{{ card_label }}</p>
+        
+        {% if progress is defined %}
+            <div class="progress mt-3" style="height: 6px;">
+                <div class="progress-bar bg-{{ card_color }}" 
+                     role="progressbar" 
+                     style="width: {{ progress }}%"
+                     aria-valuenow="{{ progress }}" 
+                     aria-valuemin="0" 
+                     aria-valuemax="100">
+                </div>
+            </div>
+        {% endif %}
+        
+        {% if link is defined %}
+            <a href="{{ link }}" class="stretched-link"></a>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.stat-card-enhanced {
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: {{ link is defined ? 'pointer' : 'default' }};
+}
+
+.stat-card-enhanced:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12) !important;
+}
+
+.stat-icon-wrapper {
+    transition: all 0.3s ease;
+}
+
+.stat-card-enhanced:hover .stat-icon-wrapper {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+    transition: all 0.3s ease;
+}
+
+.stat-card-enhanced:hover .stat-value {
+    transform: scale(1.05);
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+</style>
+
+<script>
+// Animate counter on load
+document.addEventListener('DOMContentLoaded', function() {
+    const statValues = document.querySelectorAll('.stat-value[data-count]');
+    
+    statValues.forEach(element => {
+        const target = parseInt(element.getAttribute('data-count'));
+        const duration = 1000;
+        const step = target / (duration / 16);
+        let current = 0;
+        
+        const timer = setInterval(() => {
+            current += step;
+            if (current >= target) {
+                element.textContent = target;
+                clearInterval(timer);
+            } else {
+                element.textContent = Math.floor(current);
+            }
+        }, 16);
+    });
+});
+</script>
