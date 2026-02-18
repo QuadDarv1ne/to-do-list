@@ -3,38 +3,7 @@
  * Shared across all JS modules
  */
 
-// Toast Notification System
-window.showToast = function(message, type = 'info') {
-    const container = document.getElementById('toast-container') || createToastContainer();
-    
-    const toast = document.createElement('div');
-    toast.className = `toast align-items-center text-white bg-${type} border-0`;
-    toast.setAttribute('role', 'alert');
-    toast.setAttribute('aria-live', 'assertive');
-    toast.setAttribute('aria-atomic', 'true');
-    
-    toast.innerHTML = `
-        <div class="d-flex">
-            <div class="toast-body">${message}</div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-        </div>
-    `;
-    
-    container.appendChild(toast);
-    const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
-    bsToast.show();
-    
-    toast.addEventListener('hidden.bs.toast', () => toast.remove());
-};
-
-function createToastContainer() {
-    const container = document.createElement('div');
-    container.id = 'toast-container';
-    container.className = 'toast-container position-fixed top-0 end-0 p-3';
-    container.style.zIndex = '9999';
-    document.body.appendChild(container);
-    return container;
-}
+// showToast теперь в toast-system.js - не дублируем
 
 // Notification System
 window.showNotification = function(title, message, type = 'info') {
@@ -44,7 +13,7 @@ window.showNotification = function(title, message, type = 'info') {
             icon: '/icon.png',
             badge: '/icon.png'
         });
-    } else {
+    } else if (typeof window.showToast === 'function') {
         window.showToast(`${title}: ${message}`, type);
     }
 };

@@ -1,0 +1,315 @@
+/* ============================================
+   COMPONENTS OPTIMIZED - Без дублирования
+   ============================================ */
+
+/* Базовые компоненты уже в optimized-core.css */
+/* Здесь только расширенные стили */
+
+/* === CARD VARIANTS === */
+.card-header,.card-footer{
+    background:#fafafa;
+    padding:.625rem 1rem;
+    font-size:.8125rem
+}
+
+[data-theme='dark'] .card-header,
+[data-theme='dark'] .card-footer{
+    background:#1a1f2e
+}
+
+.card-header{
+    border-bottom:1px solid var(--border);
+    font-weight:600
+}
+
+.card-footer{
+    border-top:1px solid var(--border)
+}
+
+.card-title{
+    font-size:1rem;
+    font-weight:600;
+    margin-bottom:.5rem
+}
+
+.card-subtitle{
+    font-size:.875rem;
+    color:var(--text-secondary);
+    margin-bottom:.75rem
+}
+
+/* === BUTTON VARIANTS === */
+.btn-enhanced{box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.btn-enhanced:hover{
+    box-shadow:0 2px 4px rgba(0,0,0,.1);
+    transform:translateY(-1px)
+}
+
+.btn-sm{padding:.25rem .625rem;font-size:.75rem}
+.btn-lg{padding:.5rem 1rem;font-size:.875rem}
+
+.btn-success{background:var(--success);color:#fff;border-color:var(--success)}
+.btn-warning{background:var(--warning);color:#000;border-color:var(--warning)}
+.btn-danger{background:var(--danger);color:#fff;border-color:var(--danger)}
+.btn-info{background:var(--info);color:#fff;border-color:var(--info)}
+.btn-light{background:#fff;color:var(--text-primary);border-color:var(--border)}
+.btn-secondary{background:var(--text-secondary);color:#fff;border-color:var(--text-secondary)}
+
+.btn-outline-primary{
+    background:transparent;
+    color:var(--primary);
+    border-color:var(--primary)
+}
+
+.btn-outline-primary:hover{
+    background:var(--primary);
+    color:#fff
+}
+
+.btn-outline-secondary{
+    background:transparent;
+    color:var(--text-secondary);
+    border-color:var(--border)
+}
+
+.btn-outline-secondary:hover{background:#f8f9fa}
+
+.btn-close{opacity:.5}
+.btn-close:hover{opacity:1}
+
+/* === FORM VARIANTS === */
+.form-select{
+    appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath fill='%236b7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:right .75rem center;
+    padding-right:2.5rem
+}
+
+.form-control:disabled,.form-select:disabled{
+    background:#f5f5f5;
+    color:var(--text-muted);
+    cursor:not-allowed
+}
+
+[data-theme='dark'] .form-control:disabled,
+[data-theme='dark'] .form-select:disabled{
+    background:#1a1f2e
+}
+
+.form-label{
+    font-size:.8125rem;
+    font-weight:500;
+    margin-bottom:.375rem;
+    color:var(--text-primary);
+    display:block
+}
+
+.form-text{
+    font-size:.75rem;
+    color:var(--text-muted);
+    margin-top:.25rem
+}
+
+.form-check{
+    display:flex;
+    align-items:center;
+    gap:.5rem;
+    margin-bottom:.5rem
+}
+
+.form-check-input{
+    width:16px;
+    height:16px;
+    border:1px solid var(--border);
+    border-radius:3px;
+    cursor:pointer
+}
+
+.form-check-input:checked{
+    background-color:var(--primary);
+    border-color:var(--primary)
+}
+
+.form-check-label{
+    font-size:.875rem;
+    cursor:pointer
+}
+
+/* === BADGES === */
+.badge{
+    font-size:.6875rem;
+    font-weight:500;
+    padding:.25rem .5rem;
+    border-radius:3px;
+    display:inline-flex;
+    align-items:center;
+    gap:.25rem
+}
+
+.badge-primary{
+    background:rgba(102,126,234,.1);
+    color:var(--primary);
+    border:1px solid rgba(102,126,234,.2)
+}
+
+.badge-success{
+    background:rgba(40,167,69,.1);
+    color:var(--success);
+    border:1px solid rgba(40,167,69,.2)
+}
+
+.badge-warning{
+    background:rgba(255,193,7,.1);
+    color:#856404;
+    border:1px solid rgba(255,193,7,.2)
+}
+
+.badge-danger{
+    background:rgba(220,53,69,.1);
+    color:var(--danger);
+    border:1px solid rgba(220,53,69,.2)
+}
+
+/* === ALERTS - Компактные === */
+.alert{
+    padding:.625rem .875rem;
+    border-radius:6px;
+    border-left:3px solid;
+    margin-bottom:.5rem;
+    font-size:.875rem;
+    display:flex;
+    align-items:center;
+    gap:.625rem;
+    background:var(--bg-card);
+    box-shadow:0 1px 3px rgba(0,0,0,.08)
+}
+
+.alert i{
+    font-size:1rem;
+    flex-shrink:0
+}
+
+.alert-success{
+    border-left-color:#10b981;
+    background:#f0fdf4;
+    color:#166534
+}
+
+.alert-success i{color:#10b981}
+
+.alert-danger{
+    border-left-color:#ef4444;
+    background:#fef2f2;
+    color:#991b1b
+}
+
+.alert-danger i{color:#ef4444}
+
+.alert-warning{
+    border-left-color:#f59e0b;
+    background:#fffbeb;
+    color:#92400e
+}
+
+.alert-warning i{color:#f59e0b}
+
+.alert-info{
+    border-left-color:#3b82f6;
+    background:#eff6ff;
+    color:#1e40af
+}
+
+.alert-info i{color:#3b82f6}
+
+.alert-dismissible{
+    padding-right:2.5rem;
+    position:relative
+}
+
+.alert .btn-close{
+    position:absolute;
+    right:.625rem;
+    top:50%;
+    transform:translateY(-50%);
+    padding:0;
+    width:20px;
+    height:20px;
+    opacity:.4
+}
+
+.alert .btn-close:hover{opacity:.8}
+
+[data-theme='dark'] .alert-success{
+    background:rgba(16,185,129,.1);
+    color:#6ee7b7
+}
+
+[data-theme='dark'] .alert-danger{
+    background:rgba(239,68,68,.1);
+    color:#fca5a5
+}
+
+[data-theme='dark'] .alert-warning{
+    background:rgba(245,158,11,.1);
+    color:#fcd34d
+}
+
+[data-theme='dark'] .alert-info{
+    background:rgba(59,130,246,.1);
+    color:#93c5fd
+}
+
+/* === DROPDOWNS === */
+.dropdown-menu{
+    border-radius:var(--radius);
+    border:1px solid var(--border);
+    box-shadow:0 2px 8px rgba(0,0,0,.1);
+    padding:.25rem;
+    font-size:.875rem;
+    background:var(--bg-card);
+    min-width:160px
+}
+
+.dropdown-item{
+    border-radius:calc(var(--radius) - 1px);
+    padding:.375rem .75rem;
+    transition:var(--transition);
+    font-size:.8125rem;
+    color:var(--text-primary);
+    cursor:pointer
+}
+
+.dropdown-item:hover{background:#f5f5f5}
+
+[data-theme='dark'] .dropdown-item:hover{background:#374151}
+
+.dropdown-item i{
+    width:16px;
+    text-align:center;
+    font-size:.875rem;
+    margin-right:.5rem
+}
+
+/* === PROGRESS === */
+.progress{
+    height:8px;
+    border-radius:4px;
+    background:#e9ecef;
+    overflow:hidden
+}
+
+[data-theme='dark'] .progress{background:#374151}
+
+.progress-bar{
+    height:100%;
+    background:var(--primary);
+    transition:width .6s ease
+}
+
+/* === RESPONSIVE === */
+@media(max-width:768px){
+    .card-body{padding:.75rem}
+    .btn{padding:.375rem .75rem;font-size:.75rem}
+    .form-control,.form-select{font-size:.875rem}
+}

@@ -33,41 +33,33 @@
     
     <!-- Critical CSS - Inline for instant rendering -->
     <style>
-        {% include 'inline-critical.css' ignore missing %}
+        :root{--primary:#667eea;--text:#1f2937;--bg:#f9fafb;--border:#e5e7eb;--bg-card:#fff;--text-primary:#1f2937;--text-secondary:#6b7280;--text-muted:#9ca3af}
+        [data-theme='dark']{--primary:#3b82f6;--text:#f9fafb;--bg:#111827;--border:#374151;--bg-card:#1f2937;--text-primary:#f9fafb;--text-secondary:#9ca3af;--text-muted:#6b7280}
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{background:var(--bg);color:var(--text);font:14px/1.5 system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+        .navbar{background:var(--bg-card);border-bottom:1px solid var(--border);padding:.5rem 1rem;position:sticky;top:0;z-index:1030}
+        .container-fluid{padding:0 1rem;max-width:100%}
+        .btn{border-radius:4px;padding:.375rem .875rem;border:1px solid transparent;cursor:pointer;display:inline-flex;align-items:center;gap:.375rem}
+        .btn-primary{background:var(--primary);color:#fff}
+        .d-none{display:none!important}
+        .d-flex{display:flex!important}
     </style>
     
     {% block stylesheets %}
-        <!-- Core styles - Load immediately -->
-        <link rel="stylesheet" href="/css/main.css">
-        <link rel="stylesheet" href="/css/utilities.css">
-        <link rel="stylesheet" href="/css/components.css">
-        <link rel="stylesheet" href="/css/themes.css">
-        <link rel="stylesheet" href="/css/dark-modern-theme.css">
-        <link rel="stylesheet" href="/css/animations.css">
-        <link rel="stylesheet" href="/css/pages.css">
-        <link rel="stylesheet" href="/css/modern-interactions.css">
-        <link rel="stylesheet" href="/css/micro-animations.css">
-        <link rel="stylesheet" href="/css/responsive-enhancements.css">
-        <link rel="stylesheet" href="/css/accessibility.css">
-        <link rel="stylesheet" href="/css/performance-optimizations.css">
-        <link rel="stylesheet" href="/css/footer-enhanced.css">
-        <link rel="stylesheet" href="/css/card-system.css">
-        <link rel="stylesheet" href="/css/button-system.css">
-        <link rel="stylesheet" href="/css/form-system.css">
-        <link rel="stylesheet" href="/css/typography-system.css">
-        <link rel="stylesheet" href="/css/modal-system.css">
-        <link rel="stylesheet" href="/css/table-system.css">
-        <link rel="stylesheet" href="/css/navigation-system.css">
-        <link rel="stylesheet" href="/css/layout-system.css">
+        <!-- Header/Footer improvements -->
+        <link rel="stylesheet" href="/css/header-footer-improved.css">
         
-        <!-- Progressive enhancement - Load async -->
-        <link rel="preload" href="/css/gradient-effects.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-        <link rel="preload" href="/css/advanced-components.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-        <link rel="preload" href="/css/theme-transitions.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <!-- CSS загружается через CSS Lazy Loader для оптимальной производительности -->
         <noscript>
-            <link rel="stylesheet" href="/css/gradient-effects.css">
-            <link rel="stylesheet" href="/css/advanced-components.css">
-            <link rel="stylesheet" href="/css/theme-transitions.css">
+            <!-- Fallback для браузеров без JavaScript -->
+            <link rel="stylesheet" href="/css/optimized-core.css">
+            <link rel="stylesheet" href="/css/utilities.css">
+            <link rel="stylesheet" href="/css/components-optimized.css">
+            <link rel="stylesheet" href="/css/themes.css">
+            <link rel="stylesheet" href="/css/dark-modern-theme.css">
+            <link rel="stylesheet" href="/css/button-system.css">
+            <link rel="stylesheet" href="/css/form-system.css">
+            <link rel="stylesheet" href="/css/card-system.css">
         </noscript>
     {% endblock %}
 </head>
@@ -269,22 +261,7 @@
         </div>
     </nav>
     
-    
     <main class="container-fluid mt-4">
-        {% for flash_message in app.session.flashbag.get('success') %}
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                {{ flash_message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        {% endfor %}
-        
-        {% for flash_message in app.session.flashbag.get('error') %}
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                {{ flash_message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        {% endfor %}
-        
         {% block body %}{% endblock %}
     </main>
     
@@ -304,44 +281,58 @@
                     });
             });
         }
+        
+        // Flash messages to toast
+        {% for flash_message in app.session.flashbag.get('success') %}
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(() => showToast('{{ flash_message|e('js') }}', 'success'), 100);
+            });
+        {% endfor %}
+        
+        {% for flash_message in app.session.flashbag.get('error') %}
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(() => showToast('{{ flash_message|e('js') }}', 'error'), 100);
+            });
+        {% endfor %}
+        
+        {% for flash_message in app.session.flashbag.get('warning') %}
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(() => showToast('{{ flash_message|e('js') }}', 'warning'), 100);
+            });
+        {% endfor %}
+        
+        {% for flash_message in app.session.flashbag.get('info') %}
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(() => showToast('{{ flash_message|e('js') }}', 'info'), 100);
+            });
+        {% endfor %}
     </script>
-    
-    <!-- Toast Container -->
-    <div class="toast-container"></div>
     
     {% block javascripts %}
         {% block importmap %}{{ importmap('app') }}{% endblock %}
         
+        {# Toast System - Load first #}
+        <script src="/js/toast-system.js"></script>
+        
         {# Critical - Load immediately #}
         <script src="/js/state-manager.js"></script>
-        <script src="/js/font-loader.js"></script>
+        
+        {# Lazy Loaders #}
+        <script src="/js/css-lazy-loader.js"></script>
+        <script src="/js/js-lazy-loader.js"></script>
         
         {# Core utilities #}
         <script src="/js/utils.js" defer></script>
-        <script src="/js/performance-optimizer.js" defer></script>
-        <script src="/js/css-loader.js" defer></script>
-        
-        {# Critical functionality #}
-        <script src="/js/notification-system.js" defer></script>
         <script src="/js/theme-switcher.js" defer></script>
         <script src="/js/offline-support.js" defer></script>
-        <script src="/js/form-utilities.js" defer></script>
         <script src="/js/global-interactions.js" defer></script>
         
-        {# UI Enhancements #}
-        <script src="/js/ui-enhancements.js" defer></script>
-        <script src="/js/modern-interactions.js" defer></script>
-        <script src="/js/component-manager.js" defer></script>
-        <script src="/js/hotkeys.js" defer></script>
-        <script src="/js/quick-search.js" defer></script>
-        <script src="/js/keyboard-shortcuts.js" defer></script>
-        
-        {# Feature modules - lazy loaded #}
-        <script src="/js/lazy-load.js" defer></script>
-        <script src="/js/auto-save.js" defer></script>
-        <script src="/js/drag-drop-manager.js" defer></script>
-        <script src="/js/image-optimizer.js" defer></script>
+        {# Performance monitoring - load last #}
+        <script src="/js/performance-optimizer.js" defer></script>
         <script src="/js/performance-monitor.js" defer></script>
+        <script src="/js/css-deduplicator.js" defer></script>
+        <script src="/js/css-performance-monitor.js" defer></script>
+        <script src="/js/css-master-optimizer.js" defer></script>
         <script>
             // Preload important resources
             if ('requestIdleCallback' in window) {
@@ -381,33 +372,27 @@
                 this.notificationsMenu = document.getElementById('notificationsMenu');
                 this.markAllReadBtn = document.getElementById('markAllRead');
                 this.toastContainer = document.getElementById('notificationToastContainer');
+                this.updateInProgress = false;
+                this.lastUpdate = 0;
+                this.updateThrottle = 5000; // Минимум 5 секунд между обновлениями
                 
                 this.init();
             }
             
             init() {
-                this.connect();
                 this.bindEvents();
-                this.updateNotificationCount();
+                // Первое обновление через 1 секунду после загрузки
+                setTimeout(() => this.updateNotificationCount(), 1000);
+                // Затем каждые 5 минут
+                setInterval(() => this.updateNotificationCount(), 300000);
             }
             
             connect() {
-                if (!window.EventSource) {
-                    console.warn('EventSource not supported');
-                    return;
-                }
-                
-                // EventSource disabled to reduce server load
-                // Use polling instead
-                this.startPolling();
+                // Отключено для снижения нагрузки
             }
             
             startPolling() {
-                // Poll for notifications every 2 minutes instead of constant stream
-                this.updateNotificationCount();
-                setInterval(() => {
-                    this.updateNotificationCount();
-                }, 120000); // 2 minutes
+                // Отключено - используем редкие обновления
             }
             
             handleNotification(notification) {
@@ -467,8 +452,19 @@
             }
             
             async updateNotificationCount() {
+                // Throttle - не обновляем чаще чем раз в 5 секунд
+                const now = Date.now();
+                if (this.updateInProgress || (now - this.lastUpdate) < this.updateThrottle) {
+                    return;
+                }
+                
+                this.updateInProgress = true;
+                this.lastUpdate = now;
+                
                 try {
-                    const response = await fetch('/api/notifications/unread-count');
+                    const response = await fetch('/api/notifications/unread-count', {
+                        cache: 'no-cache'
+                    });
                     const data = await response.json();
                     
                     if (this.notificationCountElement) {
@@ -477,6 +473,8 @@
                     }
                 } catch (error) {
                     console.error('Failed to update notification count:', error);
+                } finally {
+                    this.updateInProgress = false;
                 }
             }
             
@@ -750,34 +748,6 @@
                     this.remove();
                 });
             }
-            
-            // Toast notifications
-            window.showToast = function(message, type = 'info') {
-                const toastContainer = document.querySelector('.toast-container');
-                const toastId = 'toast-' + Date.now();
-                
-                const toastHtml = `
-                    <div id="${toastId}" class="toast toast-${type} fade-in" role="alert" aria-live="assertive" aria-atomic="true">
-                        <div class="toast-body">
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
-                                <span>${message}</span>
-                                <button type="button" class="btn-close ms-auto" data-bs-dismiss="toast" aria-label="Закрыть уведомление"></button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                toastContainer.insertAdjacentHTML('beforeend', toastHtml);
-                const toastEl = document.getElementById(toastId);
-                const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
-                toast.show();
-                
-                // Remove toast after it's hidden
-                toastEl.addEventListener('hidden.bs.toast', function() {
-                    this.remove();
-                });
-            };
             
             // Navbar scroll effect
             let lastScrollTop = 0;

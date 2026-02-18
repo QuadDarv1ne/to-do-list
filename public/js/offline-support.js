@@ -56,13 +56,10 @@ class OfflineSupport {
         indicator.className = 'offline-indicator show';
         indicator.innerHTML = `
             <div class="offline-indicator-content">
-                <i class="fas fa-wifi-slash me-2"></i>
-                <span>Нет подключения</span>
+                <i class="fas fa-wifi-slash"></i>
+                <span>Нет связи</span>
             </div>
-            <div class="offline-queue-info">
-                <span id="queue-count">0</span> в очереди
-            </div>
-            <button class="btn btn-sm btn-light" id="retry-connection" style="margin-left: auto;">
+            <button class="btn btn-sm btn-light" id="retry-connection" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
                 <i class="fas fa-sync-alt"></i>
             </button>
         `;
@@ -73,8 +70,6 @@ class OfflineSupport {
         document.getElementById('retry-connection').addEventListener('click', () => {
             this.checkConnection();
         });
-        
-        this.updateQueueCount();
     }
 
     /**
@@ -89,34 +84,34 @@ class OfflineSupport {
             .offline-indicator {
                 position: fixed;
                 top: 70px;
-                left: 50%;
-                transform: translateX(-50%);
-                background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+                right: 20px;
+                background: #f59e0b;
                 color: white;
-                padding: 0.75rem 1.25rem;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                padding: 0.5rem 0.875rem;
+                border-radius: 6px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
                 z-index: 1050;
                 display: none;
+                font-size: 0.875rem;
+                max-width: 280px;
                 flex-direction: row;
                 align-items: center;
-                gap: 1rem;
-                max-width: 400px;
-                animation: slideDown 0.3s ease-out;
+                gap: 0.75rem;
+                animation: slideIn 0.3s ease-out;
             }
 
             .offline-indicator.show {
                 display: flex;
             }
 
-            @keyframes slideDown {
+            @keyframes slideIn {
                 from {
                     opacity: 0;
-                    transform: translateX(-50%) translateY(-20px);
+                    transform: translateX(100px);
                 }
                 to {
                     opacity: 1;
-                    transform: translateX(-50%) translateY(0);
+                    transform: translateX(0);
                 }
             }
 
@@ -124,12 +119,12 @@ class OfflineSupport {
                 display: flex;
                 align-items: center;
                 font-weight: 500;
-                font-size: 0.9rem;
+                font-size: 0.875rem;
                 flex: 1;
             }
 
             .offline-queue-info {
-                font-size: 0.8rem;
+                font-size: 0.75rem;
                 opacity: 0.9;
                 white-space: nowrap;
             }
@@ -139,14 +134,7 @@ class OfflineSupport {
             }
 
             .offline-badge {
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                background: var(--warning);
-                color: white;
-                padding: 0.5rem 1rem;
-                border-radius: var(--radius);
-                font-size: 0.875rem;
+                display: none;
                 box-shadow: var(--shadow);
                 z-index: 1000;
                 display: none;
@@ -197,8 +185,8 @@ class OfflineSupport {
         
         // Создать индикатор только когда действительно оффлайн
         this.createOfflineIndicator();
-
-        this.showToast('Нет подключения к интернету. Работа в автономном режиме', 'warning');
+        
+        // Не показываем toast - достаточно индикатора
     }
 
     /**
@@ -206,7 +194,8 @@ class OfflineSupport {
      */
     async checkConnection() {
         try {
-            const response = await fetch('/api/ping', {
+            // Проверяем соединение через существующий endpoint
+            const response = await fetch('/task/category', {
                 method: 'HEAD',
                 cache: 'no-cache'
             });
