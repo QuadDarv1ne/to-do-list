@@ -2,19 +2,25 @@
 
 {% block title %}Категории задач{% endblock %}
 
+{% block javascripts %}
+    {{ parent() }}
+    <script src="/js/category-page-enhanced.js" defer></script>
+{% endblock %}
+
 {% block body %}
 <div class="container-fluid">
+    <!-- Page Header with Theme Support -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h1 class="mb-0">
-                        <i class="fas fa-tags me-3 text-primary"></i>
+            <div class="page-header-enhanced d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div class="page-header-content">
+                    <h1 class="page-title mb-2">
+                        <i class="fas fa-tags me-3"></i>
                         Категории задач
                     </h1>
-                    <p class="text-muted mb-0">Управляйте категориями для организации ваших задач</p>
+                    <p class="page-subtitle mb-0">Управляйте категориями для организации ваших задач</p>
                 </div>
-                <div>
+                <div class="page-header-actions">
                     <a href="{{ path('app_task_category_new') }}" class="btn btn-primary btn-lg btn-enhanced">
                         <i class="fas fa-plus me-2"></i>
                         Создать категорию
@@ -25,46 +31,62 @@
     </div>
 
     {% if categories %}
-    <!-- Statistics Row -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="stat-card">
-                <i class="fas fa-tags stat-icon"></i>
-                <h3 class="stat-value" data-count="{{ categories|length }}">0</h3>
-                <p class="stat-label">Всего категорий</p>
+    <!-- Statistics Row with Theme Support -->
+    <div class="row mb-4 stats-row-enhanced">
+        <div class="col-md-6 col-lg-3 mb-3 mb-lg-0">
+            <div class="stat-card stat-card-enhanced">
+                <div class="stat-icon-wrapper">
+                    <i class="fas fa-tags stat-icon"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 class="stat-value" data-count="{{ categories|length }}">0</h3>
+                    <p class="stat-label">Всего категорий</p>
+                </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="stat-card">
-                <i class="fas fa-tasks stat-icon text-primary"></i>
-                {% set totalTasks = 0 %}
-                {% for category in categories %}
-                    {% set totalTasks = totalTasks + category.tasks|length %}
-                {% endfor %}
-                <h3 class="stat-value" data-count="{{ totalTasks }}">0</h3>
-                <p class="stat-label">Всего задач</p>
+        <div class="col-md-6 col-lg-3 mb-3 mb-lg-0">
+            <div class="stat-card stat-card-enhanced stat-card-primary">
+                <div class="stat-icon-wrapper">
+                    <i class="fas fa-tasks stat-icon"></i>
+                </div>
+                <div class="stat-content">
+                    {% set totalTasks = 0 %}
+                    {% for category in categories %}
+                        {% set totalTasks = totalTasks + category.tasks|length %}
+                    {% endfor %}
+                    <h3 class="stat-value" data-count="{{ totalTasks }}">0</h3>
+                    <p class="stat-label">Всего задач</p>
+                </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="stat-card">
-                <i class="fas fa-check-circle stat-icon text-success"></i>
-                {% set completedTasks = 0 %}
-                {% for category in categories %}
-                    {% set completedTasks = completedTasks + category.tasks|filter(t => t.status == 'completed')|length %}
-                {% endfor %}
-                <h3 class="stat-value" data-count="{{ completedTasks }}">0</h3>
-                <p class="stat-label">Завершено</p>
+        <div class="col-md-6 col-lg-3 mb-3 mb-md-0">
+            <div class="stat-card stat-card-enhanced stat-card-success">
+                <div class="stat-icon-wrapper">
+                    <i class="fas fa-check-circle stat-icon"></i>
+                </div>
+                <div class="stat-content">
+                    {% set completedTasks = 0 %}
+                    {% for category in categories %}
+                        {% set completedTasks = completedTasks + category.tasks|filter(t => t.status == 'completed')|length %}
+                    {% endfor %}
+                    <h3 class="stat-value" data-count="{{ completedTasks }}">0</h3>
+                    <p class="stat-label">Завершено</p>
+                </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="stat-card">
-                <i class="fas fa-spinner stat-icon text-warning"></i>
-                {% set activeTasks = 0 %}
-                {% for category in categories %}
-                    {% set activeTasks = activeTasks + category.tasks|filter(t => t.status == 'in_progress')|length %}
-                {% endfor %}
-                <h3 class="stat-value" data-count="{{ activeTasks }}">0</h3>
-                <p class="stat-label">В работе</p>
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card stat-card-enhanced stat-card-warning">
+                <div class="stat-icon-wrapper">
+                    <i class="fas fa-spinner stat-icon"></i>
+                </div>
+                <div class="stat-content">
+                    {% set activeTasks = 0 %}
+                    {% for category in categories %}
+                        {% set activeTasks = activeTasks + category.tasks|filter(t => t.status == 'in_progress')|length %}
+                    {% endfor %}
+                    <h3 class="stat-value" data-count="{{ activeTasks }}">0</h3>
+                    <p class="stat-label">В работе</p>
+                </div>
             </div>
         </div>
     </div>

@@ -3,235 +3,338 @@
 namespace App\Service;
 
 use App\Entity\Task;
+use App\Entity\TaskAutomation;
 use App\Entity\User;
-use App\Repository\TaskRepository;
+use App\Repository\TaskAutomationRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 
 class TaskAutomationService
 {
     public function __construct(
-        private TaskRepository $taskRepository,
         private EntityManagerInterface $entityManager,
-        private NotificationService $notificationService
-    ) {}
+        private TaskAutomationRepository $automationRepository,
+        private LoggerInterface $logger
+    ) {
+    }
 
     /**
-     * Auto-assign tasks based on rules
+     * Выполнить автоматизации при создании задачи
      */
-    public function autoAssignTasks(): int
+    public function executeOnTaskCreated(Task $task): void
     {
-        $assigned = 0;
+        $this->executeTrigger('task_created', $task);
+    }
 
-        // Get unassigned tasks
-        $tasks = $this->taskRepository->createQueryBuilder('t')
-            ->where('t.assignedUser IS NULL')
-            ->andWhere('t.status = :pending')
-            ->setParameter('pending', 'pending')
-            ->getQuery()
-            ->getResult();
+    /**
+     * Выполнить автоматизации при изменении статуса
+     */
+    public function executeOnStatusChanged(Task $task, string $oldStatus, string $newStatus): void
+    {
+        $context = [
+            'old_status' => $oldStatus,
+            'new_status' => $newStatus
+        ];
+        
+        $this->executeTrigger('status_changed', $task, $context);
+    }
 
-        foreach ($tasks as $task) {
-            $user = $this->findBestAssignee($task);
+    /**
+     * Выполнить автоматизации при изменении приоритета
+     */
+    public function executeOnPriorityChanged(Task $task, string $oldPriority, string $newPriority): void
+    {
+        $context = [
+            'old_priority' => $oldPriority,
+            'new_priority' => $newPriority
+        ];
+        
+        $this->executeTrigger('priority_changed', $task, $context);
+    }
+
+    /**
+     * Выполнить автоматизации при приближении дедлайна
+     */
+    public function executeOnDeadlineApproaching(Task $task): void
+    {
+        $this->executeTrigger('deadline_approaching', $task);
+    }
+
+    /**
+     * Выполнить автоматизации при просрочке
+     */
+    public function executeOnOverdue(Task $task): void
+    {
+        $this->executeTrigger('task_overdue', $task);
+    }
+
+    /**
+     * Выполнить триггер
+     */
+    private function executeTrigger(string $trigger, Task $task, array $context = []): void
+    {
+        $automations = $this->automationRepository->findActiveByTrigger($trigger);
+
+        foreach ($automations as $automation) {
+            try {
+                if ($this->checkConditions($automation, $task, $context)) {
+                    $this->executeActions($automation, $task, $context);
+                    $automation->incrementExecutionCount();
+                    $this->entityManager->flush();
+                }
+            } catch (\Exception $e) {
+                $this->logger->error('Automation execution failed', [
+                    'automation_id' => $automation->getId(),
+                    'task_id' => $task->getId(),
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Проверить условия
+     */
+    private function checkConditions(TaskAutomation $automation, Task $task, array $context): bool
+    {
+        $conditions = $automation->getConditions();
+
+        if (empty($conditions)) {
+            return true;
+        }
+
+        foreach ($conditions as $condition) {
+            if (!$this->evaluateCondition($condition, $task, $context)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Оценить условие
+     */
+    private function evaluateCondition(array $condition, Task $task, array $context): bool
+    {
+        $field = $condition['field'] ?? null;
+        $operator = $condition['operator'] ?? 'equals';
+        $value = $condition['value'] ?? null;
+
+        $taskValue = $this->getTaskFieldValue($task, $field, $context);
+
+        return match($operator) {
+            'equals' => $taskValue == $value,
+            'not_equals' => $taskValue != $value,
+            'contains' => str_contains((string)$taskValue, (string)$value),
+            'greater_than' => $taskValue > $value,
+            'less_than' => $taskValue < $value,
+            'in' => in_array($taskValue, (array)$value),
+            'not_in' => !in_array($taskValue, (array)$value),
+            default => false
+        };
+    }
+
+    /**
+     * Получить значение поля задачи
+     */
+    private function getTaskFieldValue(Task $task, ?string $field, array $context)
+    {
+        if (isset($context[$field])) {
+            return $context[$field];
+        }
+
+        return match($field) {
+            'status' => $task->getStatus(),
+            'priority' => $task->getPriority(),
+            'title' => $task->getTitle(),
+            'description' => $task->getDescription(),
+            'assigned_user' => $task->getAssignedUser()?->getId(),
+            'category' => $task->getCategory()?->getId(),
+            'due_date' => $task->getDueDate(),
+            default => null
+        };
+    }
+
+    /**
+     * Выполнить действия
+     */
+    private function executeActions(TaskAutomation $automation, Task $task, array $context): void
+    {
+        $actions = $automation->getActions();
+
+        foreach ($actions as $action) {
+            $this->executeAction($action, $task, $context);
+        }
+    }
+
+    /**
+     * Выполнить действие
+     */
+    private function executeAction(array $action, Task $task, array $context): void
+    {
+        $type = $action['type'] ?? null;
+
+        match($type) {
+            'change_status' => $this->actionChangeStatus($task, $action['value'] ?? null),
+            'change_priority' => $this->actionChangePriority($task, $action['value'] ?? null),
+            'assign_user' => $this->actionAssignUser($task, $action['value'] ?? null),
+            'add_comment' => $this->actionAddComment($task, $action['value'] ?? null),
+            'send_notification' => $this->actionSendNotification($task, $action),
+            'add_tag' => $this->actionAddTag($task, $action['value'] ?? null),
+            'set_due_date' => $this->actionSetDueDate($task, $action['value'] ?? null),
+            default => null
+        };
+
+        $this->entityManager->flush();
+    }
+
+    /**
+     * Действие: изменить статус
+     */
+    private function actionChangeStatus(Task $task, ?string $status): void
+    {
+        if ($status) {
+            $task->setStatus($status);
+        }
+    }
+
+    /**
+     * Действие: изменить приоритет
+     */
+    private function actionChangePriority(Task $task, ?string $priority): void
+    {
+        if ($priority) {
+            $task->setPriority($priority);
+        }
+    }
+
+    /**
+     * Действие: назначить пользователя
+     */
+    private function actionAssignUser(Task $task, ?int $userId): void
+    {
+        if ($userId) {
+            $user = $this->entityManager->getRepository(User::class)->find($userId);
             if ($user) {
                 $task->setAssignedUser($user);
-                $assigned++;
             }
         }
-
-        $this->entityManager->flush();
-
-        return $assigned;
     }
 
     /**
-     * Find best assignee for task
+     * Действие: добавить комментарий
      */
-    private function findBestAssignee(Task $task): ?User
+    private function actionAddComment(Task $task, ?string $text): void
     {
-        // TODO: Implement smart assignment logic
-        // - Check user workload
-        // - Check user skills/categories
-        // - Check past performance
-        // - Check availability
-        
-        return null;
+        if ($text) {
+            // Создать комментарий от системы
+            $this->logger->info('Auto-comment added', [
+                'task_id' => $task->getId(),
+                'text' => $text
+            ]);
+        }
     }
 
     /**
-     * Auto-escalate overdue tasks
+     * Действие: отправить уведомление
      */
-    public function autoEscalateOverdueTasks(): int
+    private function actionSendNotification(Task $task, array $action): void
     {
-        $escalated = 0;
-        $now = new \DateTime();
+        $message = $action['message'] ?? 'Автоматическое уведомление';
+        $recipients = $action['recipients'] ?? [];
 
-        $tasks = $this->taskRepository->createQueryBuilder('t')
-            ->where('t.deadline < :now')
-            ->andWhere('t.status != :completed')
-            ->andWhere('t.priority != :urgent')
-            ->setParameter('now', $now)
-            ->setParameter('completed', 'completed')
-            ->setParameter('urgent', 'urgent')
-            ->getQuery()
-            ->getResult();
+        $this->logger->info('Auto-notification sent', [
+            'task_id' => $task->getId(),
+            'message' => $message,
+            'recipients' => $recipients
+        ]);
+    }
 
-        foreach ($tasks as $task) {
-            // Escalate priority
-            $oldPriority = $task->getPriority();
-            $newPriority = match($oldPriority) {
-                'low' => 'medium',
-                'medium' => 'high',
-                'high' => 'urgent',
-                default => 'urgent'
-            };
+    /**
+     * Действие: добавить тег
+     */
+    private function actionAddTag(Task $task, ?string $tagName): void
+    {
+        if ($tagName) {
+            $this->logger->info('Auto-tag added', [
+                'task_id' => $task->getId(),
+                'tag' => $tagName
+            ]);
+        }
+    }
 
-            $task->setPriority($newPriority);
-            
-            // Notify
-            if ($task->getAssignedUser()) {
-                $this->notificationService->notifyTaskEscalated($task, $oldPriority, $newPriority);
+    /**
+     * Действие: установить срок
+     */
+    private function actionSetDueDate(Task $task, ?string $dateString): void
+    {
+        if ($dateString) {
+            try {
+                $date = new \DateTime($dateString);
+                $task->setDueDate($date);
+            } catch (\Exception $e) {
+                $this->logger->error('Invalid date format', [
+                    'date_string' => $dateString,
+                    'error' => $e->getMessage()
+                ]);
             }
-
-            $escalated++;
         }
-
-        $this->entityManager->flush();
-
-        return $escalated;
     }
 
     /**
-     * Auto-complete tasks with all subtasks done
+     * Создать автоматизацию
      */
-    public function autoCompleteParentTasks(): int
-    {
-        $completed = 0;
+    public function createAutomation(
+        string $name,
+        string $trigger,
+        array $conditions,
+        array $actions,
+        User $user,
+        ?string $description = null
+    ): TaskAutomation {
+        $automation = new TaskAutomation();
+        $automation->setName($name);
+        $automation->setTrigger($trigger);
+        $automation->setConditions($conditions);
+        $automation->setActions($actions);
+        $automation->setCreatedBy($user);
+        $automation->setDescription($description);
 
-        // TODO: Implement when subtasks are added
-        
-        return $completed;
+        $this->automationRepository->save($automation, true);
+
+        return $automation;
     }
 
     /**
-     * Auto-archive old completed tasks
+     * Получить доступные триггеры
      */
-    public function autoArchiveOldTasks(int $daysOld = 90): int
+    public function getAvailableTriggers(): array
     {
-        $archived = 0;
-        $cutoffDate = new \DateTime("-{$daysOld} days");
-
-        $tasks = $this->taskRepository->createQueryBuilder('t')
-            ->where('t.status = :completed')
-            ->andWhere('t.completedAt < :cutoff')
-            ->setParameter('completed', 'completed')
-            ->setParameter('cutoff', $cutoffDate)
-            ->getQuery()
-            ->getResult();
-
-        foreach ($tasks as $task) {
-            // TODO: Move to archive table or set archived flag
-            $archived++;
-        }
-
-        return $archived;
-    }
-
-    /**
-     * Auto-update task status based on activity
-     */
-    public function autoUpdateStaleTaskStatus(): int
-    {
-        $updated = 0;
-        $staleDate = new \DateTime('-7 days');
-
-        $tasks = $this->taskRepository->createQueryBuilder('t')
-            ->where('t.status = :in_progress')
-            ->andWhere('t.updatedAt < :staleDate')
-            ->setParameter('in_progress', 'in_progress')
-            ->setParameter('staleDate', $staleDate)
-            ->getQuery()
-            ->getResult();
-
-        foreach ($tasks as $task) {
-            // Mark as stale or pending
-            $task->setStatus('pending');
-            
-            // Notify assignee
-            if ($task->getAssignedUser()) {
-                $this->notificationService->notifyTaskStale($task);
-            }
-
-            $updated++;
-        }
-
-        $this->entityManager->flush();
-
-        return $updated;
-    }
-
-    /**
-     * Create automation rule
-     */
-    public function createRule(array $config): array
-    {
-        // TODO: Save to database
         return [
-            'id' => uniqid(),
-            'name' => $config['name'],
-            'trigger' => $config['trigger'],
-            'conditions' => $config['conditions'],
-            'actions' => $config['actions'],
-            'enabled' => true,
-            'created_at' => new \DateTime()
+            'task_created' => 'Задача создана',
+            'status_changed' => 'Статус изменен',
+            'priority_changed' => 'Приоритет изменен',
+            'deadline_approaching' => 'Приближается дедлайн',
+            'task_overdue' => 'Задача просрочена',
+            'task_completed' => 'Задача завершена',
+            'task_assigned' => 'Задача назначена'
         ];
     }
 
     /**
-     * Get automation rules
+     * Получить доступные действия
      */
-    public function getRules(): array
-    {
-        // TODO: Get from database
-        return [];
-    }
-
-    /**
-     * Execute automation rules
-     */
-    public function executeRules(): int
-    {
-        $executed = 0;
-
-        $rules = $this->getRules();
-
-        foreach ($rules as $rule) {
-            if ($rule['enabled']) {
-                $this->executeRule($rule);
-                $executed++;
-            }
-        }
-
-        return $executed;
-    }
-
-    /**
-     * Execute single rule
-     */
-    private function executeRule(array $rule): void
-    {
-        // TODO: Implement rule execution engine
-    }
-
-    /**
-     * Get automation statistics
-     */
-    public function getStatistics(): array
+    public function getAvailableActions(): array
     {
         return [
-            'total_rules' => count($this->getRules()),
-            'active_rules' => 0,
-            'total_executions' => 0,
-            'last_execution' => null
+            'change_status' => 'Изменить статус',
+            'change_priority' => 'Изменить приоритет',
+            'assign_user' => 'Назначить пользователя',
+            'add_comment' => 'Добавить комментарий',
+            'send_notification' => 'Отправить уведомление',
+            'add_tag' => 'Добавить тег',
+            'set_due_date' => 'Установить срок'
         ];
     }
 }

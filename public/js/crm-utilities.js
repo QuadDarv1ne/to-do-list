@@ -1,6 +1,6 @@
 /**
  * CRM Utilities
- * Common utilities and helpers for the entire CRM system
+ * Вспомогательные функции для CRM системы
  */
 
 class CRMUtilities {
@@ -9,671 +9,502 @@ class CRMUtilities {
     }
 
     init() {
-        this.setupThemeToggle();
-        this.setupSearchShortcut();
-        this.setupTooltips();
-        this.setupConfirmDialogs();
-        this.setupAutoSave();
-        this.setupOfflineDetection();
-        this.setupPerformanceMonitoring();
+        this.initExportFunctions();
+        this.initBulkActions();
+        this.initAdvancedFilters();
+        this.initDataVisualization();
     }
 
     /**
-     * Theme Toggle
+     * Экспорт данных
      */
-    setupThemeToggle() {
-        const themeToggle = document.getElementById('themeToggle');
-        if (!themeToggle) return;
+    initExportFunctions() {
+        // Экспорт в CSV
+        window.exportToCSV = (data, filename = 'export.csv') => {
+            const csv = this.convertToCSV(data);
+            this.downloadFile(csv, filename, 'text/csv');
+        };
 
-        // Load saved theme
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        this.updateThemeIcon(savedTheme);
+        // Экспорт в JSON
+        window.exportToJSON = (data, filename = 'export.json') => {
+            const json = JSON.stringify(data, null, 2);
+            this.downloadFile(json, filename, 'application/json');
+        };
 
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            this.updateThemeIcon(newTheme);
-            
-            // Animate transition
-            document.body.style.transition = 'background-color 0.3s ease';
-        });
-    }
-
-    updateThemeIcon(theme) {
-        const icon = document.querySelector('#themeToggle i');
-        if (icon) {
-            icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-        }
+        // Экспорт в Excel (простой формат)
+        window.exportToExcel = (data, filename = 'export.xlsx') => {
+            const csv = this.convertToCSV(data);
+            this.downloadFile(csv, filename, 'application/vnd.ms-excel');
+        };
     }
 
     /**
-     * Global Search Shortcut (Ctrl/Cmd + K)
+     * Конвертация данных в CSV
      */
-    setupSearchShortcut() {
-        document.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                e.preventDefault();
-                this.openGlobalSearch();
-            }
-        });
-    }
+    convertToCSV(data) {
+        if (!data || data.length === 0) return '';
 
-    openGlobalSearch() {
-        const searchInput = document.querySelector('#globalSearch');
-        if (searchInput) {
-            searchInput.focus();
-            searchInput.select();
-        } else {
-            // Create search modal if doesn't exist
-            this.createSearchModal();
-        }
-    }
+        const headers = Object.keys(data[0]);
+        const csvRows = [];
 
-    createSearchModal() {
-        const modal = document.createElement('div');
-        modal.id = 'searchModal';
-        modal.className = 'search-modal';
-        modal.innerHTML = `
-            <div class="search-modal-content">
-                <div class="search-modal-header">
-                    <input type="text" 
-                           id="globalSearch" 
-                           class="search-modal-input" 
-                           placeholder="Поиск задач, проектов, людей..."
-                           autofocus>
-                    <button class="search-modal-close" onclick="this.closest('.search-modal').remove()">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="search-modal-results" id="searchResults">
-                    <div class="search-modal-empty">
-                        <i class="fas fa-search"></i>
-                        <p>Начните вводить для поиска</p>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        document.body.appendChild(modal);
-        
-        // Setup search
-        const input = modal.querySelector('#globalSearch');
-        let searchTimeout;
-        
-        input.addEventListener('input', (e) => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                this.performSearch(e.target.value);
-            }, 300);
-        });
-        
-        // Close on escape
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                modal.remove();
-            }
-        });
-        
-        // Close on outside click
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.remove();
-            }
-        });
-    }
+        // Добавляем заголовки
+        csvRows.push(headers.join(','));
 
-    async performSearch(query) {
-        if (!query || query.length < 2) {
-            document.getElementById('searchResults').innerHTML = `
-                <div class="search-modal-empty">
-                    <i class="fas fa-search"></i>
-                    <p>Начните вводить для поиска</p>
-                </div>
-            `;
-            return;
-        }
-
-        try {
-            const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-            const data = await response.json();
-            
-            this.displaySearchResults(data.results);
-        } catch (error) {
-            console.error('Search error:', error);
-        }
-    }
-
-    displaySearchResults(results) {
-        const container = document.getElementById('searchResults');
-        
-        if (!results || results.length === 0) {
-            container.innerHTML = `
-                <div class="search-modal-empty">
-                    <i class="fas fa-inbox"></i>
-                    <p>Ничего не найдено</p>
-                </div>
-            `;
-            return;
-        }
-        
-        container.innerHTML = results.map(result => `
-            <a href="${result.url}" class="search-result-item">
-                <div class="search-result-icon">
-                    <i class="fas fa-${result.icon}"></i>
-                </div>
-                <div class="search-result-content">
-                    <div class="search-result-title">${result.title}</div>
-                    <div class="search-result-description">${result.description}</div>
-                </div>
-                <div class="search-result-type">${result.type}</div>
-            </a>
-        `).join('');
-    }
-
-    /**
-     * Tooltips
-     */
-    setupTooltips() {
-        const tooltipElements = document.querySelectorAll('[data-tooltip]');
-        
-        tooltipElements.forEach(element => {
-            element.addEventListener('mouseenter', (e) => {
-                this.showTooltip(e.target);
+        // Добавляем данные
+        for (const row of data) {
+            const values = headers.map(header => {
+                const value = row[header];
+                const escaped = ('' + value).replace(/"/g, '\\"');
+                return `"${escaped}"`;
             });
-            
-            element.addEventListener('mouseleave', () => {
-                this.hideTooltip();
-            });
-        });
-    }
-
-    showTooltip(element) {
-        const text = element.dataset.tooltip;
-        const position = element.dataset.tooltipPosition || 'top';
-        
-        const tooltip = document.createElement('div');
-        tooltip.className = `crm-tooltip crm-tooltip-${position}`;
-        tooltip.textContent = text;
-        tooltip.id = 'activeTooltip';
-        
-        document.body.appendChild(tooltip);
-        
-        // Position tooltip
-        const rect = element.getBoundingClientRect();
-        const tooltipRect = tooltip.getBoundingClientRect();
-        
-        let top, left;
-        
-        switch(position) {
-            case 'top':
-                top = rect.top - tooltipRect.height - 8;
-                left = rect.left + (rect.width - tooltipRect.width) / 2;
-                break;
-            case 'bottom':
-                top = rect.bottom + 8;
-                left = rect.left + (rect.width - tooltipRect.width) / 2;
-                break;
-            case 'left':
-                top = rect.top + (rect.height - tooltipRect.height) / 2;
-                left = rect.left - tooltipRect.width - 8;
-                break;
-            case 'right':
-                top = rect.top + (rect.height - tooltipRect.height) / 2;
-                left = rect.right + 8;
-                break;
+            csvRows.push(values.join(','));
         }
-        
-        tooltip.style.top = `${top}px`;
-        tooltip.style.left = `${left}px`;
-        
-        setTimeout(() => tooltip.classList.add('show'), 10);
-    }
 
-    hideTooltip() {
-        const tooltip = document.getElementById('activeTooltip');
-        if (tooltip) {
-            tooltip.classList.remove('show');
-            setTimeout(() => tooltip.remove(), 200);
-        }
+        return csvRows.join('\n');
     }
 
     /**
-     * Confirm Dialogs
+     * Скачивание файла
      */
-    setupConfirmDialogs() {
+    downloadFile(content, filename, mimeType) {
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+
+    /**
+     * Массовые операции
+     */
+    initBulkActions() {
         document.addEventListener('click', (e) => {
-            const confirmBtn = e.target.closest('[data-confirm]');
-            if (!confirmBtn) return;
-            
-            const message = confirmBtn.dataset.confirm;
-            const confirmed = confirm(message);
-            
-            if (!confirmed) {
-                e.preventDefault();
-                e.stopPropagation();
+            if (e.target.matches('[data-bulk-action]')) {
+                const action = e.target.dataset.bulkAction;
+                const selected = this.getSelectedItems();
+                
+                if (selected.length === 0) {
+                    this.showToast('Выберите элементы для выполнения действия', 'warning');
+                    return;
+                }
+
+                this.executeBulkAction(action, selected);
+            }
+        });
+
+        // Выбор всех элементов
+        document.addEventListener('change', (e) => {
+            if (e.target.matches('[data-select-all]')) {
+                const checkboxes = document.querySelectorAll('[data-item-checkbox]');
+                checkboxes.forEach(cb => cb.checked = e.target.checked);
+                this.updateBulkActionsUI();
+            }
+
+            if (e.target.matches('[data-item-checkbox]')) {
+                this.updateBulkActionsUI();
             }
         });
     }
 
     /**
-     * Auto-save functionality
+     * Получить выбранные элементы
      */
-    setupAutoSave() {
-        const autoSaveForms = document.querySelectorAll('[data-autosave]');
-        
-        autoSaveForms.forEach(form => {
-            const inputs = form.querySelectorAll('input, textarea, select');
-            let saveTimeout;
-            
-            inputs.forEach(input => {
-                input.addEventListener('input', () => {
-                    clearTimeout(saveTimeout);
-                    saveTimeout = setTimeout(() => {
-                        this.autoSaveForm(form);
-                    }, 2000);
-                });
-            });
-        });
+    getSelectedItems() {
+        const checkboxes = document.querySelectorAll('[data-item-checkbox]:checked');
+        return Array.from(checkboxes).map(cb => cb.value);
     }
 
-    async autoSaveForm(form) {
-        const formData = new FormData(form);
-        const url = form.dataset.autosaveUrl || form.action;
+    /**
+     * Обновить UI массовых операций
+     */
+    updateBulkActionsUI() {
+        const selected = this.getSelectedItems();
+        const bulkActionsBar = document.querySelector('[data-bulk-actions-bar]');
+        const selectedCount = document.querySelector('[data-selected-count]');
+
+        if (bulkActionsBar) {
+            bulkActionsBar.classList.toggle('show', selected.length > 0);
+        }
+
+        if (selectedCount) {
+            selectedCount.textContent = selected.length;
+        }
+    }
+
+    /**
+     * Выполнить массовое действие
+     */
+    async executeBulkAction(action, items) {
+        const confirmMessage = this.getBulkActionConfirmMessage(action, items.length);
         
+        if (confirmMessage && !confirm(confirmMessage)) {
+            return;
+        }
+
         try {
-            const response = await fetch(url, {
+            const response = await fetch(`/api/bulk/${action}`, {
                 method: 'POST',
-                body: formData
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ items })
             });
-            
+
             if (response.ok) {
-                this.showAutoSaveIndicator('Сохранено');
+                this.showToast(`Действие "${action}" выполнено для ${items.length} элементов`, 'success');
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                throw new Error('Ошибка выполнения действия');
             }
         } catch (error) {
-            console.error('Auto-save error:', error);
+            console.error('Bulk action error:', error);
+            this.showToast('Ошибка выполнения массового действия', 'error');
         }
     }
 
-    showAutoSaveIndicator(message) {
-        let indicator = document.getElementById('autoSaveIndicator');
-        
-        if (!indicator) {
-            indicator = document.createElement('div');
-            indicator.id = 'autoSaveIndicator';
-            indicator.className = 'auto-save-indicator';
-            document.body.appendChild(indicator);
+    /**
+     * Получить сообщение подтверждения для массового действия
+     */
+    getBulkActionConfirmMessage(action, count) {
+        const messages = {
+            'delete': `Вы уверены, что хотите удалить ${count} элементов?`,
+            'archive': `Архивировать ${count} элементов?`,
+            'complete': `Отметить ${count} задач как выполненные?`
+        };
+        return messages[action] || null;
+    }
+
+    /**
+     * Расширенные фильтры
+     */
+    initAdvancedFilters() {
+        const filterForm = document.querySelector('[data-filter-form]');
+        if (!filterForm) return;
+
+        // Применение фильтров
+        filterForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.applyFilters(new FormData(filterForm));
+        });
+
+        // Сброс фильтров
+        const resetBtn = filterForm.querySelector('[data-reset-filters]');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                filterForm.reset();
+                this.applyFilters(new FormData(filterForm));
+            });
         }
-        
-        indicator.textContent = message;
-        indicator.classList.add('show');
-        
-        setTimeout(() => {
-            indicator.classList.remove('show');
-        }, 2000);
+
+        // Сохранение фильтров
+        const saveBtn = filterForm.querySelector('[data-save-filters]');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', () => {
+                this.saveFilters(new FormData(filterForm));
+            });
+        }
     }
 
     /**
-     * Offline Detection
+     * Применить фильтры
      */
-    setupOfflineDetection() {
-        window.addEventListener('online', () => {
-            this.showConnectionStatus('Соединение восстановлено', 'success');
-        });
+    applyFilters(formData) {
+        const params = new URLSearchParams(formData);
+        const url = new URL(window.location);
         
-        window.addEventListener('offline', () => {
-            this.showConnectionStatus('Нет подключения к интернету', 'error');
-        });
-    }
+        // Очищаем старые параметры фильтрации
+        for (const key of url.searchParams.keys()) {
+            if (key.startsWith('filter_')) {
+                url.searchParams.delete(key);
+            }
+        }
 
-    showConnectionStatus(message, type) {
-        const notification = document.createElement('div');
-        notification.className = `connection-status connection-status-${type}`;
-        notification.innerHTML = `
-            <i class="fas fa-${type === 'success' ? 'wifi' : 'exclamation-triangle'}"></i>
-            <span>${message}</span>
-        `;
-        
-        document.body.appendChild(notification);
-        
-        setTimeout(() => notification.classList.add('show'), 10);
-        
-        setTimeout(() => {
-            notification.classList.remove('show');
-            setTimeout(() => notification.remove(), 300);
-        }, 3000);
+        // Добавляем новые параметры
+        for (const [key, value] of params.entries()) {
+            if (value) {
+                url.searchParams.set(key, value);
+            }
+        }
+
+        window.location.href = url.toString();
     }
 
     /**
-     * Performance Monitoring
+     * Сохранить фильтры
      */
-    setupPerformanceMonitoring() {
-        // Monitor page load time
-        window.addEventListener('load', () => {
-            const perfData = performance.timing;
-            const pageLoadTime = perfData.loadEventEnd - perfData.navigationStart;
-            
-            console.log(`Page load time: ${pageLoadTime}ms`);
-            
-            // Send to analytics if needed
-            if (pageLoadTime > 3000) {
-                console.warn('Slow page load detected');
+    saveFilters(formData) {
+        const filters = {};
+        for (const [key, value] of formData.entries()) {
+            if (value) filters[key] = value;
+        }
+
+        const name = prompt('Введите название для сохранения фильтров:');
+        if (!name) return;
+
+        const savedFilters = JSON.parse(localStorage.getItem('savedFilters') || '{}');
+        savedFilters[name] = filters;
+        localStorage.setItem('savedFilters', JSON.stringify(savedFilters));
+
+        this.showToast(`Фильтры сохранены как "${name}"`, 'success');
+        this.updateSavedFiltersList();
+    }
+
+    /**
+     * Обновить список сохраненных фильтров
+     */
+    updateSavedFiltersList() {
+        const container = document.querySelector('[data-saved-filters]');
+        if (!container) return;
+
+        const savedFilters = JSON.parse(localStorage.getItem('savedFilters') || '{}');
+        const names = Object.keys(savedFilters);
+
+        if (names.length === 0) {
+            container.innerHTML = '<p class="text-muted small">Нет сохраненных фильтров</p>';
+            return;
+        }
+
+        container.innerHTML = names.map(name => `
+            <button class="btn btn-sm btn-outline-primary me-2 mb-2" 
+                    data-load-filter="${name}">
+                ${name}
+            </button>
+        `).join('');
+
+        // Загрузка сохраненных фильтров
+        container.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-load-filter]');
+            if (btn) {
+                const name = btn.dataset.loadFilter;
+                this.loadSavedFilters(name);
             }
         });
     }
 
     /**
-     * Format date
+     * Загрузить сохраненные фильтры
      */
-    static formatDate(date, format = 'short') {
-        const d = new Date(date);
+    loadSavedFilters(name) {
+        const savedFilters = JSON.parse(localStorage.getItem('savedFilters') || '{}');
+        const filters = savedFilters[name];
+
+        if (!filters) return;
+
+        const filterForm = document.querySelector('[data-filter-form]');
+        if (!filterForm) return;
+
+        // Заполняем форму
+        for (const [key, value] of Object.entries(filters)) {
+            const input = filterForm.querySelector(`[name="${key}"]`);
+            if (input) {
+                input.value = value;
+            }
+        }
+
+        this.applyFilters(new FormData(filterForm));
+    }
+
+    /**
+     * Визуализация данных
+     */
+    initDataVisualization() {
+        // Инициализация графиков
+        this.initCharts();
         
-        const formats = {
-            short: d.toLocaleDateString('ru-RU'),
-            long: d.toLocaleDateString('ru-RU', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-            }),
-            time: d.toLocaleTimeString('ru-RU', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            }),
-            full: d.toLocaleString('ru-RU')
-        };
+        // Инициализация статистических карточек
+        this.initStatCards();
+    }
+
+    /**
+     * Инициализация графиков
+     */
+    initCharts() {
+        const chartContainers = document.querySelectorAll('[data-chart]');
         
-        return formats[format] || formats.short;
+        chartContainers.forEach(container => {
+            const type = container.dataset.chart;
+            const dataUrl = container.dataset.chartData;
+
+            if (dataUrl) {
+                fetch(dataUrl)
+                    .then(res => res.json())
+                    .then(data => this.renderChart(container, type, data))
+                    .catch(err => console.error('Chart data error:', err));
+            }
+        });
     }
 
     /**
-     * Format number
+     * Отрисовка графика
      */
-    static formatNumber(number, decimals = 0) {
-        return new Intl.NumberFormat('ru-RU', {
-            minimumFractionDigits: decimals,
-            maximumFractionDigits: decimals
-        }).format(number);
+    renderChart(container, type, data) {
+        // Простая реализация без внешних библиотек
+        // Для production рекомендуется использовать Chart.js или подобные
+        
+        if (type === 'bar') {
+            this.renderBarChart(container, data);
+        } else if (type === 'line') {
+            this.renderLineChart(container, data);
+        } else if (type === 'pie') {
+            this.renderPieChart(container, data);
+        }
     }
 
     /**
-     * Debounce function
+     * Столбчатая диаграмма
      */
-    static debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
+    renderBarChart(container, data) {
+        const max = Math.max(...data.values);
+        const html = data.labels.map((label, i) => {
+            const value = data.values[i];
+            const height = (value / max) * 100;
+            return `
+                <div class="chart-bar" style="flex: 1; text-align: center;">
+                    <div class="bar" style="height: ${height}%; background: var(--primary); margin: 0 5px; border-radius: 4px 4px 0 0;"></div>
+                    <div class="label" style="font-size: 0.75rem; margin-top: 5px;">${label}</div>
+                    <div class="value" style="font-size: 0.875rem; font-weight: 600;">${value}</div>
+                </div>
+            `;
+        }).join('');
+
+        container.innerHTML = `<div style="display: flex; align-items: flex-end; height: 200px;">${html}</div>`;
     }
 
     /**
-     * Copy to clipboard
+     * Линейный график
      */
-    static async copyToClipboard(text) {
-        try {
-            await navigator.clipboard.writeText(text);
-            return true;
-        } catch (error) {
-            console.error('Copy failed:', error);
-            return false;
+    renderLineChart(container, data) {
+        // Упрощенная реализация
+        const canvas = document.createElement('canvas');
+        canvas.width = container.clientWidth;
+        canvas.height = 200;
+        container.appendChild(canvas);
+
+        const ctx = canvas.getContext('2d');
+        const max = Math.max(...data.values);
+        const step = canvas.width / (data.values.length - 1);
+
+        ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary');
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+
+        data.values.forEach((value, i) => {
+            const x = i * step;
+            const y = canvas.height - (value / max) * canvas.height;
+            
+            if (i === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        });
+
+        ctx.stroke();
+    }
+
+    /**
+     * Круговая диаграмма
+     */
+    renderPieChart(container, data) {
+        const total = data.values.reduce((sum, val) => sum + val, 0);
+        const colors = ['#667eea', '#f97316', '#a855f7', '#22c55e', '#ef4444'];
+
+        const html = data.labels.map((label, i) => {
+            const value = data.values[i];
+            const percentage = ((value / total) * 100).toFixed(1);
+            const color = colors[i % colors.length];
+
+            return `
+                <div class="pie-item" style="display: flex; align-items: center; margin-bottom: 10px;">
+                    <div class="pie-color" style="width: 20px; height: 20px; background: ${color}; border-radius: 4px; margin-right: 10px;"></div>
+                    <div class="pie-label" style="flex: 1;">${label}</div>
+                    <div class="pie-value" style="font-weight: 600;">${percentage}%</div>
+                </div>
+            `;
+        }).join('');
+
+        container.innerHTML = html;
+    }
+
+    /**
+     * Инициализация статистических карточек
+     */
+    initStatCards() {
+        const statCards = document.querySelectorAll('[data-stat-card]');
+        
+        statCards.forEach(card => {
+            const dataUrl = card.dataset.statCard;
+            
+            if (dataUrl) {
+                fetch(dataUrl)
+                    .then(res => res.json())
+                    .then(data => this.updateStatCard(card, data))
+                    .catch(err => console.error('Stat card error:', err));
+            }
+        });
+    }
+
+    /**
+     * Обновить статистическую карточку
+     */
+    updateStatCard(card, data) {
+        const valueEl = card.querySelector('[data-stat-value]');
+        const changeEl = card.querySelector('[data-stat-change]');
+
+        if (valueEl) {
+            this.animateValue(valueEl, 0, data.value, 1000);
+        }
+
+        if (changeEl && data.change !== undefined) {
+            const isPositive = data.change >= 0;
+            changeEl.textContent = `${isPositive ? '+' : ''}${data.change}%`;
+            changeEl.className = `stat-change ${isPositive ? 'text-success' : 'text-danger'}`;
+        }
+    }
+
+    /**
+     * Анимация значения
+     */
+    animateValue(element, start, end, duration) {
+        const range = end - start;
+        const increment = range / (duration / 16);
+        let current = start;
+
+        const timer = setInterval(() => {
+            current += increment;
+            
+            if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+                current = end;
+                clearInterval(timer);
+            }
+
+            element.textContent = Math.round(current);
+        }, 16);
+    }
+
+    /**
+     * Показать уведомление
+     */
+    showToast(message, type = 'info') {
+        if (typeof window.showToast === 'function') {
+            window.showToast(message, type);
         }
     }
 }
 
-// Initialize utilities
-document.addEventListener('DOMContentLoaded', () => {
-    window.crmUtils = new CRMUtilities();
-});
-
-// Export for use in other scripts
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = CRMUtilities;
+// Инициализация
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        window.crmUtilities = new CRMUtilities();
+    });
+} else {
+    window.crmUtilities = new CRMUtilities();
 }
 
-// Add required CSS
-const style = document.createElement('style');
-style.textContent = `
-    /* Search Modal */
-    .search-modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0,0,0,0.5);
-        display: flex;
-        align-items: flex-start;
-        justify-content: center;
-        padding-top: 10vh;
-        z-index: 9999;
-        animation: fadeIn 0.2s ease;
-    }
-
-    .search-modal-content {
-        background: white;
-        border-radius: 16px;
-        width: 90%;
-        max-width: 600px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        animation: slideDown 0.3s ease;
-    }
-
-    .search-modal-header {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 1.5rem;
-        border-bottom: 2px solid #e9ecef;
-    }
-
-    .search-modal-input {
-        flex: 1;
-        border: none;
-        font-size: 1.125rem;
-        outline: none;
-    }
-
-    .search-modal-close {
-        width: 36px;
-        height: 36px;
-        border: none;
-        background: #f8f9fa;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .search-modal-close:hover {
-        background: #e9ecef;
-    }
-
-    .search-modal-results {
-        max-height: 400px;
-        overflow-y: auto;
-    }
-
-    .search-modal-empty {
-        padding: 3rem;
-        text-align: center;
-        color: #6c757d;
-    }
-
-    .search-modal-empty i {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-        opacity: 0.3;
-    }
-
-    .search-result-item {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 1rem 1.5rem;
-        border-bottom: 1px solid #e9ecef;
-        text-decoration: none;
-        color: inherit;
-        transition: all 0.2s ease;
-    }
-
-    .search-result-item:hover {
-        background: #f8f9fa;
-    }
-
-    .search-result-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .search-result-content {
-        flex: 1;
-    }
-
-    .search-result-title {
-        font-weight: 600;
-        color: #212529;
-    }
-
-    .search-result-description {
-        font-size: 0.875rem;
-        color: #6c757d;
-    }
-
-    .search-result-type {
-        padding: 0.25rem 0.75rem;
-        background: #e9ecef;
-        border-radius: 12px;
-        font-size: 0.8125rem;
-        font-weight: 600;
-        color: #495057;
-    }
-
-    /* Tooltip */
-    .crm-tooltip {
-        position: fixed;
-        background: rgba(0,0,0,0.9);
-        color: white;
-        padding: 0.5rem 0.75rem;
-        border-radius: 6px;
-        font-size: 0.875rem;
-        z-index: 10000;
-        opacity: 0;
-        transition: opacity 0.2s ease;
-        pointer-events: none;
-    }
-
-    .crm-tooltip.show {
-        opacity: 1;
-    }
-
-    /* Auto-save indicator */
-    .auto-save-indicator {
-        position: fixed;
-        bottom: 2rem;
-        right: 2rem;
-        background: white;
-        padding: 0.75rem 1.5rem;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        font-weight: 600;
-        color: #28a745;
-        opacity: 0;
-        transform: translateY(20px);
-        transition: all 0.3s ease;
-        z-index: 9999;
-    }
-
-    .auto-save-indicator.show {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-    /* Connection status */
-    .connection-status {
-        position: fixed;
-        top: 2rem;
-        left: 50%;
-        transform: translateX(-50%) translateY(-100px);
-        background: white;
-        padding: 1rem 2rem;
-        border-radius: 12px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        z-index: 9999;
-        transition: all 0.3s ease;
-    }
-
-    .connection-status.show {
-        transform: translateX(-50%) translateY(0);
-    }
-
-    .connection-status-success {
-        border-left: 4px solid #28a745;
-    }
-
-    .connection-status-error {
-        border-left: 4px solid #dc3545;
-    }
-
-    /* Animations */
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-
-    @keyframes slideDown {
-        from {
-            opacity: 0;
-            transform: translateY(-20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    /* Dark theme */
-    [data-theme='dark'] .search-modal-content {
-        background: #2d3748;
-    }
-
-    [data-theme='dark'] .search-modal-input {
-        color: #e2e8f0;
-    }
-
-    [data-theme='dark'] .search-result-item {
-        border-bottom-color: #4a5568;
-    }
-
-    [data-theme='dark'] .search-result-item:hover {
-        background: #374151;
-    }
-
-    [data-theme='dark'] .search-result-title {
-        color: #e2e8f0;
-    }
-
-    [data-theme='dark'] .search-result-description {
-        color: #a0aec0;
-    }
-
-    [data-theme='dark'] .auto-save-indicator,
-    [data-theme='dark'] .connection-status {
-        background: #2d3748;
-    }
-`;
-document.head.appendChild(style);
+// Экспорт
+window.CRMUtilities = CRMUtilities;

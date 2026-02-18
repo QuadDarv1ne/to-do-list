@@ -1,0 +1,220 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Управление бэкапами{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>
+            <i class="fas fa-database"></i>
+            Управление бэкапами
+        </h1>
+        <div>
+            <button class="btn btn-primary" id="createBackupBtn">
+                <i class="fas fa-plus"></i> Создать полный бэкап
+            </button>
+            <button class="btn btn-info" id="createIncrementalBtn">
+                <i class="fas fa-layer-group"></i> Инкрементальный
+            </button>
+            <button class="btn btn-warning" id="cleanBackupsBtn">
+                <i class="fas fa-broom"></i> Очистить старые
+            </button>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-archive"></i>
+                        Всего бэкапов
+                    </h5>
+                    <h2 class="mb-0">{{ backups|length }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-hdd"></i>
+                        Общий размер
+                    </h5>
+                    <h2 class="mb-0">{{ (totalSize / 1024 / 1024)|number_format(2) }} MB</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-clock"></i>
+                        Последний бэкап
+                    </h5>
+                    <h2 class="mb-0">
+                        {% if backups|length > 0 %}
+                            {{ backups[0].created_at|date('d.m.Y') }}
+                        {% else %}
+                            Нет
+                        {% endif %}
+                    </h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-list"></i>
+                Список бэкапов
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if backups|length > 0 %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Файл</th>
+                            <th>Тип</th>
+                            <th>Размер</th>
+                            <th>Создан</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for backup in backups %}
+                        <tr>
+                            <td>
+                                <i class="fas fa-file-archive"></i>
+                                {{ backup.filename }}
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ backup.type == 'full' ? 'primary' : 'info' }}">
+                                    {{ backup.type == 'full' ? 'Полный' : 'Инкрементальный' }}
+                                </span>
+                            </td>
+                            <td>{{ (backup.size / 1024 / 1024)|number_format(2) }} MB</td>
+                            <td>{{ backup.created_at }}</td>
+                            <td>
+                                <a href="{{ path('app_backup_download', {filename: backup.filename}) }}" 
+                                   class="btn btn-sm btn-success">
+                                    <i class="fas fa-download"></i> Скачать
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                Бэкапы отсутствуют. Создайте первый бэкап.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="alert alert-warning mt-4">
+        <h5><i class="fas fa-exclamation-triangle"></i> Важная информация</h5>
+        <ul class="mb-0">
+            <li>Полный бэкап создает копию всей базы данных</li>
+            <li>Инкрементальный бэкап сохраняет только изменения за последние 24 часа</li>
+            <li>Старые бэкапы (старше 30 дней) можно удалить для экономии места</li>
+            <li>Рекомендуется создавать полный бэкап раз в неделю</li>
+            <li>Храните бэкапы в безопасном месте вне сервера</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const createBtn = document.getElementById('createBackupBtn');
+    const incrementalBtn = document.getElementById('createIncrementalBtn');
+    const cleanBtn = document.getElementById('cleanBackupsBtn');
+
+    createBtn.addEventListener('click', async function() {
+        if (!confirm('Создать полный бэкап базы данных? Это может занять некоторое время.')) {
+            return;
+        }
+
+        createBtn.disabled = true;
+        createBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Создание...';
+
+        try {
+            const response = await fetch('{{ path('app_backup_create') }}', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                window.location.reload();
+            } else {
+                alert('Ошибка: ' + result.error);
+                createBtn.disabled = false;
+                createBtn.innerHTML = '<i class="fas fa-plus"></i> Создать полный бэкап';
+            }
+        } catch (error) {
+            alert('Ошибка: ' + error.message);
+            createBtn.disabled = false;
+            createBtn.innerHTML = '<i class="fas fa-plus"></i> Создать полный бэкап';
+        }
+    });
+
+    incrementalBtn.addEventListener('click', async function() {
+        incrementalBtn.disabled = true;
+        incrementalBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Создание...';
+
+        try {
+            const response = await fetch('{{ path('app_backup_create_incremental') }}', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                window.location.reload();
+            } else {
+                alert('Ошибка: ' + result.error);
+                incrementalBtn.disabled = false;
+                incrementalBtn.innerHTML = '<i class="fas fa-layer-group"></i> Инкрементальный';
+            }
+        } catch (error) {
+            alert('Ошибка: ' + error.message);
+            incrementalBtn.disabled = false;
+            incrementalBtn.innerHTML = '<i class="fas fa-layer-group"></i> Инкрементальный';
+        }
+    });
+
+    cleanBtn.addEventListener('click', async function() {
+        if (!confirm('Удалить все бэкапы старше 30 дней?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch('{{ path('app_backup_clean') }}', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            const result = await response.json();
+            window.location.reload();
+        } catch (error) {
+            alert('Ошибка: ' + error.message);
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -32,10 +32,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     {% block stylesheets %}
+        <link rel="stylesheet" href="/css/animations.css">
         <link rel="stylesheet" href="/css/main.css">
+        <link rel="stylesheet" href="/css/themes.css">
         <link rel="stylesheet" href="/css/components.css">
         <link rel="stylesheet" href="/css/pages.css">
-        <link rel="stylesheet" href="/css/animations.css">
         <link rel="stylesheet" href="/css/dark-theme.css">
     {% endblock %}
 </head>
@@ -280,12 +281,59 @@
     {% block javascripts %}
         {% block importmap %}{{ importmap('app') }}{% endblock %}
         <script src="/js/notification-system.js" defer></script>
+        <script src="/js/smart-notifications.js" defer></script>
         <script src="/js/form-utilities.js" defer></script>
         <script src="/js/global-interactions.js" defer></script>
         <script src="/js/scroll-animations.js" defer></script>
         <script src="/js/quick-search.js" defer></script>
         <script src="/js/hotkeys.js" defer></script>
         <script src="/js/ui-enhancements.js" defer></script>
+        <script src="/js/advanced-interactions.js" defer></script>
+        <script src="/js/theme-switcher.js" defer></script>
+        <script src="/js/dashboard-charts.js" defer></script>
+        <script src="/js/dashboard-realtime.js" defer></script>
+        <script src="/js/advanced-search.js" defer></script>
+        <script src="/js/performance-monitor.js" defer></script>
+        <script src="/js/task-automation.js" defer></script>
+        <script src="/js/collaboration-tools.js" defer></script>
+        <script src="/js/analytics-dashboard.js" defer></script>
+        <script src="/js/data-visualization.js" defer></script>
+        <script src="/js/smart-assistant.js" defer></script>
+        <script src="/js/drag-drop-manager.js" defer></script>
+        <script src="/js/tag-system.js" defer></script>
+        <script src="/js/crm-utilities.js" defer></script>
+        <script src="/js/table-enhancements.js" defer></script>
+        <script src="/js/teams-projects-enhanced.js" defer></script>
+        <script src="/js/keyboard-shortcuts.js" defer></script>
+        <script src="/js/offline-support.js" defer></script>
+        <script src="/js/auto-save.js" defer></script>
+        <script src="/js/file-upload-enhanced.js" defer></script>
+        <script src="/js/quick-actions-menu.js" defer></script>
+        <script src="/js/lazy-load.js" defer></script>
+        <script src="/js/cache-manager.js" defer></script>
+        <script src="/js/image-optimizer.js" defer></script>
+        <script src="/js/batch-operations.js" defer></script>
+        <script src="/js/activity-tracker.js" defer></script>
+        <script src="/js/export-manager.js" defer></script>
+        <script src="/js/print-manager.js" defer></script>
+        <script src="/js/tour-guide.js" defer></script>
+        <script src="/js/clipboard-manager.js" defer></script>
+        <script src="/js/voice-commands.js" defer></script>
+        <script src="/js/feature-announcements.js" defer></script>
+        <script src="/js/advanced-filters.js" defer></script>
+        <script src="/js/undo-redo.js" defer></script>
+        <script src="/js/context-menu.js" defer></script>
+        <script src="/js/fullscreen-mode.js" defer></script>
+        <script src="/js/reading-progress.js" defer></script>
+        <script src="/js/scroll-to-top.js" defer></script>
+        <script src="/js/focus-mode.js" defer></script>
+        <script src="/js/command-palette.js" defer></script>
+        <script src="/js/breadcrumbs-enhanced.js" defer></script>
+        <script src="/js/task-templates.js" defer></script>
+        <script src="/js/time-tracking.js" defer></script>
+        <script src="/js/quick-notes.js" defer></script>
+        <script src="/js/task-dependencies.js" defer></script>
+        <script src="/js/task-recurrence.js" defer></script>
         <script>
             // Preload important resources
             if ('requestIdleCallback' in window) {
@@ -557,268 +605,6 @@
     {% endif %}
     
     <script>
-        // Theme Management
-        // Offline/Online detection
-        window.addEventListener('online', function() {
-            const indicator = document.getElementById('offlineIndicator');
-            if (indicator) {
-                indicator.classList.add('d-none');
-                showToast('Соединение восстановлено', 'success');
-            }
-        });
-        
-        window.addEventListener('offline', function() {
-            const indicator = document.getElementById('offlineIndicator');
-            if (indicator) {
-                indicator.classList.remove('d-none');
-                showToast('Нет подключения к интернету. Работа в автономном режиме', 'warning');
-            }
-        });
-        
-        // Check initial connection status
-        if (!navigator.onLine) {
-            const indicator = document.getElementById('offlineIndicator');
-            if (indicator) {
-                indicator.classList.remove('d-none');
-            }
-        }
-        
-        // Voice Control functionality
-        let isListening = false;
-        let recognition;
-        
-        // Initialize speech recognition
-        function initVoiceControl() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            
-            if (!SpeechRecognition) {
-                console.warn('Speech recognition not supported in this browser');
-                return false;
-            }
-            
-            recognition = new SpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = false;
-            recognition.lang = 'ru-RU';
-            
-            recognition.onstart = function() {
-                isListening = true;
-                updateVoiceButton(true);
-                showVoiceIndicator();
-                showVoiceFeedback('Голосовое управление активировано. Говорите команды', 'info');
-            };
-            
-            recognition.onresult = function(event) {
-                const transcript = event.results[0][0].transcript.toLowerCase().trim();
-                handleVoiceCommand(transcript);
-            };
-            
-            recognition.onerror = function(event) {
-                console.error('Speech recognition error:', event.error);
-                isListening = false;
-                updateVoiceButton(false);
-                hideVoiceIndicator();
-                
-                if (event.error === 'no-speech') {
-                    showVoiceFeedback('Речь не обнаружена. Попробуйте снова', 'warning');
-                } else if (event.error === 'audio-capture') {
-                    showVoiceFeedback('Микрофон не доступен', 'error');
-                } else {
-                    showVoiceFeedback('Ошибка голосового управления: ' + event.error, 'error');
-                }
-            };
-            
-            recognition.onend = function() {
-                isListening = false;
-                updateVoiceButton(false);
-                hideVoiceIndicator();
-            };
-            
-            return true;
-        }
-        
-        function updateVoiceButton(listening) {
-            const button = document.getElementById('voiceControlBtn');
-            const icon = button.querySelector('i');
-            
-            if (listening) {
-                button.classList.add('btn-danger');
-                button.classList.remove('btn-outline-light');
-                icon.className = 'fas fa-microphone-alt';
-                button.title = 'Остановить голосовое управление';
-                button.setAttribute('aria-label', 'Остановить голосовое управление');
-            } else {
-                button.classList.remove('btn-danger');
-                button.classList.add('btn-outline-light');
-                icon.className = 'fas fa-microphone';
-                button.title = 'Голосовое управление';
-                button.setAttribute('aria-label', 'Включить голосовое управление');
-            }
-        }
-        
-        function handleVoiceCommand(command) {
-            console.log('Voice command received:', command);
-            
-            // Navigation commands
-            if (command.includes('панель') || command.includes('dashboard')) {
-                window.location.href = '{{ path('app_dashboard') }}';
-                showVoiceFeedback('Переход на панель управления', 'success');
-            } else if (command.includes('задачи') || command.includes('tasks')) {
-                window.location.href = '{{ path('app_task_index') }}';
-                showVoiceFeedback('Переход к задачам', 'success');
-            } else if (command.includes('категории') || command.includes('categories')) {
-                window.location.href = '{{ path('app_task_category_index') }}';
-                showVoiceFeedback('Переход к категориям', 'success');
-            } else if (command.includes('профиль') || command.includes('profile')) {
-                window.location.href = '{{ path('app_profile_show') }}';
-                showVoiceFeedback('Переход к профилю', 'success');
-            } else if (command.includes('календарь') || command.includes('calendar')) {
-                window.location.href = '{{ path('app_calendar') }}';
-                showVoiceFeedback('Переход к календарю', 'success');
-            }
-            
-            // Action commands
-            else if (command.includes('новая задача') || command.includes('create task')) {
-                window.location.href = '{{ path('app_task_new') }}';
-                showVoiceFeedback('Создание новой задачи', 'success');
-            } else if (command.includes('быстрая задача') || command.includes('quick task')) {
-                const fabButton = document.getElementById('quick-task-fab');
-                if (fabButton) {
-                    fabButton.click();
-                    showVoiceFeedback('Быстрое создание задачи', 'success');
-                }
-            } else if (command.includes('поиск') || command.includes('search')) {
-                const searchInput = document.getElementById('search');
-                if (searchInput) {
-                    searchInput.focus();
-                    showVoiceFeedback('Фокус на поиске', 'success');
-                }
-            } else if (command.includes('тема') || command.includes('theme')) {
-                const themeToggle = document.getElementById('themeToggle');
-                if (themeToggle) {
-                    themeToggle.click();
-                    showVoiceFeedback('Переключение темы', 'success');
-                }
-            } else if (command.includes('обновить') || command.includes('refresh') || command.includes('reload')) {
-                window.location.reload();
-                showVoiceFeedback('Страница обновлена', 'success');
-            }
-            
-            // Help command
-            else if (command.includes('помощь') || command.includes('help') || command.includes('команды')) {
-                showVoiceCommandsHelp();
-            }
-            
-            // Unknown command
-            else {
-                showVoiceFeedback('Команда не распознана: ' + command, 'warning');
-            }
-        }
-        
-        // Voice indicator functions
-        function showVoiceIndicator() {
-            const indicator = document.getElementById('voiceIndicator');
-            if (indicator) {
-                indicator.classList.add('active');
-            }
-        }
-        
-        function hideVoiceIndicator() {
-            const indicator = document.getElementById('voiceIndicator');
-            if (indicator) {
-                indicator.classList.remove('active');
-            }
-        }
-        
-        function showVoiceFeedback(message, type = 'info') {
-            const feedback = document.getElementById('voiceFeedback');
-            const textElement = document.getElementById('voiceFeedbackText');
-            
-            if (feedback && textElement) {
-                textElement.textContent = message;
-                feedback.className = 'voice-command-feedback show ' + type;
-                
-                // Auto hide after 3 seconds
-                setTimeout(() => {
-                    feedback.classList.remove('show');
-                }, 3000);
-            }
-        }
-        
-        function showVoiceCommandsHelp() {
-            const helpText = `
-                <div class="modal fade" id="voiceCommandsModal" tabindex="-1">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title"><i class="fas fa-microphone me-2"></i>Голосовые команды</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                                <h6>Навигация:</h6>
-                                <ul class="list-unstyled">
-                                    <li class="mb-2">• "Панель" - переход на главную страницу</li>
-                                    <li class="mb-2">• "Задачи" - список задач</li>
-                                    <li class="mb-2">• "Категории" - управление категориями</li>
-                                    <li class="mb-2">• "Профиль" - личный кабинет</li>
-                                    <li class="mb-2">• "Календарь" - календарный вид</li>
-                                </ul>
-                                <h6>Действия:</h6>
-                                <ul class="list-unstyled">
-                                    <li class="mb-2">• "Новая задача" - создать задачу</li>
-                                    <li class="mb-2">• "Быстрая задача" - быстрое создание</li>
-                                    <li class="mb-2">• "Поиск" - фокус на поиске</li>
-                                    <li class="mb-2">• "Тема" - сменить тему</li>
-                                    <li class="mb-2">• "Обновить" - перезагрузить страницу</li>
-                                    <li class="mb-2">• "Помощь" - показать эту справку</li>
-                                </ul>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            // Remove existing modal if present
-            const existingModal = document.getElementById('voiceCommandsModal');
-            if (existingModal) existingModal.remove();
-            
-            document.body.insertAdjacentHTML('beforeend', helpText);
-            const modal = new bootstrap.Modal(document.getElementById('voiceCommandsModal'));
-            modal.show();
-            
-            // Clean up after modal is hidden
-            document.getElementById('voiceCommandsModal').addEventListener('hidden.bs.modal', function() {
-                this.remove();
-            });
-        }
-        
-        // Initialize voice control when button is clicked
-        document.addEventListener('DOMContentLoaded', function() {
-            const voiceButton = document.getElementById('voiceControlBtn');
-            if (voiceButton) {
-                if (initVoiceControl()) {
-                    voiceButton.addEventListener('click', function() {
-                        if (isListening) {
-                            recognition.stop();
-                        } else {
-                            try {
-                                recognition.start();
-                            } catch (error) {
-                                console.error('Error starting recognition:', error);
-                                showToast('Ошибка запуска голосового управления', 'error');
-                            }
-                        }
-                    });
-                } else {
-                    // Hide button if speech recognition is not supported
-                    voiceButton.style.display = 'none';
-                }
-            }
-        });
-        
         // PWA Installation
         let deferredPrompt;
         
@@ -872,35 +658,7 @@
         });
         
         document.addEventListener('DOMContentLoaded', function() {
-            const themeToggle = document.getElementById('themeToggle');
-            const themeIcon = themeToggle.querySelector('i');
-            
-            // Load saved theme
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-            updateThemeIcon(savedTheme);
-            
-            // Theme toggle functionality
-            themeToggle.addEventListener('click', function() {
-                const currentTheme = document.documentElement.getAttribute('data-theme');
-                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                
-                document.documentElement.setAttribute('data-theme', newTheme);
-                localStorage.setItem('theme', newTheme);
-                updateThemeIcon(newTheme);
-                
-                showToast(`Тема переключена на ${newTheme === 'dark' ? 'темную' : 'светлую'}`, 'success');
-            });
-            
-            function updateThemeIcon(theme) {
-                if (theme === 'dark') {
-                    themeIcon.className = 'fas fa-sun';
-                    themeToggle.title = 'Переключить на светлую тему';
-                } else {
-                    themeIcon.className = 'fas fa-moon';
-                    themeToggle.title = 'Переключить на темную тему';
-                }
-            }
+            // Theme switching is now handled by theme-switcher.js
             
             // Keyboard Shortcuts
             const shortcuts = {
@@ -928,7 +686,10 @@
             });
             
             // Show shortcuts modal
-            document.getElementById('showShortcuts').addEventListener('click', showKeyboardShortcuts);
+            const showShortcutsBtn = document.getElementById('showShortcuts');
+            if (showShortcutsBtn) {
+                showShortcutsBtn.addEventListener('click', showKeyboardShortcuts);
+            }
             
             function showKeyboardShortcuts() {
                 const modalHtml = `

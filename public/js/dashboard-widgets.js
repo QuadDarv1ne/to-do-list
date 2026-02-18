@@ -238,8 +238,10 @@
 })();
 
 // Add CSS for charts
-const style = document.createElement('style');
-style.textContent = `
+if (!document.getElementById('dashboardChartsStyles')) {
+    const style = document.createElement('style');
+    style.id = 'dashboardChartsStyles';
+    style.textContent = `
     .chart-bar-container {
         display: flex;
         align-items: flex-end;
@@ -300,4 +302,5 @@ style.textContent = `
         color: #a0aec0;
     }
 `;
-document.head.appendChild(style);
+    document.head.appendChild(style);
+}

@@ -191,8 +191,10 @@
 })();
 
 // Add CSS for notifications
-const style = document.createElement('style');
-style.textContent = `
+if (!document.getElementById('notificationSystemStyles')) {
+    const style = document.createElement('style');
+    style.id = 'notificationSystemStyles';
+    style.textContent = `
     .notification-container {
         position: fixed;
         top: 20px;
@@ -375,4 +377,5 @@ style.textContent = `
         }
     }
 `;
-document.head.appendChild(style);
+    document.head.appendChild(style);
+}

@@ -608,9 +608,26 @@
                                 </div>
                             </div>
                             
-                            <a href="{{ path('app_settings_export_data') }}" class="btn btn-primary btn-lg btn-save">
-                                <i class="fas fa-download me-2"></i> Экспортировать данные
-                            </a>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <a href="{{ path('app_settings_export_data') }}" class="btn btn-primary btn-lg btn-save">
+                                    <i class="fas fa-download me-2"></i> Экспортировать данные
+                                </a>
+                                
+                                <button type="button" class="btn btn-warning btn-lg" id="clearLocalStorageBtn">
+                                    <i class="fas fa-broom me-2"></i> Очистить кэш браузера
+                                </button>
+                            </div>
+                            
+                            <div class="alert alert-warning border-0 shadow-sm mt-3" style="display: none;" id="clearStorageInfo">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <strong>Внимание!</strong> Это действие очистит все локальные настройки (тема, виджеты, фильтры) и не может быть отменено.
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -761,6 +778,40 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
+    
+    // Clear localStorage button handler
+    const clearBtn = document.getElementById('clearLocalStorageBtn');
+    const clearInfo = document.getElementById('clearStorageInfo');
+    
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function() {
+            if (clearInfo.style.display === 'none') {
+                // Show warning first
+                clearInfo.style.display = 'block';
+                clearBtn.innerHTML = '<i class="fas fa-check me-2"></i> Подтвердить очистку';
+                clearBtn.classList.remove('btn-warning');
+                clearBtn.classList.add('btn-danger');
+            } else {
+                // Confirm and clear
+                if (confirm('Вы уверены? Все локальные настройки будут удалены.')) {
+                    // Clear localStorage
+                    localStorage.clear();
+                    
+                    // Show success message
+                    const toast = document.createElement('div');
+                    toast.className = 'alert alert-success position-fixed top-0 end-0 m-3';
+                    toast.style.zIndex = '9999';
+                    toast.innerHTML = '<i class="fas fa-check-circle me-2"></i>Кэш браузера очищен. Страница будет перезагружена.';
+                    document.body.appendChild(toast);
+                    
+                    // Reload page after 2 seconds
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                }
+            }
+        });
+    }
 });
 </script>
 {% endblock %}

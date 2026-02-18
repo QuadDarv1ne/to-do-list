@@ -1,325 +1,469 @@
 /**
  * Table Enhancements
- * Advanced table functionality with sorting, filtering, and export
+ * Улучшения для таблиц: сортировка, фильтрация, пагинация
  */
 
-(function() {
-    'use strict';
-
-    class TableEnhancer {
-        constructor(table) {
-            this.table = table;
-            this.tbody = table.querySelector('tbody');
-            this.thead = table.querySelector('thead');
-            this.rows = Array.from(this.tbody?.querySelectorAll('tr') || []);
-            this.currentSort = { column: null, direction: 'asc' };
-            this.init();
-        }
-
-        init() {
-            this.setupSorting();
-            this.setupRowSelection();
-            this.setupRowHover();
-            this.addTableControls();
-        }
-
-        setupSorting() {
-            if (!this.thead) return;
-
-            const headers = this.thead.querySelectorAll('th[data-sortable]');
-            headers.forEach((header, index) => {
-                header.style.cursor = 'pointer';
-                header.style.userSelect = 'none';
-                header.classList.add('sortable-header');
-                
-                // Add sort icon
-                const icon = document.createElement('i');
-                icon.className = 'fas fa-sort ms-2 sort-icon';
-                header.appendChild(icon);
-
-                header.addEventListener('click', () => {
-                    this.sortByColumn(index, header);
-                });
-            });
-        }
-
-        sortByColumn(columnIndex, header) {
-            const direction = this.currentSort.column === columnIndex && this.currentSort.direction === 'asc' 
-                ? 'desc' 
-                : 'asc';
-
-            // Update sort icons
-            this.thead.querySelectorAll('.sort-icon').forEach(icon => {
-                icon.className = 'fas fa-sort ms-2 sort-icon';
-            });
-
-            const icon = header.querySelector('.sort-icon');
-            icon.className = `fas fa-sort-${direction === 'asc' ? 'up' : 'down'} ms-2 sort-icon`;
-
-            // Sort rows
-            this.rows.sort((a, b) => {
-                const aValue = a.cells[columnIndex]?.textContent.trim() || '';
-                const bValue = b.cells[columnIndex]?.textContent.trim() || '';
-
-                // Try to parse as numbers
-                const aNum = parseFloat(aValue.replace(/[^\d.-]/g, ''));
-                const bNum = parseFloat(bValue.replace(/[^\d.-]/g, ''));
-
-                if (!isNaN(aNum) && !isNaN(bNum)) {
-                    return direction === 'asc' ? aNum - bNum : bNum - aNum;
-                }
-
-                // String comparison
-                return direction === 'asc' 
-                    ? aValue.localeCompare(bValue)
-                    : bValue.localeCompare(aValue);
-            });
-
-            // Re-append rows
-            this.rows.forEach(row => this.tbody.appendChild(row));
-
-            this.currentSort = { column: columnIndex, direction };
-        }
-
-        setupRowSelection() {
-            const selectAllCheckbox = this.table.querySelector('thead input[type="checkbox"]');
-            const rowCheckboxes = this.table.querySelectorAll('tbody input[type="checkbox"]');
-
-            if (selectAllCheckbox) {
-                selectAllCheckbox.addEventListener('change', (e) => {
-                    rowCheckboxes.forEach(checkbox => {
-                        checkbox.checked = e.target.checked;
-                        this.toggleRowHighlight(checkbox.closest('tr'), e.target.checked);
-                    });
-                    this.updateSelectionCount();
-                });
-            }
-
-            rowCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', (e) => {
-                    this.toggleRowHighlight(e.target.closest('tr'), e.target.checked);
-                    this.updateSelectionCount();
-                    
-                    // Update select all checkbox
-                    if (selectAllCheckbox) {
-                        const allChecked = Array.from(rowCheckboxes).every(cb => cb.checked);
-                        selectAllCheckbox.checked = allChecked;
-                    }
-                });
-            });
-        }
-
-        toggleRowHighlight(row, selected) {
-            if (selected) {
-                row.classList.add('table-row-selected');
-            } else {
-                row.classList.remove('table-row-selected');
-            }
-        }
-
-        updateSelectionCount() {
-            const selected = this.table.querySelectorAll('tbody input[type="checkbox"]:checked').length;
-            const event = new CustomEvent('selectionChange', { 
-                detail: { count: selected } 
-            });
-            this.table.dispatchEvent(event);
-        }
-
-        setupRowHover() {
-            this.rows.forEach(row => {
-                row.addEventListener('mouseenter', () => {
-                    row.style.transform = 'scale(1.01)';
-                    row.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-                });
-
-                row.addEventListener('mouseleave', () => {
-                    row.style.transform = 'scale(1)';
-                    row.style.boxShadow = 'none';
-                });
-            });
-        }
-
-        addTableControls() {
-            if (this.table.hasAttribute('data-no-controls')) return;
-
-            const controls = document.createElement('div');
-            controls.className = 'table-controls mb-3 d-flex justify-content-between align-items-center';
-            controls.innerHTML = `
-                <div class="table-search">
-                    <input type="text" class="form-control" placeholder="Поиск в таблице..." style="width: 300px;">
-                </div>
-                <div class="table-actions">
-                    <button class="btn btn-sm btn-outline-primary" data-action="export-csv">
-                        <i class="fas fa-download me-1"></i>Экспорт CSV
-                    </button>
-                    <button class="btn btn-sm btn-outline-secondary" data-action="print">
-                        <i class="fas fa-print me-1"></i>Печать
-                    </button>
-                </div>
-            `;
-
-            this.table.parentNode.insertBefore(controls, this.table);
-
-            // Setup search
-            const searchInput = controls.querySelector('input');
-            searchInput.addEventListener('input', (e) => {
-                this.filterRows(e.target.value);
-            });
-
-            // Setup export
-            controls.querySelector('[data-action="export-csv"]').addEventListener('click', () => {
-                this.exportToCSV();
-            });
-
-            // Setup print
-            controls.querySelector('[data-action="print"]').addEventListener('click', () => {
-                this.printTable();
-            });
-        }
-
-        filterRows(searchTerm) {
-            const term = searchTerm.toLowerCase();
-            
-            this.rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                if (text.includes(term)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-        }
-
-        exportToCSV() {
-            const rows = [];
-            
-            // Add headers
-            const headers = Array.from(this.thead.querySelectorAll('th'))
-                .map(th => th.textContent.trim())
-                .filter(text => text && !text.includes('☐')); // Remove checkbox column
-            rows.push(headers);
-
-            // Add data rows
-            this.rows.forEach(row => {
-                if (row.style.display !== 'none') {
-                    const cells = Array.from(row.querySelectorAll('td'))
-                        .map(td => {
-                            // Skip checkbox cells
-                            if (td.querySelector('input[type="checkbox"]')) return null;
-                            return td.textContent.trim();
-                        })
-                        .filter(cell => cell !== null);
-                    rows.push(cells);
-                }
-            });
-
-            // Create CSV
-            const csv = rows.map(row => 
-                row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(',')
-            ).join('\n');
-
-            // Download
-            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `table-export-${Date.now()}.csv`;
-            link.click();
-
-            window.notify?.success('Таблица экспортирована в CSV');
-        }
-
-        printTable() {
-            const printWindow = window.open('', '', 'width=800,height=600');
-            const tableClone = this.table.cloneNode(true);
-            
-            // Remove checkboxes and action columns
-            tableClone.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.remove());
-            tableClone.querySelectorAll('.dropdown, .btn-group').forEach(el => el.remove());
-
-            printWindow.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Печать таблицы</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; padding: 20px; }
-                        table { width: 100%; border-collapse: collapse; }
-                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                        th { background-color: #f8f9fa; font-weight: bold; }
-                        @media print {
-                            button { display: none; }
-                        }
-                    </style>
-                </head>
-                <body>
-                    <h2>Таблица данных</h2>
-                    ${tableClone.outerHTML}
-                    <button onclick="window.print()" style="margin-top: 20px; padding: 10px 20px;">Печать</button>
-                </body>
-                </html>
-            `);
-            printWindow.document.close();
-        }
+class TableEnhancements {
+    constructor() {
+        this.tables = [];
+        this.init();
     }
 
-    // Auto-initialize tables
-    document.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('table[data-enhanced]').forEach(table => {
-            new TableEnhancer(table);
+    init() {
+        this.enhanceTables();
+        this.initColumnResizing();
+        this.initRowSelection();
+        this.initInlineEditing();
+    }
+
+    /**
+     * Улучшение таблиц
+     */
+    enhanceTables() {
+        const tables = document.querySelectorAll('[data-enhanced-table]');
+        
+        tables.forEach(table => {
+            const config = {
+                sortable: table.dataset.sortable !== 'false',
+                filterable: table.dataset.filterable !== 'false',
+                resizable: table.dataset.resizable !== 'false',
+                selectable: table.dataset.selectable !== 'false'
+            };
+
+            this.enhanceTable(table, config);
         });
+    }
+
+    /**
+     * Улучшить таблицу
+     */
+    enhanceTable(table, config) {
+        const tableData = {
+            element: table,
+            config: config,
+            data: this.extractTableData(table),
+            sortColumn: null,
+            sortDirection: 'asc',
+            filters: {}
+        };
+
+        this.tables.push(tableData);
+
+        if (config.sortable) {
+            this.makeSortable(tableData);
+        }
+
+        if (config.filterable) {
+            this.makeFilterable(tableData);
+        }
+
+        if (config.resizable) {
+            this.makeResizable(tableData);
+        }
+
+        if (config.selectable) {
+            this.makeSelectable(tableData);
+        }
+
+        // Добавляем поиск по таблице
+        this.addTableSearch(tableData);
+    }
+
+    /**
+     * Извлечь данные из таблицы
+     */
+    extractTableData(table) {
+        const rows = Array.from(table.querySelectorAll('tbody tr'));
+        return rows.map(row => {
+            const cells = Array.from(row.querySelectorAll('td'));
+            return {
+                element: row,
+                values: cells.map(cell => cell.textContent.trim()),
+                data: cells.map(cell => cell.dataset.value || cell.textContent.trim())
+            };
+        });
+    }
+
+    /**
+     * Сделать таблицу сортируемой
+     */
+    makeSortable(tableData) {
+        const headers = tableData.element.querySelectorAll('thead th');
+        
+        headers.forEach((header, index) => {
+            if (header.dataset.sortable === 'false') return;
+
+            header.style.cursor = 'pointer';
+            header.classList.add('sortable');
+            
+            // Добавляем иконку сортировки
+            const icon = document.createElement('i');
+            icon.className = 'fas fa-sort ms-2 sort-icon';
+            header.appendChild(icon);
+
+            header.addEventListener('click', () => {
+                this.sortTable(tableData, index);
+            });
+        });
+    }
+
+    /**
+     * Сортировать таблицу
+     */
+    sortTable(tableData, columnIndex) {
+        const { element, data, sortColumn, sortDirection } = tableData;
+        
+        // Определяем направление сортировки
+        let newDirection = 'asc';
+        if (sortColumn === columnIndex) {
+            newDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+        }
+
+        // Сортируем данные
+        const sortedData = [...data].sort((a, b) => {
+            const aVal = a.data[columnIndex];
+            const bVal = b.data[columnIndex];
+
+            // Пытаемся сравнить как числа
+            const aNum = parseFloat(aVal);
+            const bNum = parseFloat(bVal);
+
+            if (!isNaN(aNum) && !isNaN(bNum)) {
+                return newDirection === 'asc' ? aNum - bNum : bNum - aNum;
+            }
+
+            // Сравниваем как строки
+            const comparison = aVal.localeCompare(bVal);
+            return newDirection === 'asc' ? comparison : -comparison;
+        });
+
+        // Обновляем таблицу
+        const tbody = element.querySelector('tbody');
+        tbody.innerHTML = '';
+        sortedData.forEach(row => tbody.appendChild(row.element));
+
+        // Обновляем иконки сортировки
+        const headers = element.querySelectorAll('thead th');
+        headers.forEach((header, i) => {
+            const icon = header.querySelector('.sort-icon');
+            if (!icon) return;
+
+            if (i === columnIndex) {
+                icon.className = `fas fa-sort-${newDirection === 'asc' ? 'up' : 'down'} ms-2 sort-icon`;
+            } else {
+                icon.className = 'fas fa-sort ms-2 sort-icon';
+            }
+        });
+
+        // Сохраняем состояние
+        tableData.sortColumn = columnIndex;
+        tableData.sortDirection = newDirection;
+    }
+
+    /**
+     * Сделать таблицу фильтруемой
+     */
+    makeFilterable(tableData) {
+        const table = tableData.element;
+        const headers = table.querySelectorAll('thead th');
+        
+        // Создаем строку с фильтрами
+        const filterRow = document.createElement('tr');
+        filterRow.className = 'filter-row';
+
+        headers.forEach((header, index) => {
+            const th = document.createElement('th');
+            
+            if (header.dataset.filterable !== 'false') {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'form-control form-control-sm';
+                input.placeholder = 'Фильтр...';
+                input.dataset.columnIndex = index;
+
+                input.addEventListener('input', (e) => {
+                    this.filterTable(tableData, index, e.target.value);
+                });
+
+                th.appendChild(input);
+            }
+
+            filterRow.appendChild(th);
+        });
+
+        table.querySelector('thead').appendChild(filterRow);
+    }
+
+    /**
+     * Фильтровать таблицу
+     */
+    filterTable(tableData, columnIndex, filterValue) {
+        tableData.filters[columnIndex] = filterValue.toLowerCase();
+
+        const { element, data, filters } = tableData;
+        const tbody = element.querySelector('tbody');
+
+        data.forEach(row => {
+            let visible = true;
+
+            for (const [colIndex, filter] of Object.entries(filters)) {
+                if (filter && !row.values[colIndex].toLowerCase().includes(filter)) {
+                    visible = false;
+                    break;
+                }
+            }
+
+            row.element.style.display = visible ? '' : 'none';
+        });
+
+        this.updateTableInfo(tableData);
+    }
+
+    /**
+     * Обновить информацию о таблице
+     */
+    updateTableInfo(tableData) {
+        const visibleRows = tableData.data.filter(row => 
+            row.element.style.display !== 'none'
+        ).length;
+
+        const info = tableData.element.parentElement.querySelector('[data-table-info]');
+        if (info) {
+            info.textContent = `Показано ${visibleRows} из ${tableData.data.length} записей`;
+        }
+    }
+
+    /**
+     * Добавить поиск по таблице
+     */
+    addTableSearch(tableData) {
+        const searchContainer = tableData.element.parentElement.querySelector('[data-table-search]');
+        if (!searchContainer) return;
+
+        const input = document.createElement('input');
+        input.type = 'search';
+        input.className = 'form-control';
+        input.placeholder = 'Поиск по таблице...';
+
+        input.addEventListener('input', (e) => {
+            this.searchTable(tableData, e.target.value);
+        });
+
+        searchContainer.appendChild(input);
+    }
+
+    /**
+     * Поиск по таблице
+     */
+    searchTable(tableData, searchValue) {
+        const search = searchValue.toLowerCase();
+        const { data } = tableData;
+
+        data.forEach(row => {
+            const match = row.values.some(value => 
+                value.toLowerCase().includes(search)
+            );
+            row.element.style.display = match ? '' : 'none';
+        });
+
+        this.updateTableInfo(tableData);
+    }
+
+    /**
+     * Изменение размера колонок
+     */
+    initColumnResizing() {
+        document.addEventListener('mousedown', (e) => {
+            if (!e.target.matches('.column-resizer')) return;
+
+            const th = e.target.parentElement;
+            const startX = e.pageX;
+            const startWidth = th.offsetWidth;
+
+            const onMouseMove = (e) => {
+                const width = startWidth + (e.pageX - startX);
+                th.style.width = width + 'px';
+            };
+
+            const onMouseUp = () => {
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            };
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        });
+    }
+
+    /**
+     * Сделать таблицу с изменяемыми колонками
+     */
+    makeResizable(tableData) {
+        const headers = tableData.element.querySelectorAll('thead th');
+        
+        headers.forEach(header => {
+            const resizer = document.createElement('div');
+            resizer.className = 'column-resizer';
+            resizer.style.cssText = `
+                position: absolute;
+                right: 0;
+                top: 0;
+                width: 5px;
+                height: 100%;
+                cursor: col-resize;
+                user-select: none;
+            `;
+            
+            header.style.position = 'relative';
+            header.appendChild(resizer);
+        });
+    }
+
+    /**
+     * Выбор строк
+     */
+    initRowSelection() {
+        document.addEventListener('click', (e) => {
+            const row = e.target.closest('tr[data-selectable]');
+            if (!row) return;
+
+            const checkbox = row.querySelector('input[type="checkbox"]');
+            if (checkbox && e.target !== checkbox) {
+                checkbox.checked = !checkbox.checked;
+                checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+
+            row.classList.toggle('selected', checkbox?.checked);
+        });
+    }
+
+    /**
+     * Сделать таблицу с выбором строк
+     */
+    makeSelectable(tableData) {
+        const table = tableData.element;
+        
+        // Добавляем чекбокс в заголовок
+        const headerRow = table.querySelector('thead tr:first-child');
+        const selectAllTh = document.createElement('th');
+        selectAllTh.style.width = '40px';
+        
+        const selectAllCheckbox = document.createElement('input');
+        selectAllCheckbox.type = 'checkbox';
+        selectAllCheckbox.className = 'form-check-input';
+        selectAllCheckbox.dataset.selectAll = 'true';
+        
+        selectAllTh.appendChild(selectAllCheckbox);
+        headerRow.insertBefore(selectAllTh, headerRow.firstChild);
+
+        // Добавляем чекбоксы в строки
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            const td = document.createElement('td');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'form-check-input';
+            checkbox.dataset.itemCheckbox = 'true';
+            checkbox.value = row.dataset.id || '';
+            
+            td.appendChild(checkbox);
+            row.insertBefore(td, row.firstChild);
+            row.dataset.selectable = 'true';
+        });
+    }
+
+    /**
+     * Inline редактирование
+     */
+    initInlineEditing() {
+        document.addEventListener('dblclick', (e) => {
+            const cell = e.target.closest('td[data-editable]');
+            if (!cell || cell.querySelector('input')) return;
+
+            this.makeEditable(cell);
+        });
+    }
+
+    /**
+     * Сделать ячейку редактируемой
+     */
+    makeEditable(cell) {
+        const originalValue = cell.textContent;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'form-control form-control-sm';
+        input.value = originalValue;
+
+        cell.textContent = '';
+        cell.appendChild(input);
+        input.focus();
+        input.select();
+
+        const save = () => {
+            const newValue = input.value;
+            cell.textContent = newValue;
+
+            if (newValue !== originalValue) {
+                this.saveEdit(cell, newValue);
+            }
+        };
+
+        const cancel = () => {
+            cell.textContent = originalValue;
+        };
+
+        input.addEventListener('blur', save);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                save();
+            } else if (e.key === 'Escape') {
+                cancel();
+            }
+        });
+    }
+
+    /**
+     * Сохранить изменение
+     */
+    async saveEdit(cell, value) {
+        const row = cell.closest('tr');
+        const field = cell.dataset.field;
+        const id = row.dataset.id;
+
+        if (!field || !id) return;
+
+        try {
+            const response = await fetch(`/api/update/${id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ [field]: value })
+            });
+
+            if (response.ok) {
+                cell.classList.add('table-success');
+                setTimeout(() => cell.classList.remove('table-success'), 2000);
+            } else {
+                throw new Error('Save failed');
+            }
+        } catch (error) {
+            console.error('Edit save error:', error);
+            cell.classList.add('table-danger');
+            setTimeout(() => cell.classList.remove('table-danger'), 2000);
+        }
+    }
+}
+
+// Инициализация
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        window.tableEnhancements = new TableEnhancements();
     });
+} else {
+    window.tableEnhancements = new TableEnhancements();
+}
 
-    // Expose globally
-    window.TableEnhancer = TableEnhancer;
-
-})();
-
-// Add CSS for table enhancements
-const style = document.createElement('style');
-style.textContent = `
-    .sortable-header {
-        position: relative;
-        transition: background-color 0.2s;
-    }
-
-    .sortable-header:hover {
-        background-color: rgba(0, 0, 0, 0.05);
-    }
-
-    .sort-icon {
-        font-size: 0.75rem;
-        opacity: 0.5;
-        transition: opacity 0.2s;
-    }
-
-    .sortable-header:hover .sort-icon {
-        opacity: 1;
-    }
-
-    .table-row-selected {
-        background-color: rgba(13, 110, 253, 0.1) !important;
-    }
-
-    .table tbody tr {
-        transition: all 0.2s ease;
-    }
-
-    .table-controls {
-        padding: 1rem;
-        background: #f8f9fa;
-        border-radius: 8px;
-    }
-
-    [data-theme='dark'] .table-controls {
-        background: #2d3748;
-    }
-
-    [data-theme='dark'] .sortable-header:hover {
-        background-color: rgba(255, 255, 255, 0.05);
-    }
-
-    [data-theme='dark'] .table-row-selected {
-        background-color: rgba(66, 153, 225, 0.2) !important;
-    }
-`;
-document.head.appendChild(style);
+// Экспорт
+window.TableEnhancements = TableEnhancements;

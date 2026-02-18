@@ -3,107 +3,227 @@
 namespace App\Service;
 
 use App\Entity\Task;
+use App\Entity\TaskHistory;
 use App\Entity\User;
+use App\Repository\TaskHistoryRepository;
+use Doctrine\ORM\EntityManagerInterface;
 
 class TaskHistoryService
 {
-    /**
-     * Record task change
-     */
-    public function recordChange(Task $task, string $field, $oldValue, $newValue, User $user): void
-    {
-        $change = [
-            'task_id' => $task->getId(),
-            'field' => $field,
-            'old_value' => $this->serializeValue($oldValue),
-            'new_value' => $this->serializeValue($newValue),
-            'changed_by' => $user->getId(),
-            'changed_at' => new \DateTime()
-        ];
-
-        // TODO: Save to database
+    public function __construct(
+        private EntityManagerInterface $entityManager,
+        private TaskHistoryRepository $historyRepository
+    ) {
     }
 
     /**
-     * Get task history
+     * Записать создание задачи
      */
-    public function getHistory(Task $task): array
+    public function logTaskCreated(Task $task, User $user): void
     {
-        // TODO: Get from database
-        return [];
+        $history = new TaskHistory();
+        $history->setTask($task);
+        $history->setUser($user);
+        $history->setAction('created');
+        $history->setMetadata([
+            'title' => $task->getTitle(),
+            'priority' => $task->getPriority(),
+            'status' => $task->getStatus()
+        ]);
+
+        $this->historyRepository->save($history, true);
     }
 
     /**
-     * Get field history
+     * Записать изменение задачи
      */
-    public function getFieldHistory(Task $task, string $field): array
+    public function logTaskUpdated(Task $task, User $user, array $changes): void
     {
-        // TODO: Get from database
-        return [];
+        foreach ($changes as $field => $values) {
+            $history = new TaskHistory();
+            $history->setTask($task);
+            $history->setUser($user);
+            $history->setAction('updated');
+            $history->setField($field);
+            $history->setOldValue($this->formatValue($values['old']));
+            $history->setNewValue($this->formatValue($values['new']));
+
+            $this->historyRepository->save($history);
+        }
+
+        $this->entityManager->flush();
     }
 
     /**
-     * Revert to previous version
+     * Записать удаление задачи
      */
-    public function revertToVersion(Task $task, int $versionId): bool
+    public function logTaskDeleted(Task $task, User $user): void
     {
-        // TODO: Implement version revert
-        return false;
+        $history = new TaskHistory();
+        $history->setTask($task);
+        $history->setUser($user);
+        $history->setAction('deleted');
+        $history->setMetadata([
+            'title' => $task->getTitle(),
+            'deleted_at' => (new \DateTime())->format('Y-m-d H:i:s')
+        ]);
+
+        $this->historyRepository->save($history, true);
     }
 
     /**
-     * Compare versions
+     * Записать изменение статуса
      */
-    public function compareVersions(int $version1, int $version2): array
+    public function logStatusChanged(Task $task, User $user, string $oldStatus, string $newStatus): void
     {
-        // TODO: Implement version comparison
-        return [];
+        $history = new TaskHistory();
+        $history->setTask($task);
+        $history->setUser($user);
+        $history->setAction('status_changed');
+        $history->setField('status');
+        $history->setOldValue($oldStatus);
+        $history->setNewValue($newStatus);
+
+        $this->historyRepository->save($history, true);
     }
 
     /**
-     * Get change statistics
+     * Записать назначение задачи
      */
-    public function getStatistics(Task $task): array
+    public function logTaskAssigned(Task $task, User $assignedBy, User $assignedTo): void
     {
-        return [
-            'total_changes' => 0,
-            'most_changed_field' => null,
-            'last_changed_at' => null,
-            'changed_by_users' => []
-        ];
+        $history = new TaskHistory();
+        $history->setTask($task);
+        $history->setUser($assignedBy);
+        $history->setAction('assigned');
+        $history->setMetadata([
+            'assigned_to' => $assignedTo->getFullName(),
+            'assigned_to_id' => $assignedTo->getId()
+        ]);
+
+        $this->historyRepository->save($history, true);
     }
 
     /**
-     * Serialize value for storage
+     * Записать добавление комментария
      */
-    private function serializeValue($value): string
+    public function logCommentAdded(Task $task, User $user): void
     {
-        if ($value instanceof \DateTime) {
+        $history = new TaskHistory();
+        $history->setTask($task);
+        $history->setUser($user);
+        $history->setAction('comment_added');
+
+        $this->historyRepository->save($history, true);
+    }
+
+    /**
+     * Получить историю задачи
+     */
+    public function getTaskHistory(Task $task, int $limit = 50): array
+    {
+        return $this->historyRepository->findByTask($task, $limit);
+    }
+
+    /**
+     * Получить активность пользователя
+     */
+    public function getUserActivity(User $user, int $limit = 50): array
+    {
+        return $this->historyRepository->findByUser($user, $limit);
+    }
+
+    /**
+     * Получить последние изменения
+     */
+    public function getRecentActivity(int $limit = 20): array
+    {
+        return $this->historyRepository->findRecent($limit);
+    }
+
+    /**
+     * Получить статистику за период
+     */
+    public function getActivityStats(\DateTime $from, \DateTime $to): array
+    {
+        return $this->historyRepository->getStatsByPeriod($from, $to);
+    }
+
+    /**
+     * Очистить старую историю (старше N дней)
+     */
+    public function cleanOldHistory(int $days = 90): int
+    {
+        $date = new \DateTime("-{$days} days");
+        return $this->historyRepository->deleteOlderThan($date);
+    }
+
+    /**
+     * Форматировать значение для хранения
+     */
+    private function formatValue($value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if ($value instanceof \DateTimeInterface) {
             return $value->format('Y-m-d H:i:s');
         }
 
         if (is_object($value)) {
-            return get_class($value) . '#' . $value->getId();
+            if (method_exists($value, '__toString')) {
+                return (string) $value;
+            }
+            if (method_exists($value, 'getId')) {
+                return get_class($value) . '#' . $value->getId();
+            }
+            return get_class($value);
         }
 
-        return (string)$value;
+        if (is_array($value)) {
+            return json_encode($value);
+        }
+
+        if (is_bool($value)) {
+            return $value ? 'true' : 'false';
+        }
+
+        return (string) $value;
     }
 
     /**
-     * Get recent changes
+     * Получить читаемое описание изменения
      */
-    public function getRecentChanges(int $limit = 50): array
+    public function getChangeDescription(TaskHistory $history): string
     {
-        // TODO: Get from database
-        return [];
+        $userName = $history->getUser()->getFullName();
+        
+        return match($history->getAction()) {
+            'created' => "{$userName} создал(а) задачу",
+            'updated' => "{$userName} изменил(а) {$this->getFieldName($history->getField())} с '{$history->getOldValue()}' на '{$history->getNewValue()}'",
+            'deleted' => "{$userName} удалил(а) задачу",
+            'status_changed' => "{$userName} изменил(а) статус с '{$history->getOldValue()}' на '{$history->getNewValue()}'",
+            'assigned' => "{$userName} назначил(а) задачу",
+            'comment_added' => "{$userName} добавил(а) комментарий",
+            default => "{$userName} выполнил(а) действие: {$history->getAction()}"
+        };
     }
 
     /**
-     * Get user's change history
+     * Получить читаемое название поля
      */
-    public function getUserHistory(User $user, int $limit = 50): array
+    private function getFieldName(?string $field): string
     {
-        // TODO: Get from database
-        return [];
+        return match($field) {
+            'title' => 'название',
+            'description' => 'описание',
+            'priority' => 'приоритет',
+            'status' => 'статус',
+            'dueDate' => 'срок выполнения',
+            'assignedUser' => 'исполнителя',
+            'category' => 'категорию',
+            default => $field ?? 'поле'
+        };
     }
 }

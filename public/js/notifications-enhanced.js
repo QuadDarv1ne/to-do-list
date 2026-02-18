@@ -1,93 +1,407 @@
 /**
- * Enhanced Notifications System
- * Real-time notifications with beautiful UI
+ * Notifications Enhanced
+ * Real-time notifications with theme support
  */
 
-class NotificationManager {
+class NotificationSystem {
     constructor() {
         this.notifications = [];
         this.unreadCount = 0;
-        this.currentTab = 'all';
         this.pollingInterval = null;
         this.init();
     }
 
     init() {
-        this.setupDropdown();
-        this.setupTabs();
-        this.loadNotifications();
+        this.createNotificationCenter();
+        this.setupEventListeners();
         this.startPolling();
-        this.setupMarkAsRead();
-        this.setupActions();
+        this.loadNotifications();
+        this.initThemeSupport();
     }
 
     /**
-     * Setup notification dropdown
+     * Create notification center UI
      */
-    setupDropdown() {
-        const bell = document.querySelector('.notification-bell');
-        const dropdown = document.querySelector('.notification-dropdown');
+    createNotificationCenter() {
+        // Check if already exists
+        if (document.getElementById('notification-center')) return;
 
-        if (bell && dropdown) {
-            bell.addEventListener('click', (e) => {
-                e.stopPropagation();
-                dropdown.classList.toggle('show');
-                
-                if (dropdown.classList.contains('show')) {
-                    this.loadNotifications();
-                }
-            });
+        const center = document.createElement('div');
+        center.id = 'notification-center';
+        center.className = 'notification-center';
+        center.innerHTML = `
+            <div class="notification-center-header">
+                <h6 class="mb-0">Уведомления</h6>
+                <div class="notification-actions">
+                    <button class="btn btn-sm btn-link" id="mark-all-read" title="Отметить все как прочитанные">
+                        <i class="fas fa-check-double"></i>
+                    </button>
+                    <button class="btn btn-sm btn-link" id="notification-settings" title="Настройки">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                    <button class="btn btn-sm btn-link" id="close-notification-center" title="Закрыть">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="notification-tabs">
+                <button class="notification-tab active" data-tab="all">Все</button>
+                <button class="notification-tab" data-tab="unread">Непрочитанные</button>
+                <button class="notification-tab" data-tab="mentions">Упоминания</button>
+            </div>
+            <div class="notification-list" id="notification-list">
+                <div class="notification-loading">
+                    <div class="spinner-border spinner-border-sm" role="status"></div>
+                    <span class="ms-2">Загрузка...</span>
+                </div>
+            </div>
+            <div class="notification-footer">
+                <a href="/notifications" class="btn btn-sm btn-link">Все уведомления</a>
+            </div>
+        `;
 
-            // Close on outside click
-            document.addEventListener('click', (e) => {
-                if (!dropdown.contains(e.target) && !bell.contains(e.target)) {
-                    dropdown.classList.remove('show');
-                }
+        document.body.appendChild(center);
+    }
+
+    /**
+     * Setup event listeners
+     */
+    setupEventListeners() {
+        // Toggle notification center
+        const notificationBtn = document.querySelector('.notification-badge-enhanced');
+        if (notificationBtn) {
+            notificationBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.toggleNotificationCenter();
             });
         }
-    }
 
-    /**
-     * Setup tabs
-     */
-    setupTabs() {
-        const tabs = document.querySelectorAll('.notification-tab');
-        
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                // Update active state
-                tabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                
-                // Update current tab
-                this.currentTab = tab.dataset.tab;
-                
-                // Filter notifications
-                this.filterNotifications();
-            });
+        // Close button
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('#close-notification-center')) {
+                this.closeNotificationCenter();
+            }
+        });
+
+        // Mark all as read
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('#mark-all-read')) {
+                this.markAllAsRead();
+            }
+        });
+
+        // Notification tabs
+        document.addEventListener('click', (e) => {
+            const tab = e.target.closest('.notification-tab');
+            if (tab) {
+                this.switchTab(tab.dataset.tab);
+            }
+        });
+
+        // Click outside to close
+        document.addEventListener('click', (e) => {
+            const center = document.getElementById('notification-center');
+            const btn = e.target.closest('.notification-badge-enhanced');
+            
+            if (center && !center.contains(e.target) && !btn) {
+                this.closeNotificationCenter();
+            }
+        });
+
+        // Notification item click
+        document.addEventListener('click', (e) => {
+            const item = e.target.closest('.notification-item');
+            if (item && !e.target.closest('.notification-item-actions')) {
+                this.handleNotificationClick(item);
+            }
         });
     }
 
     /**
-     * Load notifications from server
+     * Toggle notification center
+     */
+    toggleNotificationCenter() {
+        const center = document.getElementById('notification-center');
+        if (center) {
+            center.classList.toggle('show');
+            
+            if (center.classList.contains('show')) {
+                this.loadNotifications();
+            }
+        }
+    }
+
+    /**
+     * Close notification center
+     */
+    closeNotificationCenter() {
+        const center = document.getElementById('notification-center');
+        if (center) {
+            center.classList.remove('show');
+        }
+    }
+
+    /**
+     * Load notifications
      */
     async loadNotifications() {
         try {
-            const response = await fetch('/api/notifications');
+            const response = await fetch('/api/notifications', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
             const data = await response.json();
             
-            this.notifications = data.notifications || [];
-            this.unreadCount = data.unread || 0;
-            
-            this.updateBadge();
-            this.renderNotifications();
+            if (data.success) {
+                this.notifications = data.notifications || [];
+                this.unreadCount = data.unreadCount || 0;
+                this.updateUI();
+            }
         } catch (error) {
             console.error('Error loading notifications:', error);
         }
     }
 
     /**
-     * Start polling for new notifications
+     * Update UI
+     */
+    updateUI() {
+        this.updateBadge();
+        this.renderNotifications();
+    }
+
+    /**
+     * Update badge
+     */
+    updateBadge() {
+        const badge = document.querySelector('.notification-badge-enhanced');
+        if (badge) {
+            const countSpan = badge.querySelector('.notification-badge-count');
+            if (countSpan) {
+                countSpan.textContent = this.unreadCount;
+                countSpan.style.display = this.unreadCount > 0 ? 'flex' : 'none';
+            }
+        }
+    }
+
+    /**
+     * Render notifications
+     */
+    renderNotifications() {
+        const list = document.getElementById('notification-list');
+        if (!list) return;
+
+        const activeTab = document.querySelector('.notification-tab.active')?.dataset.tab || 'all';
+        let filteredNotifications = this.notifications;
+
+        if (activeTab === 'unread') {
+            filteredNotifications = this.notifications.filter(n => !n.read);
+        } else if (activeTab === 'mentions') {
+            filteredNotifications = this.notifications.filter(n => n.type === 'mention');
+        }
+
+        if (filteredNotifications.length === 0) {
+            list.innerHTML = `
+                <div class="notification-empty">
+                    <i class="fas fa-bell-slash fa-3x mb-3"></i>
+                    <p class="mb-0">Нет уведомлений</p>
+                </div>
+            `;
+            return;
+        }
+
+        list.innerHTML = filteredNotifications.map(notification => this.renderNotificationItem(notification)).join('');
+    }
+
+    /**
+     * Render notification item
+     */
+    renderNotificationItem(notification) {
+        const timeAgo = this.getTimeAgo(notification.createdAt);
+        const iconClass = this.getNotificationIcon(notification.type);
+        const iconColor = this.getNotificationColor(notification.type);
+
+        return `
+            <div class="notification-item ${notification.read ? '' : 'unread'}" data-id="${notification.id}">
+                <div class="notification-icon" style="background: ${iconColor};">
+                    <i class="${iconClass}"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-title">${notification.title}</div>
+                    <div class="notification-message">${notification.message}</div>
+                    <div class="notification-time">${timeAgo}</div>
+                </div>
+                <div class="notification-item-actions">
+                    <button class="btn btn-sm btn-link" onclick="notificationSystem.markAsRead(${notification.id})" title="Отметить как прочитанное">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button class="btn btn-sm btn-link text-danger" onclick="notificationSystem.deleteNotification(${notification.id})" title="Удалить">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Get notification icon
+     */
+    getNotificationIcon(type) {
+        const icons = {
+            task: 'fas fa-tasks',
+            comment: 'fas fa-comment',
+            mention: 'fas fa-at',
+            deadline: 'fas fa-clock',
+            assignment: 'fas fa-user-plus',
+            completion: 'fas fa-check-circle',
+            default: 'fas fa-bell'
+        };
+        return icons[type] || icons.default;
+    }
+
+    /**
+     * Get notification color
+     */
+    getNotificationColor(type) {
+        const colors = {
+            task: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            comment: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+            mention: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+            deadline: 'linear-gradient(135deg, #ffa726 0%, #fb8c00 100%)',
+            assignment: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+            completion: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+            default: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+        };
+        return colors[type] || colors.default;
+    }
+
+    /**
+     * Get time ago
+     */
+    getTimeAgo(dateString) {
+        const date = new Date(dateString);
+        const now = new Date();
+        const seconds = Math.floor((now - date) / 1000);
+
+        if (seconds < 60) return 'только что';
+        if (seconds < 3600) return `${Math.floor(seconds / 60)} мин назад`;
+        if (seconds < 86400) return `${Math.floor(seconds / 3600)} ч назад`;
+        if (seconds < 604800) return `${Math.floor(seconds / 86400)} дн назад`;
+        
+        return date.toLocaleDateString('ru-RU');
+    }
+
+    /**
+     * Switch tab
+     */
+    switchTab(tab) {
+        document.querySelectorAll('.notification-tab').forEach(t => {
+            t.classList.toggle('active', t.dataset.tab === tab);
+        });
+        this.renderNotifications();
+    }
+
+    /**
+     * Handle notification click
+     */
+    handleNotificationClick(item) {
+        const id = item.dataset.id;
+        const notification = this.notifications.find(n => n.id == id);
+        
+        if (notification && notification.url) {
+            this.markAsRead(id);
+            window.location.href = notification.url;
+        }
+    }
+
+    /**
+     * Mark as read
+     */
+    async markAsRead(id) {
+        try {
+            const response = await fetch(`/api/notifications/${id}/read`, {
+                method: 'PATCH',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                const notification = this.notifications.find(n => n.id == id);
+                if (notification) {
+                    notification.read = true;
+                    this.unreadCount = Math.max(0, this.unreadCount - 1);
+                    this.updateUI();
+                }
+            }
+        } catch (error) {
+            console.error('Error marking notification as read:', error);
+        }
+    }
+
+    /**
+     * Mark all as read
+     */
+    async markAllAsRead() {
+        try {
+            const response = await fetch('/api/notifications/mark-all-read', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                this.notifications.forEach(n => n.read = true);
+                this.unreadCount = 0;
+                this.updateUI();
+                this.showToast('Все уведомления отмечены как прочитанные', 'success');
+            }
+        } catch (error) {
+            console.error('Error marking all as read:', error);
+        }
+    }
+
+    /**
+     * Delete notification
+     */
+    async deleteNotification(id) {
+        if (!confirm('Удалить уведомление?')) return;
+
+        try {
+            const response = await fetch(`/api/notifications/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                const index = this.notifications.findIndex(n => n.id == id);
+                if (index > -1) {
+                    const notification = this.notifications[index];
+                    if (!notification.read) {
+                        this.unreadCount = Math.max(0, this.unreadCount - 1);
+                    }
+                    this.notifications.splice(index, 1);
+                    this.updateUI();
+                }
+            }
+        } catch (error) {
+            console.error('Error deleting notification:', error);
+        }
+    }
+
+    /**
+     * Start polling
      */
     startPolling() {
         // Poll every 30 seconds
@@ -102,408 +416,82 @@ class NotificationManager {
     stopPolling() {
         if (this.pollingInterval) {
             clearInterval(this.pollingInterval);
+            this.pollingInterval = null;
         }
     }
 
     /**
-     * Update notification badge
+     * Show new notification toast
      */
-    updateBadge() {
-        const badge = document.querySelector('.notification-badge');
-        const bell = document.querySelector('.notification-bell');
-        
-        if (badge) {
-            badge.textContent = this.unreadCount;
-            badge.style.display = this.unreadCount > 0 ? 'flex' : 'none';
-        }
-        
-        if (bell) {
-            if (this.unreadCount > 0) {
-                bell.classList.add('has-notifications');
-            } else {
-                bell.classList.remove('has-notifications');
-            }
-        }
-        
-        // Update tab badges
-        this.updateTabBadges();
-    }
-
-    /**
-     * Update tab badges
-     */
-    updateTabBadges() {
-        const unreadTab = document.querySelector('[data-tab="unread"] .notification-tab-badge');
-        if (unreadTab) {
-            unreadTab.textContent = this.unreadCount;
-            unreadTab.style.display = this.unreadCount > 0 ? 'inline-flex' : 'none';
-        }
-    }
-
-    /**
-     * Filter notifications by tab
-     */
-    filterNotifications() {
-        let filtered = this.notifications;
-        
-        switch (this.currentTab) {
-            case 'unread':
-                filtered = this.notifications.filter(n => !n.read);
-                break;
-            case 'important':
-                filtered = this.notifications.filter(n => n.important);
-                break;
-            case 'all':
-            default:
-                filtered = this.notifications;
-                break;
-        }
-        
-        this.renderNotifications(filtered);
-    }
-
-    /**
-     * Render notifications
-     */
-    renderNotifications(notifications = null) {
-        const list = document.querySelector('.notification-list');
-        if (!list) return;
-        
-        const items = notifications || this.notifications;
-        
-        if (items.length === 0) {
-            list.innerHTML = this.renderEmptyState();
-            return;
-        }
-        
-        list.innerHTML = items.map(notification => this.renderNotificationItem(notification)).join('');
-    }
-
-    /**
-     * Render single notification item
-     */
-    renderNotificationItem(notification) {
-        const unreadClass = notification.read ? '' : 'unread';
-        const typeClass = `type-${notification.type || 'info'}`;
-        const timeAgo = this.getTimeAgo(notification.created_at);
-        
-        return `
-            <div class="notification-item ${unreadClass}" data-id="${notification.id}">
-                <div class="notification-icon ${typeClass}">
-                    <i class="fas fa-${this.getNotificationIcon(notification.type)}"></i>
-                </div>
-                <div class="notification-content">
-                    <div class="notification-title">
-                        ${notification.title}
-                        ${notification.important ? '<i class="fas fa-star text-warning"></i>' : ''}
-                    </div>
-                    <div class="notification-message">${notification.message}</div>
-                    <div class="notification-meta">
-                        <span class="notification-time">
-                            <i class="far fa-clock"></i>
-                            ${timeAgo}
-                        </span>
-                        ${notification.category ? `<span class="notification-category">${notification.category}</span>` : ''}
-                    </div>
-                    ${notification.actions ? this.renderActions(notification.actions) : ''}
-                </div>
-            </div>
-        `;
-    }
-
-    /**
-     * Render notification actions
-     */
-    renderActions(actions) {
-        return `
-            <div class="notification-actions">
-                ${actions.map(action => `
-                    <button class="notification-action-btn notification-action-btn-${action.type || 'secondary'}"
-                            data-action="${action.action}"
-                            data-url="${action.url || ''}">
-                        ${action.label}
-                    </button>
-                `).join('')}
-            </div>
-        `;
-    }
-
-    /**
-     * Render empty state
-     */
-    renderEmptyState() {
-        return `
-            <div class="notification-empty">
-                <div class="notification-empty-icon">
-                    <i class="far fa-bell"></i>
-                </div>
-                <div class="notification-empty-title">Нет уведомлений</div>
-                <div class="notification-empty-message">
-                    Здесь будут отображаться ваши уведомления
-                </div>
-            </div>
-        `;
-    }
-
-    /**
-     * Setup mark as read
-     */
-    setupMarkAsRead() {
-        document.addEventListener('click', async (e) => {
-            const item = e.target.closest('.notification-item');
-            if (!item) return;
-            
-            const id = item.dataset.id;
-            
-            if (item.classList.contains('unread')) {
-                await this.markAsRead(id);
-                item.classList.remove('unread');
-                this.unreadCount = Math.max(0, this.unreadCount - 1);
-                this.updateBadge();
-            }
-            
-            // Navigate if has URL
-            const notification = this.notifications.find(n => n.id == id);
-            if (notification && notification.url) {
-                window.location.href = notification.url;
-            }
-        });
-    }
-
-    /**
-     * Mark notification as read
-     */
-    async markAsRead(id) {
-        try {
-            await fetch(`/api/notifications/${id}/read`, {
-                method: 'POST'
-            });
-        } catch (error) {
-            console.error('Error marking notification as read:', error);
-        }
-    }
-
-    /**
-     * Mark all as read
-     */
-    async markAllAsRead() {
-        try {
-            await fetch('/api/notifications/mark-all-read', {
-                method: 'POST'
-            });
-            
-            this.notifications.forEach(n => n.read = true);
-            this.unreadCount = 0;
-            this.updateBadge();
-            this.renderNotifications();
-            
-            this.showToast('Все уведомления отмечены как прочитанные', 'success');
-        } catch (error) {
-            console.error('Error marking all as read:', error);
-            this.showToast('Ошибка при обновлении уведомлений', 'error');
-        }
-    }
-
-    /**
-     * Setup action buttons
-     */
-    setupActions() {
-        // Mark all as read
-        const markAllBtn = document.getElementById('markAllRead');
-        if (markAllBtn) {
-            markAllBtn.addEventListener('click', () => {
-                this.markAllAsRead();
-            });
-        }
-        
-        // Clear all
-        const clearAllBtn = document.getElementById('clearAll');
-        if (clearAllBtn) {
-            clearAllBtn.addEventListener('click', () => {
-                if (confirm('Удалить все уведомления?')) {
-                    this.clearAll();
-                }
-            });
-        }
-        
-        // Settings
-        const settingsBtn = document.getElementById('notificationSettings');
-        if (settingsBtn) {
-            settingsBtn.addEventListener('click', () => {
-                window.location.href = '/settings/notifications';
-            });
-        }
-        
-        // Action buttons in notifications
-        document.addEventListener('click', (e) => {
-            const actionBtn = e.target.closest('.notification-action-btn');
-            if (!actionBtn) return;
-            
-            e.stopPropagation();
-            
-            const action = actionBtn.dataset.action;
-            const url = actionBtn.dataset.url;
-            
-            if (url) {
-                window.location.href = url;
-            } else if (action) {
-                this.handleAction(action);
-            }
-        });
-    }
-
-    /**
-     * Handle notification action
-     */
-    handleAction(action) {
-        console.log('Handling action:', action);
-        // Implement custom action handlers here
-    }
-
-    /**
-     * Clear all notifications
-     */
-    async clearAll() {
-        try {
-            await fetch('/api/notifications/clear-all', {
-                method: 'POST'
-            });
-            
-            this.notifications = [];
-            this.unreadCount = 0;
-            this.updateBadge();
-            this.renderNotifications();
-            
-            this.showToast('Все уведомления удалены', 'success');
-        } catch (error) {
-            console.error('Error clearing notifications:', error);
-            this.showToast('Ошибка при удалении уведомлений', 'error');
-        }
-    }
-
-    /**
-     * Show toast notification
-     */
-    showToast(message, type = 'info', title = null) {
-        const container = this.getToastContainer();
-        
+    showNewNotification(notification) {
         const toast = document.createElement('div');
-        toast.className = `notification-toast type-${type}`;
+        toast.className = 'notification-toast';
         toast.innerHTML = `
-            <div class="notification-toast-icon">
-                <i class="fas fa-${this.getNotificationIcon(type)}"></i>
+            <div class="notification-toast-icon" style="background: ${this.getNotificationColor(notification.type)};">
+                <i class="${this.getNotificationIcon(notification.type)}"></i>
             </div>
             <div class="notification-toast-content">
-                ${title ? `<div class="notification-toast-title">${title}</div>` : ''}
-                <div class="notification-toast-message">${message}</div>
+                <div class="notification-toast-title">${notification.title}</div>
+                <div class="notification-toast-message">${notification.message}</div>
             </div>
             <button class="notification-toast-close">
                 <i class="fas fa-times"></i>
             </button>
         `;
-        
-        container.appendChild(toast);
-        
+
+        document.body.appendChild(toast);
+
+        // Show animation
+        setTimeout(() => toast.classList.add('show'), 100);
+
         // Close button
         toast.querySelector('.notification-toast-close').addEventListener('click', () => {
             toast.classList.remove('show');
             setTimeout(() => toast.remove(), 300);
         });
-        
-        // Animate in
-        setTimeout(() => toast.classList.add('show'), 10);
-        
-        // Auto remove after 5 seconds
+
+        // Auto close after 5 seconds
         setTimeout(() => {
             toast.classList.remove('show');
             setTimeout(() => toast.remove(), 300);
         }, 5000);
+
+        // Click to open
+        toast.addEventListener('click', (e) => {
+            if (!e.target.closest('.notification-toast-close')) {
+                if (notification.url) {
+                    window.location.href = notification.url;
+                }
+            }
+        });
     }
 
     /**
-     * Get toast container
+     * Theme support
      */
-    getToastContainer() {
-        let container = document.querySelector('.notification-toast-container');
-        
-        if (!container) {
-            container = document.createElement('div');
-            container.className = 'notification-toast-container';
-            document.body.appendChild(container);
-        }
-        
-        return container;
+    initThemeSupport() {
+        window.addEventListener('themechange', (e) => {
+            console.log('Notifications: Theme changed to', e.detail.theme);
+        });
     }
 
     /**
-     * Get notification icon
+     * Show toast
      */
-    getNotificationIcon(type) {
-        const icons = {
-            success: 'check-circle',
-            error: 'exclamation-circle',
-            warning: 'exclamation-triangle',
-            info: 'info-circle',
-            task: 'tasks',
-            comment: 'comment',
-            mention: 'at',
-            deadline: 'clock'
-        };
-        return icons[type] || 'bell';
-    }
-
-    /**
-     * Get time ago string
-     */
-    getTimeAgo(timestamp) {
-        const now = new Date();
-        const date = new Date(timestamp);
-        const seconds = Math.floor((now - date) / 1000);
-        
-        if (seconds < 60) return 'только что';
-        if (seconds < 3600) return `${Math.floor(seconds / 60)} мин назад`;
-        if (seconds < 86400) return `${Math.floor(seconds / 3600)} ч назад`;
-        if (seconds < 604800) return `${Math.floor(seconds / 86400)} дн назад`;
-        
-        return date.toLocaleDateString('ru-RU');
-    }
-
-    /**
-     * Add new notification (for real-time updates)
-     */
-    addNotification(notification) {
-        this.notifications.unshift(notification);
-        this.unreadCount++;
-        this.updateBadge();
-        this.renderNotifications();
-        
-        // Show toast
-        this.showToast(notification.message, notification.type, notification.title);
-        
-        // Play sound if enabled
-        this.playNotificationSound();
-    }
-
-    /**
-     * Play notification sound
-     */
-    playNotificationSound() {
-        const soundEnabled = localStorage.getItem('notificationSound') !== 'false';
-        
-        if (soundEnabled) {
-            const audio = new Audio('/sounds/notification.mp3');
-            audio.volume = 0.5;
-            audio.play().catch(e => console.log('Audio play failed:', e));
+    showToast(message, type = 'info') {
+        if (typeof window.showToast === 'function') {
+            window.showToast(message, type);
         }
     }
 }
 
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    window.notificationManager = new NotificationManager();
+// Initialize notification system
+let notificationSystem;
+
+document.addEventListener('DOMContentLoaded', function() {
+    notificationSystem = new NotificationSystem();
+    window.notificationSystem = notificationSystem;
 });
 
-// Export for use in other scripts
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = NotificationManager;
-}
+// Export
+window.NotificationSystem = NotificationSystem;

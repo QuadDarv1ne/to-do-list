@@ -2,107 +2,51 @@
 
 namespace App\Service;
 
-use Psr\Log\LoggerInterface;
+use Doctrine\DBAL\Connection;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Finder\Finder;
 
-/**
- * Service for automatic backup operations
- */
 class BackupService
 {
-    private string $projectDir;
     private string $backupDir;
-    private LoggerInterface $logger;
-    private Filesystem $filesystem;
 
     public function __construct(
-        string $projectDir,
-        LoggerInterface $logger,
-        Filesystem $filesystem
+        private Connection $connection,
+        private Filesystem $filesystem,
+        string $projectDir
     ) {
-        $this->projectDir = $projectDir;
-        $this->logger = $logger;
-        $this->filesystem = $filesystem;
-        $this->backupDir = $this->projectDir . '/var/backups';
+        $this->backupDir = $projectDir . '/var/backups';
         
-        // Ensure backup directory exists
         if (!$this->filesystem->exists($this->backupDir)) {
-            $this->filesystem->mkdir($this->backupDir, 0755);
+            $this->filesystem->mkdir($this->backupDir);
         }
     }
 
     /**
-     * Create a backup of the application
+     * Создать полный бэкап базы данных
      */
-    public function createBackup(array $options = []): array
+    public function createFullBackup(): array
     {
-        $startTime = microtime(true);
-        $this->logger->info('Starting backup process');
-        
-        $excludePatterns = $options['exclude'] ?? [
-            'var/cache/*',
-            'var/log/*',
-            'var/backups/*',
-            '.git/*',
-            'node_modules/*',
-            'vendor/.composer/*'
-        ];
-        
-        $includeDatabase = $options['include_database'] ?? true;
-        $backupType = $options['type'] ?? 'full'; // full, incremental, differential
-        
         $timestamp = date('Y-m-d_H-i-s');
-        $backupName = "backup_{$timestamp}";
-        $backupPath = $this->backupDir . '/' . $backupName;
-        
+        $filename = "backup_full_{$timestamp}.sql";
+        $filepath = $this->backupDir . '/' . $filename;
+
         try {
-            // Create backup directory
-            $this->filesystem->mkdir($backupPath, 0755);
+            $tables = $this->getAllTables();
+            $sql = $this->generateBackupSQL($tables);
             
-            // Backup application files
-            $fileBackupResult = $this->backupFiles($backupPath, $excludePatterns, $backupType);
+            file_put_contents($filepath, $sql);
             
-            // Backup database if requested
-            $dbBackupResult = [];
-            if ($includeDatabase) {
-                $dbBackupResult = $this->backupDatabase($backupPath);
-            }
-            
-            // Create backup manifest
-            $manifest = [
-                'timestamp' => $timestamp,
-                'type' => $backupType,
-                'includes_database' => $includeDatabase,
-                'file_backup' => $fileBackupResult,
-                'database_backup' => $dbBackupResult,
-                'duration' => round(microtime(true) - $startTime, 2),
-                'size' => $this->getDirectorySize($backupPath)
-            ];
-            
-            // Save manifest
-            file_put_contents($backupPath . '/manifest.json', json_encode($manifest, JSON_PRETTY_PRINT));
-            
-            $this->logger->info('Backup completed successfully', [
-                'path' => $backupPath,
-                'duration' => $manifest['duration'],
-                'size' => $manifest['size']
-            ]);
+            // Сжать файл
+            $this->compressBackup($filepath);
             
             return [
                 'success' => true,
-                'path' => $backupPath,
-                'manifest' => $manifest
+                'filename' => $filename . '.gz',
+                'size' => filesize($filepath . '.gz'),
+                'tables' => count($tables),
+                'created_at' => $timestamp
             ];
-            
         } catch (\Exception $e) {
-            $this->logger->error('Backup failed', ['error' => $e->getMessage()]);
-            
-            // Clean up partial backup
-            if ($this->filesystem->exists($backupPath)) {
-                $this->filesystem->remove($backupPath);
-            }
-            
             return [
                 'success' => false,
                 'error' => $e->getMessage()
@@ -111,143 +55,29 @@ class BackupService
     }
 
     /**
-     * Backup application files
+     * Создать инкрементальный бэкап (только изменения)
      */
-    private function backupFiles(string $backupPath, array $excludePatterns, string $backupType): array
+    public function createIncrementalBackup(\DateTime $since): array
     {
-        $filesCopied = 0;
-        $directoriesCreated = 0;
-        $totalSize = 0;
-        
-        $finder = new Finder();
-        $finder->files()
-            ->in($this->projectDir)
-            ->exclude(['var', 'node_modules', '.git'])
-            ->notName('*.log')
-            ->notName('*~');
-        
-        $filesPath = $backupPath . '/files';
-        $this->filesystem->mkdir($filesPath, 0755);
-        
-        foreach ($finder as $file) {
-            $relativePath = $file->getRelativePathname();
-            
-            // Skip excluded patterns
-            $shouldExclude = false;
-            foreach ($excludePatterns as $pattern) {
-                if (fnmatch($pattern, $relativePath)) {
-                    $shouldExclude = true;
-                    break;
-                }
-            }
-            
-            if ($shouldExclude) {
-                continue;
-            }
-            
-            $destPath = $filesPath . '/' . $relativePath;
-            $destDir = dirname($destPath);
-            
-            if (!$this->filesystem->exists($destDir)) {
-                $this->filesystem->mkdir($destDir, 0755);
-                $directoriesCreated++;
-            }
-            
-            $this->filesystem->copy($file->getPathname(), $destPath);
-            $filesCopied++;
-            $totalSize += $file->getSize();
-        }
-        
-        return [
-            'files_copied' => $filesCopied,
-            'directories_created' => $directoriesCreated,
-            'total_size' => $totalSize,
-            'exclude_patterns' => $excludePatterns
-        ];
-    }
+        $timestamp = date('Y-m-d_H-i-s');
+        $filename = "backup_incremental_{$timestamp}.sql";
+        $filepath = $this->backupDir . '/' . $filename;
 
-    /**
-     * Backup database
-     */
-    private function backupDatabase(string $backupPath): array
-    {
-        $dbPath = $backupPath . '/database';
-        $this->filesystem->mkdir($dbPath, 0755);
-        
-        // For SQLite database
-        $dbSource = $this->projectDir . '/var/data.db';
-        $dbDest = $dbPath . '/data_' . date('Y-m-d_H-i-s') . '.db';
-        
-        if ($this->filesystem->exists($dbSource)) {
-            $this->filesystem->copy($dbSource, $dbDest);
-            
-            return [
-                'source' => $dbSource,
-                'destination' => $dbDest,
-                'size' => filesize($dbSource),
-                'success' => true
-            ];
-        }
-        
-        // For other databases, you would typically use mysqldump, pg_dump, etc.
-        // This implementation assumes SQLite based on the project structure
-        
-        return [
-            'success' => false,
-            'message' => 'Database backup skipped - no SQLite database found'
-        ];
-    }
-
-    /**
-     * Restore from backup
-     */
-    public function restoreFromBackup(string $backupPath, array $options = []): array
-    {
-        $this->logger->info('Starting restore process', ['backup_path' => $backupPath]);
-        
-        if (!$this->filesystem->exists($backupPath)) {
-            return [
-                'success' => false,
-                'error' => 'Backup path does not exist'
-            ];
-        }
-        
         try {
-            // Read manifest
-            $manifestPath = $backupPath . '/manifest.json';
-            if (!$this->filesystem->exists($manifestPath)) {
-                return [
-                    'success' => false,
-                    'error' => 'Manifest file not found in backup'
-                ];
-            }
+            $tables = ['task', 'task_history', 'comment', 'notification'];
+            $sql = $this->generateIncrementalSQL($tables, $since);
             
-            $manifest = json_decode(file_get_contents($manifestPath), true);
-            
-            // Determine restore options
-            $restoreFiles = $options['restore_files'] ?? true;
-            $restoreDatabase = $options['restore_database'] ?? true;
-            
-            // Restore files
-            if ($restoreFiles && $this->filesystem->exists($backupPath . '/files')) {
-                $this->restoreFiles($backupPath . '/files', $options);
-            }
-            
-            // Restore database
-            if ($restoreDatabase && $this->filesystem->exists($backupPath . '/database')) {
-                $this->restoreDatabase($backupPath . '/database', $options);
-            }
-            
-            $this->logger->info('Restore completed successfully');
+            file_put_contents($filepath, $sql);
+            $this->compressBackup($filepath);
             
             return [
                 'success' => true,
-                'manifest' => $manifest
+                'filename' => $filename . '.gz',
+                'size' => filesize($filepath . '.gz'),
+                'since' => $since->format('Y-m-d H:i:s'),
+                'created_at' => $timestamp
             ];
-            
         } catch (\Exception $e) {
-            $this->logger->error('Restore failed', ['error' => $e->getMessage()]);
-            
             return [
                 'success' => false,
                 'error' => $e->getMessage()
@@ -256,134 +86,246 @@ class BackupService
     }
 
     /**
-     * Restore files
+     * Получить список всех бэкапов
      */
-    private function restoreFiles(string $sourcePath, array $options): void
+    public function listBackups(): array
     {
-        $targetPath = $this->projectDir;
-        
-        // Copy files back to project directory
-        $finder = new Finder();
-        $finder->files()->in($sourcePath);
-        
-        foreach ($finder as $file) {
-            $relativePath = $file->getRelativePathname();
-            $destPath = $targetPath . '/' . $relativePath;
-            $destDir = dirname($destPath);
-            
-            if (!$this->filesystem->exists($destDir)) {
-                $this->filesystem->mkdir($destDir, 0755);
-            }
-            
-            $this->filesystem->copy($file->getPathname(), $destPath);
-        }
-    }
-
-    /**
-     * Restore database
-     */
-    private function restoreDatabase(string $sourcePath, array $options): void
-    {
-        $finder = new Finder();
-        $finder->files()->in($sourcePath)->name('*.db');
-        
-        foreach ($finder as $dbFile) {
-            $targetDbPath = $this->projectDir . '/var/data.db';
-            
-            // Make backup of current DB if it exists
-            if ($this->filesystem->exists($targetDbPath)) {
-                $backupDbPath = $this->projectDir . '/var/data.db.backup_' . date('Y-m-d_H-i-s');
-                $this->filesystem->copy($targetDbPath, $backupDbPath);
-            }
-            
-            $this->filesystem->copy($dbFile->getPathname(), $targetDbPath);
-        }
-    }
-
-    /**
-     * Get list of available backups
-     */
-    public function getBackups(): array
-    {
-        $finder = new Finder();
-        $finder->directories()->in($this->backupDir)->sortByName();
-        
+        $files = glob($this->backupDir . '/backup_*.sql.gz');
         $backups = [];
-        
-        foreach ($finder as $dir) {
-            $manifestPath = $dir->getPathname() . '/manifest.json';
-            
-            if ($this->filesystem->exists($manifestPath)) {
-                $manifest = json_decode(file_get_contents($manifestPath), true);
-                $backups[] = [
-                    'name' => $dir->getFilename(),
-                    'path' => $dir->getPathname(),
-                    'manifest' => $manifest,
-                    'size' => $this->getDirectorySize($dir->getPathname())
-                ];
-            }
+
+        foreach ($files as $file) {
+            $backups[] = [
+                'filename' => basename($file),
+                'size' => filesize($file),
+                'created_at' => date('Y-m-d H:i:s', filemtime($file)),
+                'type' => str_contains($file, 'incremental') ? 'incremental' : 'full'
+            ];
         }
-        
+
+        usort($backups, fn($a, $b) => $b['created_at'] <=> $a['created_at']);
+
         return $backups;
     }
 
     /**
-     * Delete old backups
+     * Удалить старые бэкапы
      */
-    public function cleanupOldBackups(int $keepDays = 7): array
+    public function cleanOldBackups(int $keepDays = 30): int
     {
-        $finder = new Finder();
-        $finder->directories()->in($this->backupDir)->sortByName();
-        
-        $deletedCount = 0;
-        $keptCount = 0;
-        
-        $cutoffDate = new \DateTime("-{$keepDays} days");
-        
-        foreach ($finder as $dir) {
-            $dirName = $dir->getFilename();
-            
-            // Extract timestamp from backup name (backup_YYYY-MM-DD_HH-MM-SS)
-            if (preg_match('/backup_(\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2})/', $dirName, $matches)) {
-                $backupDate = \DateTime::createFromFormat('Y-m-d_H-i-s', $matches[1]);
-                
-                if ($backupDate && $backupDate < $cutoffDate) {
-                    $this->filesystem->remove($dir->getPathname());
-                    $deletedCount++;
-                } else {
-                    $keptCount++;
-                }
-            } else {
-                $keptCount++; // Keep backups with unrecognized format
+        $files = glob($this->backupDir . '/backup_*.sql.gz');
+        $deleted = 0;
+        $threshold = time() - ($keepDays * 86400);
+
+        foreach ($files as $file) {
+            if (filemtime($file) < $threshold) {
+                $this->filesystem->remove($file);
+                $deleted++;
             }
         }
-        
-        $this->logger->info('Backup cleanup completed', [
-            'deleted' => $deletedCount,
-            'kept' => $keptCount,
-            'cutoff_days' => $keepDays
-        ]);
-        
-        return [
-            'deleted' => $deletedCount,
-            'kept' => $keptCount
-        ];
+
+        return $deleted;
     }
 
     /**
-     * Get directory size
+     * Восстановить из бэкапа
      */
-    private function getDirectorySize(string $path): int
+    public function restore(string $filename): array
     {
-        $size = 0;
-        $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path));
-        
-        foreach ($iterator as $file) {
-            if ($file->isFile()) {
-                $size += $file->getSize();
+        $filepath = $this->backupDir . '/' . $filename;
+
+        if (!file_exists($filepath)) {
+            return ['success' => false, 'error' => 'Файл не найден'];
+        }
+
+        try {
+            // Распаковать
+            $sqlFile = str_replace('.gz', '', $filepath);
+            $this->decompressBackup($filepath);
+
+            // Выполнить SQL
+            $sql = file_get_contents($sqlFile);
+            $this->connection->executeStatement($sql);
+
+            // Удалить временный файл
+            $this->filesystem->remove($sqlFile);
+
+            return ['success' => true, 'message' => 'Данные восстановлены'];
+        } catch (\Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Получить все таблицы
+     */
+    private function getAllTables(): array
+    {
+        $schemaManager = $this->connection->createSchemaManager();
+        return $schemaManager->listTableNames();
+    }
+
+    /**
+     * Генерировать SQL для полного бэкапа
+     */
+    private function generateBackupSQL(array $tables): string
+    {
+        $sql = "-- Backup created at " . date('Y-m-d H:i:s') . "\n\n";
+        $sql .= "SET FOREIGN_KEY_CHECKS=0;\n\n";
+
+        foreach ($tables as $table) {
+            $sql .= "-- Table: {$table}\n";
+            $sql .= "DROP TABLE IF EXISTS `{$table}`;\n";
+            
+            // Структура таблицы
+            $createTable = $this->connection->fetchAssociative(
+                "SHOW CREATE TABLE `{$table}`"
+            );
+            $sql .= $createTable['Create Table'] . ";\n\n";
+
+            // Данные таблицы
+            $rows = $this->connection->fetchAllAssociative("SELECT * FROM `{$table}`");
+            
+            if (!empty($rows)) {
+                $columns = array_keys($rows[0]);
+                $sql .= "INSERT INTO `{$table}` (`" . implode('`, `', $columns) . "`) VALUES\n";
+                
+                $values = [];
+                foreach ($rows as $row) {
+                    $escapedValues = array_map(
+                        fn($v) => $v === null ? 'NULL' : $this->connection->quote($v),
+                        array_values($row)
+                    );
+                    $values[] = '(' . implode(', ', $escapedValues) . ')';
+                }
+                
+                $sql .= implode(",\n", $values) . ";\n\n";
             }
         }
+
+        $sql .= "SET FOREIGN_KEY_CHECKS=1;\n";
+
+        return $sql;
+    }
+
+    /**
+     * Генерировать SQL для инкрементального бэкапа
+     */
+    private function generateIncrementalSQL(array $tables, \DateTime $since): string
+    {
+        $sql = "-- Incremental backup from " . $since->format('Y-m-d H:i:s') . "\n\n";
+
+        foreach ($tables as $table) {
+            // Проверяем наличие поля updated_at или created_at
+            $columns = $this->connection->fetchAllAssociative(
+                "SHOW COLUMNS FROM `{$table}`"
+            );
+            
+            $dateColumn = null;
+            foreach ($columns as $column) {
+                if (in_array($column['Field'], ['updated_at', 'created_at'])) {
+                    $dateColumn = $column['Field'];
+                    break;
+                }
+            }
+
+            if ($dateColumn) {
+                $rows = $this->connection->fetchAllAssociative(
+                    "SELECT * FROM `{$table}` WHERE `{$dateColumn}` >= ?",
+                    [$since->format('Y-m-d H:i:s')]
+                );
+
+                if (!empty($rows)) {
+                    $sql .= "-- Table: {$table} (modified records)\n";
+                    $columns = array_keys($rows[0]);
+                    
+                    foreach ($rows as $row) {
+                        $escapedValues = array_map(
+                            fn($v) => $v === null ? 'NULL' : $this->connection->quote($v),
+                            array_values($row)
+                        );
+                        
+                        $sql .= "REPLACE INTO `{$table}` (`" . implode('`, `', $columns) . "`) ";
+                        $sql .= "VALUES (" . implode(', ', $escapedValues) . ");\n";
+                    }
+                    
+                    $sql .= "\n";
+                }
+            }
+        }
+
+        return $sql;
+    }
+
+    /**
+     * Сжать бэкап
+     */
+    private function compressBackup(string $filepath): void
+    {
+        $gzFile = $filepath . '.gz';
+        $fp = gzopen($gzFile, 'w9');
+        gzwrite($fp, file_get_contents($filepath));
+        gzclose($fp);
         
-        return $size;
+        // Удалить несжатый файл
+        $this->filesystem->remove($filepath);
+    }
+
+    /**
+     * Распаковать бэкап
+     */
+    private function decompressBackup(string $filepath): void
+    {
+        $sqlFile = str_replace('.gz', '', $filepath);
+        $fp = gzopen($filepath, 'r');
+        $content = '';
+        
+        while (!gzeof($fp)) {
+            $content .= gzread($fp, 4096);
+        }
+        
+        gzclose($fp);
+        file_put_contents($sqlFile, $content);
+    }
+
+    /**
+     * Получить размер всех бэкапов
+     */
+    public function getTotalBackupSize(): int
+    {
+        $files = glob($this->backupDir . '/backup_*.sql.gz');
+        $totalSize = 0;
+
+        foreach ($files as $file) {
+            $totalSize += filesize($file);
+        }
+
+        return $totalSize;
+    }
+
+    /**
+     * Экспортировать данные пользователя
+     */
+    public function exportUserData(int $userId): string
+    {
+        $data = [
+            'user' => $this->connection->fetchAssociative(
+                'SELECT * FROM user WHERE id = ?',
+                [$userId]
+            ),
+            'tasks' => $this->connection->fetchAllAssociative(
+                'SELECT * FROM task WHERE assigned_user_id = ?',
+                [$userId]
+            ),
+            'comments' => $this->connection->fetchAllAssociative(
+                'SELECT c.* FROM comment c JOIN task t ON c.task_id = t.id WHERE c.user_id = ?',
+                [$userId]
+            ),
+            'notifications' => $this->connection->fetchAllAssociative(
+                'SELECT * FROM notification WHERE user_id = ?',
+                [$userId]
+            )
+        ];
+
+        return json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     }
 }

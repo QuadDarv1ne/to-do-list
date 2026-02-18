@@ -1,408 +1,363 @@
 /**
- * Enhanced Dashboard Functionality
- * Provides interactive widgets, real-time updates, and smooth animations
+ * Dashboard Enhanced
+ * Modern dashboard with theme support and animations
  */
 
-class DashboardManager {
-    constructor() {
-        this.charts = {};
-        this.refreshInterval = null;
-        this.init();
-    }
+document.addEventListener('DOMContentLoaded', function() {
+    initDashboard();
+});
 
-    init() {
-        this.initQuickActions();
-        this.initActivityChart();
-        this.initAutoRefresh();
-        this.initKeyboardShortcuts();
-        this.initTooltips();
-        this.initAnimations();
-    }
+function initDashboard() {
+    // Initialize all dashboard components
+    initQuickActions();
+    initActivityChart();
+    initStatCounters();
+    initTaskAnimations();
+    initLoadingStates();
+    initThemeAwareComponents();
+}
 
-    /**
-     * Quick Actions Menu
-     */
-    initQuickActions() {
-        const quickActionsBtn = document.getElementById('quickActionsBtn');
-        const quickActionsMenu = document.getElementById('quickActionsMenu');
-
-        if (quickActionsBtn && quickActionsMenu) {
-            quickActionsBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                quickActionsMenu.classList.toggle('active');
-            });
-
-            // Close menu when clicking outside
-            document.addEventListener('click', (e) => {
-                if (!quickActionsBtn.contains(e.target) && !quickActionsMenu.contains(e.target)) {
-                    quickActionsMenu.classList.remove('active');
-                }
-            });
-
-            // Add ripple effect to quick action items
-            const quickActionItems = quickActionsMenu.querySelectorAll('.quick-action-item');
-            quickActionItems.forEach(item => {
-                item.addEventListener('click', function(e) {
-                    const ripple = document.createElement('span');
-                    ripple.classList.add('ripple');
-                    this.appendChild(ripple);
-
-                    const rect = this.getBoundingClientRect();
-                    const size = Math.max(rect.width, rect.height);
-                    const x = e.clientX - rect.left - size / 2;
-                    const y = e.clientY - rect.top - size / 2;
-
-                    ripple.style.width = ripple.style.height = size + 'px';
-                    ripple.style.left = x + 'px';
-                    ripple.style.top = y + 'px';
-
-                    setTimeout(() => ripple.remove(), 600);
-                });
-            });
+/**
+ * Quick Actions Menu
+ */
+function initQuickActions() {
+    const quickActionsBtn = document.getElementById('quickActionsBtn');
+    const quickActionsMenu = document.getElementById('quickActionsMenu');
+    
+    if (!quickActionsBtn || !quickActionsMenu) return;
+    
+    quickActionsBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        quickActionsMenu.classList.toggle('show');
+        quickActionsBtn.classList.toggle('active');
+    });
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.quick-actions')) {
+            quickActionsMenu.classList.remove('show');
+            quickActionsBtn.classList.remove('active');
         }
-    }
-
-    /**
-     * Activity Chart with Chart.js
-     */
-    initActivityChart() {
-        const canvas = document.getElementById('activityChart');
-        if (!canvas || typeof Chart === 'undefined') return;
-
-        const ctx = canvas.getContext('2d');
-        
-        // Sample data - replace with actual data from backend
-        const data = {
-            labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
-            datasets: [
-                {
-                    label: 'Задачи',
-                    data: [12, 19, 15, 25, 22, 18, 20],
-                    borderColor: 'rgba(102, 126, 234, 1)',
-                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                },
-                {
-                    label: 'Завершено',
-                    data: [8, 15, 12, 20, 18, 14, 16],
-                    borderColor: 'rgba(17, 153, 142, 1)',
-                    backgroundColor: 'rgba(17, 153, 142, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                }
-            ]
-        };
-
-        this.charts.activity = new Chart(ctx, {
-            type: 'line',
-            data: data,
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'top',
-                        labels: {
-                            usePointStyle: true,
-                            padding: 15,
-                            font: {
-                                size: 12,
-                                weight: '600'
-                            }
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        padding: 12,
-                        borderRadius: 8,
-                        titleFont: {
-                            size: 14,
-                            weight: '600'
-                        },
-                        bodyFont: {
-                            size: 13
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        },
-                        ticks: {
-                            font: {
-                                size: 11
-                            }
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        },
-                        ticks: {
-                            font: {
-                                size: 11,
-                                weight: '600'
-                            }
-                        }
-                    }
-                },
-                interaction: {
-                    intersect: false,
-                    mode: 'index'
-                }
-            }
-        });
-
-        // Period switcher
-        const periodButtons = document.querySelectorAll('[data-period]');
-        periodButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                periodButtons.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                this.updateActivityChart(btn.dataset.period);
-            });
-        });
-    }
-
-    /**
-     * Update activity chart based on period
-     */
-    updateActivityChart(period) {
-        if (!this.charts.activity) return;
-
-        // Simulate data update - replace with actual API call
-        const newData = period === 'week' 
-            ? {
-                labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
-                tasks: [12, 19, 15, 25, 22, 18, 20],
-                completed: [8, 15, 12, 20, 18, 14, 16]
-              }
-            : {
-                labels: ['Нед 1', 'Нед 2', 'Нед 3', 'Нед 4'],
-                tasks: [85, 92, 78, 95],
-                completed: [70, 80, 65, 85]
-              };
-
-        this.charts.activity.data.labels = newData.labels;
-        this.charts.activity.data.datasets[0].data = newData.tasks;
-        this.charts.activity.data.datasets[1].data = newData.completed;
-        this.charts.activity.update('active');
-
-        // Update stats
-        const weekTasks = newData.tasks.reduce((a, b) => a + b, 0);
-        const weekCompleted = newData.completed.reduce((a, b) => a + b, 0);
-        const productivity = Math.round((weekCompleted / weekTasks) * 100);
-
-        this.animateValue('week-tasks', 0, weekTasks, 1000);
-        this.animateValue('week-completed', 0, weekCompleted, 1000);
-        this.animateValue('week-productivity', 0, productivity, 1000, '%');
-    }
-
-    /**
-     * Animate number counting
-     */
-    animateValue(id, start, end, duration, suffix = '') {
-        const element = document.getElementById(id);
-        if (!element) return;
-
-        const range = end - start;
-        const increment = range / (duration / 16);
-        let current = start;
-
-        const timer = setInterval(() => {
-            current += increment;
-            if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
-                current = end;
-                clearInterval(timer);
-            }
-            element.textContent = Math.round(current) + suffix;
-        }, 16);
-    }
-
-    /**
-     * Auto-refresh dashboard data
-     */
-    initAutoRefresh() {
-        // Refresh every 5 minutes
-        this.refreshInterval = setInterval(() => {
-            this.refreshDashboardData();
-        }, 300000);
-    }
-
-    /**
-     * Refresh dashboard data via AJAX
-     */
-    async refreshDashboardData() {
-        try {
-            // Placeholder for actual API call
-            console.log('Refreshing dashboard data...');
+    });
+    
+    // Add ripple effect to quick action items
+    const quickActionItems = document.querySelectorAll('.quick-action-item');
+    quickActionItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            const ripple = document.createElement('span');
+            ripple.classList.add('ripple');
             
-            // Example: fetch('/api/dashboard/stats')
-            //     .then(response => response.json())
-            //     .then(data => this.updateStats(data));
-        } catch (error) {
-            console.error('Failed to refresh dashboard:', error);
-        }
-    }
-
-    /**
-     * Keyboard shortcuts
-     */
-    initKeyboardShortcuts() {
-        document.addEventListener('keydown', (e) => {
-            // Ctrl/Cmd + K: Quick search
-            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                e.preventDefault();
-                const searchInput = document.querySelector('#searchInput, [type="search"]');
-                if (searchInput) searchInput.focus();
-            }
-
-            // Ctrl/Cmd + N: New task
-            if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
-                e.preventDefault();
-                const newTaskBtn = document.querySelector('[href*="task_new"]');
-                if (newTaskBtn) newTaskBtn.click();
-            }
-
-            // Escape: Close modals/menus
-            if (e.key === 'Escape') {
-                const quickActionsMenu = document.getElementById('quickActionsMenu');
-                if (quickActionsMenu) quickActionsMenu.classList.remove('active');
-            }
+            const rect = this.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = e.clientX - rect.left - size / 2;
+            const y = e.clientY - rect.top - size / 2;
+            
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            
+            this.appendChild(ripple);
+            
+            setTimeout(() => ripple.remove(), 600);
         });
-    }
+    });
+}
 
-    /**
-     * Initialize tooltips
-     */
-    initTooltips() {
-        const tooltipElements = document.querySelectorAll('[data-tooltip]');
-        tooltipElements.forEach(element => {
-            element.addEventListener('mouseenter', function() {
-                const tooltip = document.createElement('div');
-                tooltip.className = 'custom-tooltip';
-                tooltip.textContent = this.dataset.tooltip;
-                document.body.appendChild(tooltip);
-
-                const rect = this.getBoundingClientRect();
-                tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
-                tooltip.style.top = rect.top - tooltip.offsetHeight - 8 + 'px';
-
-                setTimeout(() => tooltip.classList.add('show'), 10);
-
-                this.addEventListener('mouseleave', function() {
-                    tooltip.classList.remove('show');
-                    setTimeout(() => tooltip.remove(), 300);
-                }, { once: true });
-            });
-        });
-    }
-
-    /**
-     * Initialize scroll animations
-     */
-    initAnimations() {
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('animate-in');
-                    observer.unobserve(entry.target);
+/**
+ * Activity Chart
+ */
+function initActivityChart() {
+    const canvas = document.getElementById('activityChart');
+    if (!canvas || typeof Chart === 'undefined') return;
+    
+    const ctx = canvas.getContext('2d');
+    
+    // Get theme colors
+    const theme = document.documentElement.getAttribute('data-theme') || 'light';
+    const colors = getThemeColors(theme);
+    
+    const activityChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+            datasets: [{
+                label: 'Завершено задач',
+                data: [12, 19, 15, 25, 22, 18, 20],
+                borderColor: colors.primary,
+                backgroundColor: colors.primaryAlpha,
+                tension: 0.4,
+                fill: true,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                pointBackgroundColor: colors.primary,
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2
+            }, {
+                label: 'Создано задач',
+                data: [8, 12, 10, 15, 14, 11, 13],
+                borderColor: colors.secondary,
+                backgroundColor: colors.secondaryAlpha,
+                tension: 0.4,
+                fill: true,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                pointBackgroundColor: colors.secondary,
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        color: colors.text,
+                        usePointStyle: true,
+                        padding: 15
+                    }
+                },
+                tooltip: {
+                    backgroundColor: colors.card,
+                    titleColor: colors.text,
+                    bodyColor: colors.text,
+                    borderColor: colors.border,
+                    borderWidth: 1,
+                    padding: 12,
+                    displayColors: true,
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ' + context.parsed.y + ' задач';
+                        }
+                    }
                 }
-            });
-        }, observerOptions);
-
-        const animatedElements = document.querySelectorAll('.card, .stat-card-client, .stat-card-deal');
-        animatedElements.forEach(el => observer.observe(el));
-    }
-
-    /**
-     * Cleanup
-     */
-    destroy() {
-        if (this.refreshInterval) {
-            clearInterval(this.refreshInterval);
-        }
-        Object.values(this.charts).forEach(chart => {
-            if (chart && typeof chart.destroy === 'function') {
-                chart.destroy();
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: colors.border,
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: colors.textSecondary,
+                        padding: 8
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: colors.textSecondary,
+                        padding: 8
+                    }
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
             }
+        }
+    });
+    
+    // Update chart on theme change
+    window.addEventListener('themechange', function(e) {
+        const newColors = getThemeColors(e.detail.theme);
+        
+        activityChart.data.datasets[0].borderColor = newColors.primary;
+        activityChart.data.datasets[0].backgroundColor = newColors.primaryAlpha;
+        activityChart.data.datasets[0].pointBackgroundColor = newColors.primary;
+        
+        activityChart.data.datasets[1].borderColor = newColors.secondary;
+        activityChart.data.datasets[1].backgroundColor = newColors.secondaryAlpha;
+        activityChart.data.datasets[1].pointBackgroundColor = newColors.secondary;
+        
+        activityChart.options.plugins.legend.labels.color = newColors.text;
+        activityChart.options.plugins.tooltip.backgroundColor = newColors.card;
+        activityChart.options.plugins.tooltip.titleColor = newColors.text;
+        activityChart.options.plugins.tooltip.bodyColor = newColors.text;
+        activityChart.options.plugins.tooltip.borderColor = newColors.border;
+        
+        activityChart.options.scales.y.grid.color = newColors.border;
+        activityChart.options.scales.y.ticks.color = newColors.textSecondary;
+        activityChart.options.scales.x.ticks.color = newColors.textSecondary;
+        
+        activityChart.update();
+    });
+    
+    // Animate stats
+    animateValue('week-tasks', 0, 87, 1500);
+    animateValue('week-completed', 0, 64, 1500);
+    animateValue('week-streak', 0, 5, 1500);
+    animateValue('week-productivity', 0, 73, 1500, '%');
+}
+
+/**
+ * Get theme colors
+ */
+function getThemeColors(theme) {
+    const themes = {
+        light: {
+            primary: '#667eea',
+            primaryAlpha: 'rgba(102, 126, 234, 0.1)',
+            secondary: '#764ba2',
+            secondaryAlpha: 'rgba(118, 75, 162, 0.1)',
+            text: '#212529',
+            textSecondary: '#6c757d',
+            border: '#e0e0e0',
+            card: '#ffffff'
+        },
+        dark: {
+            primary: '#3b82f6',
+            primaryAlpha: 'rgba(59, 130, 246, 0.15)',
+            secondary: '#8b5cf6',
+            secondaryAlpha: 'rgba(139, 92, 246, 0.15)',
+            text: '#f9fafb',
+            textSecondary: '#9ca3af',
+            border: '#374151',
+            card: '#1f2937'
+        },
+        orange: {
+            primary: '#f97316',
+            primaryAlpha: 'rgba(249, 115, 22, 0.1)',
+            secondary: '#ea580c',
+            secondaryAlpha: 'rgba(234, 88, 12, 0.1)',
+            text: '#1c1917',
+            textSecondary: '#78716c',
+            border: '#e7e5e4',
+            card: '#ffffff'
+        },
+        purple: {
+            primary: '#a855f7',
+            primaryAlpha: 'rgba(168, 85, 247, 0.1)',
+            secondary: '#9333ea',
+            secondaryAlpha: 'rgba(147, 51, 234, 0.1)',
+            text: '#1e1b4b',
+            textSecondary: '#6b7280',
+            border: '#e9d5ff',
+            card: '#ffffff'
+        }
+    };
+    
+    return themes[theme] || themes.light;
+}
+
+/**
+ * Animate stat counters
+ */
+function initStatCounters() {
+    const statValues = document.querySelectorAll('#stats-row .card h2');
+    
+    statValues.forEach(stat => {
+        const target = parseInt(stat.textContent);
+        if (!isNaN(target)) {
+            stat.textContent = '0';
+            animateValue(stat, 0, target, 1000);
+        }
+    });
+}
+
+/**
+ * Animate value
+ */
+function animateValue(element, start, end, duration, suffix = '') {
+    const el = typeof element === 'string' ? document.getElementById(element) : element;
+    if (!el) return;
+    
+    const range = end - start;
+    const increment = range / (duration / 16);
+    let current = start;
+    
+    const timer = setInterval(() => {
+        current += increment;
+        if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+            current = end;
+            clearInterval(timer);
+        }
+        el.textContent = Math.floor(current) + suffix;
+    }, 16);
+}
+
+/**
+ * Task animations
+ */
+function initTaskAnimations() {
+    const taskItems = document.querySelectorAll('.task-item-enhanced');
+    
+    taskItems.forEach((item, index) => {
+        // Stagger animation
+        item.style.opacity = '0';
+        item.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            item.style.transition = 'all 0.4s ease';
+            item.style.opacity = '1';
+            item.style.transform = 'translateY(0)';
+        }, index * 100);
+        
+        // Hover effect
+        item.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateX(8px)';
         });
+        
+        item.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateX(0)';
+        });
+    });
+}
+
+/**
+ * Loading states
+ */
+function initLoadingStates() {
+    const recentTasksLoading = document.getElementById('recent-tasks-loading');
+    const recentTasksContent = document.getElementById('recent-tasks-content');
+    
+    if (recentTasksLoading && recentTasksContent) {
+        setTimeout(() => {
+            recentTasksLoading.style.display = 'none';
+            recentTasksContent.style.display = 'block';
+            recentTasksContent.style.animation = 'fadeIn 0.5s ease';
+        }, 1000);
     }
 }
 
-// Initialize dashboard when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    window.dashboardManager = new DashboardManager();
-});
+/**
+ * Theme-aware components
+ */
+function initThemeAwareComponents() {
+    // Update components when theme changes
+    window.addEventListener('themechange', function(e) {
+        console.log('Dashboard: Theme changed to', e.detail.theme);
+        
+        // Update any theme-dependent components
+        updateStatCircles(e.detail.theme);
+        updateBadges(e.detail.theme);
+    });
+}
 
-// Cleanup on page unload
-window.addEventListener('beforeunload', () => {
-    if (window.dashboardManager) {
-        window.dashboardManager.destroy();
-    }
-});
+/**
+ * Update stat circles
+ */
+function updateStatCircles(theme) {
+    const statCircles = document.querySelectorAll('.stat-circle');
+    // Stat circles already have inline gradients, no need to update
+}
 
-// Add custom styles for tooltips and ripple effect
-const style = document.createElement('style');
-style.textContent = `
-    .custom-tooltip {
-        position: fixed;
-        background: rgba(0, 0, 0, 0.9);
-        color: white;
-        padding: 8px 12px;
-        border-radius: 6px;
-        font-size: 0.875rem;
-        pointer-events: none;
-        z-index: 10000;
-        opacity: 0;
-        transform: translateY(4px);
-        transition: opacity 0.3s, transform 0.3s;
-        white-space: nowrap;
-    }
+/**
+ * Update badges
+ */
+function updateBadges(theme) {
+    const badges = document.querySelectorAll('.badge-animated');
+    // Badges use CSS variables, automatically updated
+}
 
-    .custom-tooltip.show {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-    .ripple {
-        position: absolute;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.6);
-        transform: scale(0);
-        animation: ripple-animation 0.6s ease-out;
-        pointer-events: none;
-    }
-
-    @keyframes ripple-animation {
-        to {
-            transform: scale(4);
-            opacity: 0;
-        }
-    }
-
-    .animate-in {
-        animation: fadeInUp 0.6s ease-out;
-    }
-
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-`;
-document.head.appendChild(style);
+// Export for use in other scripts
+window.DashboardEnhanced = {
+    initDashboard,
+    animateValue,
+    getThemeColors
+};

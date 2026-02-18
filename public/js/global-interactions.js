@@ -498,8 +498,10 @@
 })();
 
 // Add CSS for password strength bar
-const style = document.createElement('style');
-style.textContent = `
+if (!document.getElementById('passwordStrengthStyles')) {
+    const style = document.createElement('style');
+    style.id = 'passwordStrengthStyles';
+    style.textContent = `
     .password-strength-bar {
         height: 4px;
         background: #e9ecef;
@@ -527,4 +529,5 @@ style.textContent = `
         }
     }
 `;
-document.head.appendChild(style);
+    document.head.appendChild(style);
+}

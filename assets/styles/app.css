@@ -1,24 +1,6 @@
 /* Custom styles for To-Do List App */
 
-/* Offline indicator */
-.offline-indicator {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 10000;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    animation: slideDown 0.3s ease-out;
-}
-
-@keyframes slideDown {
-    from {
-        transform: translateY(-100%);
-    }
-    to {
-        transform: translateY(0);
-    }
-}
+/* Offline indicator - handled by offline-support.js */
 
 /* PWA install prompt */
 .install-prompt {
@@ -1021,10 +1003,7 @@ main {
     padding: 1rem 1.5rem;
 }
 
-[data-theme='dark'] .offline-indicator {
-    background-color: #f59e0b;
-    color: #1f2937;
-}
+/* Offline indicator styles moved to offline-support.js */
 
 [data-theme='dark'] .install-prompt {
     background-color: #1f2937;

@@ -322,8 +322,10 @@
 })();
 
 // Add CSS for scroll animations
-const style = document.createElement('style');
-style.textContent = `
+if (!document.getElementById('scrollAnimationsStyles')) {
+    const style = document.createElement('style');
+    style.id = 'scrollAnimationsStyles';
+    style.textContent = `
     .animate-on-scroll {
         opacity: 0;
         transform: translateY(30px);
@@ -362,4 +364,5 @@ style.textContent = `
         }
     }
 `;
-document.head.appendChild(style);
+    document.head.appendChild(style);
+}
