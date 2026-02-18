@@ -24,12 +24,27 @@ class ResourceController extends AbstractController
 
     #[Route('', name: 'app_resource_index', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
-    public function index(#[CurrentUser] User $user): Response
+    public function index(#[CurrentUser] User $user, Request $request): Response
     {
-        $resources = $this->userRepository->findAll();
+        // Добавляем пагинацию
+        $page = max(1, $request->query->getInt('page', 1));
+        $limit = 50;
+        
+        $qb = $this->userRepository->createQueryBuilder('u')
+            ->where('u.isActive = :active')
+            ->setParameter('active', true)
+            ->orderBy('u.fullName', 'ASC')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
+        
+        $resources = $qb->getQuery()->getResult();
+        $total = $this->userRepository->count(['isActive' => true]);
         
         return $this->render('resource/index.html.twig', [
             'resources' => $resources,
+            'page' => $page,
+            'total' => $total,
+            'pages' => ceil($total / $limit),
         ]);
     }
 
@@ -37,22 +52,30 @@ class ResourceController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function getAvailability(): JsonResponse
     {
-        $resources = $this->userRepository->findAll();
+        // Оптимизация: загружаем пользователей с количеством задач одним запросом
+        $qb = $this->userRepository->createQueryBuilder('u')
+            ->select('u.id, u.fullName, u.email, u.roles, COUNT(t.id) as taskCount')
+            ->leftJoin('u.assignedTasks', 't')
+            ->where('u.isActive = :active')
+            ->setParameter('active', true)
+            ->groupBy('u.id')
+            ->setMaxResults(100);
+        
+        $results = $qb->getQuery()->getResult();
         $availabilityData = [];
 
-        foreach ($resources as $resource) {
-            $assignedTasksCount = $this->taskRepository->count(['assignedUser' => $resource]);
-            // Assuming default capacity of 40 hours per week
-            $capacity = 40; 
-            $utilization = $assignedTasksCount > 0 ? min(100, ($assignedTasksCount * 8 / $capacity) * 100) : 0;
+        foreach ($results as $result) {
+            $capacity = 40;
+            $taskCount = $result['taskCount'] ?? 0;
+            $utilization = $taskCount > 0 ? min(100, ($taskCount * 8 / $capacity) * 100) : 0;
 
             $availabilityData[] = [
-                'id' => $resource->getId(),
-                'name' => $resource->getFullName(),
-                'email' => $resource->getEmail(),
-                'role' => $resource->getRoles()[0] ?? 'USER',
+                'id' => $result['id'],
+                'name' => $result['fullName'],
+                'email' => $result['email'],
+                'role' => is_array($result['roles']) ? ($result['roles'][0] ?? 'USER') : 'USER',
                 'capacity' => $capacity,
-                'utilization' => $utilization,
+                'utilization' => round($utilization, 2),
                 'available' => $utilization < 80
             ];
         }
@@ -131,23 +154,27 @@ class ResourceController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function forecast(): JsonResponse
     {
-        $resources = $this->userRepository->findAll();
+        // Оптимизация: загружаем данные одним запросом с JOIN
+        $qb = $this->userRepository->createQueryBuilder('u')
+            ->select('u.id, u.fullName, u.email, SUM(t.estimatedHours) as totalHours, COUNT(t.id) as taskCount')
+            ->leftJoin('u.assignedTasks', 't', 'WITH', 't.status != :completed AND t.dueDate >= :now')
+            ->where('u.isActive = :active')
+            ->setParameter('active', true)
+            ->setParameter('completed', 'completed')
+            ->setParameter('now', new \DateTime())
+            ->groupBy('u.id')
+            ->setMaxResults(100);
+        
+        $results = $qb->getQuery()->getResult();
         $forecastData = [];
 
-        foreach ($resources as $resource) {
-            $upcomingTasks = $this->taskRepository->findUpcomingByUser($resource);
-            $totalHours = 0;
-            
-            foreach ($upcomingTasks as $task) {
-                $totalHours += $task->getEstimatedHours();
-            }
-            
+        foreach ($results as $result) {
             $forecastData[] = [
-                'id' => $resource->getId(),
-                'name' => $resource->getFullName(),
-                'email' => $resource->getEmail(),
-                'total_upcoming_hours' => $totalHours,
-                'upcoming_tasks_count' => count($upcomingTasks),
+                'id' => $result['id'],
+                'name' => $result['fullName'],
+                'email' => $result['email'],
+                'total_upcoming_hours' => (float)($result['totalHours'] ?? 0),
+                'upcoming_tasks_count' => (int)($result['taskCount'] ?? 0),
             ];
         }
 
@@ -158,16 +185,23 @@ class ResourceController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function getSkills(): JsonResponse
     {
-        $resources = $this->userRepository->findAll();
+        // Оптимизация: выбираем только нужные поля
+        $qb = $this->userRepository->createQueryBuilder('u')
+            ->select('u.id, u.fullName, u.email, u.position, u.department')
+            ->where('u.isActive = :active')
+            ->setParameter('active', true)
+            ->setMaxResults(100);
+        
+        $results = $qb->getQuery()->getResult();
         $skillsData = [];
 
-        foreach ($resources as $resource) {
+        foreach ($results as $result) {
             $skillsData[] = [
-                'id' => $resource->getId(),
-                'name' => $resource->getFullName(),
-                'email' => $resource->getEmail(),
-                'position' => $resource->getPosition() ?? '',
-                'department' => $resource->getDepartment() ?? '',
+                'id' => $result['id'],
+                'name' => $result['fullName'],
+                'email' => $result['email'],
+                'position' => $result['position'] ?? '',
+                'department' => $result['department'] ?? '',
             ];
         }
 

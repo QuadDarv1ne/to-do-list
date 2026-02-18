@@ -21,6 +21,7 @@ class UserController extends AbstractController
     #[Route('/', name: 'app_user_index', methods: ['GET'])]
     public function index(
         UserRepository $userRepository,
+        Request $request,
         ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         if ($performanceMonitor) {
@@ -28,9 +29,24 @@ class UserController extends AbstractController
         }
         
         try {
+            // Добавляем пагинацию для оптимизации
+            $page = max(1, $request->query->getInt('page', 1));
+            $limit = 50;
+            
+            $qb = $userRepository->createQueryBuilder('u')
+                ->orderBy('u.createdAt', 'DESC')
+                ->setFirstResult(($page - 1) * $limit)
+                ->setMaxResults($limit);
+            
+            $users = $qb->getQuery()->getResult();
+            $total = $userRepository->count([]);
+            
             return $this->render('user/index.html.twig', [
-                'users' => $userRepository->findAll(),
+                'users' => $users,
                 'statistics' => $userRepository->getStatistics(),
+                'page' => $page,
+                'total' => $total,
+                'pages' => ceil($total / $limit),
             ]);
         } finally {
             if ($performanceMonitor) {

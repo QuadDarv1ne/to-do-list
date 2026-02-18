@@ -931,13 +931,18 @@ class TaskController extends AbstractController
             }
         }
         
-        // Add tags if provided
+        // Add tags if provided (optimized - single query)
         if (!empty($data['tags']) && is_array($data['tags'])) {
-            foreach ($data['tags'] as $tagId) {
-                $tag = $entityManager->find(\App\Entity\Tag::class, (int)$tagId);
-                if ($tag) {
-                    $task->addTag($tag);
-                }
+            $tagIds = array_map('intval', $data['tags']);
+            $tags = $entityManager->getRepository(\App\Entity\Tag::class)
+                ->createQueryBuilder('t')
+                ->where('t.id IN (:ids)')
+                ->setParameter('ids', $tagIds)
+                ->getQuery()
+                ->getResult();
+            
+            foreach ($tags as $tag) {
+                $task->addTag($tag);
             }
         }
         

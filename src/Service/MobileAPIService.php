@@ -183,7 +183,7 @@ class MobileAPIService
             $task->setCompletedAt(new \DateTime());
         }
 
-        // TODO: Save to database
+        $this->entityManager->flush();
 
         return $this->formatTaskForMobile($task);
     }

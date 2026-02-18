@@ -15,166 +15,200 @@ class TaskBatchOperationService
     ) {}
 
     /**
-     * Batch update status
+     * Batch update status (оптимизировано)
      */
     public function batchUpdateStatus(array $taskIds, string $status): int
     {
-        $count = 0;
+        if (empty($taskIds)) {
+            return 0;
+        }
 
-        foreach ($taskIds as $taskId) {
-            $task = $this->taskRepository->find($taskId);
-            if ($task) {
-                $task->setStatus($status);
-                $count++;
-            }
+        // Загружаем все задачи одним запросом
+        $tasks = $this->taskRepository->createQueryBuilder('t')
+            ->where('t.id IN (:ids)')
+            ->setParameter('ids', $taskIds)
+            ->getQuery()
+            ->getResult();
+
+        foreach ($tasks as $task) {
+            $task->setStatus($status);
         }
 
         $this->entityManager->flush();
 
-        return $count;
+        return count($tasks);
     }
 
     /**
-     * Batch update priority
+     * Batch update priority (оптимизировано)
      */
     public function batchUpdatePriority(array $taskIds, string $priority): int
     {
-        $count = 0;
+        if (empty($taskIds)) {
+            return 0;
+        }
 
-        foreach ($taskIds as $taskId) {
-            $task = $this->taskRepository->find($taskId);
-            if ($task) {
-                $task->setPriority($priority);
-                $count++;
-            }
+        $tasks = $this->taskRepository->createQueryBuilder('t')
+            ->where('t.id IN (:ids)')
+            ->setParameter('ids', $taskIds)
+            ->getQuery()
+            ->getResult();
+
+        foreach ($tasks as $task) {
+            $task->setPriority($priority);
         }
 
         $this->entityManager->flush();
 
-        return $count;
+        return count($tasks);
     }
 
     /**
-     * Batch assign to user
+     * Batch assign to user (оптимизировано)
      */
     public function batchAssign(array $taskIds, User $user): int
     {
-        $count = 0;
+        if (empty($taskIds)) {
+            return 0;
+        }
 
-        foreach ($taskIds as $taskId) {
-            $task = $this->taskRepository->find($taskId);
-            if ($task) {
-                $task->setAssignedUser($user);
-                $count++;
-            }
+        $tasks = $this->taskRepository->createQueryBuilder('t')
+            ->where('t.id IN (:ids)')
+            ->setParameter('ids', $taskIds)
+            ->getQuery()
+            ->getResult();
+
+        foreach ($tasks as $task) {
+            $task->setAssignedUser($user);
         }
 
         $this->entityManager->flush();
 
-        return $count;
+        return count($tasks);
     }
 
     /**
-     * Batch delete
+     * Batch delete (оптимизировано)
      */
     public function batchDelete(array $taskIds): int
     {
-        $count = 0;
+        if (empty($taskIds)) {
+            return 0;
+        }
 
-        foreach ($taskIds as $taskId) {
-            $task = $this->taskRepository->find($taskId);
-            if ($task) {
-                $this->entityManager->remove($task);
-                $count++;
-            }
+        $tasks = $this->taskRepository->createQueryBuilder('t')
+            ->where('t.id IN (:ids)')
+            ->setParameter('ids', $taskIds)
+            ->getQuery()
+            ->getResult();
+
+        foreach ($tasks as $task) {
+            $this->entityManager->remove($task);
         }
 
         $this->entityManager->flush();
 
-        return $count;
+        return count($tasks);
     }
 
     /**
-     * Batch add tags
+     * Batch add tags (оптимизировано)
      */
     public function batchAddTags(array $taskIds, array $tags): int
     {
-        $count = 0;
+        if (empty($taskIds) || empty($tags)) {
+            return 0;
+        }
 
-        foreach ($taskIds as $taskId) {
-            $task = $this->taskRepository->find($taskId);
-            if ($task) {
-                foreach ($tags as $tag) {
-                    $task->addTag($tag);
-                }
-                $count++;
+        $tasks = $this->taskRepository->createQueryBuilder('t')
+            ->where('t.id IN (:ids)')
+            ->setParameter('ids', $taskIds)
+            ->getQuery()
+            ->getResult();
+
+        foreach ($tasks as $task) {
+            foreach ($tags as $tag) {
+                $task->addTag($tag);
             }
         }
 
         $this->entityManager->flush();
 
-        return $count;
+        return count($tasks);
     }
 
     /**
-     * Batch update deadline
+     * Batch update deadline (оптимизировано)
      */
     public function batchUpdateDeadline(array $taskIds, \DateTime $deadline): int
     {
-        $count = 0;
+        if (empty($taskIds)) {
+            return 0;
+        }
 
-        foreach ($taskIds as $taskId) {
-            $task = $this->taskRepository->find($taskId);
-            if ($task) {
-                $task->setDeadline($deadline);
-                $count++;
-            }
+        $tasks = $this->taskRepository->createQueryBuilder('t')
+            ->where('t.id IN (:ids)')
+            ->setParameter('ids', $taskIds)
+            ->getQuery()
+            ->getResult();
+
+        foreach ($tasks as $task) {
+            $task->setDeadline($deadline);
         }
 
         $this->entityManager->flush();
 
-        return $count;
+        return count($tasks);
     }
 
     /**
-     * Batch move to category
+     * Batch move to category (оптимизировано)
      */
     public function batchMoveToCategory(array $taskIds, $category): int
     {
-        $count = 0;
+        if (empty($taskIds)) {
+            return 0;
+        }
 
-        foreach ($taskIds as $taskId) {
-            $task = $this->taskRepository->find($taskId);
-            if ($task) {
-                $task->setCategory($category);
-                $count++;
-            }
+        $tasks = $this->taskRepository->createQueryBuilder('t')
+            ->where('t.id IN (:ids)')
+            ->setParameter('ids', $taskIds)
+            ->getQuery()
+            ->getResult();
+
+        foreach ($tasks as $task) {
+            $task->setCategory($category);
         }
 
         $this->entityManager->flush();
 
-        return $count;
+        return count($tasks);
     }
 
     /**
-     * Batch complete
+     * Batch complete (оптимизировано)
      */
     public function batchComplete(array $taskIds): int
     {
-        $count = 0;
+        if (empty($taskIds)) {
+            return 0;
+        }
 
-        foreach ($taskIds as $taskId) {
-            $task = $this->taskRepository->find($taskId);
-            if ($task) {
-                $task->setStatus('completed');
-                $task->setCompletedAt(new \DateTime());
-                $count++;
-            }
+        $tasks = $this->taskRepository->createQueryBuilder('t')
+            ->where('t.id IN (:ids)')
+            ->setParameter('ids', $taskIds)
+            ->getQuery()
+            ->getResult();
+
+        $now = new \DateTime();
+        foreach ($tasks as $task) {
+            $task->setStatus('completed');
+            $task->setCompletedAt($now);
         }
 
         $this->entityManager->flush();
 
-        return $count;
+        return count($tasks);
     }
 
     /**

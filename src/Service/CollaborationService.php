@@ -105,14 +105,30 @@ class CollaborationService
         // Sort by count
         arsort($collaborators);
 
-        // Get user objects
+        // Оптимизация: загружаем пользователей одним запросом
+        $topUserIds = array_keys(array_slice($collaborators, 0, $limit, true));
+        
+        if (empty($topUserIds)) {
+            return [];
+        }
+        
+        $users = $this->userRepository->createQueryBuilder('u')
+            ->where('u.id IN (:ids)')
+            ->setParameter('ids', $topUserIds)
+            ->getQuery()
+            ->getResult();
+        
+        $usersById = [];
+        foreach ($users as $user) {
+            $usersById[$user->getId()] = $user;
+        }
+        
         $result = [];
-        foreach (array_slice($collaborators, 0, $limit, true) as $userId => $count) {
-            $collaborator = $this->userRepository->find($userId);
-            if ($collaborator) {
+        foreach ($topUserIds as $userId) {
+            if (isset($usersById[$userId])) {
                 $result[] = [
-                    'user' => $collaborator,
-                    'collaboration_count' => $count
+                    'user' => $usersById[$userId],
+                    'collaboration_count' => $collaborators[$userId]
                 ];
             }
         }
@@ -125,18 +141,21 @@ class CollaborationService
      */
     public function getTeamWorkload(): array
     {
-        $users = $this->userRepository->findAll();
+        // Оптимизация: один запрос вместо N+1
+        $qb = $this->userRepository->createQueryBuilder('u')
+            ->select('u.id, u.fullName, u.email, COUNT(t.id) as activeTasksCount')
+            ->leftJoin('u.assignedTasks', 't', 'WITH', 't.status != :completed')
+            ->where('u.isActive = :active')
+            ->setParameter('active', true)
+            ->setParameter('completed', 'completed')
+            ->groupBy('u.id')
+            ->setMaxResults(100);
+        
+        $results = $qb->getQuery()->getResult();
         $workload = [];
 
-        foreach ($users as $user) {
-            $activeTasks = $this->taskRepository->createQueryBuilder('t')
-                ->select('COUNT(t.id)')
-                ->where('t.assignedUser = :user OR t.user = :user')
-                ->andWhere('t.status != :completed')
-                ->setParameter('user', $user)
-                ->setParameter('completed', 'completed')
-                ->getQuery()
-                ->getSingleScalarResult();
+        foreach ($results as $result) {
+            $activeTasks = (int)($result['activeTasksCount'] ?? 0);
 
             $urgentTasks = $this->taskRepository->createQueryBuilder('t')
                 ->select('COUNT(t.id)')

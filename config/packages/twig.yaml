@@ -4,3 +4,12 @@ twig:
 when@test:
     twig:
         strict_variables: true
+
+when@prod:
+    twig:
+        # Enable strict variables in production to catch errors
+        strict_variables: true
+        # Auto-reload disabled in production for performance
+        auto_reload: false
+        # Maximum optimization level
+        optimizations: -1

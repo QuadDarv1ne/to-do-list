@@ -458,8 +458,20 @@ class TaskDependencyController extends AbstractController
         $results = [];
         $errors = [];
         
+        // Оптимизация: загружаем все задачи одним запросом
+        $dependencyTasks = $taskRepository->createQueryBuilder('t')
+            ->where('t.id IN (:ids)')
+            ->setParameter('ids', $dependencyTaskIds)
+            ->getQuery()
+            ->getResult();
+        
+        $dependencyTasksById = [];
+        foreach ($dependencyTasks as $dt) {
+            $dependencyTasksById[$dt->getId()] = $dt;
+        }
+        
         foreach ($dependencyTaskIds as $dependencyTaskId) {
-            $dependencyTask = $taskRepository->find($dependencyTaskId);
+            $dependencyTask = $dependencyTasksById[$dependencyTaskId] ?? null;
             if (!$dependencyTask) {
                 $errors[] = ['task_id' => $dependencyTaskId, 'error' => 'Dependency task not found'];
                 continue;
@@ -501,14 +513,22 @@ class TaskDependencyController extends AbstractController
         if (!empty($results)) {
             $entityManager->flush();
             
-            // Now update the results with actual dependency IDs
+            // Оптимизация: загружаем все зависимости одним запросом
+            $dependencies = $dependencyRepository->createQueryBuilder('d')
+                ->where('d.dependentTask = :task')
+                ->andWhere('d.dependencyTask IN (:tasks)')
+                ->setParameter('task', $task)
+                ->setParameter('tasks', array_values($dependencyTasksById))
+                ->getQuery()
+                ->getResult();
+            
+            $dependenciesMap = [];
+            foreach ($dependencies as $dep) {
+                $dependenciesMap[$dep->getDependencyTask()->getId()] = $dep;
+            }
+            
             foreach ($results as &$result) {
-                // Find the dependency to get its ID
-                $dependencyTask = $taskRepository->find($result['task_id']);
-                $dependency = $dependencyRepository->findOneBy([
-                    'dependentTask' => $task,
-                    'dependencyTask' => $dependencyTask
-                ]);
+                $dependency = $dependenciesMap[$result['task_id']] ?? null;
                 if ($dependency) {
                     $result['dependency_id'] = $dependency->getId();
                 }
@@ -581,8 +601,20 @@ class TaskDependencyController extends AbstractController
         $results = [];
         $errors = [];
         
+        // Оптимизация: загружаем все зависимости одним запросом
+        $dependencies = $dependencyRepository->createQueryBuilder('d')
+            ->where('d.id IN (:ids)')
+            ->setParameter('ids', $dependencyIds)
+            ->getQuery()
+            ->getResult();
+        
+        $dependenciesById = [];
+        foreach ($dependencies as $dep) {
+            $dependenciesById[$dep->getId()] = $dep;
+        }
+        
         foreach ($dependencyIds as $dependencyId) {
-            $dependency = $dependencyRepository->find($dependencyId);
+            $dependency = $dependenciesById[$dependencyId] ?? null;
             
             if (!$dependency) {
                 $errors[] = ['dependency_id' => $dependencyId, 'error' => 'Dependency not found'];

@@ -76,15 +76,27 @@ class KanbanController extends AbstractController
             }
         }
         
-        // Get categories for filter
+        // Get categories for filter (оптимизация: только активные категории пользователя)
         $categories = $this->entityManager->getRepository('App\Entity\TaskCategory')
-            ->findAll();
+            ->createQueryBuilder('c')
+            ->where('c.user = :user')
+            ->setParameter('user', $user)
+            ->orderBy('c.name', 'ASC')
+            ->setMaxResults(50)
+            ->getQuery()
+            ->getResult();
         
         // Get users for filter (if admin or manager)
         $users = [];
         if (in_array('ROLE_MANAGER', $user->getRoles()) || in_array('ROLE_ADMIN', $user->getRoles())) {
             $users = $this->entityManager->getRepository('App\Entity\User')
-                ->findBy(['isActive' => true], ['firstName' => 'ASC', 'lastName' => 'ASC']);
+                ->createQueryBuilder('u')
+                ->where('u.isActive = :active')
+                ->setParameter('active', true)
+                ->orderBy('u.fullName', 'ASC')
+                ->setMaxResults(100)
+                ->getQuery()
+                ->getResult();
         }
         
         return $this->render('kanban/board.html.twig', [

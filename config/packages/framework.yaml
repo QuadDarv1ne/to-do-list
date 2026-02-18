@@ -9,6 +9,10 @@ framework:
     
     # HTTP Method Override for REST API
     http_method_override: true
+    
+    # PHP errors in the logs (production optimization)
+    php_errors:
+        log: true
 
     # Note that the session will be started ONLY if you read or write from it.
     session:
@@ -18,6 +22,12 @@ framework:
         handler_id: null
         cookie_lifetime: 3600
         gc_maxlifetime: 3600
+        
+    # Property access optimization
+    property_access:
+        magic_call: false
+        magic_get: false
+        magic_set: false
 
     # Content Security Policy
     http_client:
