@@ -1,0 +1,217 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Воронка продаж{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .funnel-stage {
+            position: relative;
+            margin: 20px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .funnel-stage:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .funnel-stage-1 { width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .funnel-stage-2 { width: 85%; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .funnel-stage-3 { width: 70%; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .funnel-stage-4 { width: 55%; background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .funnel-stage-5 { width: 40%; background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        
+        .funnel-stage-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .funnel-stage-count {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .funnel-stage-amount {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        .conversion-rate {
+            position: absolute;
+            right: -60px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: white;
+            color: #333;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-filter me-2"></i>Воронка продаж</h1>
+        <div>
+            <a href="{{ path('app_deals_new') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Новая сделка
+            </a>
+            <a href="{{ path('app_deals_index') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Назад
+            </a>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-primary">{{ funnel_data|length }}</h3>
+                    <p class="text-muted mb-0">Этапов</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-success">
+                        {% set total_deals = 0 %}
+                        {% for stage in funnel_data %}
+                            {% set total_deals = total_deals + stage.count %}
+                        {% endfor %}
+                        {{ total_deals }}
+                    </h3>
+                    <p class="text-muted mb-0">Всего сделок</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-info">
+                        {% set total_amount = 0 %}
+                        {% for stage in funnel_data %}
+                            {% set total_amount = total_amount + stage.total %}
+                        {% endfor %}
+                        {{ total_amount|number_format(0, '.', ' ') }} ₽
+                    </h3>
+                    <p class="text-muted mb-0">Общая сумма</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-warning">
+                        {% if funnel_data|length > 0 %}
+                            {% set first_stage = funnel_data|first %}
+                            {% set last_stage = funnel_data|last %}
+                            {% if first_stage.count > 0 %}
+                                {{ ((last_stage.count / first_stage.count) * 100)|number_format(1) }}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        {% else %}
+                            0%
+                        {% endif %}
+                    </h3>
+                    <p class="text-muted mb-0">Конверсия</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            {% if funnel_data is not empty %}
+                <div class="funnel-container" style="position: relative;">
+                    {% set stages = {
+                        'lead': {'name': 'Лид', 'order': 1},
+                        'qualification': {'name': 'Квалификация', 'order': 2},
+                        'proposal': {'name': 'Предложение', 'order': 3},
+                        'negotiation': {'name': 'Переговоры', 'order': 4},
+                        'closing': {'name': 'Закрытие', 'order': 5}
+                    } %}
+                    
+                    {% set prev_count = 0 %}
+                    {% for stage_data in funnel_data %}
+                        {% set stage_info = stages[stage_data.stage] %}
+                        <div class="funnel-stage funnel-stage-{{ stage_info.order }}">
+                            <div class="funnel-stage-title">{{ stage_info.name }}</div>
+                            <div class="funnel-stage-count">{{ stage_data.count }} сделок</div>
+                            <div class="funnel-stage-amount">{{ stage_data.total|number_format(0, '.', ' ') }} ₽</div>
+                            
+                            {% if prev_count > 0 %}
+                                <div class="conversion-rate">
+                                    {{ ((stage_data.count / prev_count) * 100)|number_format(1) }}%
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% set prev_count = stage_data.count %}
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-filter fa-4x text-muted mb-3" style="opacity: 0.3;"></i>
+                    <h4 class="text-muted">Нет данных для воронки</h4>
+                    <p class="text-muted">Создайте сделки, чтобы увидеть воронку продаж</p>
+                    <a href="{{ path('app_deals_new') }}" class="btn btn-primary mt-3">
+                        <i class="fas fa-plus me-2"></i>Создать сделку
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if funnel_data is not empty %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">Детальная статистика по этапам</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Этап</th>
+                                <th>Количество сделок</th>
+                                <th>Общая сумма</th>
+                                <th>Средняя сумма</th>
+                                <th>Конверсия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set prev_count = 0 %}
+                            {% for stage_data in funnel_data %}
+                                {% set stage_info = stages[stage_data.stage] %}
+                                <tr>
+                                    <td><strong>{{ stage_info.name }}</strong></td>
+                                    <td>{{ stage_data.count }}</td>
+                                    <td>{{ stage_data.total|number_format(0, '.', ' ') }} ₽</td>
+                                    <td>{{ (stage_data.count > 0 ? (stage_data.total / stage_data.count) : 0)|number_format(0, '.', ' ') }} ₽</td>
+                                    <td>
+                                        {% if prev_count > 0 %}
+                                            <span class="badge bg-{{ ((stage_data.count / prev_count) * 100) >= 50 ? 'success' : 'warning' }}">
+                                                {{ ((stage_data.count / prev_count) * 100)|number_format(1) }}%
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% set prev_count = stage_data.count %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

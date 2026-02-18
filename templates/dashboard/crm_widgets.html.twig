@@ -1,0 +1,250 @@
+{# CRM Widgets for Dashboard #}
+
+<div class="row mb-4">
+    <!-- Revenue Widget -->
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <div class="card-body text-white">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0">Выручка за месяц</h6>
+                    <i class="fas fa-ruble-sign fa-2x opacity-50"></i>
+                </div>
+                <h2 class="mb-0">{{ month_revenue|number_format(0, '.', ' ') }} ₽</h2>
+                <small class="opacity-75">{{ "now"|date("F Y") }}</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Deals Widget -->
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <div class="card-body text-white">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0">Активные сделки</h6>
+                    <i class="fas fa-handshake fa-2x opacity-50"></i>
+                </div>
+                <h2 class="mb-0">{{ active_deals|length }}</h2>
+                <small class="opacity-75">
+                    {% if overdue_deals_count > 0 %}
+                        <i class="fas fa-exclamation-triangle me-1"></i>{{ overdue_deals_count }} просрочено
+                    {% else %}
+                        Все в срок
+                    {% endif %}
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clients Widget -->
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+            <div class="card-body text-white">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0">Всего клиентов</h6>
+                    <i class="fas fa-users fa-2x opacity-50"></i>
+                </div>
+                <h2 class="mb-0">{{ total_clients }}</h2>
+                <small class="opacity-75">+{{ new_clients_this_month }} в этом месяце</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conversion Rate Widget -->
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <div class="card-body text-white">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0">Конверсия</h6>
+                    <i class="fas fa-chart-line fa-2x opacity-50"></i>
+                </div>
+                <h2 class="mb-0">{{ crm_metrics.conversion_rate|number_format(1) }}%</h2>
+                <small class="opacity-75">
+                    {% if crm_metrics.conversion_trend > 0 %}
+                        <i class="fas fa-arrow-up me-1"></i>+{{ crm_metrics.conversion_trend|number_format(1) }}%
+                    {% elseif crm_metrics.conversion_trend < 0 %}
+                        <i class="fas fa-arrow-down me-1"></i>{{ crm_metrics.conversion_trend|number_format(1) }}%
+                    {% else %}
+                        Без изменений
+                    {% endif %}
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- Sales Funnel Widget -->
+    <div class="col-lg-6 mb-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        <i class="fas fa-filter me-2 text-primary"></i>
+                        Воронка продаж
+                    </h6>
+                    <a href="{{ path('app_deals_funnel') }}" class="btn btn-sm btn-link">
+                        Подробнее
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if deals_by_stage is not empty %}
+                    {% set total_deals = 0 %}
+                    {% for stage in deals_by_stage %}
+                        {% set total_deals = total_deals + stage.count %}
+                    {% endfor %}
+                    
+                    {% for stage in deals_by_stage %}
+                        {% set percentage = total_deals > 0 ? (stage.count / total_deals * 100) : 0 %}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="fw-medium">
+                                    {% if stage.stage == 'lead' %}Лид
+                                    {% elseif stage.stage == 'qualification' %}Квалификация
+                                    {% elseif stage.stage == 'proposal' %}Предложение
+                                    {% elseif stage.stage == 'negotiation' %}Переговоры
+                                    {% else %}Закрытие{% endif %}
+                                </span>
+                                <span class="text-muted">{{ stage.count }} ({{ stage.total|number_format(0, '.', ' ') }} ₽)</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar" role="progressbar" 
+                                     style="width: {{ percentage }}%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);"
+                                     aria-valuenow="{{ percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-filter fa-3x text-muted mb-3" style="opacity: 0.3;"></i>
+                        <p class="text-muted mb-2">Нет активных сделок</p>
+                        <a href="{{ path('app_deals_new') }}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-plus me-1"></i>Создать сделку
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Clients Widget -->
+    <div class="col-lg-6 mb-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        <i class="fas fa-star me-2 text-warning"></i>
+                        ТОП-5 клиентов
+                    </h6>
+                    <a href="{{ path('app_clients_index') }}" class="btn btn-sm btn-link">
+                        Все клиенты
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if top_clients is not empty %}
+                    <div class="list-group list-group-flush">
+                        {% for item in top_clients %}
+                            {% set client = item[0] %}
+                            {% set revenue = item.total_revenue %}
+                            <div class="list-group-item border-0 px-0 py-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <a href="{{ path('app_clients_show', {id: client.id}) }}" class="fw-medium text-decoration-none">
+                                            {{ client.companyName }}
+                                        </a>
+                                        <div class="small text-muted">
+                                            {{ client.completedDealsCount }} сделок
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="fw-bold text-success">{{ revenue|number_format(0, '.', ' ') }} ₽</div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-users fa-3x text-muted mb-3" style="opacity: 0.3;"></i>
+                        <p class="text-muted mb-2">Нет клиентов</p>
+                        <a href="{{ path('app_clients_new') }}" class="btn btn-sm btn-success">
+                            <i class="fas fa-plus me-1"></i>Добавить клиента
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Deals Widget -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        <i class="fas fa-clock me-2 text-info"></i>
+                        Последние сделки
+                    </h6>
+                    <a href="{{ path('app_deals_index') }}" class="btn btn-sm btn-link">
+                        Все сделки
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                {% if active_deals is not empty %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Название</th>
+                                    <th>Клиент</th>
+                                    <th>Сумма</th>
+                                    <th>Этап</th>
+                                    <th>Статус</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for deal in active_deals %}
+                                    <tr class="{{ deal.isOverdue ? 'table-warning' : '' }}">
+                                        <td>
+                                            <a href="{{ path('app_deals_show', {id: deal.id}) }}" class="text-decoration-none">
+                                                {{ deal.title }}
+                                            </a>
+                                        </td>
+                                        <td>{{ deal.client.companyName }}</td>
+                                        <td class="fw-bold">{{ deal.amount|number_format(0, '.', ' ') }} ₽</td>
+                                        <td>
+                                            <span class="badge bg-primary">{{ deal.stageDisplayName }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ deal.status == 'won' ? 'success' : (deal.status == 'lost' ? 'danger' : 'warning') }}">
+                                                {{ deal.statusDisplayName }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="{{ path('app_deals_show', {id: deal.id}) }}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-handshake fa-3x text-muted mb-3" style="opacity: 0.3;"></i>
+                        <p class="text-muted mb-2">Нет активных сделок</p>
+                        <a href="{{ path('app_deals_new') }}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-plus me-1"></i>Создать сделку
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>

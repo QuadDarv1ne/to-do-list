@@ -1,0 +1,174 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ deal.title }}{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-handshake me-2"></i>{{ deal.title }}</h1>
+        <div>
+            <a href="{{ path('app_deals_edit', {id: deal.id}) }}" class="btn btn-warning">
+                <i class="fas fa-edit me-2"></i>Редактировать
+            </a>
+            <a href="{{ path('app_deals_index') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Назад
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Информация о сделке</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Клиент:</strong><br>
+                            <a href="{{ path('app_clients_show', {id: deal.client.id}) }}">
+                                {{ deal.client.companyName }}
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Менеджер:</strong><br>
+                            {{ deal.manager.fullName }}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Сумма:</strong><br>
+                            <h3 class="text-success mb-0">{{ deal.amount|number_format(2, '.', ' ') }} ₽</h3>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Статус:</strong><br>
+                            <span class="badge bg-{{ deal.status == 'won' ? 'success' : (deal.status == 'lost' ? 'danger' : 'warning') }} fs-6">
+                                {{ deal.statusDisplayName }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Этап:</strong><br>
+                            <span class="badge bg-primary fs-6">{{ deal.stageDisplayName }}</span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Ожидаемое закрытие:</strong><br>
+                            {{ deal.expectedCloseDate ? deal.expectedCloseDate|date('d.m.Y') : '-' }}
+                            {% if deal.isOverdue %}
+                                <span class="badge bg-danger ms-2">Просрочена</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if deal.description %}
+                        <div class="mb-3">
+                            <strong>Описание:</strong><br>
+                            {{ deal.description|nl2br }}
+                        </div>
+                    {% endif %}
+                    {% if deal.status == 'lost' and deal.lostReason %}
+                        <div class="alert alert-danger">
+                            <strong>Причина проигрыша:</strong><br>
+                            {{ deal.lostReason }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>История изменений</h5>
+                </div>
+                <div class="card-body">
+                    {% if deal.history is not empty %}
+                        <div class="timeline">
+                            {% for entry in deal.history %}
+                                <div class="timeline-item mb-3">
+                                    <div class="d-flex">
+                                        <div class="timeline-marker">
+                                            <i class="fas fa-circle text-primary"></i>
+                                        </div>
+                                        <div class="timeline-content ms-3">
+                                            <div class="fw-bold">{{ entry.description }}</div>
+                                            <small class="text-muted">
+                                                {{ entry.createdAt|date('d.m.Y H:i') }}
+                                                {% if entry.user %}
+                                                    • {{ entry.user.fullName }}
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted mb-0">История изменений пуста</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Детали</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Создана:</strong><br>{{ deal.createdAt|date('d.m.Y H:i') }}</p>
+                    {% if deal.updatedAt %}
+                        <p><strong>Обновлена:</strong><br>{{ deal.updatedAt|date('d.m.Y H:i') }}</p>
+                    {% endif %}
+                    {% if deal.actualCloseDate %}
+                        <p><strong>Фактическое закрытие:</strong><br>{{ deal.actualCloseDate|date('d.m.Y') }}</p>
+                    {% endif %}
+                    {% if deal.daysUntilClose %}
+                        <p>
+                            <strong>До закрытия:</strong><br>
+                            {% if deal.daysUntilClose > 0 %}
+                                <span class="text-success">{{ deal.daysUntilClose }} дней</span>
+                            {% else %}
+                                <span class="text-danger">Просрочена на {{ deal.daysUntilClose|abs }} дней</span>
+                            {% endif %}
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Действия</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ path('app_deals_edit', {id: deal.id}) }}" class="btn btn-warning">
+                            <i class="fas fa-edit me-2"></i>Редактировать
+                        </a>
+                        <form method="post" action="{{ path('app_deals_delete', {id: deal.id}) }}" 
+                              onsubmit="return confirm('Вы уверены, что хотите удалить эту сделку?');">
+                            <button type="submit" class="btn btn-danger w-100">
+                                <i class="fas fa-trash me-2"></i>Удалить
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline-marker {
+    width: 20px;
+    text-align: center;
+}
+.timeline-item:not(:last-child) .timeline-marker::after {
+    content: '';
+    position: absolute;
+    left: 9px;
+    top: 20px;
+    width: 2px;
+    height: calc(100% + 10px);
+    background: #dee2e6;
+}
+</style>
+{% endblock %}

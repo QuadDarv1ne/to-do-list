@@ -285,6 +285,11 @@
     
     {# CRM Sales Analytics Metrics #}
     {% if crm_metrics is defined %}
+        {% include 'dashboard/crm_widgets.html.twig' %}
+    {% endif %}
+    
+    {# Original CRM metrics widget - keep for compatibility #}
+    {% if crm_metrics is defined and false %}
         {% include 'dashboard/crm_metrics.html.twig' %}
     {% endif %}
     

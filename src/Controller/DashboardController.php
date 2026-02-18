@@ -21,6 +21,8 @@ class DashboardController extends AbstractController
         AnalyticsService $analyticsService,
         \App\Repository\GoalRepository $goalRepository,
         \App\Repository\HabitRepository $habitRepository,
+        \App\Repository\DealRepository $dealRepository,
+        \App\Repository\ClientRepository $clientRepository,
         ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         $user = $this->getUser();
@@ -106,6 +108,23 @@ class DashboardController extends AbstractController
         // Calculate CRM-specific metrics
         $crmMetrics = $this->calculateCRMMetrics($taskStats, $analyticsData);
         
+        // Get CRM data
+        $isAdmin = $this->isGranted('ROLE_ADMIN');
+        $manager = $isAdmin ? null : $user;
+        
+        $activeDeals = $dealRepository->findActiveDeals($manager);
+        $dealsByStage = $dealRepository->getDealsByStage($manager);
+        $dealsCountByStatus = $dealRepository->getDealsCountByStatus($manager);
+        $overdueDeals = $dealRepository->getOverdueDeals($manager);
+        
+        $startOfMonth = new \DateTime('first day of this month');
+        $endOfMonth = new \DateTime('last day of this month');
+        $monthRevenue = $dealRepository->getTotalRevenue($startOfMonth, $endOfMonth, $manager);
+        
+        $topClients = $clientRepository->getTopClientsByRevenue(5, $manager);
+        $totalClients = $clientRepository->getTotalCount($manager);
+        $newClientsThisMonth = $clientRepository->getNewClientsCount($startOfMonth, $endOfMonth, $manager);
+        
         // Prepare dashboard data with defaults
         $dashboardData = [
             'task_stats' => $taskStats,
@@ -116,6 +135,15 @@ class DashboardController extends AbstractController
             'habits_stats' => $habitsStats,
             'active_goals' => array_slice($activeGoals, 0, 3),
             'active_habits' => array_slice($activeHabits, 0, 4),
+            // CRM data
+            'active_deals' => array_slice($activeDeals, 0, 5),
+            'deals_by_stage' => $dealsByStage,
+            'deals_count_by_status' => $dealsCountByStatus,
+            'overdue_deals_count' => count($overdueDeals),
+            'month_revenue' => $monthRevenue,
+            'top_clients' => $topClients,
+            'total_clients' => $totalClients,
+            'new_clients_this_month' => $newClientsThisMonth,
             // Pass tag stats if available
             'tag_stats' => $analyticsData['tag_stats'] ?? [],
             'tag_completion_rates' => $analyticsData['tag_completion_rates'] ?? [],

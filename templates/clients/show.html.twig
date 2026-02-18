@@ -1,0 +1,146 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ client.companyName }}{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-building me-2"></i>{{ client.companyName }}</h1>
+        <div>
+            <a href="{{ path('app_clients_edit', {id: client.id}) }}" class="btn btn-warning">
+                <i class="fas fa-edit me-2"></i>Редактировать
+            </a>
+            <a href="{{ path('app_clients_index') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Назад
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Информация о клиенте</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>ИНН:</strong> {{ client.inn ?? '-' }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>КПП:</strong> {{ client.kpp ?? '-' }}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Контактное лицо:</strong> {{ client.contactPerson ?? '-' }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Телефон:</strong> {{ client.phone ?? '-' }}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Email:</strong> {{ client.email ?? '-' }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Менеджер:</strong> {{ client.manager ? client.manager.fullName : '-' }}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Адрес:</strong><br>
+                        {{ client.address ?? '-' }}
+                    </div>
+                    {% if client.notes %}
+                        <div class="mb-3">
+                            <strong>Заметки:</strong><br>
+                            {{ client.notes }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Сделки</h5>
+                </div>
+                <div class="card-body">
+                    {% if client.deals is not empty %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Название</th>
+                                        <th>Сумма</th>
+                                        <th>Статус</th>
+                                        <th>Дата</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for deal in client.deals %}
+                                        <tr>
+                                            <td><a href="{{ path('app_deals_show', {id: deal.id}) }}">{{ deal.title }}</a></td>
+                                            <td>{{ deal.amount|number_format(2) }} ₽</td>
+                                            <td><span class="badge bg-{{ deal.status == 'won' ? 'success' : 'warning' }}">{{ deal.statusDisplayName }}</span></td>
+                                            <td>{{ deal.createdAt|date('d.m.Y') }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">Нет сделок</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Статистика</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Общая выручка:</strong><br>
+                        <h3 class="text-success">{{ client.totalRevenue|number_format(2) }} ₽</h3>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Средний чек:</strong><br>
+                        <h4>{{ client.averageCheck|number_format(2) }} ₽</h4>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Завершённых сделок:</strong><br>
+                        <h4>{{ client.completedDealsCount }}</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Дополнительно</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Сегмент:</strong> 
+                        <span class="badge bg-{{ client.segment == 'wholesale' ? 'primary' : 'secondary' }}">
+                            {{ client.segment == 'wholesale' ? 'Опт' : 'Розница' }}
+                        </span>
+                    </p>
+                    <p><strong>Категория:</strong> 
+                        <span class="badge bg-info">
+                            {% if client.category == 'new' %}Новый
+                            {% elseif client.category == 'regular' %}Постоянный
+                            {% elseif client.category == 'vip' %}VIP
+                            {% else %}Потенциальный{% endif %}
+                        </span>
+                    </p>
+                    <p><strong>Создан:</strong> {{ client.createdAt|date('d.m.Y H:i') }}</p>
+                    {% if client.lastContactAt %}
+                        <p><strong>Последний контакт:</strong> {{ client.lastContactAt|date('d.m.Y H:i') }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

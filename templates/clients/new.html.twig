@@ -1,0 +1,79 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Новый клиент{% endblock %}
+
+{% block body %}
+<div class="container">
+    <h1 class="mb-4">Новый клиент</h1>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="post">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="company_name" class="form-label">Название организации *</label>
+                        <input type="text" class="form-control" id="company_name" name="company_name" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="inn" class="form-label">ИНН</label>
+                        <input type="text" class="form-control" id="inn" name="inn" maxlength="12">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="kpp" class="form-label">КПП</label>
+                        <input type="text" class="form-control" id="kpp" name="kpp" maxlength="9">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="contact_person" class="form-label">Контактное лицо</label>
+                        <input type="text" class="form-control" id="contact_person" name="contact_person">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="phone" class="form-label">Телефон</label>
+                        <input type="tel" class="form-control" id="phone" name="phone" placeholder="+79991234567">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="address" class="form-label">Адрес</label>
+                    <textarea class="form-control" id="address" name="address" rows="2"></textarea>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="segment" class="form-label">Сегмент</label>
+                        <select class="form-select" id="segment" name="segment">
+                            <option value="retail">Розница</option>
+                            <option value="wholesale">Опт</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="category" class="form-label">Категория</label>
+                        <select class="form-select" id="category" name="category">
+                            <option value="new">Новый</option>
+                            <option value="regular">Постоянный</option>
+                            <option value="vip">VIP</option>
+                            <option value="potential">Потенциальный</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="notes" class="form-label">Заметки</label>
+                    <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a href="{{ path('app_clients_index') }}" class="btn btn-secondary">Отмена</a>
+                    <button type="submit" class="btn btn-primary">Создать</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

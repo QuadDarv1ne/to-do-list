@@ -1,0 +1,86 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Редактировать сделку{% endblock %}
+
+{% block body %}
+<div class="container">
+    <h1 class="mb-4">Редактировать сделку</h1>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="post">
+                <div class="mb-3">
+                    <label for="title" class="form-label">Название сделки *</label>
+                    <input type="text" class="form-control" id="title" name="title" 
+                           value="{{ deal.title }}" required>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Клиент</label>
+                        <input type="text" class="form-control" value="{{ deal.client.companyName }}" disabled>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="amount" class="form-label">Сумма *</label>
+                        <input type="number" class="form-control" id="amount" name="amount" 
+                               value="{{ deal.amount }}" step="0.01" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="stage" class="form-label">Этап</label>
+                        <select class="form-select" id="stage" name="stage">
+                            <option value="lead" {{ deal.stage == 'lead' ? 'selected' : '' }}>Лид</option>
+                            <option value="qualification" {{ deal.stage == 'qualification' ? 'selected' : '' }}>Квалификация</option>
+                            <option value="proposal" {{ deal.stage == 'proposal' ? 'selected' : '' }}>Предложение</option>
+                            <option value="negotiation" {{ deal.stage == 'negotiation' ? 'selected' : '' }}>Переговоры</option>
+                            <option value="closing" {{ deal.stage == 'closing' ? 'selected' : '' }}>Закрытие</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="status" class="form-label">Статус</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="in_progress" {{ deal.status == 'in_progress' ? 'selected' : '' }}>В работе</option>
+                            <option value="won" {{ deal.status == 'won' ? 'selected' : '' }}>Успешно завершена</option>
+                            <option value="lost" {{ deal.status == 'lost' ? 'selected' : '' }}>Проиграна</option>
+                            <option value="postponed" {{ deal.status == 'postponed' ? 'selected' : '' }}>Отложена</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="expected_close_date" class="form-label">Ожидаемая дата закрытия</label>
+                        <input type="date" class="form-control" id="expected_close_date" name="expected_close_date"
+                               value="{{ deal.expectedCloseDate ? deal.expectedCloseDate|date('Y-m-d') : '' }}">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Описание</label>
+                    <textarea class="form-control" id="description" name="description" rows="4">{{ deal.description }}</textarea>
+                </div>
+
+                <div class="mb-3" id="lost-reason-block" style="display: {{ deal.status == 'lost' ? 'block' : 'none' }};">
+                    <label for="lost_reason" class="form-label">Причина проигрыша</label>
+                    <textarea class="form-control" id="lost_reason" name="lost_reason" rows="3">{{ deal.lostReason }}</textarea>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a href="{{ path('app_deals_show', {id: deal.id}) }}" class="btn btn-secondary">Отмена</a>
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('status').addEventListener('change', function() {
+    const lostReasonBlock = document.getElementById('lost-reason-block');
+    if (this.value === 'lost') {
+        lostReasonBlock.style.display = 'block';
+    } else {
+        lostReasonBlock.style.display = 'none';
+    }
+});
+</script>
+{% endblock %}
