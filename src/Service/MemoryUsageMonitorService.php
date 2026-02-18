@@ -30,12 +30,15 @@ class MemoryUsageMonitorService
      */
     public function takeMemorySnapshot(string $label = 'snapshot'): array
     {
+        $requestTimeFloat = $_SERVER['REQUEST_TIME_FLOAT'] ?? null;
+        $executionTime = $requestTimeFloat ? (microtime(true) - $requestTimeFloat) : 0;
+        
         $memoryUsage = [
             'label' => $label,
             'timestamp' => microtime(true),
             'memory_usage_bytes' => memory_get_usage(true),
             'memory_peak_bytes' => memory_get_peak_usage(true),
-            'execution_time_since_start' => microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'] ?? microtime(true),
+            'execution_time_since_start' => $executionTime,
             'formatted_memory_usage' => $this->formatBytes(memory_get_usage(true)),
             'formatted_memory_peak' => $this->formatBytes(memory_get_peak_usage(true)),
         ];

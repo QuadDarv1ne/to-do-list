@@ -58,6 +58,17 @@ class QuickActionsController extends AbstractController
     #[Route('/complete/{id}', name: 'app_quick_complete', methods: ['POST'])]
     public function complete(int $id): JsonResponse
     {
+        $task = $this->quickActionsService->getTask($id);
+        
+        if (!$task) {
+            return $this->json(['success' => false, 'message' => 'Задача не найдена'], 404);
+        }
+        
+        // Check access rights
+        if ($task->getUser() !== $this->getUser() && $task->getAssignedUser() !== $this->getUser()) {
+            return $this->json(['success' => false, 'message' => 'Доступ запрещен'], 403);
+        }
+        
         $success = $this->quickActionsService->quickComplete($id);
 
         return $this->json([
@@ -72,6 +83,17 @@ class QuickActionsController extends AbstractController
     #[Route('/delete/{id}', name: 'app_quick_delete', methods: ['POST'])]
     public function delete(int $id): JsonResponse
     {
+        $task = $this->quickActionsService->getTask($id);
+        
+        if (!$task) {
+            return $this->json(['success' => false, 'message' => 'Задача не найдена'], 404);
+        }
+        
+        // Only owner can delete
+        if ($task->getUser() !== $this->getUser()) {
+            return $this->json(['success' => false, 'message' => 'Доступ запрещен'], 403);
+        }
+        
         $success = $this->quickActionsService->quickDelete($id);
 
         return $this->json([

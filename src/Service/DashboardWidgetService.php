@@ -269,15 +269,20 @@ class DashboardWidgetService
     
     private function getTeamActivityData(User $user): array
     {
-        // Get recent activity logs
-        $activities = $this->entityManager->getRepository('App\Entity\ActivityLog')
-            ->createQueryBuilder('a')
-            ->orderBy('a.createdAt', 'DESC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult();
-        
-        return ['activities' => $activities];
+        // Get recent activity logs if entity exists
+        try {
+            $activityRepo = $this->entityManager->getRepository('App\Entity\ActivityLog');
+            $activities = $activityRepo->createQueryBuilder('a')
+                ->orderBy('a.createdAt', 'DESC')
+                ->setMaxResults(10)
+                ->getQuery()
+                ->getResult();
+            
+            return ['activities' => $activities];
+        } catch (\Exception $e) {
+            // ActivityLog entity might not exist yet
+            return ['activities' => []];
+        }
     }
     
     private function getQuickActionsData(User $user): array
@@ -294,13 +299,17 @@ class DashboardWidgetService
     
     private function getNotificationsData(User $user): array
     {
-        $notifications = $this->entityManager->getRepository('App\Entity\Notification')
-            ->findBy(
+        try {
+            $notificationRepo = $this->entityManager->getRepository('App\Entity\Notification');
+            $notifications = $notificationRepo->findBy(
                 ['user' => $user],
                 ['createdAt' => 'DESC'],
                 5
             );
-        
-        return ['notifications' => $notifications];
+            
+            return ['notifications' => $notifications];
+        } catch (\Exception $e) {
+            return ['notifications' => []];
+        }
     }
 }

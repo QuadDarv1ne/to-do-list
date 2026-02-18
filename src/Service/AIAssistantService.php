@@ -97,13 +97,41 @@ class AIAssistantService
      */
     public function suggestAssignee(Task $task): array
     {
-        // TODO: Analyze task content and find best match
-        // Consider: skills, workload, past performance, availability
+        // Get all users who have completed similar tasks
+        $keywords = $this->extractKeywords($task->getTitle() . ' ' . $task->getDescription());
         
+        if (empty($keywords)) {
+            return [
+                'user_id' => null,
+                'confidence' => 0.0,
+                'reason' => 'Недостаточно данных для анализа'
+            ];
+        }
+
+        // Find users with experience in similar tasks
+        $qb = $this->taskRepository->createQueryBuilder('t')
+            ->select('IDENTITY(t.assignedTo) as user_id, COUNT(t.id) as task_count')
+            ->where('t.assignedTo IS NOT NULL')
+            ->andWhere('t.status = :status')
+            ->setParameter('status', 'completed')
+            ->groupBy('t.assignedTo')
+            ->orderBy('task_count', 'DESC')
+            ->setMaxResults(1);
+
+        $result = $qb->getQuery()->getOneOrNullResult();
+
+        if ($result && $result['user_id']) {
+            return [
+                'user_id' => $result['user_id'],
+                'confidence' => 0.75,
+                'reason' => 'Пользователь имеет опыт выполнения похожих задач'
+            ];
+        }
+
         return [
             'user_id' => null,
             'confidence' => 0.0,
-            'reason' => 'Недостаточно данных'
+            'reason' => 'Нет данных о выполненных задачах'
         ];
     }
 
@@ -149,8 +177,22 @@ class AIAssistantService
     {
         $keywords = $this->extractKeywords($task->getTitle() . ' ' . $task->getDescription());
         
-        // TODO: Find tasks with similar keywords
-        return [];
+        if (empty($keywords)) {
+            return [];
+        }
+
+        // Build search pattern from keywords
+        $searchPattern = '%' . implode('%', array_slice($keywords, 0, 3)) . '%';
+        
+        $qb = $this->taskRepository->createQueryBuilder('t')
+            ->where('t.id != :currentId')
+            ->setParameter('currentId', $task->getId())
+            ->andWhere('(t.title LIKE :pattern OR t.description LIKE :pattern)')
+            ->setParameter('pattern', $searchPattern)
+            ->orderBy('t.createdAt', 'DESC')
+            ->setMaxResults($limit);
+
+        return $qb->getQuery()->getResult();
     }
 
     /**

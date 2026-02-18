@@ -906,7 +906,11 @@ class TaskController extends AbstractController
                 $dueDate = new \DateTime($data['dueDate']);
                 $task->setDueDate($dueDate);
             } catch (\Exception $e) {
-                // Invalid date format, skip setting due date
+                // Invalid date format - return error to user
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Неверный формат даты'
+                ], 400);
             }
         }
         

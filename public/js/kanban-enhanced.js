@@ -319,7 +319,6 @@ function updateColumnCounts() {
  */
 function initThemeAwareKanban() {
     window.addEventListener('themechange', function(e) {
-        console.log('Kanban: Theme changed to', e.detail.theme);
         updateKanbanColors(e.detail.theme);
     });
 }

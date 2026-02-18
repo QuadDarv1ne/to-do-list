@@ -1,6 +1,14 @@
 # see https://symfony.com/doc/current/reference/configuration/framework.html
 framework:
     secret: '%env(APP_SECRET)%'
+    
+    # HTTP Cache configuration (Spotify-style)
+    http_cache:
+        enabled: true
+        default_ttl: 3600
+    
+    # HTTP Method Override for REST API
+    http_method_override: true
 
     # Note that the session will be started ONLY if you read or write from it.
     session:

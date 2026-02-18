@@ -264,5 +264,5 @@ window.isInViewport = function(element) {
 
 // Initialize on DOM Ready
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Utils loaded');
+    // Utils loaded
 });

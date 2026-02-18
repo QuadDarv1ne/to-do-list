@@ -15,6 +15,14 @@ class QuickActionsService
     ) {}
 
     /**
+     * Get task by ID
+     */
+    public function getTask(int $taskId): ?Task
+    {
+        return $this->taskRepository->find($taskId);
+    }
+
+    /**
      * Quick create task
      */
     public function quickCreateTask(string $title, User $user, array $options = []): Task

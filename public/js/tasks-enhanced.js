@@ -281,8 +281,6 @@ function initViewModes() {
  */
 function initThemeAwareTaskList() {
     window.addEventListener('themechange', function(e) {
-        console.log('Tasks: Theme changed to', e.detail.theme);
-        
         // Update task list colors
         updateTaskListColors(e.detail.theme);
     });

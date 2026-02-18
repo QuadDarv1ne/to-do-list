@@ -1,0 +1,78 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Performance Metrics{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1>Performance Metrics Dashboard</h1>
+    
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>System Health</h5>
+                </div>
+                <div class="card-body">
+                    <div id="health-status">Loading...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Current Performance</h5>
+                </div>
+                <div class="card-body">
+                    <div id="performance-summary">Loading...</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Endpoint Metrics</h5>
+                </div>
+                <div class="card-body">
+                    <div id="endpoint-metrics">Loading...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Load health status
+fetch('{{ path('app_metrics_health') }}')
+    .then(response => response.json())
+    .then(data => {
+        const statusClass = data.status === 'healthy' ? 'success' : (data.status === 'warning' ? 'warning' : 'danger');
+        document.getElementById('health-status').innerHTML = `
+            <div class="alert alert-${statusClass}">
+                <strong>Status:</strong> ${data.status.toUpperCase()}<br>
+                <strong>Memory Usage:</strong> ${data.metrics.memory_usage}<br>
+                <strong>Request Duration:</strong> ${data.metrics.request_duration}
+                ${data.issues.length > 0 ? '<br><strong>Issues:</strong><ul>' + data.issues.map(i => '<li>' + i + '</li>').join('') + '</ul>' : ''}
+            </div>
+        `;
+    });
+
+// Load performance summary
+fetch('{{ path('app_metrics_summary') }}')
+    .then(response => response.json())
+    .then(data => {
+        const summary = data.summary;
+        document.getElementById('performance-summary').innerHTML = `
+            <table class="table">
+                <tr><td>Request Time:</td><td>${summary.request_time}</td></tr>
+                <tr><td>Memory Used:</td><td>${summary.memory_used}</td></tr>
+                <tr><td>Memory Peak:</td><td>${summary.memory_peak}</td></tr>
+                <tr><td>Status:</td><td><span class="badge bg-${summary.status === 'excellent' ? 'success' : 'warning'}">${summary.status}</span></td></tr>
+            </table>
+        `;
+    });
+</script>
+{% endblock %}
