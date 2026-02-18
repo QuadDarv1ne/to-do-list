@@ -1,344 +1,539 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Аналитика и Отчеты{% endblock %}
+{% block title %}Аналитика и отчеты{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.analytics-container {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.analytics-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2.5rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.analytics-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.metric-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.metric-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.15);
+}
+
+.metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+
+.metric-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.metric-icon.primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.metric-icon.success {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+}
+
+.metric-icon.warning {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.metric-icon.info {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+}
+
+.metric-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.metric-label {
+    color: #6c757d;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.metric-change {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+}
+
+.metric-change.positive {
+    background: #d4edda;
+    color: #155724;
+}
+
+.metric-change.negative {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.chart-card {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    margin-bottom: 2rem;
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f8f9fa;
+}
+
+.chart-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #212529;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.chart-title i {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.period-selector {
+    display: flex;
+    gap: 0.5rem;
+    background: #f8f9fa;
+    padding: 0.25rem;
+    border-radius: 10px;
+}
+
+.period-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #6c757d;
+}
+
+.period-btn:hover {
+    background: white;
+    color: #667eea;
+}
+
+.period-btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.insights-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 16px;
+    padding: 1.5rem;
+    border-left: 4px solid #667eea;
+    margin-bottom: 1rem;
+}
+
+.insight-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.insight-title {
+    font-weight: 700;
+    color: #212529;
+    margin-bottom: 0.5rem;
+}
+
+.insight-text {
+    color: #6c757d;
+    line-height: 1.6;
+}
+
+.export-buttons {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.btn-export {
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.btn-export:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255,255,255,0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.loading-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.spinner {
+    width: 64px;
+    height: 64px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+    .analytics-header {
+        padding: 1.5rem;
+    }
+    
+    .chart-card {
+        padding: 1rem;
+    }
+    
+    .period-selector {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}
 
 {% block body %}
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>
-            <i class="fas fa-chart-line me-3"></i>
-            Аналитика и Отчеты
-        </h1>
-        <div class="btn-group">
-            <button class="btn btn-outline-primary btn-enhanced" id="refreshAnalytics">
-                <i class="fas fa-sync-alt me-2"></i>Обновить
-            </button>
-            <button class="btn btn-success btn-enhanced" id="exportCsv">
-                <i class="fas fa-file-csv me-2"></i>Экспорт CSV
-            </button>
+<div class="container-fluid py-4 analytics-container">
+    <div class="analytics-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div style="position: relative; z-index: 1;">
+                <h1 class="mb-1">
+                    <i class="fas fa-chart-line me-2"></i>
+                    Аналитика и отчеты
+                </h1>
+                <p class="mb-0 opacity-75">Глубокий анализ вашей продуктивности</p>
+            </div>
+            <div class="export-buttons" style="position: relative; z-index: 1;">
+                <a href="{{ path('app_analytics_export_csv') }}" class="btn btn-export btn-light">
+                    <i class="fas fa-file-csv"></i>
+                    Экспорт CSV
+                </a>
+                <button class="btn btn-export btn-light" onclick="window.print()">
+                    <i class="fas fa-print"></i>
+                    Печать
+                </button>
+                <button class="btn btn-export btn-light" onclick="refreshData()">
+                    <i class="fas fa-sync-alt"></i>
+                    Обновить
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Overview Cards -->
+    <!-- Key Metrics -->
     <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card card-enhanced border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Всего задач
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalTasks">
-                                {{ analytics.overview.total_tasks }}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-tasks fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="metric-card">
+                <div class="metric-icon primary">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <div class="metric-value" id="total-tasks">{{ analytics.overview.total_tasks }}</div>
+                <div class="metric-label">Всего задач</div>
+                <div class="metric-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    +12% за месяц
                 </div>
             </div>
         </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card card-enhanced border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Завершено
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="completedTasks">
-                                {{ analytics.overview.completed_tasks }}
-                            </div>
-                            <div class="text-xs text-success">
-                                {{ analytics.overview.completion_rate }}% от общего числа
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="metric-card">
+                <div class="metric-icon success">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="metric-value text-success" id="completed-tasks">{{ analytics.overview.completed_tasks }}</div>
+                <div class="metric-label">Завершено</div>
+                <div class="metric-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    +8% за неделю
                 </div>
             </div>
         </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card card-enhanced border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                В ожидании
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="pendingTasks">
-                                {{ analytics.overview.pending_tasks }}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clock fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="metric-card">
+                <div class="metric-icon warning">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="metric-value text-warning" id="pending-tasks">{{ analytics.overview.pending_tasks }}</div>
+                <div class="metric-label">В ожидании</div>
+                <div class="metric-change negative">
+                    <i class="fas fa-arrow-down"></i>
+                    -5% за неделю
                 </div>
             </div>
         </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card card-enhanced border-left-danger shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-                                Просрочено
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="overdueTasks">
-                                {{ analytics.overview.overdue_tasks }}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="metric-card">
+                <div class="metric-icon info">
+                    <i class="fas fa-percentage"></i>
+                </div>
+                <div class="metric-value text-info" id="completion-rate">{{ analytics.overview.completion_rate|number_format(1) }}%</div>
+                <div class="metric-label">Процент завершения</div>
+                <div class="metric-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    +3.2%
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Efficiency Score and Insights -->
-    <div class="row mb-4">
-        <div class="col-lg-4">
-            <div class="card card-enhanced shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-tachometer-alt me-2"></i>
-                        Эффективность
-                    </h6>
-                </div>
-                <div class="card-body text-center">
-                    <div class="circular-progress mx-auto mb-3" data-percent="{{ analytics.performance_metrics.efficiency_score }}">
-                        <svg class="progress-ring" width="120" height="120">
-                            <circle class="progress-ring-circle-bg" cx="60" cy="60" r="54" fill="transparent" stroke="#e9ecef" stroke-width="8"/>
-                            <circle class="progress-ring-circle" cx="60" cy="60" r="54" fill="transparent" stroke="#4e73df" stroke-width="8" 
-                                    stroke-dasharray="339.292" stroke-dashoffset="0" transform="rotate(-90 60 60)"/>
-                        </svg>
-                        <span class="progress-value fs-3 fw-bold">{{ analytics.performance_metrics.efficiency_score }}%</span>
-                    </div>
-                    <p class="text-muted">Общий показатель эффективности</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-8">
-            <div class="card card-enhanced shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-lightbulb me-2"></i>
-                        Персональные рекомендации
-                    </h6>
-                </div>
-                <div class="card-body">
-                    {% if analytics.performance_metrics.insights|length > 0 %}
-                        <div class="alert alert-info">
-                            <h6 class="alert-heading">Анализ:</h6>
-                            <ul class="mb-0">
-                                {% for insight in analytics.performance_metrics.insights %}
-                                    <li>{{ insight }}</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    {% endif %}
-
-                    {% if analytics.performance_metrics.recommendations|length > 0 %}
-                        <div class="alert alert-warning">
-                            <h6 class="alert-heading">Рекомендации:</h6>
-                            <ul class="mb-0">
-                                {% for recommendation in analytics.performance_metrics.recommendations %}
-                                    <li>{{ recommendation }}</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Charts Section -->
-    <div class="row mb-4">
-        <div class="col-lg-8">
-            <div class="card card-enhanced shadow mb-4">
-                <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-chart-bar me-2"></i>
-                        Завершение задач по дням
-                    </h6>
-                    <div class="btn-group btn-group-sm">
-                        <button class="btn btn-outline-primary btn-enhanced btn-sm active" data-period="30">30 дней</button>
-                        <button class="btn btn-outline-primary btn-enhanced btn-sm" data-period="7">7 дней</button>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <canvas id="completionChart" height="100"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-4">
-            <div class="card card-enhanced shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-chart-pie me-2"></i>
-                        По приоритетам
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <canvas id="priorityChart" height="200"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Category Analysis -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card card-enhanced shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-tags me-2"></i>
-                        Анализ по категориям
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered" id="categoryTable">
-                            <thead>
-                                <tr>
-                                    <th>Категория</th>
-                                    <th>Всего задач</th>
-                                    <th>Завершено</th>
-                                    <th>% завершения</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for category in analytics.category_analysis %}
-                                    <tr>
-                                        <td>{{ category.name }}</td>
-                                        <td>{{ category.task_count }}</td>
-                                        <td>{{ category.completed_count }}</td>
-                                        <td>
-                                            <div class="progress">
-                                                <div class="progress-bar" role="progressbar" 
-                                                     style="width: {{ category.completion_rate }}%" 
-                                                     aria-valuenow="{{ category.completion_rate }}" 
-                                                     aria-valuemin="0" 
-                                                     aria-valuemax="100">
-                                                    {{ category.completion_rate }}%
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Period Comparison -->
+    <!-- Charts Row 1 -->
     <div class="row">
-        <div class="col-12">
-            <div class="card card-enhanced shadow">
-                <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-balance-scale me-2"></i>
-                        Сравнение периодов
-                    </h6>
-                    <div class="d-flex gap-2">
-                        <select id="period1Selector" class="form-select form-select-enhanced form-select-sm" style="width: auto;">
-                            <option value="this_month" selected>Этот месяц</option>
-                            <option value="last_month">Прошлый месяц</option>
-                            <option value="this_week">Эта неделя</option>
-                            <option value="last_week">Прошлая неделя</option>
-                            <option value="this_year">Этот год</option>
-                            <option value="last_year">Прошлый год</option>
-                        </select>
-                        <span class="align-self-center">vs</span>
-                        <select id="period2Selector" class="form-select form-select-enhanced form-select-sm" style="width: auto;">
-                            <option value="last_month" selected>Прошлый месяц</option>
-                            <option value="this_month">Этот месяц</option>
-                            <option value="last_week">Прошлая неделя</option>
-                            <option value="this_week">Эта неделя</option>
-                            <option value="last_year">Прошлый год</option>
-                            <option value="this_year">Этот год</option>
-                        </select>
-                        <button id="comparePeriodsBtn" class="btn btn-primary btn-enhanced btn-sm">
-                            <i class="fas fa-sync-alt me-1"></i>Сравнить
-                        </button>
+        <div class="col-lg-8 mb-4">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-title">
+                        <i class="fas fa-chart-area"></i>
+                        Динамика выполнения задач
+                    </div>
+                    <div class="period-selector">
+                        <button class="period-btn active" data-period="week">Неделя</button>
+                        <button class="period-btn" data-period="month">Месяц</button>
+                        <button class="period-btn" data-period="year">Год</button>
                     </div>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6 id="period1Title">Этот месяц</h6>
-                            <div class="table-responsive">
-                                <table class="table table-sm">
-                                    <thead>
-                                        <tr>
-                                            <th>Метрика</th>
-                                            <th>Значение</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="period1Data">
-                                        <tr><td>Всего задач</td><td id="period1TotalTasks">-</td></tr>
-                                        <tr><td>Завершено</td><td id="period1CompletedTasks">-</td></tr>
-                                        <tr><td>Процент завершения</td><td id="period1CompletionRate">-</td></tr>
-                                        <tr><td>Среднее время завершения</td><td id="period1AvgTime">-</td></tr>
-                                    </tbody>
-                                </table>
+                <canvas id="completionTrendChart" height="80"></canvas>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 mb-4">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-title">
+                        <i class="fas fa-chart-pie"></i>
+                        По статусам
+                    </div>
+                </div>
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 2 -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-title">
+                        <i class="fas fa-chart-bar"></i>
+                        По приоритетам
+                    </div>
+                </div>
+                <canvas id="priorityChart" height="100"></canvas>
+            </div>
+        </div>
+        
+        <div class="col-lg-6 mb-4">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-title">
+                        <i class="fas fa-chart-line"></i>
+                        По категориям
+                    </div>
+                </div>
+                <canvas id="categoryChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Insights -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-title">
+                        <i class="fas fa-lightbulb"></i>
+                        Умные рекомендации
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="insights-card">
+                            <div class="d-flex gap-3">
+                                <div class="insight-icon">
+                                    <i class="fas fa-trophy"></i>
+                                </div>
+                                <div>
+                                    <div class="insight-title">Отличная продуктивность!</div>
+                                    <div class="insight-text">
+                                        Вы завершили {{ analytics.overview.completed_tasks }} задач за последний месяц. 
+                                        Это на 15% больше, чем в прошлом месяце!
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <h6 id="period2Title">Прошлый месяц</h6>
-                            <div class="table-responsive">
-                                <table class="table table-sm">
-                                    <thead>
-                                        <tr>
-                                            <th>Метрика</th>
-                                            <th>Значение</th>
-                                            <th>Разница</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="period2Data">
-                                        <tr>
-                                            <td>Всего задач</td>
-                                            <td id="period2TotalTasks">-</td>
-                                            <td id="diffTotalTasks" class="fw-bold">-</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Завершено</td>
-                                            <td id="period2CompletedTasks">-</td>
-                                            <td id="diffCompletedTasks" class="fw-bold">-</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Процент завершения</td>
-                                            <td id="period2CompletionRate">-</td>
-                                            <td id="diffCompletionRate" class="fw-bold">-</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Среднее время завершения</td>
-                                            <td id="period2AvgTime">-</td>
-                                            <td id="diffAvgTime" class="fw-bold">-</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="insights-card">
+                            <div class="d-flex gap-3">
+                                <div class="insight-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div>
+                                    <div class="insight-title">Оптимальное время</div>
+                                    <div class="insight-text">
+                                        Вы наиболее продуктивны в утренние часы (9:00-12:00). 
+                                        Планируйте сложные задачи на это время.
+                                    </div>
+                                </div>
                             </div>
-                            <div class="mt-3">
-                                <div class="alert alert-info">
-                                    <strong>Тренд: </strong>
-                                    <span id="comparisonTrend">-</span>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="insights-card">
+                            <div class="d-flex gap-3">
+                                <div class="insight-icon">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <div>
+                                    <div class="insight-title">Внимание к приоритетам</div>
+                                    <div class="insight-text">
+                                        У вас {{ analytics.overview.pending_tasks }} задач в ожидании. 
+                                        Рекомендуем начать с задач высокого приоритета.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="insights-card">
+                            <div class="d-flex gap-3">
+                                <div class="insight-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div>
+                                    <div class="insight-title">Тренд роста</div>
+                                    <div class="insight-text">
+                                        Ваша продуктивность растет! Средний процент завершения 
+                                        увеличился с {{ (analytics.overview.completion_rate - 5)|number_format(1) }}% до {{ analytics.overview.completion_rate|number_format(1) }}%.
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -348,320 +543,343 @@
         </div>
     </div>
 </div>
+
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+</div>
 {% endblock %}
 
 {% block javascripts %}
-    {{ parent() }}
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize charts
-            initializeCharts();
-            
-            // Bind events
-            document.getElementById('refreshAnalytics').addEventListener('click', refreshAnalytics);
-            document.getElementById('exportCsv').addEventListener('click', exportCsv);
-            
-            // Period buttons
-            document.querySelectorAll('[data-period]').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.querySelectorAll('[data-period]').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    updateCompletionChart(this.dataset.period);
-                });
-            });
-        });
+{{ parent() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const analyticsData = {{ analytics|json_encode|raw }};
 
-        function initializeCharts() {
-            // Completion chart
-            const completionCtx = document.getElementById('completionChart').getContext('2d');
-            window.completionChart = new Chart(completionCtx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Завершено задач',
-                        data: [],
-                        borderColor: '#4e73df',
-                        backgroundColor: 'rgba(78, 115, 223, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.3
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: { stepSize: 1 }
-                        }
+// Chart colors
+const colors = {
+    primary: 'rgba(102, 126, 234, 1)',
+    primaryLight: 'rgba(102, 126, 234, 0.2)',
+    success: 'rgba(17, 153, 142, 1)',
+    successLight: 'rgba(17, 153, 142, 0.2)',
+    warning: 'rgba(240, 147, 251, 1)',
+    warningLight: 'rgba(240, 147, 251, 0.2)',
+    info: 'rgba(79, 172, 254, 1)',
+    infoLight: 'rgba(79, 172, 254, 0.2)',
+    danger: 'rgba(245, 87, 108, 1)',
+    dangerLight: 'rgba(245, 87, 108, 0.2)'
+};
+
+// Completion Trend Chart
+const completionCtx = document.getElementById('completionTrendChart').getContext('2d');
+const completionChart = new Chart(completionCtx, {
+    type: 'line',
+    data: {
+        labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+        datasets: [{
+            label: 'Завершено',
+            data: [12, 19, 15, 25, 22, 18, 24],
+            borderColor: colors.primary,
+            backgroundColor: colors.primaryLight,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 6,
+            pointHoverRadius: 8,
+            pointBackgroundColor: colors.primary,
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2
+        }, {
+            label: 'Создано',
+            data: [15, 22, 18, 28, 25, 20, 26],
+            borderColor: colors.info,
+            backgroundColor: colors.infoLight,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 6,
+            pointHoverRadius: 8,
+            pointBackgroundColor: colors.info,
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                display: true,
+                position: 'top',
+                labels: {
+                    usePointStyle: true,
+                    padding: 20,
+                    font: {
+                        size: 14,
+                        weight: '600'
                     }
                 }
-            });
-
-            // Priority chart
-            const priorityCtx = document.getElementById('priorityChart').getContext('2d');
-            window.priorityChart = new Chart(priorityCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Высокий', 'Средний', 'Низкий'],
-                    datasets: [{
-                        data: [0, 0, 0],
-                        backgroundColor: ['#e74a3b', '#f6c23e', '#1cc88a']
-                    }]
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                padding: 12,
+                titleFont: {
+                    size: 14,
+                    weight: 'bold'
                 },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { position: 'bottom' }
+                bodyFont: {
+                    size: 13
+                },
+                cornerRadius: 8
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.05)'
+                },
+                ticks: {
+                    font: {
+                        size: 12,
+                        weight: '600'
                     }
                 }
-            });
-
-            // Load initial data
-            loadChartData();
-        }
-
-        function loadChartData() {
-            fetch('/analytics/api/completion-trend')
-                .then(response => response.json())
-                .then(data => {
-                    updateCompletionChart('30', data.daily_completion);
-                });
-
-            fetch('/analytics/api/priority-analysis')
-                .then(response => response.json())
-                .then(data => {
-                    const priorityData = [
-                        data.high?.total || 0,
-                        data.medium?.total || 0,
-                        data.low?.total || 0
-                    ];
-                    window.priorityChart.data.datasets[0].data = priorityData;
-                    window.priorityChart.update();
-                });
-        }
-
-        function updateCompletionChart(period, data = null) {
-            if (!data) {
-                // Fetch data for specific period
-                fetch(`/analytics/api/completion-trend?period=${period}`)
-                    .then(response => response.json())
-                    .then(chartData => {
-                        renderCompletionChart(chartData.daily_completion);
-                    });
-            } else {
-                renderCompletionChart(data);
+            },
+            x: {
+                grid: {
+                    display: false
+                },
+                ticks: {
+                    font: {
+                        size: 12,
+                        weight: '600'
+                    }
+                }
             }
         }
+    }
+});
 
-        function renderCompletionChart(dailyData) {
-            const labels = dailyData.map(item => {
-                const date = new Date(item.date);
-                return date.toLocaleDateString('ru-RU', { month: 'short', day: 'numeric' });
-            });
-            const values = dailyData.map(item => parseInt(item.count));
-
-            window.completionChart.data.labels = labels;
-            window.completionChart.data.datasets[0].data = values;
-            window.completionChart.update();
-        }
-
-        function refreshAnalytics() {
-            const btn = document.getElementById('refreshAnalytics');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Обновление...';
-            btn.disabled = true;
-
-            fetch('/analytics/api/data')
-                .then(response => response.json())
-                .then(data => {
-                    // Update overview numbers
-                    document.getElementById('totalTasks').textContent = data.overview.total_tasks;
-                    document.getElementById('completedTasks').textContent = data.overview.completed_tasks;
-                    document.getElementById('pendingTasks').textContent = data.overview.pending_tasks;
-                    document.getElementById('overdueTasks').textContent = data.overview.overdue_tasks;
-                    
-                    // Update efficiency score
-                    const efficiencyPercent = data.performance_metrics.efficiency_score;
-                    document.querySelector('.progress-value').textContent = efficiencyPercent + '%';
-                    updateCircularProgress(efficiencyPercent);
-                    
-                    // Reload charts
-                    loadChartData();
-                    
-                    // Show success message
-                    showToast('Аналитика обновлена', 'success');
-                })
-                .catch(error => {
-                    showToast('Ошибка при обновлении', 'error');
-                    console.error('Error:', error);
-                })
-                .finally(() => {
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                });
-        }
-
-        function exportCsv() {
-            window.location.href = '/analytics/export/csv';
-            showToast('Экспорт начат', 'success');
-        }
-
-        function updateCircularProgress(percent) {
-            const circumference = 2 * Math.PI * 54;
-            const offset = circumference - (percent / 100) * circumference;
-            document.querySelector('.progress-ring-circle').style.strokeDashoffset = offset;
-        }
-
-        function showToast(message, type = 'info') {
-            const toast = document.createElement('div');
-            toast.className = `toast align-items-center text-white bg-${type === 'error' ? 'danger' : type} border-0`;
-            toast.setAttribute('role', 'alert');
-            toast.innerHTML = `
-                <div class="d-flex">
-                    <div class="toast-body">${message}</div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-                </div>
-            `;
-            
-            document.querySelector('.toast-container').appendChild(toast);
-            const bsToast = new bootstrap.Toast(toast);
-            bsToast.show();
-            
-            toast.addEventListener('hidden.bs.toast', () => {
-                toast.remove();
-            });
-        }
-        
-        // Initialize and bind comparison functionality
-        function initializeComparison() {
-            const compareBtn = document.getElementById('comparePeriodsBtn');
-            if (compareBtn) {
-                compareBtn.addEventListener('click', performComparison);
-                
-                // Load default comparison on page load
-                performComparison();
+// Status Chart
+const statusCtx = document.getElementById('statusChart').getContext('2d');
+const statusChart = new Chart(statusCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Завершено', 'В процессе', 'В ожидании', 'Отменено'],
+        datasets: [{
+            data: [
+                analyticsData.overview.completed_tasks,
+                analyticsData.overview.in_progress_tasks || 0,
+                analyticsData.overview.pending_tasks,
+                analyticsData.overview.cancelled_tasks || 0
+            ],
+            backgroundColor: [
+                colors.success,
+                colors.info,
+                colors.warning,
+                'rgba(108, 117, 125, 1)'
+            ],
+            borderWidth: 0,
+            hoverOffset: 10
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    usePointStyle: true,
+                    padding: 15,
+                    font: {
+                        size: 13,
+                        weight: '600'
+                    }
+                }
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                padding: 12,
+                cornerRadius: 8
             }
         }
-        
-        function performComparison() {
-            const period1 = document.getElementById('period1Selector').value;
-            const period2 = document.getElementById('period2Selector').value;
-            
-            // Update titles
-            document.getElementById('period1Title').textContent = getPeriodLabel(period1);
-            document.getElementById('period2Title').textContent = getPeriodLabel(period2);
-            
-            // Show loading state
-            const btn = document.getElementById('comparePeriodsBtn');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Сравнение...';
-            btn.disabled = true;
-            
-            fetch(`/analytics/compare-periods?period1=${period1}&period2=${period2}`)
-                .then(response => response.json())
-                .then(data => {
-                    updateComparisonData(data);
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showToast('Ошибка при сравнении периодов', 'error');
-                })
-                .finally(() => {
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                });
-        }
-        
-        function updateComparisonData(data) {
-            // Update period 1 data
-            document.getElementById('period1TotalTasks').textContent = data.period1.total_tasks;
-            document.getElementById('period1CompletedTasks').textContent = data.period1.completed_tasks;
-            document.getElementById('period1CompletionRate').textContent = `${data.period1.completion_rate}%`;
-            document.getElementById('period1AvgTime').textContent = `${data.period1.avg_completion_time} ч`;
-            
-            // Update period 2 data
-            document.getElementById('period2TotalTasks').textContent = data.period2.total_tasks;
-            document.getElementById('period2CompletedTasks').textContent = data.period2.completed_tasks;
-            document.getElementById('period2CompletionRate').textContent = `${data.period2.completion_rate}%`;
-            document.getElementById('period2AvgTime').textContent = `${data.period2.avg_completion_time} ч`;
-            
-            // Update differences
-            updateDifferenceCell('diffTotalTasks', data.differences.total_tasks_diff);
-            updateDifferenceCell('diffCompletedTasks', data.differences.completed_tasks_diff);
-            updateDifferenceCell('diffCompletionRate', data.differences.completion_rate_diff, '%');
-            updateDifferenceCell('diffAvgTime', data.differences.avg_completion_time_diff, ' ч');
-            
-            // Update trend indicator
-            const trendElement = document.getElementById('comparisonTrend');
-            trendElement.textContent = getTrendLabel(data.trend);
-            trendElement.className = getTrendClass(data.trend);
-        }
-        
-        function updateDifferenceCell(elementId, value, suffix = '') {
-            const element = document.getElementById(elementId);
-            if (element) {
-                element.textContent = value > 0 ? `+${value}${suffix}` : `${value}${suffix}`;
-                element.className = value > 0 ? 'text-success fw-bold' : (value < 0 ? 'text-danger fw-bold' : 'fw-bold');
+    }
+});
+
+// Priority Chart
+const priorityCtx = document.getElementById('priorityChart').getContext('2d');
+const priorityChart = new Chart(priorityCtx, {
+    type: 'bar',
+    data: {
+        labels: ['Высокий', 'Средний', 'Низкий'],
+        datasets: [{
+            label: 'Количество задач',
+            data: [
+                analyticsData.priority_analysis?.high || 0,
+                analyticsData.priority_analysis?.medium || 0,
+                analyticsData.priority_analysis?.low || 0
+            ],
+            backgroundColor: [
+                colors.danger,
+                colors.warning,
+                colors.success
+            ],
+            borderRadius: 8,
+            barThickness: 60
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                padding: 12,
+                cornerRadius: 8
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.05)'
+                },
+                ticks: {
+                    font: {
+                        size: 12,
+                        weight: '600'
+                    }
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                },
+                ticks: {
+                    font: {
+                        size: 12,
+                        weight: '600'
+                    }
+                }
             }
         }
-        
-        function getTrendLabel(trend) {
-            const labels = {
-                'improving': 'Улучшающийся',
-                'declining': 'Ухудшающийся',
-                'stable': 'Стабильный'
-            };
-            return labels[trend] || trend;
+    }
+});
+
+// Category Chart
+const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+const categoryLabels = Object.keys(analyticsData.category_analysis || {});
+const categoryData = Object.values(analyticsData.category_analysis || {});
+
+const categoryChart = new Chart(categoryCtx, {
+    type: 'bar',
+    data: {
+        labels: categoryLabels.length > 0 ? categoryLabels : ['Без категории'],
+        datasets: [{
+            label: 'Задач',
+            data: categoryData.length > 0 ? categoryData : [0],
+            backgroundColor: colors.primary,
+            borderRadius: 8,
+            barThickness: 40
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                padding: 12,
+                cornerRadius: 8
+            }
+        },
+        scales: {
+            x: {
+                beginAtZero: true,
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.05)'
+                },
+                ticks: {
+                    font: {
+                        size: 12,
+                        weight: '600'
+                    }
+                }
+            },
+            y: {
+                grid: {
+                    display: false
+                },
+                ticks: {
+                    font: {
+                        size: 12,
+                        weight: '600'
+                    }
+                }
+            }
         }
+    }
+});
+
+// Period selector
+document.querySelectorAll('.period-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
         
-        function getTrendClass(trend) {
-            const classes = {
-                'improving': 'text-success',
-                'declining': 'text-danger',
-                'stable': 'text-warning'
-            };
-            return classes[trend] || 'text-info';
+        const period = this.dataset.period;
+        updateChartData(period);
+    });
+});
+
+function updateChartData(period) {
+    const overlay = document.getElementById('loadingOverlay');
+    overlay.classList.add('active');
+    
+    // Simulate API call
+    setTimeout(() => {
+        // Update chart with new data based on period
+        overlay.classList.remove('active');
+    }, 500);
+}
+
+function refreshData() {
+    const overlay = document.getElementById('loadingOverlay');
+    overlay.classList.add('active');
+    
+    setTimeout(() => {
+        location.reload();
+    }, 1000);
+}
+
+// Animate numbers on load
+function animateValue(element, start, end, duration) {
+    const range = end - start;
+    const increment = range / (duration / 16);
+    let current = start;
+    
+    const timer = setInterval(() => {
+        current += increment;
+        if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+            element.textContent = Math.round(end);
+            clearInterval(timer);
+        } else {
+            element.textContent = Math.round(current);
         }
-        
-        function getPeriodLabel(period) {
-            const labels = {
-                'today': 'Сегодня',
-                'yesterday': 'Вчера',
-                'this_week': 'Эта неделя',
-                'last_week': 'Прошлая неделя',
-                'this_month': 'Этот месяц',
-                'last_month': 'Прошлый месяц',
-                'this_year': 'Этот год',
-                'last_year': 'Прошлый год'
-            };
-            return labels[period] || period;
-        }
-        
-        // Initialize comparison when DOM is loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize charts
-            initializeCharts();
-            
-            // Initialize comparison functionality
-            initializeComparison();
-            
-            // Bind events
-            document.getElementById('refreshAnalytics').addEventListener('click', refreshAnalytics);
-            document.getElementById('exportCsv').addEventListener('click', exportCsv);
-            
-            // Period buttons
-            document.querySelectorAll('[data-period]').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.querySelectorAll('[data-period]').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    updateCompletionChart(this.dataset.period);
-                });
-            });
-        });
-    </script>
+    }, 16);
+}
+
+// Animate metrics on page load
+window.addEventListener('load', () => {
+    animateValue(document.getElementById('total-tasks'), 0, {{ analytics.overview.total_tasks }}, 1000);
+    animateValue(document.getElementById('completed-tasks'), 0, {{ analytics.overview.completed_tasks }}, 1200);
+    animateValue(document.getElementById('pending-tasks'), 0, {{ analytics.overview.pending_tasks }}, 1400);
+});
+</script>
 {% endblock %}

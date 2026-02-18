@@ -1,221 +1,279 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Канбан-доска{% endblock %}
+{% block title %}Kanban доска{% endblock %}
 
-{% block body %}
-<div class="container-fluid py-4">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <h1 class="h3 mb-0">
-                    <i class="fas fa-columns me-2"></i>
-                    Канбан-доска
-                </h1>
-                <div class="btn-group">
-                    <a href="{{ path('app_task_index') }}" class="btn btn-outline-secondary">
-                        <i class="fas fa-list me-2"></i>
-                        Список
-                    </a>
-                    <a href="{{ path('app_calendar') }}" class="btn btn-outline-secondary">
-                        <i class="fas fa-calendar me-2"></i>
-                        Календарь
-                    </a>
-                    <a href="{{ path('app_task_new') }}" class="btn btn-primary">
-                        <i class="fas fa-plus me-2"></i>
-                        Новая задача
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Filters -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <form method="get" class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label">Категория</label>
-                            <select name="category" class="form-select" onchange="this.form.submit()">
-                                <option value="">Все категории</option>
-                                {% for category in categories %}
-                                    <option value="{{ category.id }}" 
-                                            {% if selected_category == category.id %}selected{% endif %}>
-                                        {{ category.name }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        
-                        {% if users is not empty %}
-                        <div class="col-md-4">
-                            <label class="form-label">Исполнитель</label>
-                            <select name="assigned_user" class="form-select" onchange="this.form.submit()">
-                                <option value="">Все пользователи</option>
-                                {% for user in users %}
-                                    <option value="{{ user.id }}" 
-                                            {% if selected_user == user.id %}selected{% endif %}>
-                                        {{ user.fullName }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        {% endif %}
-                        
-                        <div class="col-md-4 d-flex align-items-end">
-                            <a href="{{ path('app_kanban_board') }}" class="btn btn-outline-secondary w-100">
-                                <i class="fas fa-times me-2"></i>
-                                Сбросить фильтры
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Kanban Board -->
-    <div class="kanban-board">
-        <!-- Pending Column -->
-        <div class="kanban-column" data-status="pending">
-            <div class="kanban-column-header bg-secondary">
-                <h5 class="mb-0">
-                    <i class="fas fa-clock me-2"></i>
-                    В ожидании
-                    <span class="badge bg-white text-secondary ms-2">{{ tasks_by_status.pending|length }}</span>
-                </h5>
-            </div>
-            <div class="kanban-column-body" data-kanban-column="pending">
-                {% for task in tasks_by_status.pending %}
-                    {% include 'kanban/_task_card.html.twig' with {'task': task} %}
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- In Progress Column -->
-        <div class="kanban-column" data-status="in_progress">
-            <div class="kanban-column-header bg-warning">
-                <h5 class="mb-0">
-                    <i class="fas fa-spinner me-2"></i>
-                    В процессе
-                    <span class="badge bg-white text-warning ms-2">{{ tasks_by_status.in_progress|length }}</span>
-                </h5>
-            </div>
-            <div class="kanban-column-body" data-kanban-column="in_progress">
-                {% for task in tasks_by_status.in_progress %}
-                    {% include 'kanban/_task_card.html.twig' with {'task': task} %}
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- Completed Column -->
-        <div class="kanban-column" data-status="completed">
-            <div class="kanban-column-header bg-success">
-                <h5 class="mb-0">
-                    <i class="fas fa-check-circle me-2"></i>
-                    Завершено
-                    <span class="badge bg-white text-success ms-2">{{ tasks_by_status.completed|length }}</span>
-                </h5>
-            </div>
-            <div class="kanban-column-body" data-kanban-column="completed">
-                {% for task in tasks_by_status.completed %}
-                    {% include 'kanban/_task_card.html.twig' with {'task': task} %}
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- Cancelled Column -->
-        <div class="kanban-column" data-status="cancelled">
-            <div class="kanban-column-header bg-danger">
-                <h5 class="mb-0">
-                    <i class="fas fa-times-circle me-2"></i>
-                    Отменено
-                    <span class="badge bg-white text-danger ms-2">{{ tasks_by_status.cancelled|length }}</span>
-                </h5>
-            </div>
-            <div class="kanban-column-body" data-kanban-column="cancelled">
-                {% for task in tasks_by_status.cancelled %}
-                    {% include 'kanban/_task_card.html.twig' with {'task': task} %}
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-</div>
-
+{% block stylesheets %}
+{{ parent() }}
 <style>
+.kanban-container {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.kanban-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 16px 16px 0 0;
+    margin-bottom: 0;
+}
+
+.kanban-filters {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    margin-bottom: 2rem;
+}
+
 .kanban-board {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
-    min-height: 600px;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem 0;
 }
 
 .kanban-column {
     background: #f8f9fa;
-    border-radius: 8px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
-
-.kanban-column-header {
-    padding: 15px;
-    color: white;
-    font-weight: 600;
-}
-
-.kanban-column-body {
-    padding: 15px;
-    flex: 1;
-    overflow-y: auto;
+    border-radius: 16px;
+    padding: 1rem;
     min-height: 500px;
+    transition: all 0.3s ease;
+}
+
+.kanban-column.drag-over {
+    background: rgba(102, 126, 234, 0.1);
+    border: 2px dashed #667eea;
+}
+
+.column-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.column-pending .column-header {
+    background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+    color: #2d3436;
+}
+
+.column-in_progress .column-header {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+}
+
+.column-completed .column-header {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+}
+
+.column-cancelled .column-header {
+    background: linear-gradient(135deg, #636e72 0%, #b2bec3 100%);
+    color: white;
+}
+
+.task-count {
+    background: rgba(255,255,255,0.3);
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 700;
 }
 
 .kanban-card {
     background: white;
-    border-radius: 6px;
-    padding: 15px;
-    margin-bottom: 15px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    cursor: move;
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    cursor: grab;
     transition: all 0.3s ease;
+    border-left: 4px solid transparent;
 }
 
 .kanban-card:hover {
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    transform: translateY(-2px);
+    transform: translateY(-4px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+
+.kanban-card:active {
+    cursor: grabbing;
 }
 
 .kanban-card.dragging {
     opacity: 0.5;
+    transform: rotate(5deg);
 }
 
-.kanban-card-title {
+.kanban-card.priority-high {
+    border-left-color: #f5576c;
+}
+
+.kanban-card.priority-medium {
+    border-left-color: #fdcb6e;
+}
+
+.kanban-card.priority-low {
+    border-left-color: #38ef7d;
+}
+
+.card-title {
     font-weight: 600;
-    margin-bottom: 8px;
-    color: #333;
+    color: #212529;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
 }
 
-.kanban-card-meta {
-    font-size: 0.85rem;
-    color: #666;
-    margin-top: 10px;
+.card-title a {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.3s ease;
 }
 
-.priority-badge {
-    display: inline-block;
-    padding: 2px 8px;
+.card-title a:hover {
+    color: #667eea;
+}
+
+.card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    font-size: 0.875rem;
+}
+
+.card-badge {
+    padding: 0.25rem 0.75rem;
     border-radius: 12px;
     font-size: 0.75rem;
     font-weight: 600;
 }
 
-.priority-low { background: #d1ecf1; color: #0c5460; }
-.priority-medium { background: #fff3cd; color: #856404; }
-.priority-high { background: #f8d7da; color: #721c24; }
-.priority-urgent { background: #dc3545; color: white; }
+.priority-badge {
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.priority-high {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.priority-medium {
+    background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+    color: #2d3436;
+}
+
+.priority-low {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+}
+
+.category-badge {
+    background: #e9ecef;
+    color: #495057;
+}
+
+.deadline-badge {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.deadline-badge.overdue {
+    background: #f8d7da;
+    color: #721c24;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.assignee-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+
+.empty-column {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #6c757d;
+}
+
+.empty-column i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.3;
+}
+
+.stats-bar {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    flex: 1;
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.stat-label {
+    color: #6c757d;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
 
 @media (max-width: 1200px) {
     .kanban-board {
@@ -227,83 +285,355 @@
     .kanban-board {
         grid-template-columns: 1fr;
     }
+    
+    .kanban-header {
+        padding: 1.5rem;
+    }
 }
 </style>
+{% endblock %}
 
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Sortable for each column
-    const columns = document.querySelectorAll('.kanban-column-body');
-    
-    columns.forEach(column => {
-        new Sortable(column, {
-            group: 'kanban',
-            animation: 150,
-            ghostClass: 'kanban-card-ghost',
-            dragClass: 'dragging',
-            onEnd: function(evt) {
-                const taskId = evt.item.dataset.taskId;
-                const newStatus = evt.to.dataset.kanbanColumn;
+{% block body %}
+<div class="container-fluid mt-4 kanban-container">
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="kanban-header">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h1 class="mb-1">
+                        <i class="fas fa-columns me-2"></i>
+                        Kanban доска
+                    </h1>
+                    <p class="mb-0 opacity-75">Управляйте задачами визуально</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ path('app_task_new') }}" class="btn btn-light">
+                        <i class="fas fa-plus me-2"></i>
+                        Новая задача
+                    </a>
+                    <button class="btn btn-light" onclick="location.reload()">
+                        <i class="fas fa-sync-alt me-2"></i>
+                        Обновить
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="kanban-filters">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Категория</label>
+                    <select name="category" class="form-select" onchange="this.form.submit()">
+                        <option value="">Все категории</option>
+                        {% for category in categories %}
+                            <option value="{{ category.id }}" {{ selected_category == category.id ? 'selected' : '' }}>
+                                {{ category.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
                 
-                // Update task status via AJAX
-                fetch(`/kanban/task/${taskId}/status`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: JSON.stringify({ status: newStatus })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Update badge counts
-                        updateColumnCounts();
-                        
-                        // Show success notification
-                        showNotification('Статус задачи обновлен', 'success');
-                    } else {
-                        // Revert the move
-                        evt.from.insertBefore(evt.item, evt.from.children[evt.oldIndex]);
-                        showNotification('Ошибка при обновлении статуса', 'danger');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    evt.from.insertBefore(evt.item, evt.from.children[evt.oldIndex]);
-                    showNotification('Произошла ошибка', 'danger');
-                });
+                {% if users is not empty %}
+                    <div class="col-md-4">
+                        <label class="form-label">Исполнитель</label>
+                        <select name="assigned_user" class="form-select" onchange="this.form.submit()">
+                            <option value="">Все пользователи</option>
+                            {% for user in users %}
+                                <option value="{{ user.id }}" {{ selected_user == user.id ? 'selected' : '' }}>
+                                    {{ user.fullName }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% endif %}
+                
+                <div class="col-md-4 d-flex align-items-end">
+                    <a href="{{ path('app_kanban_board') }}" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-times me-2"></i>
+                        Сбросить фильтры
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="stats-bar">
+        <div class="stat-card">
+            <div class="stat-number">{{ tasks_by_status.pending|length }}</div>
+            <div class="stat-label">В ожидании</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number text-info">{{ tasks_by_status.in_progress|length }}</div>
+            <div class="stat-label">В процессе</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number text-success">{{ tasks_by_status.completed|length }}</div>
+            <div class="stat-label">Завершено</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number text-muted">{{ tasks_by_status.cancelled|length }}</div>
+            <div class="stat-label">Отменено</div>
+        </div>
+    </div>
+
+    <div class="kanban-board">
+        {% for status, label in {
+            'pending': 'В ожидании',
+            'in_progress': 'В процессе',
+            'completed': 'Завершено',
+            'cancelled': 'Отменено'
+        } %}
+            <div class="kanban-column column-{{ status }}" 
+                 data-status="{{ status }}"
+                 ondrop="handleDrop(event)" 
+                 ondragover="handleDragOver(event)"
+                 ondragleave="handleDragLeave(event)">
+                <div class="column-header">
+                    <span>{{ label }}</span>
+                    <span class="task-count">{{ tasks_by_status[status]|length }}</span>
+                </div>
+                
+                <div class="column-content">
+                    {% if tasks_by_status[status] is empty %}
+                        <div class="empty-column">
+                            <i class="fas fa-inbox"></i>
+                            <p class="mb-0">Нет задач</p>
+                        </div>
+                    {% else %}
+                        {% for task in tasks_by_status[status] %}
+                            <div class="kanban-card priority-{{ task.priority }}" 
+                                 draggable="true"
+                                 data-task-id="{{ task.id }}"
+                                 ondragstart="handleDragStart(event)"
+                                 ondragend="handleDragEnd(event)">
+                                <div class="card-title">
+                                    <a href="{{ path('app_task_show', {id: task.id}) }}">
+                                        {{ task.title }}
+                                    </a>
+                                </div>
+                                
+                                {% if task.description %}
+                                    <p class="text-muted small mb-2">
+                                        {{ task.description|slice(0, 80) }}{% if task.description|length > 80 %}...{% endif %}
+                                    </p>
+                                {% endif %}
+                                
+                                <div class="card-meta">
+                                    <span class="card-badge priority-badge priority-{{ task.priority }}">
+                                        {{ task.priority == 'high' ? 'Высокий' : (task.priority == 'medium' ? 'Средний' : 'Низкий') }}
+                                    </span>
+                                    
+                                    {% if task.category %}
+                                        <span class="card-badge category-badge">
+                                            <i class="fas fa-folder me-1"></i>
+                                            {{ task.category.name }}
+                                        </span>
+                                    {% endif %}
+                                    
+                                    {% if task.dueDate %}
+                                        <span class="card-badge deadline-badge {{ task.isOverdue ? 'overdue' : '' }}">
+                                            <i class="fas fa-calendar me-1"></i>
+                                            {{ task.dueDate|date('d.m.Y') }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                
+                                {% if task.assignedUser %}
+                                    <div class="card-footer">
+                                        <div class="assignee-avatar" title="{{ task.assignedUser.fullName }}">
+                                            {{ task.assignedUser.initials }}
+                                        </div>
+                                        <small class="text-muted">
+                                            {{ task.assignedUser.fullName }}
+                                        </small>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+let draggedElement = null;
+
+function handleDragStart(e) {
+    draggedElement = e.target;
+    e.target.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', e.target.innerHTML);
+}
+
+function handleDragEnd(e) {
+    e.target.classList.remove('dragging');
+}
+
+function handleDragOver(e) {
+    if (e.preventDefault) {
+        e.preventDefault();
+    }
+    e.dataTransfer.dropEffect = 'move';
+    
+    const column = e.target.closest('.kanban-column');
+    if (column) {
+        column.classList.add('drag-over');
+    }
+    
+    return false;
+}
+
+function handleDragLeave(e) {
+    const column = e.target.closest('.kanban-column');
+    if (column) {
+        column.classList.remove('drag-over');
+    }
+}
+
+function handleDrop(e) {
+    if (e.stopPropagation) {
+        e.stopPropagation();
+    }
+    
+    const column = e.target.closest('.kanban-column');
+    if (!column || !draggedElement) {
+        return false;
+    }
+    
+    column.classList.remove('drag-over');
+    
+    const newStatus = column.dataset.status;
+    const taskId = draggedElement.dataset.taskId;
+    
+    // Update task status via API
+    fetch(`/kanban/task/${taskId}/status`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: newStatus })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Move card to new column
+            const columnContent = column.querySelector('.column-content');
+            const emptyState = columnContent.querySelector('.empty-column');
+            if (emptyState) {
+                emptyState.remove();
             }
-        });
+            columnContent.appendChild(draggedElement);
+            
+            // Update counters
+            updateCounters();
+            
+            showToast('Статус задачи обновлен', 'success');
+        } else {
+            showToast(data.message || 'Ошибка при обновлении статуса', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Ошибка при обновлении статуса', 'error');
     });
     
-    function updateColumnCounts() {
-        columns.forEach(column => {
-            const status = column.dataset.kanbanColumn;
-            const count = column.querySelectorAll('.kanban-card').length;
-            const badge = document.querySelector(`[data-status="${status}"] .badge`);
-            if (badge) {
-                badge.textContent = count;
-            }
-        });
-    }
+    return false;
+}
+
+function updateCounters() {
+    document.querySelectorAll('.kanban-column').forEach(column => {
+        const count = column.querySelectorAll('.kanban-card').length;
+        const counter = column.querySelector('.task-count');
+        if (counter) {
+            counter.textContent = count;
+        }
+        
+        // Show/hide empty state
+        const columnContent = column.querySelector('.column-content');
+        const hasCards = columnContent.querySelectorAll('.kanban-card').length > 0;
+        
+        if (!hasCards && !columnContent.querySelector('.empty-column')) {
+            columnContent.innerHTML = `
+                <div class="empty-column">
+                    <i class="fas fa-inbox"></i>
+                    <p class="mb-0">Нет задач</p>
+                </div>
+            `;
+        }
+    });
     
-    function showNotification(message, type) {
-        const alert = document.createElement('div');
-        alert.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
-        alert.style.zIndex = '9999';
-        alert.innerHTML = `
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
-        
-        document.body.appendChild(alert);
-        
-        setTimeout(() => {
-            alert.remove();
-        }, 3000);
-    }
-});
+    // Update stats bar
+    const stats = {
+        pending: document.querySelectorAll('.column-pending .kanban-card').length,
+        in_progress: document.querySelectorAll('.column-in_progress .kanban-card').length,
+        completed: document.querySelectorAll('.column-completed .kanban-card').length,
+        cancelled: document.querySelectorAll('.column-cancelled .kanban-card').length
+    };
+    
+    document.querySelectorAll('.stat-card').forEach((card, index) => {
+        const statNumber = card.querySelector('.stat-number');
+        const statuses = ['pending', 'in_progress', 'completed', 'cancelled'];
+        if (statNumber && statuses[index]) {
+            animateNumber(statNumber, stats[statuses[index]]);
+        }
+    });
+}
+
+function animateNumber(element, targetNumber) {
+    const start = parseInt(element.textContent) || 0;
+    const duration = 500;
+    const increment = (targetNumber - start) / (duration / 16);
+    let current = start;
+    
+    const timer = setInterval(() => {
+        current += increment;
+        if ((increment > 0 && current >= targetNumber) || (increment < 0 && current <= targetNumber)) {
+            element.textContent = targetNumber;
+            clearInterval(timer);
+        } else {
+            element.textContent = Math.round(current);
+        }
+    }, 16);
+}
+
+function showToast(message, type = 'info') {
+    const toastContainer = document.getElementById('toast-container') || createToastContainer();
+    
+    const toast = document.createElement('div');
+    toast.className = `toast-notification toast-${type}`;
+    toast.innerHTML = `
+        <div class="toast-icon">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+        </div>
+        <div class="toast-message">${message}</div>
+        <button class="toast-close" onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    
+    toastContainer.appendChild(toast);
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+function createToastContainer() {
+    const container = document.createElement('div');
+    container.id = 'toast-container';
+    container.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    `;
+    document.body.appendChild(container);
+    return container;
+}
 </script>
 {% endblock %}

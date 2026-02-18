@@ -2,34 +2,519 @@
 
 {% block title %}Календарь{% endblock %}
 
+{% block stylesheets %}
+{{ parent() }}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
+<style>
+.calendar-container {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.calendar-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 16px 16px 0 0;
+    margin-bottom: 0;
+}
+
+.calendar-card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.calendar-filters {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+}
+
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    border: 2px solid #e9ecef;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.filter-chip:hover {
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.filter-chip.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: transparent;
+}
+
+.filter-chip input[type="checkbox"] {
+    margin-right: 0.5rem;
+}
+
+.legend-container {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.legend-item:hover {
+    background: #f8f9fa;
+    transform: translateX(4px);
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    margin-right: 0.75rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.legend-label {
+    font-weight: 500;
+    color: #495057;
+}
+
+.legend-count {
+    margin-left: auto;
+    background: #e9ecef;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #6c757d;
+}
+
+/* FullCalendar Customization */
+.fc {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.fc-toolbar-title {
+    font-size: 1.75rem !important;
+    font-weight: 700 !important;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.fc-button {
+    border-radius: 8px !important;
+    border: none !important;
+    padding: 0.5rem 1rem !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease !important;
+}
+
+.fc-button-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3) !important;
+}
+
+.fc-button-primary:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4) !important;
+}
+
+.fc-button-primary:not(:disabled):active,
+.fc-button-primary:not(:disabled).fc-button-active {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important;
+}
+
+.fc-daygrid-day {
+    transition: all 0.3s ease;
+}
+
+.fc-daygrid-day:hover {
+    background: rgba(102, 126, 234, 0.05);
+}
+
+.fc-daygrid-day-number {
+    font-weight: 600;
+    padding: 0.5rem;
+}
+
+.fc-day-today {
+    background: rgba(102, 126, 234, 0.1) !important;
+}
+
+.fc-day-today .fc-daygrid-day-number {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fc-event {
+    cursor: pointer;
+    border: none !important;
+    border-radius: 6px !important;
+    padding: 4px 8px !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+}
+
+.fc-event:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
+}
+
+.fc-event-title {
+    font-weight: 600 !important;
+}
+
+/* Priority Colors */
+.fc-event.priority-high {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+}
+
+.fc-event.priority-medium {
+    background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%) !important;
+    color: #2d3436 !important;
+}
+
+.fc-event.priority-low {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+}
+
+/* Status Indicators */
+.fc-event::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    border-radius: 6px 0 0 6px;
+}
+
+.fc-event.status-pending::before {
+    background: #ffc107;
+}
+
+.fc-event.status-in_progress::before {
+    background: #17a2b8;
+}
+
+.fc-event.status-completed::before {
+    background: #28a745;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.btn-calendar {
+    border-radius: 10px;
+    padding: 0.625rem 1.25rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-calendar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.btn-info {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.stats-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.stats-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+
+.stats-number {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.stats-label {
+    color: #6c757d;
+    font-weight: 500;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+@media (max-width: 768px) {
+    .calendar-header {
+        padding: 1.5rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .btn-calendar {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
 {% block body %}
-<div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="fas fa-calendar-alt"></i> Календарь задач</h1>
-        <div>
-            <a href="{{ path('app_calendar_upcoming') }}" class="btn btn-info">
-                <i class="fas fa-clock"></i> Ближайшие дедлайны
-            </a>
-            <a href="{{ path('app_calendar_export') }}" class="btn btn-success">
-                <i class="fas fa-download"></i> Экспорт в iCal
-            </a>
+<div class="container-fluid mt-4 calendar-container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="calendar-card">
+                <div class="calendar-header">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div>
+                            <h1 class="mb-1">
+                                <i class="fas fa-calendar-alt me-2"></i>
+                                Календарь задач
+                            </h1>
+                            <p class="mb-0 opacity-75">Планируйте и отслеживайте свои задачи</p>
+                        </div>
+                        <div class="action-buttons">
+                            <a href="{{ path('app_calendar_upcoming') }}" class="btn btn-calendar btn-info">
+                                <i class="fas fa-clock"></i>
+                                Ближайшие дедлайны
+                            </a>
+                            <a href="{{ path('app_calendar_export') }}" class="btn btn-calendar btn-success">
+                                <i class="fas fa-download"></i>
+                                Экспорт в iCal
+                            </a>
+                            <a href="{{ path('app_task_new') }}" class="btn btn-calendar btn-primary">
+                                <i class="fas fa-plus"></i>
+                                Новая задача
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-body">
-            <div id="calendar"></div>
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="stats-card">
+                <div class="stats-number" id="total-tasks">0</div>
+                <div class="stats-label">Всего задач</div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stats-card">
+                <div class="stats-number text-warning" id="pending-tasks">0</div>
+                <div class="stats-label">В ожидании</div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stats-card">
+                <div class="stats-number text-info" id="progress-tasks">0</div>
+                <div class="stats-label">В процессе</div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stats-card">
+                <div class="stats-number text-success" id="completed-tasks">0</div>
+                <div class="stats-label">Завершено</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-9 mb-4">
+            <div class="calendar-filters">
+                <h5 class="mb-3">
+                    <i class="fas fa-filter me-2"></i>
+                    Фильтры
+                </h5>
+                <div class="d-flex flex-wrap gap-2">
+                    <label class="filter-chip active">
+                        <input type="checkbox" checked data-filter="priority" data-value="high">
+                        <span>Высокий приоритет</span>
+                    </label>
+                    <label class="filter-chip active">
+                        <input type="checkbox" checked data-filter="priority" data-value="medium">
+                        <span>Средний приоритет</span>
+                    </label>
+                    <label class="filter-chip active">
+                        <input type="checkbox" checked data-filter="priority" data-value="low">
+                        <span>Низкий приоритет</span>
+                    </label>
+                    <label class="filter-chip active">
+                        <input type="checkbox" checked data-filter="status" data-value="pending">
+                        <span>В ожидании</span>
+                    </label>
+                    <label class="filter-chip active">
+                        <input type="checkbox" checked data-filter="status" data-value="in_progress">
+                        <span>В процессе</span>
+                    </label>
+                    <label class="filter-chip active">
+                        <input type="checkbox" checked data-filter="status" data-value="completed">
+                        <span>Завершено</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div id="calendar"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 mb-4">
+            <div class="legend-container">
+                <h5 class="mb-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Легенда
+                </h5>
+                
+                <h6 class="text-muted mb-2 small">ПРИОРИТЕТ</h6>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"></div>
+                    <span class="legend-label">Высокий</span>
+                    <span class="legend-count" id="count-high">0</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);"></div>
+                    <span class="legend-label">Средний</span>
+                    <span class="legend-count" id="count-medium">0</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);"></div>
+                    <span class="legend-label">Низкий</span>
+                    <span class="legend-count" id="count-low">0</span>
+                </div>
+
+                <hr class="my-3">
+
+                <h6 class="text-muted mb-2 small">СТАТУС</h6>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ffc107;"></div>
+                    <span class="legend-label">В ожидании</span>
+                    <span class="legend-count" id="count-pending">0</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #17a2b8;"></div>
+                    <span class="legend-label">В процессе</span>
+                    <span class="legend-count" id="count-in-progress">0</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #28a745;"></div>
+                    <span class="legend-label">Завершено</span>
+                    <span class="legend-count" id="count-completed">0</span>
+                </div>
+            </div>
+
+            <div class="legend-container mt-3">
+                <h5 class="mb-3">
+                    <i class="fas fa-keyboard me-2"></i>
+                    Горячие клавиши
+                </h5>
+                <div class="small">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span><kbd>T</kbd></span>
+                        <span class="text-muted">Сегодня</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span><kbd>←</kbd> <kbd>→</kbd></span>
+                        <span class="text-muted">Навигация</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span><kbd>M</kbd></span>
+                        <span class="text-muted">Месяц</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span><kbd>W</kbd></span>
+                        <span class="text-muted">Неделя</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span><kbd>D</kbd></span>
+                        <span class="text-muted">День</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
 
-<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
+{% block javascripts %}
+{{ parent() }}
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/locales/ru.global.min.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const calendarEl = document.getElementById('calendar');
+    let allEvents = [];
+    let activeFilters = {
+        priority: ['high', 'medium', 'low'],
+        status: ['pending', 'in_progress', 'completed']
+    };
     
     const calendar = new FullCalendar.Calendar(calendarEl, {
         locale: 'ru',
@@ -46,7 +531,53 @@ document.addEventListener('DOMContentLoaded', function() {
             day: 'День',
             list: 'Список'
         },
-        events: '{{ path('app_calendar_events') }}',
+        editable: true,
+        droppable: true,
+        eventDrop: function(info) {
+            // Update task date on server
+            const taskId = info.event.id;
+            const newDate = info.event.start.toISOString().split('T')[0];
+            
+            fetch('{{ path('app_calendar_update_date') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    taskId: taskId,
+                    newDate: newDate
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Дата задачи обновлена', 'success');
+                } else {
+                    info.revert();
+                    showToast(data.message || 'Ошибка при обновлении даты', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                info.revert();
+                showToast('Ошибка при обновлении даты', 'error');
+            });
+        },
+        events: function(info, successCallback, failureCallback) {
+            fetch('{{ path('app_calendar_events') }}?start=' + info.startStr + '&end=' + info.endStr)
+                .then(response => response.json())
+                .then(data => {
+                    allEvents = data;
+                    updateStats(data);
+                    updateCounts(data);
+                    const filteredEvents = filterEvents(data);
+                    successCallback(filteredEvents);
+                })
+                .catch(error => {
+                    console.error('Error loading events:', error);
+                    failureCallback(error);
+                });
+        },
         eventClick: function(info) {
             info.jsEvent.preventDefault();
             if (info.event.url) {
@@ -54,35 +585,302 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
         eventDidMount: function(info) {
+            // Add custom classes
+            const priority = info.event.extendedProps.priority;
+            const status = info.event.extendedProps.status;
+            
+            info.el.classList.add('priority-' + priority);
+            info.el.classList.add('status-' + status);
+            
             // Add tooltip
-            info.el.title = info.event.title + '\n' +
-                'Приоритет: ' + info.event.extendedProps.priority + '\n' +
-                'Статус: ' + info.event.extendedProps.status;
+            const tooltip = `
+                ${info.event.title}
+                Приоритет: ${getPriorityLabel(priority)}
+                Статус: ${getStatusLabel(status)}
+            `;
+            info.el.title = tooltip;
+            
+            // Add animation
+            info.el.style.animation = 'fadeIn 0.3s ease-out';
         },
         height: 'auto',
-        firstDay: 1, // Monday
+        firstDay: 1,
         weekNumbers: true,
         weekText: 'Нед',
         allDayText: 'Весь день',
-        noEventsText: 'Нет задач для отображения'
+        noEventsText: 'Нет задач для отображения',
+        eventTimeFormat: {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        }
     });
     
     calendar.render();
+    
+    // Filter functionality
+    const filterChips = document.querySelectorAll('.filter-chip');
+    filterChips.forEach(chip => {
+        const checkbox = chip.querySelector('input[type="checkbox"]');
+        
+        checkbox.addEventListener('change', function() {
+            const filterType = this.dataset.filter;
+            const filterValue = this.dataset.value;
+            
+            if (this.checked) {
+                chip.classList.add('active');
+                if (!activeFilters[filterType].includes(filterValue)) {
+                    activeFilters[filterType].push(filterValue);
+                }
+            } else {
+                chip.classList.remove('active');
+                activeFilters[filterType] = activeFilters[filterType].filter(v => v !== filterValue);
+            }
+            
+            calendar.refetchEvents();
+        });
+    });
+    
+    function filterEvents(events) {
+        return events.filter(event => {
+            const priority = event.extendedProps.priority;
+            const status = event.extendedProps.status;
+            
+            return activeFilters.priority.includes(priority) && 
+                   activeFilters.status.includes(status);
+        });
+    }
+    
+    function updateStats(events) {
+        const total = events.length;
+        const pending = events.filter(e => e.extendedProps.status === 'pending').length;
+        const inProgress = events.filter(e => e.extendedProps.status === 'in_progress').length;
+        const completed = events.filter(e => e.extendedProps.status === 'completed').length;
+        
+        animateNumber('total-tasks', total);
+        animateNumber('pending-tasks', pending);
+        animateNumber('progress-tasks', inProgress);
+        animateNumber('completed-tasks', completed);
+    }
+    
+    function updateCounts(events) {
+        const high = events.filter(e => e.extendedProps.priority === 'high').length;
+        const medium = events.filter(e => e.extendedProps.priority === 'medium').length;
+        const low = events.filter(e => e.extendedProps.priority === 'low').length;
+        
+        const pending = events.filter(e => e.extendedProps.status === 'pending').length;
+        const inProgress = events.filter(e => e.extendedProps.status === 'in_progress').length;
+        const completed = events.filter(e => e.extendedProps.status === 'completed').length;
+        
+        document.getElementById('count-high').textContent = high;
+        document.getElementById('count-medium').textContent = medium;
+        document.getElementById('count-low').textContent = low;
+        document.getElementById('count-pending').textContent = pending;
+        document.getElementById('count-in-progress').textContent = inProgress;
+        document.getElementById('count-completed').textContent = completed;
+    }
+    
+    function animateNumber(elementId, targetNumber) {
+        const element = document.getElementById(elementId);
+        const duration = 1000;
+        const start = parseInt(element.textContent) || 0;
+        const increment = (targetNumber - start) / (duration / 16);
+        let current = start;
+        
+        const timer = setInterval(() => {
+            current += increment;
+            if ((increment > 0 && current >= targetNumber) || (increment < 0 && current <= targetNumber)) {
+                element.textContent = targetNumber;
+                clearInterval(timer);
+            } else {
+                element.textContent = Math.round(current);
+            }
+        }, 16);
+    }
+    
+    function getPriorityLabel(priority) {
+        const labels = {
+            'high': 'Высокий',
+            'medium': 'Средний',
+            'low': 'Низкий'
+        };
+        return labels[priority] || priority;
+    }
+    
+    function getStatusLabel(status) {
+        const labels = {
+            'pending': 'В ожидании',
+            'in_progress': 'В процессе',
+            'completed': 'Завершено'
+        };
+        return labels[status] || status;
+    }
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        
+        switch(e.key.toLowerCase()) {
+            case 't':
+                calendar.today();
+                break;
+            case 'arrowleft':
+                calendar.prev();
+                break;
+            case 'arrowright':
+                calendar.next();
+                break;
+            case 'm':
+                calendar.changeView('dayGridMonth');
+                break;
+            case 'w':
+                calendar.changeView('timeGridWeek');
+                break;
+            case 'd':
+                calendar.changeView('timeGridDay');
+                break;
+        }
+    });
+    
+    // Toast notification function
+    function showToast(message, type = 'info') {
+        const toastContainer = document.getElementById('toast-container') || createToastContainer();
+        
+        const toast = document.createElement('div');
+        toast.className = `toast-notification toast-${type}`;
+        toast.innerHTML = `
+            <div class="toast-icon">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+            </div>
+            <div class="toast-message">${message}</div>
+            <button class="toast-close" onclick="this.parentElement.remove()">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        toastContainer.appendChild(toast);
+        
+        // Animate in
+        setTimeout(() => toast.classList.add('show'), 10);
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+    
+    function createToastContainer() {
+        const container = document.createElement('div');
+        container.id = 'toast-container';
+        container.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        `;
+        document.body.appendChild(container);
+        return container;
+    }
 });
 </script>
 
 <style>
-#calendar {
-    max-width: 100%;
-    margin: 0 auto;
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
-.fc-event {
+kbd {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 0.875rem;
+    font-family: monospace;
+}
+
+/* Toast Notifications */
+.toast-notification {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    min-width: 300px;
+    max-width: 400px;
+    opacity: 0;
+    transform: translateX(400px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toast-notification.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.toast-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.toast-success {
+    border-left: 4px solid #28a745;
+}
+
+.toast-success .toast-icon {
+    color: #28a745;
+}
+
+.toast-error {
+    border-left: 4px solid #dc3545;
+}
+
+.toast-error .toast-icon {
+    color: #dc3545;
+}
+
+.toast-info {
+    border-left: 4px solid #17a2b8;
+}
+
+.toast-info .toast-icon {
+    color: #17a2b8;
+}
+
+.toast-message {
+    flex: 1;
+    font-weight: 500;
+    color: #212529;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    color: #6c757d;
     cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s ease;
 }
 
-.fc-event:hover {
-    opacity: 0.8;
+.toast-close:hover {
+    background: #f8f9fa;
+    color: #212529;
 }
 </style>
 {% endblock %}

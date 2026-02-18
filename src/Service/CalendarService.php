@@ -242,6 +242,23 @@ class CalendarService
     }
 
     /**
+     * Update task date
+     */
+    public function updateTaskDate(int $taskId, \DateTime $newDate): mixed
+    {
+        $task = $this->taskRepository->find($taskId);
+        
+        if (!$task) {
+            throw new \Exception('Задача не найдена');
+        }
+        
+        $task->setDeadline($newDate);
+        $this->taskRepository->save($task, true);
+        
+        return $task;
+    }
+
+    /**
      * Export calendar to iCal format
      */
     public function exportToICal(User $user, \DateTime $start, \DateTime $end): string

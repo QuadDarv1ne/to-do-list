@@ -1,0 +1,761 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Трекер привычек{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.habits-container {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.habits-header {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+    padding: 2.5rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.habits-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.habit-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.habit-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.15);
+}
+
+.habit-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+}
+
+.habit-card.health::before { background: linear-gradient(180deg, #11998e 0%, #38ef7d 100%); }
+.habit-card.productivity::before { background: linear-gradient(180deg, #667eea 0%, #764ba2 100%); }
+.habit-card.fitness::before { background: linear-gradient(180deg, #f093fb 0%, #f5576c 100%); }
+.habit-card.learning::before { background: linear-gradient(180deg, #4facfe 0%, #00f2fe 100%); }
+.habit-card.mindfulness::before { background: linear-gradient(180deg, #ffa726 0%, #fb8c00 100%); }
+
+.habit-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 1rem;
+}
+
+.habit-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+    margin-bottom: 1rem;
+}
+
+.habit-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #212529;
+    margin-bottom: 0.5rem;
+}
+
+.habit-description {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.habit-stats {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    color: #6c757d;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.heatmap-container {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+}
+
+.heatmap-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-top: 0.5rem;
+}
+
+.heatmap-cell {
+    aspect-ratio: 1;
+    border-radius: 4px;
+    background: #e9ecef;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.heatmap-cell:hover {
+    transform: scale(1.1);
+    z-index: 10;
+}
+
+.heatmap-cell.completed {
+    background: #38ef7d;
+}
+
+.heatmap-cell.today {
+    border: 2px solid #11998e;
+}
+
+.check-button {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 12px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.check-button.unchecked {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+}
+
+.check-button.checked {
+    background: #e9ecef;
+    color: #6c757d;
+}
+
+.check-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.create-habit-btn {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(17, 153, 142, 0.4);
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.create-habit-btn:hover {
+    transform: scale(1.1) rotate(90deg);
+    box-shadow: 0 12px 32px rgba(17, 153, 142, 0.6);
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #6c757d;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 0.5rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #11998e;
+    box-shadow: 0 0 0 3px rgba(17, 153, 142, 0.1);
+}
+
+.icon-picker {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.5rem;
+}
+
+.icon-option {
+    aspect-ratio: 1;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1.25rem;
+}
+
+.icon-option:hover {
+    border-color: #11998e;
+    background: #f8f9fa;
+}
+
+.icon-option.selected {
+    border-color: #11998e;
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+}
+
+.color-picker {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.5rem;
+}
+
+.color-option {
+    aspect-ratio: 1;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 3px solid transparent;
+}
+
+.color-option:hover {
+    transform: scale(1.1);
+}
+
+.color-option.selected {
+    border-color: #212529;
+}
+
+.btn-submit {
+    width: 100%;
+    padding: 1rem;
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(17, 153, 142, 0.4);
+}
+
+.category-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.category-tab {
+    padding: 0.5rem 1rem;
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+.category-tab:hover {
+    border-color: #11998e;
+}
+
+.category-tab.active {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+    border-color: transparent;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.3;
+}
+
+@media (max-width: 768px) {
+    .habits-header {
+        padding: 1.5rem;
+    }
+    
+    .habit-stats {
+        gap: 1rem;
+    }
+    
+    .heatmap-grid {
+        gap: 2px;
+    }
+    
+    .create-habit-btn {
+        bottom: 1rem;
+        right: 1rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4 habits-container">
+    <div class="habits-header">
+        <div style="position: relative; z-index: 1;">
+            <h1 class="mb-1">
+                <i class="fas fa-fire me-2"></i>
+                Трекер привычек
+            </h1>
+            <p class="mb-0 opacity-75">Формируйте полезные привычки каждый день</p>
+        </div>
+    </div>
+
+    <!-- Category Tabs -->
+    <div class="category-tabs">
+        <button class="category-tab active" data-category="all">
+            <i class="fas fa-th me-1"></i> Все
+        </button>
+        <button class="category-tab" data-category="health">
+            <i class="fas fa-heartbeat me-1"></i> Здоровье
+        </button>
+        <button class="category-tab" data-category="fitness">
+            <i class="fas fa-dumbbell me-1"></i> Фитнес
+        </button>
+        <button class="category-tab" data-category="productivity">
+            <i class="fas fa-rocket me-1"></i> Продуктивность
+        </button>
+        <button class="category-tab" data-category="learning">
+            <i class="fas fa-book me-1"></i> Обучение
+        </button>
+        <button class="category-tab" data-category="mindfulness">
+            <i class="fas fa-spa me-1"></i> Осознанность
+        </button>
+    </div>
+
+    <!-- Habits List -->
+    {% if habits is empty %}
+        <div class="empty-state">
+            <i class="fas fa-seedling"></i>
+            <h3>Нет привычек</h3>
+            <p>Создайте свою первую привычку и начните путь к лучшей версии себя!</p>
+        </div>
+    {% else %}
+        <div class="row" id="habitsContainer">
+            {% for habit in habits %}
+                <div class="col-lg-6 mb-3 habit-item" data-category="{{ habit.category }}">
+                    <div class="habit-card {{ habit.category }}">
+                        <div class="habit-icon" style="background: {{ habit.color }};">
+                            <i class="{{ habit.icon }}"></i>
+                        </div>
+                        
+                        <div class="habit-title">{{ habit.name }}</div>
+                        {% if habit.description %}
+                            <div class="habit-description">{{ habit.description }}</div>
+                        {% endif %}
+
+                        <div class="habit-stats">
+                            <div class="stat-item">
+                                <div class="stat-value" style="color: {{ habit.color }};">
+                                    {{ habit.currentStreak }}
+                                </div>
+                                <div class="stat-label">Текущая серия</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" style="color: {{ habit.color }};">
+                                    {{ habit.longestStreak }}
+                                </div>
+                                <div class="stat-label">Лучшая серия</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" style="color: {{ habit.color }};">
+                                    {{ habit.getCompletionRate(30)|number_format(0) }}%
+                                </div>
+                                <div class="stat-label">За 30 дней</div>
+                            </div>
+                        </div>
+
+                        <div class="heatmap-container">
+                            <div style="font-weight: 600; color: #6c757d; font-size: 0.875rem; margin-bottom: 0.5rem;">
+                                Последние 28 дней
+                            </div>
+                            <div class="heatmap-grid" id="heatmap-{{ habit.id }}">
+                                <!-- Generated by JS -->
+                            </div>
+                        </div>
+
+                        <button class="check-button unchecked" onclick="toggleHabit({{ habit.id }})" id="btn-{{ habit.id }}">
+                            <i class="fas fa-check"></i>
+                            Отметить сегодня
+                        </button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+<!-- Create Habit Button -->
+<button class="create-habit-btn" onclick="openCreateModal()">
+    <i class="fas fa-plus"></i>
+</button>
+
+<!-- Create Habit Modal -->
+<div class="modal" id="createHabitModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Создать новую привычку</h3>
+            <button class="close-modal" onclick="closeCreateModal()">×</button>
+        </div>
+        <form id="createHabitForm">
+            <div class="form-group">
+                <label class="form-label">Название привычки</label>
+                <input type="text" class="form-control" name="name" placeholder="Например: Пить 8 стаканов воды" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Описание</label>
+                <textarea class="form-control" name="description" rows="2" placeholder="Опционально"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Категория</label>
+                <select class="form-control" name="category">
+                    <option value="health">Здоровье</option>
+                    <option value="fitness">Фитнес</option>
+                    <option value="productivity">Продуктивность</option>
+                    <option value="learning">Обучение</option>
+                    <option value="mindfulness">Осознанность</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Выберите иконку</label>
+                <div class="icon-picker">
+                    <div class="icon-option selected" data-icon="fa-check"><i class="fas fa-check"></i></div>
+                    <div class="icon-option" data-icon="fa-water"><i class="fas fa-water"></i></div>
+                    <div class="icon-option" data-icon="fa-running"><i class="fas fa-running"></i></div>
+                    <div class="icon-option" data-icon="fa-book"><i class="fas fa-book"></i></div>
+                    <div class="icon-option" data-icon="fa-dumbbell"><i class="fas fa-dumbbell"></i></div>
+                    <div class="icon-option" data-icon="fa-apple-alt"><i class="fas fa-apple-alt"></i></div>
+                    <div class="icon-option" data-icon="fa-bed"><i class="fas fa-bed"></i></div>
+                    <div class="icon-option" data-icon="fa-brain"><i class="fas fa-brain"></i></div>
+                    <div class="icon-option" data-icon="fa-heart"><i class="fas fa-heart"></i></div>
+                    <div class="icon-option" data-icon="fa-smile"><i class="fas fa-smile"></i></div>
+                    <div class="icon-option" data-icon="fa-meditation"><i class="fas fa-spa"></i></div>
+                    <div class="icon-option" data-icon="fa-leaf"><i class="fas fa-leaf"></i></div>
+                </div>
+                <input type="hidden" name="icon" value="fa-check">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Выберите цвет</label>
+                <div class="color-picker">
+                    <div class="color-option selected" style="background: #11998e;" data-color="#11998e"></div>
+                    <div class="color-option" style="background: #667eea;" data-color="#667eea"></div>
+                    <div class="color-option" style="background: #f093fb;" data-color="#f093fb"></div>
+                    <div class="color-option" style="background: #4facfe;" data-color="#4facfe"></div>
+                    <div class="color-option" style="background: #ffa726;" data-color="#ffa726"></div>
+                    <div class="color-option" style="background: #f5576c;" data-color="#f5576c"></div>
+                </div>
+                <input type="hidden" name="color" value="#11998e">
+            </div>
+
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-plus me-2"></i>
+                Создать привычку
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+const habits = {{ habits|json_encode|raw }};
+
+// Generate heatmaps
+habits.forEach(habit => {
+    generateHeatmap(habit.id);
+});
+
+function generateHeatmap(habitId) {
+    const container = document.getElementById(`heatmap-${habitId}`);
+    const today = new Date();
+    
+    for (let i = 27; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        
+        const cell = document.createElement('div');
+        cell.className = 'heatmap-cell';
+        
+        if (i === 0) {
+            cell.classList.add('today');
+        }
+        
+        // TODO: Check if habit was completed on this date
+        // cell.classList.add('completed');
+        
+        cell.title = date.toLocaleDateString('ru-RU');
+        container.appendChild(cell);
+    }
+}
+
+// Toggle habit
+async function toggleHabit(habitId) {
+    const btn = document.getElementById(`btn-${habitId}`);
+    const isChecked = btn.classList.contains('checked');
+    
+    try {
+        const url = isChecked 
+            ? `/habits/${habitId}/unlog`
+            : `/habits/${habitId}/log`;
+            
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({date: new Date().toISOString()})
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            
+            if (isChecked) {
+                btn.classList.remove('checked');
+                btn.classList.add('unchecked');
+                btn.innerHTML = '<i class="fas fa-check"></i> Отметить сегодня';
+            } else {
+                btn.classList.remove('unchecked');
+                btn.classList.add('checked');
+                btn.innerHTML = '<i class="fas fa-check-circle"></i> Выполнено!';
+            }
+            
+            // Update streak
+            const streakEl = btn.closest('.habit-card').querySelector('.stat-value');
+            if (streakEl) {
+                streakEl.textContent = data.streak;
+            }
+            
+            // Reload to update heatmap
+            setTimeout(() => location.reload(), 1000);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+// Category filter
+document.querySelectorAll('.category-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+        document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        
+        const category = this.dataset.category;
+        document.querySelectorAll('.habit-item').forEach(item => {
+            if (category === 'all' || item.dataset.category === category) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+});
+
+// Modal functions
+function openCreateModal() {
+    document.getElementById('createHabitModal').classList.add('active');
+}
+
+function closeCreateModal() {
+    document.getElementById('createHabitModal').classList.remove('active');
+}
+
+// Icon picker
+document.querySelectorAll('.icon-option').forEach(option => {
+    option.addEventListener('click', function() {
+        document.querySelectorAll('.icon-option').forEach(o => o.classList.remove('selected'));
+        this.classList.add('selected');
+        document.querySelector('input[name="icon"]').value = this.dataset.icon;
+    });
+});
+
+// Color picker
+document.querySelectorAll('.color-option').forEach(option => {
+    option.addEventListener('click', function() {
+        document.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
+        this.classList.add('selected');
+        document.querySelector('input[name="color"]').value = this.dataset.color;
+    });
+});
+
+// Create habit
+document.getElementById('createHabitForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+    
+    try {
+        const response = await fetch('{{ path('app_habits_create') }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            location.reload();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+});
+
+// Close modal on outside click
+document.getElementById('createHabitModal').addEventListener('click', (e) => {
+    if (e.target.id === 'createHabitModal') {
+        closeCreateModal();
+    }
+});
+</script>
+{% endblock %}

@@ -19,3 +19,6 @@ services:
 
     # Alias for ContainerInterface to allow autowiring
     Symfony\Component\DependencyInjection\ContainerInterface: '@service_container'
+    
+    # Alias for Google Authenticator to allow autowiring
+    Scheb\TwoFactorBundle\Security\TwoFactor\Provider\Google\GoogleAuthenticatorInterface: '@scheb_two_factor.security.google_authenticator'

@@ -19,9 +19,69 @@ class DashboardController extends AbstractController
     public function index(
         TaskRepository $taskRepository,
         AnalyticsService $analyticsService,
+        \App\Repository\GoalRepository $goalRepository,
+        \App\Repository\HabitRepository $habitRepository,
         ?PerformanceMonitorService $performanceMonitor = null
     ): Response {
         $user = $this->getUser();
+        
+        // Get goals and habits data
+        $activeGoals = $goalRepository->findActiveGoalsByUser($user);
+        $activeHabits = $habitRepository->findActiveByUser($user);
+        
+        // Calculate goals stats
+        $goalsStats = [
+            'total' => count($activeGoals),
+            'avg_progress' => 0,
+            'on_track' => 0,
+            'at_risk' => 0,
+        ];
+        
+        if (count($activeGoals) > 0) {
+            $totalProgress = 0;
+            foreach ($activeGoals as $goal) {
+                $progress = $goal->getProgress();
+                $totalProgress += $progress;
+                
+                $daysRemaining = $goal->getDaysRemaining();
+                if ($progress >= 70 || $daysRemaining > 7) {
+                    $goalsStats['on_track']++;
+                } else {
+                    $goalsStats['at_risk']++;
+                }
+            }
+            $goalsStats['avg_progress'] = round($totalProgress / count($activeGoals));
+        }
+        
+        // Calculate habits stats
+        $habitsStats = [
+            'total' => count($activeHabits),
+            'avg_streak' => 0,
+            'completed_today' => 0,
+            'total_logs' => 0,
+        ];
+        
+        if (count($activeHabits) > 0) {
+            $totalStreak = 0;
+            $today = new \DateTime();
+            $today->setTime(0, 0, 0);
+            
+            foreach ($activeHabits as $habit) {
+                $totalStreak += $habit->getCurrentStreak();
+                $habitsStats['total_logs'] += count($habit->getLogs());
+                
+                // Check if completed today
+                foreach ($habit->getLogs() as $log) {
+                    $logDate = clone $log->getDate();
+                    $logDate->setTime(0, 0, 0);
+                    if ($logDate == $today) {
+                        $habitsStats['completed_today']++;
+                        break;
+                    }
+                }
+            }
+            $habitsStats['avg_streak'] = round($totalStreak / count($activeHabits));
+        }
         
         // Check if user prefers modern theme
         $useModernTheme = $this->getParameter('app.use_modern_theme') ?? false;
@@ -52,6 +112,10 @@ class DashboardController extends AbstractController
             'analytics_data' => $analyticsData,
             'performance_metrics' => $performanceMetrics,
             'crm_metrics' => $crmMetrics,
+            'goals_stats' => $goalsStats,
+            'habits_stats' => $habitsStats,
+            'active_goals' => array_slice($activeGoals, 0, 3),
+            'active_habits' => array_slice($activeHabits, 0, 4),
             // Pass tag stats if available
             'tag_stats' => $analyticsData['tag_stats'] ?? [],
             'tag_completion_rates' => $analyticsData['tag_completion_rates'] ?? [],

@@ -99,6 +99,36 @@ class CalendarController extends AbstractController
     }
 
     /**
+     * Update task date via drag and drop
+     */
+    #[Route('/update-date', name: 'app_calendar_update_date', methods: ['POST'])]
+    public function updateDate(Request $request): JsonResponse
+    {
+        $taskId = $request->request->get('taskId');
+        $newDate = $request->request->get('newDate');
+        
+        if (!$taskId || !$newDate) {
+            return $this->json(['success' => false, 'message' => 'Недостаточно данных'], 400);
+        }
+        
+        try {
+            $task = $this->calendarService->updateTaskDate($taskId, new \DateTime($newDate));
+            
+            return $this->json([
+                'success' => true,
+                'message' => 'Дата задачи обновлена',
+                'task' => [
+                    'id' => $task->getId(),
+                    'title' => $task->getTitle(),
+                    'newDate' => $task->getDeadline()->format('Y-m-d')
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
      * Export to iCal
      */
     #[Route('/export.ics', name: 'app_calendar_export', methods: ['GET'])]

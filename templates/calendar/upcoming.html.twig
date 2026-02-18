@@ -2,64 +2,355 @@
 
 {% block title %}Ближайшие дедлайны{% endblock %}
 
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.upcoming-container {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.upcoming-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+}
+
+.deadline-card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    position: relative;
+    animation: slideIn 0.5s ease-out backwards;
+}
+
+.deadline-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+.deadline-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+}
+
+.deadline-card.urgent::before {
+    background: linear-gradient(180deg, #f093fb 0%, #f5576c 100%);
+}
+
+.deadline-card.warning::before {
+    background: linear-gradient(180deg, #ffeaa7 0%, #fdcb6e 100%);
+}
+
+.deadline-card.normal::before {
+    background: linear-gradient(180deg, #4facfe 0%, #00f2fe 100%);
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.deadline-card:nth-child(1) { animation-delay: 0.1s; }
+.deadline-card:nth-child(2) { animation-delay: 0.2s; }
+.deadline-card:nth-child(3) { animation-delay: 0.3s; }
+.deadline-card:nth-child(4) { animation-delay: 0.4s; }
+.deadline-card:nth-child(5) { animation-delay: 0.5s; }
+.deadline-card:nth-child(6) { animation-delay: 0.6s; }
+
+.task-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #212529;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.task-title:hover {
+    color: #667eea;
+}
+
+.priority-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.priority-high {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.priority-medium {
+    background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+    color: #2d3436;
+}
+
+.priority-low {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+}
+
+.deadline-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+    margin-top: 1rem;
+}
+
+.deadline-info.urgent {
+    background: linear-gradient(135deg, rgba(240, 147, 251, 0.1) 0%, rgba(245, 87, 108, 0.1) 100%);
+    border: 2px solid #f5576c;
+}
+
+.deadline-info.warning {
+    background: linear-gradient(135deg, rgba(255, 234, 167, 0.2) 0%, rgba(253, 203, 110, 0.2) 100%);
+    border: 2px solid #fdcb6e;
+}
+
+.countdown {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.countdown.urgent {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+.status-badge {
+    padding: 0.375rem 0.75rem;
+    border-radius: 12px;
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.status-pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-in_progress {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.status-completed {
+    background: #d4edda;
+    color: #155724;
+}
+
+.filter-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.filter-tab {
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+.filter-tab:hover {
+    border-color: #667eea;
+    transform: translateY(-2px);
+}
+
+.filter-tab.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: transparent;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: #28a745;
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+    .upcoming-header {
+        padding: 1.5rem;
+    }
+    
+    .filter-tabs {
+        flex-direction: column;
+    }
+    
+    .filter-tab {
+        width: 100%;
+        text-align: center;
+    }
+}
+</style>
+{% endblock %}
+
 {% block body %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="fas fa-clock"></i> Ближайшие дедлайны</h1>
-        <a href="{{ path('app_calendar') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Назад к календарю
-        </a>
+<div class="container mt-4 upcoming-container">
+    <div class="upcoming-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1 class="mb-1">
+                    <i class="fas fa-clock me-2"></i>
+                    Ближайшие дедлайны
+                </h1>
+                <p class="mb-0 opacity-75">Задачи на ближайшие {{ days }} дней</p>
+            </div>
+            <a href="{{ path('app_calendar') }}" class="btn btn-light">
+                <i class="fas fa-arrow-left me-2"></i>
+                Назад к календарю
+            </a>
+        </div>
     </div>
 
-    <div class="alert alert-info">
-        <i class="fas fa-info-circle"></i>
-        Показаны задачи на ближайшие {{ days }} дней
+    <div class="filter-tabs">
+        <button class="filter-tab active" data-filter="all">
+            <i class="fas fa-list me-2"></i>
+            Все задачи
+        </button>
+        <button class="filter-tab" data-filter="urgent">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            Срочные
+        </button>
+        <button class="filter-tab" data-filter="today">
+            <i class="fas fa-calendar-day me-2"></i>
+            Сегодня
+        </button>
+        <button class="filter-tab" data-filter="tomorrow">
+            <i class="fas fa-calendar-plus me-2"></i>
+            Завтра
+        </button>
     </div>
 
     {% if tasks is empty %}
-        <div class="alert alert-success">
+        <div class="empty-state">
             <i class="fas fa-check-circle"></i>
-            Нет задач с приближающимися дедлайнами!
+            <h3 class="mb-3">Отличная работа!</h3>
+            <p class="text-muted mb-0">Нет задач с приближающимися дедлайнами</p>
         </div>
     {% else %}
-        <div class="row">
+        <div class="row" id="tasks-container">
             {% for task in tasks %}
-                {% set daysUntil = date(task.deadline).diff(date()).days %}
+                {% set now = date() %}
+                {% set deadline = date(task.deadline) %}
+                {% set daysUntil = deadline.diff(now).days %}
+                {% set hoursUntil = deadline.diff(now).h %}
+                {% set isToday = deadline.format('Y-m-d') == now.format('Y-m-d') %}
+                {% set isTomorrow = deadline.format('Y-m-d') == now.modify('+1 day').format('Y-m-d') %}
                 {% set isUrgent = daysUntil <= 1 %}
+                {% set isWarning = daysUntil > 1 and daysUntil <= 3 %}
                 
-                <div class="col-md-6 mb-3">
-                    <div class="card {% if isUrgent %}border-danger{% endif %}">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h5 class="card-title mb-0">
-                                    <a href="{{ path('app_task_show', {id: task.id}) }}">
-                                        {{ task.title }}
-                                    </a>
-                                </h5>
-                                <span class="badge bg-{{ task.priority == 'urgent' ? 'danger' : (task.priority == 'high' ? 'warning' : 'info') }}">
-                                    {{ task.priority|upper }}
+                <div class="col-lg-6 mb-4 task-item" 
+                     data-filter="{{ isUrgent ? 'urgent' : 'normal' }}"
+                     data-day="{{ isToday ? 'today' : (isTomorrow ? 'tomorrow' : 'later') }}">
+                    <div class="deadline-card {{ isUrgent ? 'urgent' : (isWarning ? 'warning' : 'normal') }}">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <a href="{{ path('app_task_show', {id: task.id}) }}" class="task-title">
+                                    {{ task.title }}
+                                </a>
+                                <span class="priority-badge priority-{{ task.priority }}">
+                                    {{ task.priority == 'high' ? 'Высокий' : (task.priority == 'medium' ? 'Средний' : 'Низкий') }}
                                 </span>
                             </div>
                             
-                            <p class="text-muted mb-2">
-                                {% if task.category %}
-                                    <i class="fas fa-folder"></i> {{ task.category.name }}
-                                {% endif %}
-                            </p>
+                            {% if task.description %}
+                                <p class="text-muted mb-3">
+                                    {{ task.description|slice(0, 100) }}{% if task.description|length > 100 %}...{% endif %}
+                                </p>
+                            {% endif %}
                             
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="{% if isUrgent %}text-danger fw-bold{% endif %}">
-                                    <i class="fas fa-calendar-alt"></i>
-                                    {{ task.deadline|date('d.m.Y') }}
-                                    {% if isUrgent %}
-                                        <span class="badge bg-danger">Срочно!</span>
-                                    {% else %}
-                                        (через {{ daysUntil }} дн.)
-                                    {% endif %}
-                                </span>
-                                
-                                <span class="badge bg-secondary">
-                                    {{ task.status }}
+                            {% if task.category %}
+                                <div class="mb-3">
+                                    <span class="badge bg-light text-dark">
+                                        <i class="fas fa-folder me-1"></i>
+                                        {{ task.category.name }}
+                                    </span>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="deadline-info {{ isUrgent ? 'urgent' : (isWarning ? 'warning' : '') }}">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        <strong>{{ task.deadline|date('d.m.Y H:i') }}</strong>
+                                    </div>
+                                    <div class="countdown {{ isUrgent ? 'urgent' : '' }}">
+                                        {% if isToday %}
+                                            {% if hoursUntil > 0 %}
+                                                Через {{ hoursUntil }} ч.
+                                            {% else %}
+                                                Сегодня!
+                                            {% endif %}
+                                        {% elseif isTomorrow %}
+                                            Завтра
+                                        {% else %}
+                                            Через {{ daysUntil }} дн.
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <span class="status-badge status-{{ task.status }}">
+                                    {{ task.status == 'pending' ? 'В ожидании' : (task.status == 'in_progress' ? 'В процессе' : 'Завершено') }}
                                 </span>
                             </div>
                         </div>
@@ -69,4 +360,43 @@
         </div>
     {% endif %}
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const filterTabs = document.querySelectorAll('.filter-tab');
+    const taskItems = document.querySelectorAll('.task-item');
+    
+    filterTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            // Update active tab
+            filterTabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            const filter = this.dataset.filter;
+            
+            // Filter tasks
+            taskItems.forEach(item => {
+                if (filter === 'all') {
+                    item.style.display = '';
+                } else if (filter === 'urgent') {
+                    item.style.display = item.dataset.filter === 'urgent' ? '' : 'none';
+                } else if (filter === 'today') {
+                    item.style.display = item.dataset.day === 'today' ? '' : 'none';
+                } else if (filter === 'tomorrow') {
+                    item.style.display = item.dataset.day === 'tomorrow' ? '' : 'none';
+                }
+            });
+            
+            // Animate visible items
+            const visibleItems = Array.from(taskItems).filter(item => item.style.display !== 'none');
+            visibleItems.forEach((item, index) => {
+                item.style.animation = 'none';
+                setTimeout(() => {
+                    item.style.animation = `slideIn 0.5s ease-out ${index * 0.1}s backwards`;
+                }, 10);
+            });
+        });
+    });
+});
+</script>
 {% endblock %}

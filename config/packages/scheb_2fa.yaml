@@ -3,3 +3,9 @@ scheb_two_factor:
     security_tokens:
         - Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken
         - Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken
+    
+    # Google Authenticator configuration
+    google:
+        enabled: true
+        server_name: 'CRM система'
+        issuer: 'ООО «Дальневосточный фермер»'

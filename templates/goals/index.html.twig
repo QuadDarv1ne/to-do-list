@@ -1,0 +1,908 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Цели и достижения{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.goals-container {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.goals-header {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    padding: 2.5rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.goals-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.goal-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.goal-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.15);
+}
+
+.goal-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+}
+
+.goal-card.priority-high::before {
+    background: linear-gradient(90deg, #f5576c 0%, #f093fb 100%);
+}
+
+.goal-card.priority-medium::before {
+    background: linear-gradient(90deg, #ffa726 0%, #fb8c00 100%);
+}
+
+.goal-card.priority-low::before {
+    background: linear-gradient(90deg, #66bb6a 0%, #43a047 100%);
+}
+
+.goal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 1rem;
+}
+
+.goal-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #212529;
+    margin-bottom: 0.5rem;
+}
+
+.goal-description {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.goal-meta {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+.meta-item i {
+    color: #f5576c;
+}
+
+.progress-section {
+    margin-top: 1rem;
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.progress-label {
+    font-weight: 600;
+    color: #212529;
+    font-size: 0.875rem;
+}
+
+.progress-value {
+    font-weight: 700;
+    font-size: 1.25rem;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.progress-bar-container {
+    height: 12px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+    border-radius: 10px;
+    transition: width 0.6s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.milestones-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid #f8f9fa;
+}
+
+.milestone-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.milestone-item:hover {
+    background: #e9ecef;
+}
+
+.milestone-checkbox {
+    width: 24px;
+    height: 24px;
+    border: 2px solid #f5576c;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.milestone-checkbox.checked {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    border-color: #f5576c;
+}
+
+.milestone-checkbox.checked::after {
+    content: '✓';
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.milestone-text {
+    flex: 1;
+    color: #212529;
+    font-weight: 500;
+}
+
+.milestone-text.completed {
+    text-decoration: line-through;
+    color: #6c757d;
+}
+
+.milestone-date {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+.goal-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.btn-goal {
+    padding: 0.5rem 1rem;
+    border-radius: 10px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-goal:hover {
+    transform: translateY(-2px);
+}
+
+.btn-update {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-milestone {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+}
+
+.btn-delete {
+    background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+    color: white;
+}
+
+.create-goal-btn {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(245, 87, 108, 0.4);
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.create-goal-btn:hover {
+    transform: scale(1.1) rotate(90deg);
+    box-shadow: 0 12px 32px rgba(245, 87, 108, 0.6);
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #6c757d;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 0.5rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #f5576c;
+    box-shadow: 0 0 0 3px rgba(245, 87, 108, 0.1);
+}
+
+.btn-submit {
+    width: 100%;
+    padding: 1rem;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(245, 87, 108, 0.4);
+}
+
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    color: #6c757d;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.3;
+}
+
+@media (max-width: 768px) {
+    .goals-header {
+        padding: 1.5rem;
+    }
+    
+    .goal-meta {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .create-goal-btn {
+        bottom: 1rem;
+        right: 1rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4 goals-container">
+    <div class="goals-header">
+        <div style="position: relative; z-index: 1;">
+            <h1 class="mb-1">
+                <i class="fas fa-bullseye me-2"></i>
+                Цели и достижения
+            </h1>
+            <p class="mb-0 opacity-75">Ставьте цели, отслеживайте прогресс, достигайте результатов</p>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-value">{{ activeGoals|length }}</div>
+            <div class="stat-label">Активных целей</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ completedGoals|length }}</div>
+            <div class="stat-label">Завершено</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="avg-progress">0%</div>
+            <div class="stat-label">Средний прогресс</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="total-milestones">0</div>
+            <div class="stat-label">Вех достигнуто</div>
+        </div>
+    </div>
+
+    <!-- Active Goals -->
+    <h2 class="mb-3">
+        <i class="fas fa-fire text-danger me-2"></i>
+        Активные цели
+    </h2>
+    
+    {% if activeGoals is empty %}
+        <div class="empty-state">
+            <i class="fas fa-bullseye"></i>
+            <h3>Нет активных целей</h3>
+            <p>Создайте свою первую цель и начните путь к успеху!</p>
+        </div>
+    {% else %}
+        <div class="row">
+            {% for goal in activeGoals %}
+                <div class="col-lg-6 mb-3">
+                    <div class="goal-card priority-{{ goal.priority }}">
+                        <div class="goal-header">
+                            <div>
+                                <div class="goal-title">{{ goal.title }}</div>
+                                {% if goal.description %}
+                                    <div class="goal-description">{{ goal.description }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="goal-meta">
+                            <div class="meta-item">
+                                <i class="fas fa-calendar"></i>
+                                <span>{{ goal.startDate|date('d.m.Y') }} - {{ goal.endDate|date('d.m.Y') }}</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-clock"></i>
+                                <span>{{ goal.daysRemaining }} дней осталось</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-flag"></i>
+                                <span>
+                                    {% if goal.priority == 'high' %}Высокий
+                                    {% elseif goal.priority == 'medium' %}Средний
+                                    {% else %}Низкий{% endif %}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="progress-section">
+                            <div class="progress-header">
+                                <span class="progress-label">Прогресс</span>
+                                <span class="progress-value">{{ goal.progress|number_format(0) }}%</span>
+                            </div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-fill" style="width: {{ goal.progress }}%"></div>
+                            </div>
+                            <div class="d-flex justify-content-between mt-2">
+                                <small class="text-muted">Текущее: {{ goal.currentValue }}</small>
+                                <small class="text-muted">Цель: {{ goal.targetValue }}</small>
+                            </div>
+                        </div>
+
+                        {% if goal.milestones|length > 0 %}
+                            <div class="milestones-section">
+                                <h6 class="mb-3">
+                                    <i class="fas fa-tasks me-2"></i>
+                                    Вехи ({{ goal.milestones|filter(m => m.completed)|length }}/{{ goal.milestones|length }})
+                                </h6>
+                                {% for milestone in goal.milestones %}
+                                    <div class="milestone-item">
+                                        <div class="milestone-checkbox {% if milestone.completed %}checked{% endif %}" 
+                                             onclick="toggleMilestone({{ milestone.id }})"></div>
+                                        <span class="milestone-text {% if milestone.completed %}completed{% endif %}">
+                                            {{ milestone.title }}
+                                        </span>
+                                        <span class="milestone-date">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            {{ milestone.dueDate|date('d.m') }}
+                                        </span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <div class="goal-actions">
+                            <button class="btn-goal btn-update" onclick="updateProgress({{ goal.id }})">
+                                <i class="fas fa-chart-line"></i>
+                                Обновить прогресс
+                            </button>
+                            <button class="btn-goal btn-milestone" onclick="addMilestone({{ goal.id }})">
+                                <i class="fas fa-plus"></i>
+                                Веха
+                            </button>
+                            <button class="btn-goal btn-delete" onclick="deleteGoal({{ goal.id }})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Completed Goals -->
+    {% if completedGoals is not empty %}
+        <h2 class="mb-3 mt-5">
+            <i class="fas fa-check-circle text-success me-2"></i>
+            Завершенные цели
+        </h2>
+        <div class="row">
+            {% for goal in completedGoals %}
+                <div class="col-lg-6 mb-3">
+                    <div class="goal-card" style="opacity: 0.7;">
+                        <div class="goal-title">
+                            <i class="fas fa-trophy text-warning me-2"></i>
+                            {{ goal.title }}
+                        </div>
+                        <div class="goal-description">Завершено {{ goal.updatedAt|date('d.m.Y') }}</div>
+                        <div class="progress-section">
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-fill" style="width: 100%; background: linear-gradient(90deg, #11998e 0%, #38ef7d 100%);"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+<!-- Create Goal Button -->
+<button class="create-goal-btn" onclick="openCreateModal()">
+    <i class="fas fa-plus"></i>
+</button>
+
+<!-- Create Goal Modal -->
+<div class="modal" id="createGoalModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Создать новую цель</h3>
+            <button class="close-modal" onclick="closeCreateModal()">×</button>
+        </div>
+        <form id="createGoalForm">
+            <div class="form-group">
+                <label class="form-label">Название цели</label>
+                <input type="text" class="form-control" name="title" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Описание</label>
+                <textarea class="form-control" name="description" rows="3"></textarea>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">Дата начала</label>
+                        <input type="date" class="form-control" name="startDate" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">Дата окончания</label>
+                        <input type="date" class="form-control" name="endDate" required>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">Целевое значение</label>
+                        <input type="number" class="form-control" name="targetValue" step="0.01" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">Приоритет</label>
+                        <select class="form-control" name="priority">
+                            <option value="low">Низкий</option>
+                            <option value="medium" selected>Средний</option>
+                            <option value="high">Высокий</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-rocket me-2"></i>
+                Создать цель
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Update Progress Modal -->
+<div class="modal" id="updateProgressModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Обновить прогресс</h3>
+            <button class="close-modal" onclick="closeUpdateModal()">×</button>
+        </div>
+        <form id="updateProgressForm">
+            <input type="hidden" name="goalId" id="updateGoalId">
+            <div class="form-group">
+                <label class="form-label">Текущее значение</label>
+                <input type="number" class="form-control" name="currentValue" step="0.01" required>
+            </div>
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-save me-2"></i>
+                Сохранить
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Add Milestone Modal -->
+<div class="modal" id="addMilestoneModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Добавить веху</h3>
+            <button class="close-modal" onclick="closeMilestoneModal()">×</button>
+        </div>
+        <form id="addMilestoneForm">
+            <input type="hidden" name="goalId" id="milestoneGoalId">
+            <div class="form-group">
+                <label class="form-label">Название вехи</label>
+                <input type="text" class="form-control" name="title" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Описание</label>
+                <textarea class="form-control" name="description" rows="2"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Срок выполнения</label>
+                <input type="date" class="form-control" name="dueDate" required>
+            </div>
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-plus me-2"></i>
+                Добавить веху
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+// Calculate statistics
+function calculateStats() {
+    const goals = {{ activeGoals|json_encode|raw }};
+    let totalProgress = 0;
+    let totalMilestones = 0;
+    let completedMilestones = 0;
+    
+    goals.forEach(goal => {
+        totalProgress += goal.progress || 0;
+        if (goal.milestones) {
+            totalMilestones += goal.milestones.length;
+            completedMilestones += goal.milestones.filter(m => m.completed).length;
+        }
+    });
+    
+    const avgProgress = goals.length > 0 ? (totalProgress / goals.length).toFixed(0) : 0;
+    document.getElementById('avg-progress').textContent = avgProgress + '%';
+    document.getElementById('total-milestones').textContent = completedMilestones + '/' + totalMilestones;
+}
+
+// Modal functions
+function openCreateModal() {
+    document.getElementById('createGoalModal').classList.add('active');
+}
+
+function closeCreateModal() {
+    document.getElementById('createGoalModal').classList.remove('active');
+}
+
+function updateProgress(goalId) {
+    document.getElementById('updateGoalId').value = goalId;
+    document.getElementById('updateProgressModal').classList.add('active');
+}
+
+function closeUpdateModal() {
+    document.getElementById('updateProgressModal').classList.remove('active');
+}
+
+function addMilestone(goalId) {
+    document.getElementById('milestoneGoalId').value = goalId;
+    document.getElementById('addMilestoneModal').classList.add('active');
+}
+
+function closeMilestoneModal() {
+    document.getElementById('addMilestoneModal').classList.remove('active');
+}
+
+// Create goal
+document.getElementById('createGoalForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+    
+    try {
+        const response = await fetch('{{ path('app_goals_create') }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            location.reload();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+});
+
+// Update progress
+document.getElementById('updateProgressForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const goalId = formData.get('goalId');
+    const currentValue = formData.get('currentValue');
+    
+    try {
+        const response = await fetch(`/goals/${goalId}/update-progress`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({currentValue})
+        });
+        
+        if (response.ok) {
+            location.reload();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+});
+
+// Add milestone
+document.getElementById('addMilestoneForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const goalId = formData.get('goalId');
+    const data = {
+        title: formData.get('title'),
+        description: formData.get('description'),
+        dueDate: formData.get('dueDate')
+    };
+    
+    try {
+        const response = await fetch(`/goals/${goalId}/milestone`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            location.reload();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+});
+
+// Toggle milestone
+async function toggleMilestone(milestoneId) {
+    try {
+        const response = await fetch(`/goals/milestone/${milestoneId}/toggle`, {
+            method: 'POST'
+        });
+        
+        if (response.ok) {
+            location.reload();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+// Delete goal
+async function deleteGoal(goalId) {
+    if (!confirm('Вы уверены, что хотите удалить эту цель?')) return;
+    
+    try {
+        const response = await fetch(`/goals/${goalId}/delete`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            location.reload();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+// Close modals on outside click
+document.querySelectorAll('.modal').forEach(modal => {
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.remove('active');
+        }
+    });
+});
+
+// Initialize
+calculateStats();
+</script>
+{% endblock %}

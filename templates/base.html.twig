@@ -99,6 +99,12 @@
                             <a class="nav-link" href="{{ path('app_task_index') }}">Задачи</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_goals_index') }}">Цели</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_habits_index') }}">Привычки</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="{{ path('app_task_category_index') }}">Категории</a>
                         </li>
                         {% if app.user.hasRole('ROLE_ADMIN') %}

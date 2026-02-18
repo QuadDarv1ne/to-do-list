@@ -9,40 +9,28 @@
 
 {% block body %}
 <div class="container-fluid page-transition">
-    <!-- Compact Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h2 class="mb-1">Привет, {{ app.user.firstName }}!</h2>
-                    <p class="text-muted mb-0">{{ "now"|date("d.m.Y") }}</p>
+    <!-- Enhanced Welcome Header -->
+    <div class="dashboard-welcome mb-4">
+        <div class="dashboard-welcome-content">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h2 class="mb-2">
+                        <i class="fas fa-sun me-2"></i>
+                        Добрый день, {{ app.user.firstName }}!
+                    </h2>
+                    <p class="mb-0 opacity-75">
+                        Сегодня {{ "now"|date("d.m.Y, l") }} • 
+                        У вас {{ task_stats.pending }} активных задач
+                    </p>
                 </div>
-                <div class="d-flex gap-2">
-                    <a href="{{ path('app_task_new') }}" class="btn btn-primary">
-                        <i class="fas fa-plus me-2"></i>Новая задача
-                    </a>
-                    <div class="dropdown">
-                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-user-circle me-2"></i>{{ app.user.fullName }}
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li>
-                                <a class="dropdown-item" href="{{ path('app_profile_show') }}">
-                                    <i class="fas fa-user me-2"></i>Мой профиль
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="{{ path('app_settings') }}">
-                                    <i class="fas fa-cog me-2"></i>Настройки
-                                </a>
-                            </li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
-                                    <i class="fas fa-sign-out-alt me-2"></i>Выйти из аккаунта
-                                </a>
-                            </li>
-                        </ul>
+                <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                    <div class="d-flex gap-2 justify-content-lg-end">
+                        <a href="{{ path('app_task_new') }}" class="btn btn-light">
+                            <i class="fas fa-plus me-2"></i>Новая задача
+                        </a>
+                        <a href="{{ path('app_analytics_dashboard') }}" class="btn btn-outline-light">
+                            <i class="fas fa-chart-line me-2"></i>Аналитика
+                        </a>
                     </div>
                 </div>
             </div>
@@ -83,6 +71,213 @@
                 <div class="card-body text-center py-4">
                     <h2 class="mb-1 text-success">{{ task_stats.completed }}</h2>
                     <p class="text-muted mb-0 small">Завершено</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {# Goals and Habits Widgets #}
+    <div class="row mb-4">
+        <!-- Goals Widget -->
+        <div class="col-lg-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">
+                            <i class="fas fa-bullseye me-2 text-danger"></i>
+                            Мои цели
+                        </h6>
+                        <a href="{{ path('app_goals_index') }}" class="btn btn-sm btn-link">
+                            Все цели
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if goals_stats.total > 0 %}
+                        <div class="row mb-3">
+                            <div class="col-4 text-center">
+                                <div class="stat-circle" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                                    <div class="stat-value">{{ goals_stats.total }}</div>
+                                </div>
+                                <small class="text-muted d-block mt-2">Активных</small>
+                            </div>
+                            <div class="col-4 text-center">
+                                <div class="stat-circle" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                                    <div class="stat-value">{{ goals_stats.avg_progress }}%</div>
+                                </div>
+                                <small class="text-muted d-block mt-2">Прогресс</small>
+                            </div>
+                            <div class="col-4 text-center">
+                                <div class="stat-circle" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                    <div class="stat-value">{{ goals_stats.on_track }}</div>
+                                </div>
+                                <small class="text-muted d-block mt-2">На пути</small>
+                            </div>
+                        </div>
+                        
+                        {% for goal in active_goals %}
+                            <div class="goal-mini-card mb-2">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="fw-medium">{{ goal.title }}</span>
+                                    <span class="badge bg-primary">{{ goal.progress|number_format(0) }}%</span>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar" role="progressbar" 
+                                         style="width: {{ goal.progress }}%; background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);"
+                                         aria-valuenow="{{ goal.progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    {{ goal.daysRemaining }} дней осталось
+                                </small>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-bullseye fa-3x text-muted mb-3" style="opacity: 0.3;"></i>
+                            <p class="text-muted mb-2">Нет активных целей</p>
+                            <a href="{{ path('app_goals_index') }}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-plus me-1"></i>Создать цель
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Habits Widget -->
+        <div class="col-lg-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">
+                            <i class="fas fa-fire me-2 text-warning"></i>
+                            Мои привычки
+                        </h6>
+                        <a href="{{ path('app_habits_index') }}" class="btn btn-sm btn-link">
+                            Все привычки
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if habits_stats.total > 0 %}
+                        <div class="row mb-3">
+                            <div class="col-4 text-center">
+                                <div class="stat-circle" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                                    <div class="stat-value">{{ habits_stats.total }}</div>
+                                </div>
+                                <small class="text-muted d-block mt-2">Привычек</small>
+                            </div>
+                            <div class="col-4 text-center">
+                                <div class="stat-circle" style="background: linear-gradient(135deg, #ffa726 0%, #fb8c00 100%);">
+                                    <div class="stat-value">{{ habits_stats.avg_streak }}</div>
+                                </div>
+                                <small class="text-muted d-block mt-2">Ср. серия</small>
+                            </div>
+                            <div class="col-4 text-center">
+                                <div class="stat-circle" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                                    <div class="stat-value">{{ habits_stats.completed_today }}</div>
+                                </div>
+                                <small class="text-muted d-block mt-2">Сегодня</small>
+                            </div>
+                        </div>
+                        
+                        <div class="habits-grid">
+                            {% for habit in active_habits %}
+                                <div class="habit-mini-card" style="border-left: 3px solid {{ habit.color }};">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="habit-icon-mini" style="background: {{ habit.color }};">
+                                                <i class="{{ habit.icon }}"></i>
+                                            </div>
+                                            <span class="fw-medium">{{ habit.name }}</span>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="streak-badge">
+                                                <i class="fas fa-fire text-warning"></i>
+                                                {{ habit.currentStreak }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-seedling fa-3x text-muted mb-3" style="opacity: 0.3;"></i>
+                            <p class="text-muted mb-2">Нет активных привычек</p>
+                            <a href="{{ path('app_habits_index') }}" class="btn btn-sm btn-success">
+                                <i class="fas fa-plus me-1"></i>Создать привычку
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {# Weekly Activity Widget #}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">
+                            <i class="fas fa-chart-line me-2 text-primary"></i>
+                            Активность за неделю
+                        </h6>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-primary active" data-period="week">Неделя</button>
+                            <button type="button" class="btn btn-outline-primary" data-period="month">Месяц</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <canvas id="activityChart" height="80"></canvas>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="activity-stats">
+                                <div class="activity-stat-item">
+                                    <div class="activity-stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                        <i class="fas fa-tasks"></i>
+                                    </div>
+                                    <div class="activity-stat-content">
+                                        <div class="activity-stat-value" id="week-tasks">0</div>
+                                        <div class="activity-stat-label">Задач за неделю</div>
+                                    </div>
+                                </div>
+                                <div class="activity-stat-item">
+                                    <div class="activity-stat-icon" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                                        <i class="fas fa-check-circle"></i>
+                                    </div>
+                                    <div class="activity-stat-content">
+                                        <div class="activity-stat-value" id="week-completed">0</div>
+                                        <div class="activity-stat-label">Завершено</div>
+                                    </div>
+                                </div>
+                                <div class="activity-stat-item">
+                                    <div class="activity-stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                                        <i class="fas fa-fire"></i>
+                                    </div>
+                                    <div class="activity-stat-content">
+                                        <div class="activity-stat-value" id="week-streak">0</div>
+                                        <div class="activity-stat-label">Дней подряд</div>
+                                    </div>
+                                </div>
+                                <div class="activity-stat-item">
+                                    <div class="activity-stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                                        <i class="fas fa-trophy"></i>
+                                    </div>
+                                    <div class="activity-stat-content">
+                                        <div class="activity-stat-value" id="week-productivity">0%</div>
+                                        <div class="activity-stat-label">Продуктивность</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -275,6 +470,39 @@
         </div>
     </div>
     {% endif %}
+</div>
+
+<!-- Quick Actions Menu -->
+<div class="quick-actions">
+    <button class="quick-action-btn" id="quickActionsBtn">
+        <i class="fas fa-plus"></i>
+    </button>
+    <div class="quick-actions-menu" id="quickActionsMenu">
+        <a href="{{ path('app_task_new') }}" class="quick-action-item">
+            <div class="quick-action-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <i class="fas fa-tasks"></i>
+            </div>
+            <span>Новая задача</span>
+        </a>
+        <a href="{{ path('app_goals_index') }}" class="quick-action-item">
+            <div class="quick-action-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+                <i class="fas fa-bullseye"></i>
+            </div>
+            <span>Новая цель</span>
+        </a>
+        <a href="{{ path('app_habits_index') }}" class="quick-action-item">
+            <div class="quick-action-icon" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white;">
+                <i class="fas fa-fire"></i>
+            </div>
+            <span>Новая привычка</span>
+        </a>
+        <a href="{{ path('app_task_category_new') }}" class="quick-action-item">
+            <div class="quick-action-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                <i class="fas fa-folder"></i>
+            </div>
+            <span>Новая категория</span>
+        </a>
+    </div>
 </div>
 
 <!-- Chart.js loaded with defer for better performance -->
@@ -709,6 +937,208 @@ function updateDependencyStats(blockingTasks, blockedTasks, totalTasks) {
     if (blockingDepEl) blockingDepEl.textContent = blockingTasks;
     if (satisfiedDepEl) satisfiedDepEl.textContent = blockedTasks - blockingTasks;
     if (unsatisfiedDepEl) unsatisfiedDepEl.textContent = blockingTasks;
+}
+
+// Quick Actions Menu
+const quickActionsBtn = document.getElementById('quickActionsBtn');
+const quickActionsMenu = document.getElementById('quickActionsMenu');
+
+if (quickActionsBtn && quickActionsMenu) {
+    quickActionsBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        quickActionsMenu.classList.toggle('active');
+    });
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!quickActionsMenu.contains(e.target) && e.target !== quickActionsBtn) {
+            quickActionsMenu.classList.remove('active');
+        }
+    });
+    
+    // Close menu when clicking on an item
+    quickActionsMenu.querySelectorAll('.quick-action-item').forEach(item => {
+        item.addEventListener('click', function() {
+            quickActionsMenu.classList.remove('active');
+        });
+    });
+}
+
+// Activity Chart
+let activityChart = null;
+
+function initActivityChart() {
+    const ctx = document.getElementById('activityChart');
+    if (!ctx) return;
+    
+    const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+    
+    activityChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: weekDays,
+            datasets: [{
+                label: 'Создано задач',
+                data: [5, 8, 6, 12, 9, 4, 7],
+                borderColor: 'rgba(102, 126, 234, 1)',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                pointBackgroundColor: 'rgba(102, 126, 234, 1)',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2
+            }, {
+                label: 'Завершено задач',
+                data: [4, 7, 5, 10, 8, 3, 6],
+                borderColor: 'rgba(17, 153, 142, 1)',
+                backgroundColor: 'rgba(17, 153, 142, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                pointBackgroundColor: 'rgba(17, 153, 142, 1)',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20,
+                        font: {
+                            size: 13,
+                            weight: '600'
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    titleFont: {
+                        size: 14,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 13
+                    },
+                    cornerRadius: 8,
+                    displayColors: true
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    },
+                    ticks: {
+                        font: {
+                            size: 12,
+                            weight: '600'
+                        },
+                        precision: 0
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        font: {
+                            size: 12,
+                            weight: '600'
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // Update activity stats
+    updateActivityStats();
+}
+
+function updateActivityStats() {
+    // Calculate stats from chart data
+    if (!activityChart) return;
+    
+    const createdData = activityChart.data.datasets[0].data;
+    const completedData = activityChart.data.datasets[1].data;
+    
+    const totalCreated = createdData.reduce((a, b) => a + b, 0);
+    const totalCompleted = completedData.reduce((a, b) => a + b, 0);
+    
+    // Calculate streak (consecutive days with completed tasks)
+    let streak = 0;
+    for (let i = completedData.length - 1; i >= 0; i--) {
+        if (completedData[i] > 0) {
+            streak++;
+        } else {
+            break;
+        }
+    }
+    
+    // Calculate productivity (completed / created * 100)
+    const productivity = totalCreated > 0 ? Math.round((totalCompleted / totalCreated) * 100) : 0;
+    
+    // Animate values
+    animateValue(document.getElementById('week-tasks'), 0, totalCreated, 1000);
+    animateValue(document.getElementById('week-completed'), 0, totalCompleted, 1200);
+    animateValue(document.getElementById('week-streak'), 0, streak, 1400);
+    
+    const productivityEl = document.getElementById('week-productivity');
+    if (productivityEl) {
+        animateValue(productivityEl, 0, productivity, 1600, (value) => {
+            productivityEl.textContent = Math.round(value) + '%';
+        });
+    }
+}
+
+// Period switcher for activity chart
+document.querySelectorAll('[data-period]').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('[data-period]').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        const period = this.dataset.period;
+        updateActivityChartPeriod(period);
+    });
+});
+
+function updateActivityChartPeriod(period) {
+    if (!activityChart) return;
+    
+    if (period === 'month') {
+        activityChart.data.labels = ['Нед 1', 'Нед 2', 'Нед 3', 'Нед 4'];
+        activityChart.data.datasets[0].data = [35, 42, 38, 45];
+        activityChart.data.datasets[1].data = [30, 38, 35, 40];
+    } else {
+        activityChart.data.labels = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+        activityChart.data.datasets[0].data = [5, 8, 6, 12, 9, 4, 7];
+        activityChart.data.datasets[1].data = [4, 7, 5, 10, 8, 3, 6];
+    }
+    
+    activityChart.update('active');
+    updateActivityStats();
+}
+
+// Initialize activity chart when Chart.js is loaded
+if (typeof Chart !== 'undefined') {
+    initActivityChart();
+} else {
+    window.addEventListener('load', initActivityChart);
 }
 </script>
 

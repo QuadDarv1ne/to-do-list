@@ -12,6 +12,7 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use App\Entity\ActivityLog;
 use Symfony\Component\Validator\Constraints as Assert;
+use Scheb\TwoFactorBundle\Model\Google\TwoFactorInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'users')]
@@ -21,7 +22,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(columns: ['last_login_at'], name: 'idx_users_last_login')]
 #[ORM\Index(columns: ['is_active'], name: 'idx_users_is_active')]
 #[ORM\Index(columns: ['created_at'], name: 'idx_users_created_at')]
-class User implements UserInterface, PasswordAuthenticatedUserInterface
+class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFactorInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -418,6 +419,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->backupCodes = $backupCodes;
 
         return $this;
+    }
+
+    // Google Authenticator Interface methods
+    public function isGoogleAuthenticatorEnabled(): bool
+    {
+        return $this->isTotpEnabled;
+    }
+
+    public function getGoogleAuthenticatorUsername(): string
+    {
+        return $this->email;
+    }
+
+    public function getGoogleAuthenticatorSecret(): ?string
+    {
+        return $this->totpSecret;
     }
 
     /**
