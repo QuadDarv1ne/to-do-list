@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Controller\Traits\FlashMessageTrait;
 use App\Form\ChangePasswordType;
 use App\Service\PerformanceMonitorService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -16,6 +17,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class ProfileController extends AbstractController
 {
+    use FlashMessageTrait;
     #[Route('/change-password', name: 'app_profile_change_password', methods: ['GET', 'POST'])]
     public function changePassword(
         Request $request, 
@@ -40,7 +42,7 @@ class ProfileController extends AbstractController
             
             $entityManager->flush();
             
-            $this->addFlash('success', 'Пароль успешно изменен');
+            $this->flashSuccess('Пароль успешно изменен');
             
             try {
                 return $this->redirectToRoute('app_dashboard');
@@ -106,7 +108,7 @@ class ProfileController extends AbstractController
                     ->findOneBy(['email' => $newEmail]);
                 
                 if ($existingUser && $existingUser->getId() !== $user->getId()) {
-                    $this->addFlash('error', 'Пользователь с таким email уже существует');
+                    $this->flashError('Пользователь с таким email уже существует');
                     try {
                         return $this->redirectToRoute('app_profile_edit');
                     } finally {
@@ -119,7 +121,7 @@ class ProfileController extends AbstractController
             
             $entityManager->flush();
             
-            $this->addFlash('success', 'Профиль успешно обновлен');
+            $this->flashUpdated('Профиль успешно обновлен');
             
             try {
                 return $this->redirectToRoute('app_profile_show');

@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Controller\Traits\FlashMessageTrait;
 use App\Entity\Task;
 use App\Entity\User;
 use App\Form\TaskType;
@@ -22,6 +23,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class TaskController extends AbstractController
 {
+    use FlashMessageTrait;
     #[Route('/', name: 'app_task_index', methods: ['GET'])]
     public function index(
         Request $request, 
@@ -216,7 +218,7 @@ class TaskController extends AbstractController
                 $notificationService->sendTaskAssignmentNotification($task->getAssignedUser(), $this->getUser(), $task->getId(), $task->getName());
             }
 
-            $this->addFlash('success', 'Задача успешно создана');
+            $this->flashCreated('Задача успешно создана');
 
             return $this->redirectToRoute('app_task_index', [], Response::HTTP_SEE_OTHER);
         }
@@ -322,7 +324,7 @@ class TaskController extends AbstractController
             
             $entityManager->flush();
 
-            $this->addFlash('success', 'Задача успешно обновлена');
+            $this->flashUpdated('Задача успешно обновлена');
 
             return $this->redirectToRoute('app_task_show', ['id' => $task->getId()], Response::HTTP_SEE_OTHER);
         }
@@ -370,7 +372,7 @@ class TaskController extends AbstractController
         $entityManager->persist($clonedTask);
         $entityManager->flush();
             
-        $this->addFlash('success', 'Задача успешно скопирована');
+        $this->flashSuccess('Задача успешно скопирована');
             
         try {
             return $this->redirectToRoute('app_task_show', ['id' => $clonedTask->getId()]);
@@ -475,7 +477,7 @@ class TaskController extends AbstractController
             $entityManager->remove($task);
             $entityManager->flush();
             
-            $this->addFlash('success', 'Задача успешно удалена');
+            $this->flashDeleted('Задача успешно удалена');
         }
 
         try {
@@ -500,7 +502,7 @@ class TaskController extends AbstractController
             $task->setCompletedAt(new \DateTime());
             $entityManager->flush();
             
-            $this->addFlash('success', 'Задача успешно завершена');
+            $this->flashSuccess('Задача успешно завершена');
         }
 
         return $this->redirectToRoute('app_task_show', ['id' => $task->getId()], Response::HTTP_SEE_OTHER);

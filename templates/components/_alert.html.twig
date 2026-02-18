@@ -1,0 +1,23 @@
+{# Reusable alert component #}
+{% set type = type|default('info') %}
+{% set dismissible = dismissible|default(true) %}
+{% set icon_map = {
+    'success': 'fa-check-circle',
+    'danger': 'fa-exclamation-circle',
+    'warning': 'fa-exclamation-triangle',
+    'info': 'fa-info-circle'
+} %}
+
+<div class="alert alert-{{ type }} {% if dismissible %}alert-dismissible fade show{% endif %}" role="alert">
+    {% if icon is defined %}
+        <i class="fas {{ icon }} me-2"></i>
+    {% elseif icon_map[type] is defined %}
+        <i class="fas {{ icon_map[type] }} me-2"></i>
+    {% endif %}
+    
+    {{ message|raw }}
+    
+    {% if dismissible %}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    {% endif %}
+</div>

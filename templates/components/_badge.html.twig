@@ -1,0 +1,9 @@
+{# Reusable badge component #}
+{% set type = type|default('primary') %}
+{% set size = size|default('') %}
+{% set pill = pill|default(false) %}
+
+<span class="badge bg-{{ type }} {% if pill %}rounded-pill{% endif %} {{ size }} {{ extra_class|default('') }}">
+    {% if icon is defined %}<i class="{{ icon }} me-1"></i>{% endif %}
+    {{ text }}
+</span>

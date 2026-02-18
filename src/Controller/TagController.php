@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Controller\Traits\FlashMessageTrait;
 use App\Entity\Tag;
 use App\Form\TagType;
 use App\Repository\TagRepository;
@@ -17,6 +18,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class TagController extends AbstractController
 {
+    use FlashMessageTrait;
     #[Route('/', name: 'app_tag_index', methods: ['GET'])]
     public function index(
         TagRepository $tagRepository,
@@ -59,7 +61,7 @@ class TagController extends AbstractController
             $entityManager->persist($tag);
             $entityManager->flush();
 
-            $this->addFlash('success', 'Тег успешно создан.');
+            $this->flashCreated('Тег успешно создан.');
 
             try {
                 return $this->redirectToRoute('app_tag_index', [], Response::HTTP_SEE_OTHER);
@@ -126,7 +128,7 @@ class TagController extends AbstractController
             $tag->setUpdatedAt(new \DateTimeImmutable());
             $entityManager->flush();
 
-            $this->addFlash('success', 'Тег успешно обновлен.');
+            $this->flashUpdated('Тег успешно обновлен.');
 
             try {
                 return $this->redirectToRoute('app_tag_index', [], Response::HTTP_SEE_OTHER);
@@ -245,7 +247,7 @@ class TagController extends AbstractController
             $entityManager->remove($tag);
             $entityManager->flush();
 
-            $this->addFlash('success', 'Тег успешно удален.');
+            $this->flashDeleted('Тег успешно удален.');
         }
 
         try {

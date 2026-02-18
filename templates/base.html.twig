@@ -32,12 +32,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     {% block stylesheets %}
-        <link rel="stylesheet" href="/css/animations.css">
         <link rel="stylesheet" href="/css/main.css">
-        <link rel="stylesheet" href="/css/themes.css">
+        <link rel="stylesheet" href="/css/utilities.css">
         <link rel="stylesheet" href="/css/components.css">
+        <link rel="stylesheet" href="/css/themes.css">
+        <link rel="stylesheet" href="/css/animations.css">
         <link rel="stylesheet" href="/css/pages.css">
-        <link rel="stylesheet" href="/css/dark-theme.css">
     {% endblock %}
 </head>
 <body>
@@ -280,54 +280,27 @@
     
     {% block javascripts %}
         {% block importmap %}{{ importmap('app') }}{% endblock %}
+        
+        {# Core utilities - loaded first #}
+        <script src="/js/utils.js"></script>
+        
+        {# Critical functionality #}
         <script src="/js/notification-system.js" defer></script>
-        <script src="/js/smart-notifications.js" defer></script>
+        <script src="/js/theme-switcher.js" defer></script>
+        <script src="/js/offline-support.js" defer></script>
         <script src="/js/form-utilities.js" defer></script>
         <script src="/js/global-interactions.js" defer></script>
-        <script src="/js/scroll-animations.js" defer></script>
-        <script src="/js/quick-search.js" defer></script>
-        <script src="/js/hotkeys.js" defer></script>
+        
+        {# UI Enhancements #}
         <script src="/js/ui-enhancements.js" defer></script>
-        <script src="/js/advanced-interactions.js" defer></script>
-        <script src="/js/theme-switcher.js" defer></script>
-        <script src="/js/dashboard-charts.js" defer></script>
-        <script src="/js/dashboard-realtime.js" defer></script>
-        <script src="/js/advanced-search.js" defer></script>
-        <script src="/js/performance-monitor.js" defer></script>
-        <script src="/js/task-automation.js" defer></script>
-        <script src="/js/collaboration-tools.js" defer></script>
-        <script src="/js/analytics-dashboard.js" defer></script>
-        <script src="/js/data-visualization.js" defer></script>
-        <script src="/js/smart-assistant.js" defer></script>
-        <script src="/js/drag-drop-manager.js" defer></script>
-        <script src="/js/tag-system.js" defer></script>
-        <script src="/js/crm-utilities.js" defer></script>
-        <script src="/js/table-enhancements.js" defer></script>
-        <script src="/js/teams-projects-enhanced.js" defer></script>
+        <script src="/js/hotkeys.js" defer></script>
+        <script src="/js/quick-search.js" defer></script>
         <script src="/js/keyboard-shortcuts.js" defer></script>
-        <script src="/js/offline-support.js" defer></script>
-        <script src="/js/auto-save.js" defer></script>
-        <script src="/js/file-upload-enhanced.js" defer></script>
-        <script src="/js/quick-actions-menu.js" defer></script>
+        
+        {# Feature modules - lazy loaded #}
         <script src="/js/lazy-load.js" defer></script>
-        <script src="/js/cache-manager.js" defer></script>
-        <script src="/js/image-optimizer.js" defer></script>
-        <script src="/js/batch-operations.js" defer></script>
-        <script src="/js/activity-tracker.js" defer></script>
-        <script src="/js/export-manager.js" defer></script>
-        <script src="/js/print-manager.js" defer></script>
-        <script src="/js/tour-guide.js" defer></script>
-        <script src="/js/clipboard-manager.js" defer></script>
-        <script src="/js/voice-commands.js" defer></script>
-        <script src="/js/feature-announcements.js" defer></script>
-        <script src="/js/advanced-filters.js" defer></script>
-        <script src="/js/undo-redo.js" defer></script>
-        <script src="/js/context-menu.js" defer></script>
-        <script src="/js/fullscreen-mode.js" defer></script>
-        <script src="/js/reading-progress.js" defer></script>
-        <script src="/js/scroll-to-top.js" defer></script>
-        <script src="/js/focus-mode.js" defer></script>
-        <script src="/js/command-palette.js" defer></script>
+        <script src="/js/auto-save.js" defer></script>
+        <script src="/js/drag-drop-manager.js" defer></script>
         <script src="/js/breadcrumbs-enhanced.js" defer></script>
         <script src="/js/task-templates.js" defer></script>
         <script src="/js/time-tracking.js" defer></script>

@@ -1,0 +1,30 @@
+{# Reusable card component #}
+{% set card_class = card_class|default('card') %}
+{% set header_class = header_class|default('card-header') %}
+{% set body_class = body_class|default('card-body') %}
+{% set footer_class = footer_class|default('card-footer') %}
+
+<div class="{{ card_class }} {{ extra_class|default('') }}">
+    {% if title is defined or header_content is defined %}
+    <div class="{{ header_class }}">
+        {% if header_content is defined %}
+            {{ header_content|raw }}
+        {% else %}
+            <h5 class="mb-0">
+                {% if icon is defined %}<i class="{{ icon }} me-2"></i>{% endif %}
+                {{ title }}
+            </h5>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <div class="{{ body_class }}">
+        {{ content|raw }}
+    </div>
+    
+    {% if footer_content is defined %}
+    <div class="{{ footer_class }}">
+        {{ footer_content|raw }}
+    </div>
+    {% endif %}
+</div>

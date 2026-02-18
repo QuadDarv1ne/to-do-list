@@ -1,0 +1,20 @@
+{# Reusable button component #}
+{% set type = type|default('button') %}
+{% set variant = variant|default('primary') %}
+{% set size = size|default('') %}
+{% set outline = outline|default(false) %}
+
+<button 
+    type="{{ type }}" 
+    class="btn {% if outline %}btn-outline-{{ variant }}{% else %}btn-{{ variant }}{% endif %} {{ size }} {{ extra_class|default('') }}"
+    {% if id is defined %}id="{{ id }}"{% endif %}
+    {% if disabled is defined and disabled %}disabled{% endif %}
+    {% if data_attrs is defined %}
+        {% for key, value in data_attrs %}
+            data-{{ key }}="{{ value }}"
+        {% endfor %}
+    {% endif %}
+>
+    {% if icon is defined %}<i class="{{ icon }} me-2"></i>{% endif %}
+    {{ text }}
+</button>

@@ -21,6 +21,12 @@
     --bg-card: #ffffff;
     --shadow: 0 1px 2px rgba(0,0,0,0.05);
     --shadow-hover: 0 2px 8px rgba(0,0,0,0.08);
+    
+    /* Brand Colors from dark-theme.css */
+    --color-sales: #4dd4ac;
+    --color-orders: #ffd93d;
+    --color-bonuses: #ff6bcb;
+    --color-clients: #8b7ff4;
 }
 
 /* === DARK THEME === */
@@ -590,4 +596,238 @@
 .theme-reset-section .btn {
     font-size: 0.8125rem;
     padding: 0.5rem 1rem;
+}
+
+
+/* ============================================
+   LEGACY DARK THEME SUPPORT (from dark-theme.css)
+   ============================================ */
+
+/* Sidebar from dark-theme.css */
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 80px;
+    height: 100vh;
+    background: var(--bg-card);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0;
+    z-index: 1000;
+}
+
+.sidebar-logo {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 40px;
+    color: var(--text-primary);
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    align-items: center;
+}
+
+.sidebar-nav a {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-radius: 12px;
+    transition: all 0.3s;
+    font-size: 20px;
+}
+
+.sidebar-nav a:hover,
+.sidebar-nav a.active {
+    background: var(--bg-body);
+    color: var(--text-primary);
+}
+
+/* Stats Cards from dark-theme.css */
+.stat-card.sales {
+    background: linear-gradient(135deg, rgba(77, 212, 172, 0.2) 0%, rgba(77, 212, 172, 0.05) 100%);
+    border-color: var(--color-sales);
+}
+
+.stat-card.orders {
+    background: linear-gradient(135deg, rgba(255, 217, 61, 0.2) 0%, rgba(255, 217, 61, 0.05) 100%);
+    border-color: var(--color-orders);
+}
+
+.stat-card.bonuses {
+    background: linear-gradient(135deg, rgba(255, 107, 203, 0.2) 0%, rgba(255, 107, 203, 0.05) 100%);
+    border-color: var(--color-bonuses);
+}
+
+.stat-card.clients {
+    background: linear-gradient(135deg, rgba(139, 127, 244, 0.2) 0%, rgba(139, 127, 244, 0.05) 100%);
+    border-color: var(--color-clients);
+}
+
+.stat-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 18px;
+}
+
+.stat-card.sales .stat-icon {
+    background: var(--color-sales);
+    color: #000;
+}
+
+.stat-card.orders .stat-icon {
+    background: var(--color-orders);
+    color: #000;
+}
+
+.stat-card.bonuses .stat-icon {
+    background: var(--color-bonuses);
+    color: #fff;
+}
+
+.stat-card.clients .stat-icon {
+    background: var(--color-clients);
+    color: #fff;
+}
+
+/* Dropdown Menu from dark-theme.css */
+[data-theme='dark'] .dropdown-menu {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+[data-theme='dark'] .dropdown-item {
+    color: var(--text-primary);
+}
+
+[data-theme='dark'] .dropdown-item:hover {
+    background: var(--bg-body);
+    color: var(--text-primary);
+}
+
+[data-theme='dark'] .dropdown-header {
+    color: var(--text-secondary);
+}
+
+[data-theme='dark'] .dropdown-divider {
+    border-color: var(--border);
+    opacity: 0.3;
+}
+
+/* Scrollbar from dark-theme.css */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-body);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
+/* Form Controls from dark-theme.css */
+[data-theme='dark'] .form-control:focus,
+[data-theme='dark'] .form-select:focus {
+    outline: none;
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+[data-theme='dark'] input[type="checkbox"] {
+    accent-color: var(--primary);
+}
+
+/* Animations from dark-theme.css */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Skeleton Loading from dark-theme.css */
+.skeleton {
+    background: linear-gradient(90deg, var(--bg-body) 25%, var(--bg-card) 50%, var(--bg-body) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 8px;
+}
+
+/* Hover Effects from dark-theme.css */
+[data-theme='dark'] tr:hover {
+    background: var(--bg-body) !important;
+}
+
+.stat-card.sales:hover {
+    box-shadow: 0 8px 24px rgba(77, 212, 172, 0.3);
+}
+
+.stat-card.orders:hover {
+    box-shadow: 0 8px 24px rgba(255, 217, 61, 0.3);
+}
+
+.stat-card.bonuses:hover {
+    box-shadow: 0 8px 24px rgba(255, 107, 203, 0.3);
+}
+
+.stat-card.clients:hover {
+    box-shadow: 0 8px 24px rgba(139, 127, 244, 0.3);
+}
+
+/* Mobile Menu from dark-theme.css */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 60px;
+    }
+    
+    .sidebar.open {
+        transform: translateX(0);
+    }
 }

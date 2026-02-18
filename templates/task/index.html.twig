@@ -4,7 +4,6 @@
 
 {% block stylesheets %}
 {{ parent() }}
-<link rel="stylesheet" href="/css/dark-theme.css">
 <script src="/js/table-enhancements.js" defer></script>
 {% endblock %}
 
@@ -486,10 +485,12 @@
                                         </li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li>
-                                            <a class="dropdown-item text-danger" href="#" 
-                                               onclick="if(confirm('Удалить задачу?')) { window.location='{{ path('app_task_delete', {'id': task.id}) }}'; }">
-                                                <i class="fas fa-trash me-2"></i>Удалить
-                                            </a>
+                                            <form method="post" action="{{ path('app_task_delete', {'id': task.id}) }}" class="d-inline" onsubmit="return confirm('Удалить задачу?')">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ task.id) }}">
+                                                <button type="submit" class="dropdown-item text-danger">
+                                                    <i class="fas fa-trash me-2"></i>Удалить
+                                                </button>
+                                            </form>
                                         </li>
                                     </ul>
                                 </div>
