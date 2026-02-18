@@ -113,11 +113,15 @@ class Task
     #[ORM\JoinTable(name: 'task_tags')]
     private Collection $tags;
 
+    #[ORM\OneToMany(mappedBy: 'task', targetEntity: TaskAttachment::class, orphanRemoval: true)]
+    private Collection $attachments;
+
     public function __construct()
     {
         $this->comments = new ArrayCollection();
         $this->activityLogs = new ArrayCollection();
         $this->notifications = new ArrayCollection();
+        $this->attachments = new ArrayCollection();
         $this->timeTrackings = new ArrayCollection();
         $this->tags = new ArrayCollection();
         $this->createdAt = new \DateTime();
@@ -687,5 +691,34 @@ class Task
             }
         }
         return round($totalTime, 2);
+    }
+
+    /**
+     * @return Collection<int, TaskAttachment>
+     */
+    public function getAttachments(): Collection
+    {
+        return $this->attachments;
+    }
+
+    public function addAttachment(TaskAttachment $attachment): static
+    {
+        if (!$this->attachments->contains($attachment)) {
+            $this->attachments->add($attachment);
+            $attachment->setTask($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAttachment(TaskAttachment $attachment): static
+    {
+        if ($this->attachments->removeElement($attachment)) {
+            if ($attachment->getTask() === $this) {
+                $attachment->setTask(null);
+            }
+        }
+
+        return $this;
     }
 }

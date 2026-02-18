@@ -52,12 +52,9 @@
                                     
                                     {% if item.metadata %}
                                         <div class="mt-2">
-                                            {% set meta = item.metadata|json_decode %}
-                                            {% if meta.changes is defined %}
-                                                <small class="text-muted">
-                                                    Изменения: {{ meta.changes|join(', ') }}
-                                                </small>
-                                            {% endif %}
+                                            <small class="text-muted">
+                                                Метаданные: {{ item.metadata }}
+                                            </small>
                                         </div>
                                     {% endif %}
                                 </div>
