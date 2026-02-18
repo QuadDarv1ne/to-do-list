@@ -2,10 +2,15 @@
 
 {% block title %}Настройка двухфакторной аутентификации{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="/css/2fa-responsive.css">
+{% endblock %}
+
 {% block body %}
-<div class="container">
+<div class="container two-factor-container">
     <div class="row justify-content-center">
-        <div class="col-md-8">
+        <div class="col-12">
             <div class="card shadow">
                 <div class="card-header">
                     <h3 class="card-title mb-0">
@@ -14,9 +19,9 @@
                     </h3>
                 </div>
                 <div class="card-body">
-                    <div class="alert alert-info">
-                        <h5><i class="fas fa-info-circle me-2"></i>Как это работает</h5>
-                        <p class="mb-0">После активации вы должны будете вводить код из приложения Google Authenticator при каждом входе в систему.</p>
+                    <div class="setup-instructions">
+                        <h4><i class="fas fa-info-circle me-2"></i>Как это работает</h4>
+                        <p class="mb-2">После активации вы должны будете вводить код из приложения Google Authenticator при каждом входе в систему.</p>
                     </div>
 
                     <ol class="mb-4">
@@ -25,36 +30,37 @@
                         <li>Введите 6-значный код из приложения для подтверждения</li>
                     </ol>
 
-                    <div class="text-center mb-4">
-                        <h5>QR-код для Google Authenticator</h5>
+                    <div class="qr-code-container">
+                        <h3 class="mb-3">QR-код для Google Authenticator</h3>
                         {% if qr_code_image %}
-                            <img src="{{ qr_code_image }}" alt="QR Code" class="img-fluid border rounded p-2">
+                            <img src="{{ qr_code_image }}" alt="QR Code" class="img-fluid">
                         {% else %}
                             <div class="alert alert-warning">QR-код недоступен</div>
                         {% endif %}
                         
-                        <div class="mt-3">
-                            <small class="text-muted">
-                                Или введите вручную: <strong>{{ secret }}</strong>
-                            </small>
+                        <div class="secret-key-display mt-3">
+                            <small class="d-block mb-2 text-muted">Или введите вручную:</small>
+                            <code>{{ secret }}</code>
                         </div>
                     </div>
 
-                    <form id="verifyForm">
+                    <form id="verifyForm" class="verification-form">
                         <div class="mb-3">
                             <label for="verificationCode" class="form-label">6-значный код из Google Authenticator</label>
                             <input type="text" 
-                                   class="form-control form-control-lg text-center" 
+                                   class="form-control form-control-lg verification-input" 
                                    id="verificationCode" 
                                    name="code" 
                                    maxlength="6" 
                                    placeholder="123456"
                                    autocomplete="off"
+                                   inputmode="numeric"
+                                   pattern="[0-9]{6}"
                                    required>
                             <div class="invalid-feedback">Введите 6-значный код</div>
                         </div>
 
-                        <div class="d-grid gap-2">
+                        <div class="d-grid gap-2 stack-mobile">
                             <button type="submit" class="btn btn-primary btn-lg">
                                 <i class="fas fa-check me-2"></i>Подтвердить и активировать
                             </button>

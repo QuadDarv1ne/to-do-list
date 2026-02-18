@@ -9,8 +9,8 @@ use Scheb\TwoFactorBundle\Model\Google\TwoFactorInterface as GoogleTwoFactorInte
 use Scheb\TwoFactorBundle\Security\TwoFactor\Provider\Google\GoogleAuthenticatorInterface;
 use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Encoding\Encoding;
-use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelHigh;
-use Endroid\QrCode\RoundBlockSizeMode\RoundBlockSizeModeMargin;
+use Endroid\QrCode\ErrorCorrectionLevel;
+use Endroid\QrCode\RoundBlockSizeMode;
 use Endroid\QrCode\Writer\PngWriter;
 
 class TwoFactorAuthService
@@ -208,16 +208,20 @@ class TwoFactorAuthService
     private function generateQrCode(string $content): string
     {
         try {
-            $result = Builder::create()
-                ->writer(new PngWriter())
-                ->writerOptions([])
-                ->data($content)
-                ->encoding(new Encoding('UTF-8'))
-                ->errorCorrectionLevel(ErrorCorrectionLevelHigh::class)
-                ->size(300)
-                ->margin(10)
-                ->roundBlockSizeMode(RoundBlockSizeModeMargin::class)
-                ->build();
+            // For endroid/qr-code v6+
+            $builder = new Builder(
+                writer: new PngWriter(),
+                writerOptions: [],
+                validateResult: false,
+                data: $content,
+                encoding: new Encoding('UTF-8'),
+                errorCorrectionLevel: ErrorCorrectionLevel::High,
+                size: 300,
+                margin: 10,
+                roundBlockSizeMode: RoundBlockSizeMode::Margin
+            );
+
+            $result = $builder->build();
 
             return 'data:image/png;base64,' . base64_encode($result->getString());
         } catch (\Exception $e) {

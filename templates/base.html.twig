@@ -38,132 +38,140 @@
         <link rel="stylesheet" href="/css/page-transitions.css">
         <link rel="stylesheet" href="/css/button-enhancements.css">
         <link rel="stylesheet" href="/css/responsive-header.css">
+        <link rel="stylesheet" href="/css/responsive-optimized.css">
+        <link rel="stylesheet" href="/css/header-footer-enhanced.css">
     {% endblock %}
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+    <nav class="navbar navbar-expand-lg navbar-enhanced">
         <div class="container-fluid">
-            <a class="navbar-brand fw-bold" href="{{ path('app_dashboard') }}">
-                CRM
+            <a class="navbar-brand-enhanced" href="{{ path('app_dashboard') }}">
+                <div class="brand-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="brand-text d-none d-sm-block">
+                    <div class="brand-title">CRM</div>
+                    <div class="brand-subtitle">Task Management</div>
+                </div>
             </a>
             
-            <button class="navbar-toggler" type="button" 
+            <button class="navbar-toggler navbar-toggler-enhanced" type="button" 
                     data-bs-toggle="collapse" 
-                    data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
+                    data-bs-target="#navbarNav"
+                    aria-controls="navbarNav"
+                    aria-expanded="false"
+                    aria-label="Переключить навигацию">
+                <span class="navbar-toggler-icon navbar-toggler-icon-enhanced"></span>
             </button>
             
-            <div class="collapse navbar-collapse" id="navbarNav">
+            <div class="collapse navbar-collapse navbar-collapse-enhanced" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     {% if app.user %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_dashboard') }}">Панель</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_task_index') }}">
-                                <i class="fas fa-tasks me-1"></i>Задачи
+                            <a class="nav-link nav-link-enhanced" href="{{ path('app_dashboard') }}">
+                                <i class="fas fa-home"></i>
+                                <span>Панель</span>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_kanban_board') }}">
-                                <i class="fas fa-columns me-1"></i>Канбан
+                            <a class="nav-link nav-link-enhanced" href="{{ path('app_task_index') }}">
+                                <i class="fas fa-tasks"></i>
+                                <span>Задачи</span>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_calendar') }}">
-                                <i class="fas fa-calendar me-1"></i>Календарь
+                            <a class="nav-link nav-link-enhanced" href="{{ path('app_kanban_board') }}">
+                                <i class="fas fa-columns"></i>
+                                <span class="d-none d-lg-inline">Канбан</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link nav-link-enhanced" href="{{ path('app_calendar') }}">
+                                <i class="fas fa-calendar"></i>
+                                <span class="d-none d-lg-inline">Календарь</span>
                             </a>
                         </li>
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-briefcase me-1"></i>CRM
+                            <a class="nav-link nav-link-enhanced dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-briefcase"></i>
+                                <span>CRM</span>
                             </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{{ path('app_deals_index') }}">
-                                    <i class="fas fa-handshake me-2"></i>Сделки
+                            <ul class="dropdown-menu dropdown-menu-enhanced">
+                                <li><a class="dropdown-item dropdown-item-enhanced" href="{{ path('app_deals_index') }}">
+                                    <i class="fas fa-handshake"></i>Сделки
                                 </a></li>
-                                <li><a class="dropdown-item" href="{{ path('app_clients_index') }}">
-                                    <i class="fas fa-users me-2"></i>Клиенты
+                                <li><a class="dropdown-item dropdown-item-enhanced" href="{{ path('app_clients_index') }}">
+                                    <i class="fas fa-users"></i>Клиенты
                                 </a></li>
                             </ul>
                         </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-chart-line me-1"></i>Аналитика
+                        <li class="nav-item dropdown d-none d-xl-block">
+                            <a class="nav-link nav-link-enhanced dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-chart-line"></i>
+                                <span>Аналитика</span>
                             </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{{ path('app_analytics_dashboard') }}">
-                                    <i class="fas fa-chart-pie me-2"></i>Дашборд
+                            <ul class="dropdown-menu dropdown-menu-enhanced">
+                                <li><a class="dropdown-item dropdown-item-enhanced" href="{{ path('app_analytics_dashboard') }}">
+                                    <i class="fas fa-chart-pie"></i>Дашборд
                                 </a></li>
-                                <li><a class="dropdown-item" href="{{ path('app_advanced_analytics') }}">
-                                    <i class="fas fa-chart-area me-2"></i>Расширенная
+                                <li><a class="dropdown-item dropdown-item-enhanced" href="{{ path('app_advanced_analytics') }}">
+                                    <i class="fas fa-chart-area"></i>Расширенная
                                 </a></li>
-                                <li><a class="dropdown-item" href="{{ path('app_sales_analytics') }}">
-                                    <i class="fas fa-dollar-sign me-2"></i>Продажи
+                                <li><a class="dropdown-item dropdown-item-enhanced" href="{{ path('app_sales_analytics') }}">
+                                    <i class="fas fa-dollar-sign"></i>Продажи
                                 </a></li>
                             </ul>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-bullseye me-1"></i>Цели
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{{ path('app_goals_index') }}">
-                                    <i class="fas fa-flag me-2"></i>Мои цели
-                                </a></li>
-                                <li><a class="dropdown-item" href="{{ path('app_habits_index') }}">
-                                    <i class="fas fa-check-double me-2"></i>Привычки
-                                </a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_task_category_index') }}">
-                                <i class="fas fa-folder me-1"></i>Категории
-                            </a>
                         </li>
                         {% if app.user.hasRole('ROLE_ADMIN') %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ path('app_user_index') }}">Пользователи</a>
+                            <li class="nav-item d-none d-xl-block">
+                                <a class="nav-link nav-link-enhanced" href="{{ path('app_user_index') }}">
+                                    <i class="fas fa-users-cog"></i>
+                                    <span>Пользователи</span>
+                                </a>
                             </li>
                         {% endif %}
                     {% endif %}
                 </ul>
                 
                 {% if app.user %}
-                <ul class="navbar-nav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <!-- Quick Actions -->
+                    <li class="nav-item d-none d-lg-block me-2">
+                        <a class="quick-action-btn-enhanced" href="{{ path('app_task_new') }}" title="Новая задача">
+                            <i class="fas fa-plus"></i>
+                        </a>
+                    </li>
+                    
                     <!-- Notifications -->
                     <li class="nav-item dropdown me-2">
-                        <a class="nav-link position-relative" 
+                        <a class="quick-action-btn-enhanced position-relative" 
                            href="#" 
                            role="button" 
                            data-bs-toggle="dropdown"
-                           aria-expanded="false">
+                           aria-expanded="false"
+                           aria-label="Уведомления">
                             <i class="fas fa-bell"></i>
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
-                                3
-                            </span>
+                            <span class="notification-badge-enhanced">3</span>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end" style="min-width: 300px;">
+                        <ul class="dropdown-menu dropdown-menu-enhanced dropdown-menu-end" style="min-width: 300px;">
                             <li>
-                                <h6 class="dropdown-header">Уведомления</h6>
+                                <h6 class="dropdown-header dropdown-header-enhanced">
+                                    Уведомления
+                                </h6>
                             </li>
-                            <li><hr class="dropdown-divider"></li>
+                            <li><hr class="dropdown-divider dropdown-divider-enhanced"></li>
                             <li>
-                                <a class="dropdown-item" href="#">
-                                    <div class="d-flex">
-                                        <div class="flex-shrink-0">
-                                            <i class="fas fa-info-circle text-info"></i>
-                                        </div>
-                                        <div class="flex-grow-1 ms-3">
-                                            <div class="small">Новая задача назначена</div>
-                                            <div class="text-muted" style="font-size: 0.75rem;">5 минут назад</div>
-                                        </div>
+                                <a class="dropdown-item dropdown-item-enhanced" href="#">
+                                    <i class="fas fa-info-circle"></i>
+                                    <div>
+                                        <div class="fw-semibold">Новая задача назначена</div>
+                                        <small class="text-muted">5 минут назад</small>
                                     </div>
                                 </a>
                             </li>
-                            <li><hr class="dropdown-divider"></li>
+                            <li><hr class="dropdown-divider dropdown-divider-enhanced"></li>
                             <li>
-                                <a class="dropdown-item text-center small" href="{{ path('app_notification_index') }}">
+                                <a class="dropdown-item dropdown-item-enhanced text-center" href="{{ path('app_notification_index') }}">
                                     Все уведомления
                                 </a>
                             </li>
@@ -172,55 +180,59 @@
                     
                     <!-- User Dropdown -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle d-flex align-items-center" 
+                        <a class="nav-link p-0" 
                            href="#" 
                            role="button" 
                            data-bs-toggle="dropdown"
-                           aria-expanded="false">
-                            <div class="user-avatar-small me-2">
+                           aria-expanded="false"
+                           aria-label="Меню пользователя">
+                            <div class="user-avatar-enhanced">
                                 {{ app.user.firstName|first }}{{ app.user.lastName|first }}
                             </div>
-                            <span class="d-none d-md-inline">{{ app.user.fullName }}</span>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
+                        <ul class="dropdown-menu dropdown-menu-enhanced dropdown-menu-end">
                             <li>
-                                <div class="dropdown-header">
+                                <div class="dropdown-header dropdown-header-enhanced">
                                     <strong>{{ app.user.fullName }}</strong>
                                     <div class="small text-muted">{{ app.user.email }}</div>
                                 </div>
                             </li>
-                            <li><hr class="dropdown-divider"></li>
+                            <li><hr class="dropdown-divider dropdown-divider-enhanced"></li>
                             <li>
-                                <a class="dropdown-item" href="{{ path('app_profile_show') }}">
-                                    <i class="fas fa-user me-2"></i>Мой профиль
+                                <a class="dropdown-item dropdown-item-enhanced" href="{{ path('app_profile_show') }}">
+                                    <i class="fas fa-user"></i>Мой профиль
                                 </a>
                             </li>
                             <li>
-                                <a class="dropdown-item" href="{{ path('app_settings') }}">
-                                    <i class="fas fa-cog me-2"></i>Настройки
+                                <a class="dropdown-item dropdown-item-enhanced" href="{{ path('app_settings') }}">
+                                    <i class="fas fa-cog"></i>Настройки
                                 </a>
                             </li>
                             <li>
-                                <a class="dropdown-item" href="{{ path('app_2fa_setup') }}">
-                                    <i class="fas fa-shield-alt me-2"></i>Безопасность
+                                <a class="dropdown-item dropdown-item-enhanced" href="{{ path('app_2fa_setup') }}">
+                                    <i class="fas fa-shield-alt"></i>Безопасность
                                 </a>
                             </li>
-                            <li><hr class="dropdown-divider"></li>
+                            <li><hr class="dropdown-divider dropdown-divider-enhanced"></li>
                             <li>
-                                <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
-                                    <i class="fas fa-sign-out-alt me-2"></i>Выход
+                                <a class="dropdown-item dropdown-item-enhanced text-danger" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                                    <i class="fas fa-sign-out-alt"></i>Выход
                                 </a>
                             </li>
                         </ul>
                     </li>
                 </ul>
                 {% else %}
-                <ul class="navbar-nav">
+                <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_login') }}">Вход</a>
+                        <a class="nav-link nav-link-enhanced" href="{{ path('app_login') }}">
+                            <i class="fas fa-sign-in-alt"></i>Вход
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_register') }}">Регистрация</a>
+                        <a class="nav-link nav-link-enhanced" href="{{ path('app_register') }}">
+                            <i class="fas fa-user-plus"></i>Регистрация
+                        </a>
                     </li>
                 </ul>
                 {% endif %}
@@ -1202,40 +1214,116 @@
         });
     </script>
     
-    <!-- Footer -->
-    <footer class="bg-light text-center text-lg-start mt-5">
-        <div class="container p-4">
+    <!-- Enhanced Footer -->
+    <footer class="footer-enhanced">
+        <div class="container">
             <div class="row">
-                <div class="col-lg-6 col-md-12 mb-4 mb-md-0">
-                    <h5 class="text-uppercase">CRM система: Анализ продаж</h5>
-                    <p>
-                        Система управления продажами для ООО «Дальневосточный фермер»
+                <!-- Company Info -->
+                <div class="col-lg-4 col-md-6 footer-section">
+                    <h5 class="footer-title">
+                        <i class="fas fa-chart-line"></i>
+                        CRM Task Management
+                    </h5>
+                    <p class="footer-description">
+                        Современная система управления задачами и проектами для эффективной работы вашей команды. 
+                        Планируйте, отслеживайте и достигайте целей вместе.
                     </p>
+                    <div class="social-links">
+                        <a href="#" class="social-link" aria-label="Facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="social-link" aria-label="Twitter">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="social-link" aria-label="LinkedIn">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                        <a href="#" class="social-link" aria-label="GitHub">
+                            <i class="fab fa-github"></i>
+                        </a>
+                    </div>
                 </div>
                 
-                <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
-                    <h5 class="text-uppercase">Ссылки</h5>
-                    <ul class="list-unstyled mb-0">
-                        <li><a href="{{ path('app_dashboard') }}" class="text-dark">Панель управления</a></li>
-                        <li><a href="{{ path('app_about') }}" class="text-dark">О системе</a></li>
+                <!-- Quick Links -->
+                <div class="col-lg-2 col-md-6 footer-section">
+                    <h5 class="footer-title">
+                        <i class="fas fa-link"></i>
+                        Навигация
+                    </h5>
+                    <ul class="footer-links">
+                        <li><a href="{{ path('app_dashboard') }}" class="footer-link">
+                            <i class="fas fa-home"></i>Панель
+                        </a></li>
+                        <li><a href="{{ path('app_task_index') }}" class="footer-link">
+                            <i class="fas fa-tasks"></i>Задачи
+                        </a></li>
+                        <li><a href="{{ path('app_kanban_board') }}" class="footer-link">
+                            <i class="fas fa-columns"></i>Канбан
+                        </a></li>
+                        <li><a href="{{ path('app_calendar') }}" class="footer-link">
+                            <i class="fas fa-calendar"></i>Календарь
+                        </a></li>
+                    </ul>
+                </div>
+                
+                <!-- Analytics Links -->
+                <div class="col-lg-3 col-md-6 footer-section">
+                    <h5 class="footer-title">
+                        <i class="fas fa-chart-bar"></i>
+                        Аналитика
+                    </h5>
+                    <ul class="footer-links">
+                        <li><a href="{{ path('app_analytics_dashboard') }}" class="footer-link">
+                            <i class="fas fa-chart-pie"></i>Дашборд
+                        </a></li>
+                        <li><a href="{{ path('app_advanced_analytics') }}" class="footer-link">
+                            <i class="fas fa-chart-area"></i>Расширенная
+                        </a></li>
+                        <li><a href="{{ path('app_sales_analytics') }}" class="footer-link">
+                            <i class="fas fa-dollar-sign"></i>Продажи
+                        </a></li>
                         {% if app.user and app.user.hasRole('ROLE_ADMIN') %}
-                            <li><a href="{{ path('app_performance_index') }}" class="text-dark">Производительность</a></li>
+                        <li><a href="{{ path('app_performance_index') }}" class="footer-link">
+                            <i class="fas fa-tachometer-alt"></i>Производительность
+                        </a></li>
                         {% endif %}
                     </ul>
                 </div>
                 
-                <div class="col-lg-3 col-md-6 mb-4 mb-md-0">
-                    <h5 class="text-uppercase">Поддержка</h5>
-                    <ul class="list-unstyled mb-0">
-                        <li><a href="#" class="text-dark">Документация</a></li>
-                        <li><a href="#" class="text-dark">Техподдержка</a></li>
+                <!-- Support Links -->
+                <div class="col-lg-3 col-md-6 footer-section">
+                    <h5 class="footer-title">
+                        <i class="fas fa-life-ring"></i>
+                        Поддержка
+                    </h5>
+                    <ul class="footer-links">
+                        <li><a href="{{ path('app_about') }}" class="footer-link">
+                            <i class="fas fa-info-circle"></i>О системе
+                        </a></li>
+                        <li><a href="#" class="footer-link">
+                            <i class="fas fa-book"></i>Документация
+                        </a></li>
+                        <li><a href="#" class="footer-link">
+                            <i class="fas fa-headset"></i>Техподдержка
+                        </a></li>
+                        <li><a href="#" class="footer-link">
+                            <i class="fas fa-shield-alt"></i>Безопасность
+                        </a></li>
                     </ul>
                 </div>
             </div>
-        </div>
-        
-        <div class="text-center p-3 bg-dark text-white">
-            © {{ "now"|date("Y") }} ООО «Дальневосточный фермер». Все права защищены.
+            
+            <!-- Footer Bottom -->
+            <div class="footer-bottom">
+                <p class="footer-bottom-text">
+                    © {{ "now"|date("Y") }} CRM Task Management. Все права защищены.
+                </p>
+                <div class="footer-bottom-links">
+                    <a href="#" class="footer-bottom-link">Политика конфиденциальности</a>
+                    <a href="#" class="footer-bottom-link">Условия использования</a>
+                    <a href="#" class="footer-bottom-link">Лицензия</a>
+                </div>
+            </div>
         </div>
     </footer>
     

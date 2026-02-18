@@ -1,0 +1,727 @@
+/* ============================================
+   RESPONSIVE OPTIMIZATION
+   Улучшенный адаптивный дизайн для всех устройств
+   ============================================ */
+
+/* === BASE RESPONSIVE SETTINGS === */
+:root {
+    --container-padding: 1rem;
+    --card-padding: 1.5rem;
+    --button-height: 44px;
+    --input-height: 44px;
+}
+
+/* === CONTAINER IMPROVEMENTS === */
+.container-fluid {
+    padding-left: var(--container-padding);
+    padding-right: var(--container-padding);
+    max-width: 100%;
+}
+
+.container {
+    padding-left: var(--container-padding);
+    padding-right: var(--container-padding);
+}
+
+/* === RESPONSIVE TYPOGRAPHY === */
+html {
+    font-size: 16px;
+}
+
+h1, .h1 { font-size: clamp(1.5rem, 4vw, 2.5rem); }
+h2, .h2 { font-size: clamp(1.25rem, 3.5vw, 2rem); }
+h3, .h3 { font-size: clamp(1.1rem, 3vw, 1.75rem); }
+h4, .h4 { font-size: clamp(1rem, 2.5vw, 1.5rem); }
+h5, .h5 { font-size: clamp(0.95rem, 2vw, 1.25rem); }
+h6, .h6 { font-size: clamp(0.9rem, 1.5vw, 1rem); }
+
+/* === RESPONSIVE CARDS === */
+.card {
+    margin-bottom: 1rem;
+}
+
+.card-body {
+    padding: var(--card-padding);
+}
+
+.card-header {
+    padding: 1rem var(--card-padding);
+}
+
+/* === RESPONSIVE BUTTONS === */
+.btn {
+    min-height: var(--button-height);
+    padding: 0.625rem 1.25rem;
+    font-size: 1rem;
+}
+
+.btn-sm {
+    min-height: 38px;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+.btn-lg {
+    min-height: 52px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1.125rem;
+}
+
+/* === RESPONSIVE FORMS === */
+.form-control,
+.form-select {
+    min-height: var(--input-height);
+    font-size: 1rem;
+    padding: 0.75rem 1rem;
+}
+
+.form-label {
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+}
+
+/* === RESPONSIVE TABLES === */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 1rem;
+}
+
+.table {
+    min-width: 600px;
+}
+
+.table th,
+.table td {
+    padding: 0.75rem;
+    font-size: 0.95rem;
+    white-space: nowrap;
+}
+
+/* === RESPONSIVE MODALS === */
+.modal-dialog {
+    margin: 0.5rem;
+}
+
+.modal-content {
+    border-radius: 16px;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+/* === RESPONSIVE NAVIGATION === */
+.navbar {
+    padding: 0.75rem 0;
+}
+
+.navbar-brand {
+    font-size: clamp(1.1rem, 3vw, 1.5rem);
+}
+
+.nav-link {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.95rem;
+}
+
+/* === RESPONSIVE GRID === */
+.row {
+    margin-left: -0.5rem;
+    margin-right: -0.5rem;
+}
+
+[class*="col-"] {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+/* === RESPONSIVE UTILITIES === */
+.text-truncate-mobile {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.hide-mobile {
+    display: block;
+}
+
+.show-mobile {
+    display: none;
+}
+
+/* ============================================
+   TABLET (768px - 991px)
+   ============================================ */
+@media (max-width: 991.98px) {
+    :root {
+        --container-padding: 1rem;
+        --card-padding: 1.25rem;
+    }
+    
+    /* Navigation */
+    .navbar-collapse {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    
+    .navbar-nav {
+        gap: 0.5rem;
+    }
+    
+    .nav-link {
+        padding: 0.75rem 1rem !important;
+        border-radius: 8px;
+    }
+    
+    /* Dropdown menus */
+    .dropdown-menu {
+        border: none;
+        box-shadow: none;
+        padding-left: 1rem;
+    }
+    
+    /* Cards */
+    .card-body {
+        padding: 1.25rem;
+    }
+    
+    /* Tables */
+    .table th,
+    .table td {
+        padding: 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    /* Buttons */
+    .btn-group {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .btn-group > .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+        border-radius: 8px !important;
+    }
+    
+    /* Modals */
+    .modal-dialog {
+        max-width: calc(100% - 1rem);
+    }
+    
+    /* Hide desktop elements */
+    .hide-tablet {
+        display: none !important;
+    }
+    
+    .show-tablet {
+        display: block !important;
+    }
+}
+
+/* ============================================
+   MOBILE (576px - 767px)
+   ============================================ */
+@media (max-width: 767.98px) {
+    :root {
+        --container-padding: 0.75rem;
+        --card-padding: 1rem;
+        --button-height: 48px;
+        --input-height: 48px;
+    }
+    
+    html {
+        font-size: 15px;
+    }
+    
+    /* Container */
+    .container-fluid {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+    
+    /* Cards */
+    .card {
+        border-radius: 12px;
+        margin-bottom: 0.75rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .card-header {
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+    }
+    
+    /* Buttons */
+    .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .btn:last-child {
+        margin-bottom: 0;
+    }
+    
+    .btn-group-mobile {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    /* Forms */
+    .form-control,
+    .form-select {
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+    
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    /* Tables */
+    .table {
+        font-size: 0.85rem;
+    }
+    
+    .table th,
+    .table td {
+        padding: 0.5rem 0.25rem;
+    }
+    
+    /* Stack table cells */
+    .table-mobile-stack {
+        display: block;
+    }
+    
+    .table-mobile-stack thead {
+        display: none;
+    }
+    
+    .table-mobile-stack tbody,
+    .table-mobile-stack tr,
+    .table-mobile-stack td {
+        display: block;
+        width: 100%;
+    }
+    
+    .table-mobile-stack tr {
+        margin-bottom: 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 0.75rem;
+    }
+    
+    .table-mobile-stack td {
+        text-align: right;
+        padding: 0.5rem 0;
+        border: none;
+        position: relative;
+        padding-left: 50%;
+    }
+    
+    .table-mobile-stack td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 0;
+        width: 45%;
+        padding-right: 10px;
+        text-align: left;
+        font-weight: 600;
+    }
+    
+    /* Modals */
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+    
+    .modal-content {
+        border-radius: 12px;
+    }
+    
+    .modal-body {
+        padding: 1rem;
+    }
+    
+    /* Navigation */
+    .navbar-brand {
+        font-size: 1.1rem;
+    }
+    
+    /* Grid */
+    .row {
+        margin-left: -0.375rem;
+        margin-right: -0.375rem;
+    }
+    
+    [class*="col-"] {
+        padding-left: 0.375rem;
+        padding-right: 0.375rem;
+    }
+    
+    /* Force full width on mobile */
+    .col-mobile-12 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    
+    /* Hide desktop elements */
+    .hide-mobile {
+        display: none !important;
+    }
+    
+    .show-mobile {
+        display: block !important;
+    }
+    
+    /* Spacing adjustments */
+    .mb-mobile-2 { margin-bottom: 0.5rem !important; }
+    .mb-mobile-3 { margin-bottom: 1rem !important; }
+    .mb-mobile-4 { margin-bottom: 1.5rem !important; }
+    
+    .mt-mobile-2 { margin-top: 0.5rem !important; }
+    .mt-mobile-3 { margin-top: 1rem !important; }
+    .mt-mobile-4 { margin-top: 1.5rem !important; }
+    
+    /* Text alignment */
+    .text-mobile-center {
+        text-align: center !important;
+    }
+    
+    .text-mobile-left {
+        text-align: left !important;
+    }
+}
+
+/* ============================================
+   SMALL MOBILE (< 576px)
+   ============================================ */
+@media (max-width: 575.98px) {
+    :root {
+        --container-padding: 0.5rem;
+        --card-padding: 0.75rem;
+    }
+    
+    html {
+        font-size: 14px;
+    }
+    
+    /* Container */
+    .container-fluid,
+    .container {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+    
+    /* Cards */
+    .card-body {
+        padding: 0.75rem;
+    }
+    
+    .card-header {
+        padding: 0.625rem 0.75rem;
+        font-size: 0.95rem;
+    }
+    
+    /* Buttons */
+    .btn {
+        padding: 0.625rem 1rem;
+        font-size: 0.95rem;
+    }
+    
+    .btn-sm {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+    }
+    
+    /* Forms */
+    .form-control,
+    .form-select {
+        padding: 0.625rem 0.875rem;
+    }
+    
+    .form-label {
+        font-size: 0.9rem;
+    }
+    
+    /* Modals */
+    .modal-dialog {
+        margin: 0.25rem;
+    }
+    
+    .modal-body {
+        padding: 0.75rem;
+    }
+    
+    .modal-header,
+    .modal-footer {
+        padding: 0.75rem;
+    }
+    
+    /* Navigation */
+    .navbar {
+        padding: 0.5rem 0;
+    }
+    
+    .navbar-brand {
+        font-size: 1rem;
+    }
+    
+    .nav-link {
+        font-size: 0.9rem;
+    }
+    
+    /* Grid */
+    .row {
+        margin-left: -0.25rem;
+        margin-right: -0.25rem;
+    }
+    
+    [class*="col-"] {
+        padding-left: 0.25rem;
+        padding-right: 0.25rem;
+    }
+    
+    /* Stat cards */
+    .stat-number {
+        font-size: 1.75rem;
+    }
+    
+    .stat-label {
+        font-size: 0.8rem;
+    }
+    
+    /* Badges */
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.3em 0.6em;
+    }
+    
+    /* Dropdowns */
+    .dropdown-menu {
+        font-size: 0.9rem;
+        min-width: 200px;
+    }
+    
+    .dropdown-item {
+        padding: 0.5rem 0.75rem;
+    }
+}
+
+/* ============================================
+   LANDSCAPE MOBILE
+   ============================================ */
+@media (max-height: 500px) and (orientation: landscape) {
+    .navbar-collapse {
+        max-height: 250px;
+        overflow-y: auto;
+    }
+    
+    .modal-dialog {
+        max-height: 90vh;
+    }
+    
+    .modal-body {
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+}
+
+/* ============================================
+   LARGE SCREENS (> 1400px)
+   ============================================ */
+@media (min-width: 1400px) {
+    .container-fluid {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+    
+    .card-body {
+        padding: 2rem;
+    }
+}
+
+/* ============================================
+   TOUCH DEVICE OPTIMIZATIONS
+   ============================================ */
+@media (hover: none) and (pointer: coarse) {
+    /* Larger touch targets */
+    .btn,
+    .nav-link,
+    .dropdown-item,
+    a {
+        min-height: 44px;
+        min-width: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Remove hover effects */
+    .btn:hover,
+    .card:hover,
+    .nav-link:hover {
+        transform: none;
+    }
+    
+    /* Better spacing for touch */
+    .btn-group > .btn {
+        margin: 0.25rem;
+    }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+@media print {
+    .navbar,
+    .btn,
+    .dropdown,
+    .modal,
+    .toast,
+    .alert,
+    .fab,
+    .quick-action-btn {
+        display: none !important;
+    }
+    
+    .container-fluid {
+        max-width: 100%;
+        padding: 0;
+    }
+    
+    .card {
+        break-inside: avoid;
+        box-shadow: none;
+        border: 1px solid #dee2e6;
+        page-break-inside: avoid;
+    }
+    
+    .table {
+        font-size: 10pt;
+    }
+    
+    a[href]:after {
+        content: " (" attr(href) ")";
+    }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .btn {
+        border: 2px solid currentColor;
+    }
+    
+    .card {
+        border: 2px solid currentColor;
+    }
+    
+    .form-control,
+    .form-select {
+        border: 2px solid currentColor;
+    }
+}
+
+/* ============================================
+   DARK THEME RESPONSIVE
+   ============================================ */
+[data-theme='dark'] {
+    /* Mobile adjustments for dark theme */
+}
+
+@media (max-width: 767.98px) {
+    [data-theme='dark'] .navbar-collapse {
+        background: #2d3748;
+    }
+    
+    [data-theme='dark'] .card {
+        background: #2d3748;
+    }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+/* Responsive display */
+.d-mobile-none { display: block; }
+.d-mobile-block { display: none; }
+.d-mobile-flex { display: none; }
+
+@media (max-width: 767.98px) {
+    .d-mobile-none { display: none !important; }
+    .d-mobile-block { display: block !important; }
+    .d-mobile-flex { display: flex !important; }
+}
+
+/* Responsive text alignment */
+.text-mobile-center { text-align: inherit; }
+.text-mobile-left { text-align: inherit; }
+.text-mobile-right { text-align: inherit; }
+
+@media (max-width: 767.98px) {
+    .text-mobile-center { text-align: center !important; }
+    .text-mobile-left { text-align: left !important; }
+    .text-mobile-right { text-align: right !important; }
+}
+
+/* Responsive spacing */
+@media (max-width: 767.98px) {
+    .p-mobile-0 { padding: 0 !important; }
+    .p-mobile-1 { padding: 0.25rem !important; }
+    .p-mobile-2 { padding: 0.5rem !important; }
+    .p-mobile-3 { padding: 1rem !important; }
+    
+    .m-mobile-0 { margin: 0 !important; }
+    .m-mobile-1 { margin: 0.25rem !important; }
+    .m-mobile-2 { margin: 0.5rem !important; }
+    .m-mobile-3 { margin: 1rem !important; }
+}
+
+/* Responsive width */
+.w-mobile-100 { width: auto; }
+
+@media (max-width: 767.98px) {
+    .w-mobile-100 { width: 100% !important; }
+}
+
+/* Stack on mobile */
+.stack-mobile {
+    display: flex;
+}
+
+@media (max-width: 767.98px) {
+    .stack-mobile {
+        flex-direction: column;
+    }
+    
+    .stack-mobile > * {
+        width: 100% !important;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stack-mobile > *:last-child {
+        margin-bottom: 0;
+    }
+}

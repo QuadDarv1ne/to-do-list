@@ -2,125 +2,296 @@
 
 {% block title %}Расширенная аналитика{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="/css/analytics-enhanced.css">
+{% endblock %}
+
 {% block body %}
 <div class="container-fluid py-4">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="h3 mb-0">
-                <i class="fas fa-brain me-2"></i>
+    <!-- Hero Header -->
+    <div class="analytics-hero fade-in-up">
+        <div class="analytics-hero-content">
+            <h1>
+                <i class="fas fa-brain me-3"></i>
                 Расширенная аналитика и прогнозы
             </h1>
-            <p class="text-muted">Интеллектуальный анализ вашей продуктивности</p>
+            <p>Интеллектуальный анализ вашей продуктивности с персональными рекомендациями</p>
         </div>
     </div>
 
     <!-- Performance Insights -->
     {% if insights is not empty %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="alert alert-info">
-                <h5 class="alert-heading">
-                    <i class="fas fa-lightbulb me-2"></i>
-                    Персональные рекомендации
-                </h5>
-                {% for insight in insights %}
-                <div class="d-flex align-items-center mb-2">
-                    <i class="fas {{ insight.icon }} me-2"></i>
-                    <span>{{ insight.message }}</span>
+    <div class="insights-section fade-in-up">
+        <h4 class="mb-4">
+            <i class="fas fa-lightbulb me-2"></i>
+            Персональные рекомендации
+        </h4>
+        
+        <div class="row">
+            {% if insights.strengths is defined and insights.strengths|length > 0 %}
+            <div class="col-lg-4 mb-3">
+                <div class="insight-item">
+                    <div class="d-flex">
+                        <div class="insight-icon success">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="insight-content flex-grow-1">
+                            <h6>Сильные стороны</h6>
+                            <ul class="list-unstyled mb-0">
+                                {% for strength in insights.strengths %}
+                                <li class="mb-1"><i class="fas fa-check text-success me-2"></i>{{ strength }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
                 </div>
-                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if insights.areas_for_improvement is defined and insights.areas_for_improvement|length > 0 %}
+            <div class="col-lg-4 mb-3">
+                <div class="insight-item">
+                    <div class="d-flex">
+                        <div class="insight-icon info">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                        <div class="insight-content flex-grow-1">
+                            <h6>Области для улучшения</h6>
+                            <ul class="list-unstyled mb-0">
+                                {% for area in insights.areas_for_improvement %}
+                                <li class="mb-1"><i class="fas fa-lightbulb text-info me-2"></i>{{ area }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if insights.achievements is defined and insights.achievements|length > 0 %}
+            <div class="col-lg-4 mb-3">
+                <div class="insight-item">
+                    <div class="d-flex">
+                        <div class="insight-icon warning">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div class="insight-content flex-grow-1">
+                            <h6>Недавние достижения</h6>
+                            {% for achievement in insights.achievements|slice(0, 2) %}
+                            <div class="mb-2">
+                                <strong class="d-block">{{ achievement.title }}</strong>
+                                <small class="text-muted">{{ achievement.date|date('d.m.Y') }}</small>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if insights.overall_score is defined %}
+        <div class="mt-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong>Общая оценка производительности</strong>
+                <span class="badge bg-primary">{{ insights.overall_score }}%</span>
+            </div>
+            <div class="modern-progress">
+                <div class="modern-progress-bar" style="width: {{ insights.overall_score }}%"></div>
             </div>
         </div>
+        {% endif %}
     </div>
     {% endif %}
 
-    <!-- Burnout Risk Assessment -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="card h-100">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-fire me-2"></i>
+    <!-- Burnout Risk & Patterns -->
+    <div class="row mb-4 stagger-animation">
+        <div class="col-lg-6 mb-4">
+            <div class="analytics-card">
+                <div class="analytics-card-header">
+                    <h5 class="analytics-card-title">
+                        <i class="fas fa-fire"></i>
                         Оценка риска выгорания
                     </h5>
                 </div>
-                <div class="card-body">
-                    <div class="text-center mb-4">
-                        <div class="display-1 mb-2 
-                            {% if burnout.risk_level == 'high' %}text-danger
-                            {% elseif burnout.risk_level == 'medium' %}text-warning
-                            {% else %}text-success{% endif %}">
-                            {{ burnout.risk_score }}
+                <div class="analytics-card-body">
+                    <div class="burnout-gauge">
+                        <div class="gauge-circle">
+                            <div class="gauge-inner">
+                                <div class="gauge-value 
+                                    {% if burnout.risk_level == 'high' %}text-danger
+                                    {% elseif burnout.risk_level == 'medium' %}text-warning
+                                    {% else %}text-success{% endif %}">
+                                    {{ burnout.risk_score }}
+                                </div>
+                                <div class="gauge-label">
+                                    {% if burnout.risk_level == 'high' %}Высокий риск
+                                    {% elseif burnout.risk_level == 'medium' %}Средний риск
+                                    {% else %}Низкий риск{% endif %}
+                                </div>
+                            </div>
                         </div>
-                        <h4 class="
-                            {% if burnout.risk_level == 'high' %}text-danger
-                            {% elseif burnout.risk_level == 'medium' %}text-warning
-                            {% else %}text-success{% endif %}">
-                            {% if burnout.risk_level == 'high' %}Высокий риск
-                            {% elseif burnout.risk_level == 'medium' %}Средний риск
-                            {% else %}Низкий риск{% endif %}
-                        </h4>
                     </div>
 
-                    {% if burnout.risk_factors is not empty %}
-                    <h6>Факторы риска:</h6>
-                    <ul class="list-unstyled">
-                        {% for factor in burnout.risk_factors %}
-                        <li><i class="fas fa-exclamation-circle text-warning me-2"></i>{{ factor }}</li>
-                        {% endfor %}
-                    </ul>
+                    {% if burnout.factors is defined and burnout.factors is not empty %}
+                    <div class="row g-3 mt-3">
+                        <div class="col-6">
+                            <div class="factor-card">
+                                <i class="fas fa-briefcase factor-icon text-info"></i>
+                                <div class="factor-label">Нагрузка</div>
+                                <div class="factor-value">{{ burnout.factors.workload }}%</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="factor-card">
+                                <i class="fas fa-clock factor-icon text-warning"></i>
+                                <div class="factor-label">Переработки</div>
+                                <div class="factor-value">{{ burnout.factors.overtime_hours }}ч</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="factor-card">
+                                <i class="fas fa-brain factor-icon text-danger"></i>
+                                <div class="factor-label">Сложность</div>
+                                <div class="factor-value">{{ burnout.factors.task_complexity }}/10</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="factor-card">
+                                <i class="fas fa-balance-scale factor-icon text-success"></i>
+                                <div class="factor-label">Баланс</div>
+                                <div class="factor-value">{{ burnout.factors.work_life_balance }}%</div>
+                            </div>
+                        </div>
+                    </div>
                     {% endif %}
 
                     {% if burnout.recommendations is not empty %}
-                    <h6 class="mt-3">Рекомендации:</h6>
-                    <ul>
-                        {% for recommendation in burnout.recommendations %}
-                        <li>{{ recommendation }}</li>
-                        {% endfor %}
-                    </ul>
+                    <div class="mt-4">
+                        <h6 class="mb-3"><i class="fas fa-lightbulb me-2"></i>Рекомендации:</h6>
+                        <ul class="list-unstyled">
+                            {% for recommendation in burnout.recommendations %}
+                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i>{{ recommendation }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
                     {% endif %}
                 </div>
             </div>
         </div>
 
         <!-- Task Patterns -->
-        <div class="col-md-6">
-            <div class="card h-100">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-chart-pie me-2"></i>
+        <div class="col-lg-6 mb-4">
+            <div class="analytics-card">
+                <div class="analytics-card-header">
+                    <h5 class="analytics-card-title">
+                        <i class="fas fa-chart-pie"></i>
                         Паттерны работы
                     </h5>
                 </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <strong>Самый продуктивный день:</strong>
-                        <span class="badge bg-primary ms-2">{{ patterns.most_productive_day }}</span>
+                <div class="analytics-card-body">
+                    <div class="pattern-item">
+                        <div class="pattern-label">
+                            <i class="fas fa-sun text-warning"></i>
+                            Самое продуктивное время
+                        </div>
+                        <div class="pattern-value">
+                            {{ patterns.most_productive_time.day_of_week }}, {{ patterns.most_productive_time.hour }}:00
+                            <span class="badge bg-success ms-2">{{ patterns.most_productive_time.productivity_score }}%</span>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <strong>Наиболее частый приоритет:</strong>
-                        <span class="badge bg-info ms-2">{{ patterns.most_common_priority }}</span>
+
+                    <div class="pattern-item">
+                        <div class="pattern-label">
+                            <i class="fas fa-moon text-info"></i>
+                            Наименее продуктивное время
+                        </div>
+                        <div class="pattern-value">
+                            {{ patterns.least_productive_time.day_of_week }}, {{ patterns.least_productive_time.hour }}:00
+                            <span class="badge bg-secondary ms-2">{{ patterns.least_productive_time.productivity_score }}%</span>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <strong>Среднее задач в неделю:</strong>
-                        <span class="badge bg-secondary ms-2">{{ patterns.avg_tasks_per_week }}</span>
+
+                    <div class="mt-4">
+                        <h6 class="mb-3"><i class="fas fa-clock me-2"></i>Распределение по времени суток</h6>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span><i class="fas fa-sunrise text-info me-2"></i>Утро</span>
+                                <strong>{{ patterns.task_distribution.morning }}%</strong>
+                            </div>
+                            <div class="modern-progress">
+                                <div class="modern-progress-bar" style="width: {{ patterns.task_distribution.morning }}%; background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span><i class="fas fa-sun text-warning me-2"></i>День</span>
+                                <strong>{{ patterns.task_distribution.afternoon }}%</strong>
+                            </div>
+                            <div class="modern-progress">
+                                <div class="modern-progress-bar" style="width: {{ patterns.task_distribution.afternoon }}%; background: linear-gradient(90deg, #fa709a 0%, #fee140 100%);"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span><i class="fas fa-moon text-primary me-2"></i>Вечер</span>
+                                <strong>{{ patterns.task_distribution.evening }}%</strong>
+                            </div>
+                            <div class="modern-progress">
+                                <div class="modern-progress-bar" style="width: {{ patterns.task_distribution.evening }}%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);"></div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <strong>Всего задач:</strong>
-                        <span class="badge bg-dark ms-2">{{ patterns.total_tasks }}</span>
+
+                    <div class="mt-4">
+                        <h6 class="mb-3"><i class="fas fa-tasks me-2"></i>Паттерны завершения</h6>
+                        <div class="row g-2">
+                            <div class="col-4">
+                                <div class="text-center p-2 bg-light rounded">
+                                    <i class="fas fa-bolt text-warning d-block mb-1"></i>
+                                    <strong class="d-block">{{ patterns.completion_patterns.quick_wins }}%</strong>
+                                    <small class="text-muted">&lt;1 день</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-center p-2 bg-light rounded">
+                                    <i class="fas fa-tasks text-info d-block mb-1"></i>
+                                    <strong class="d-block">{{ patterns.completion_patterns.standard }}%</strong>
+                                    <small class="text-muted">1-3 дня</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-center p-2 bg-light rounded">
+                                    <i class="fas fa-project-diagram text-primary d-block mb-1"></i>
+                                    <strong class="d-block">{{ patterns.completion_patterns.complex }}%</strong>
+                                    <small class="text-muted">&gt;3 дней</small>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <strong>Общий процент завершения:</strong>
-                        <div class="progress mt-2" style="height: 25px;">
-                            <div class="progress-bar 
-                                {% if patterns.completion_rate >= 80 %}bg-success
-                                {% elseif patterns.completion_rate >= 60 %}bg-info
-                                {% elseif patterns.completion_rate >= 40 %}bg-warning
-                                {% else %}bg-danger{% endif %}" 
-                                role="progressbar" 
-                                style="width: {{ patterns.completion_rate }}%">
-                                {{ patterns.completion_rate }}%
+
+                    <div class="mt-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <strong><i class="fas fa-hourglass-half me-2"></i>Уровень прокрастинации</strong>
+                            <span class="badge 
+                                {% if patterns.procrastination_score < 20 %}bg-success
+                                {% elseif patterns.procrastination_score < 40 %}bg-info
+                                {% else %}bg-warning{% endif %}">
+                                {{ patterns.procrastination_score }}%
+                            </span>
+                        </div>
+                        <div class="modern-progress">
+                            <div class="modern-progress-bar 
+                                {% if patterns.procrastination_score < 20 %}
+                                    style="width: {{ patterns.procrastination_score }}%; background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);"
+                                {% elseif patterns.procrastination_score < 40 %}
+                                    style="width: {{ patterns.procrastination_score }}%; background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);"
+                                {% else %}
+                                    style="width: {{ patterns.procrastination_score }}%; background: linear-gradient(90deg, #fa709a 0%, #fee140 100%);"
+                                {% endif %}">
                             </div>
                         </div>
                     </div>
@@ -141,43 +312,56 @@
                 </div>
                 <div class="card-body">
                     <div class="row text-center">
-                        <div class="col-md-3">
-                            <h6>Прогноз</h6>
-                            <div class="display-4 text-primary">{{ predictions.predicted_days }}</div>
+                        <div class="col-md-4">
+                            <h6>Среднее время выполнения</h6>
+                            <div class="display-4 text-primary">{{ predictions.average_completion_days }}</div>
                             <small class="text-muted">дней</small>
                         </div>
-                        <div class="col-md-3">
-                            <h6>Минимум</h6>
-                            <div class="display-4 text-success">{{ predictions.min_days }}</div>
-                            <small class="text-muted">дней</small>
+                        <div class="col-md-4">
+                            <h6>Прогнозируемая дата</h6>
+                            <div class="display-6 text-info">{{ predictions.predicted_completion_date|date('d.m.Y') }}</div>
+                            <small class="text-muted">завершения</small>
                         </div>
-                        <div class="col-md-3">
-                            <h6>Максимум</h6>
-                            <div class="display-4 text-danger">{{ predictions.max_days }}</div>
-                            <small class="text-muted">дней</small>
-                        </div>
-                        <div class="col-md-3">
-                            <h6>Уверенность</h6>
+                        <div class="col-md-4">
+                            <h6>Уверенность прогноза</h6>
                             <div class="display-4">
-                                {% if predictions.confidence == 'high' %}
+                                {% if predictions.confidence >= 80 %}
                                     <i class="fas fa-check-circle text-success"></i>
-                                {% elseif predictions.confidence == 'medium' %}
+                                {% elseif predictions.confidence >= 60 %}
                                     <i class="fas fa-minus-circle text-warning"></i>
                                 {% else %}
                                     <i class="fas fa-question-circle text-secondary"></i>
                                 {% endif %}
                             </div>
-                            <small class="text-muted">
-                                {% if predictions.confidence == 'high' %}Высокая
-                                {% elseif predictions.confidence == 'medium' %}Средняя
-                                {% else %}Низкая{% endif %}
-                            </small>
+                            <small class="text-muted">{{ predictions.confidence }}%</small>
                         </div>
                     </div>
-                    <div class="text-center mt-3">
-                        <small class="text-muted">
-                            На основе {{ predictions.sample_size }} завершенных задач
-                        </small>
+                    
+                    <div class="mt-4 pt-3 border-top">
+                        <h6 class="mb-3">Факторы, влияющие на прогноз:</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="text-center p-3 bg-light rounded">
+                                    <i class="fas fa-layer-group fa-2x text-primary mb-2"></i>
+                                    <div class="fw-bold">Сложность задач</div>
+                                    <div class="text-muted">{{ predictions.factors.task_complexity }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center p-3 bg-light rounded">
+                                    <i class="fas fa-tachometer-alt fa-2x text-success mb-2"></i>
+                                    <div class="fw-bold">Скорость работы</div>
+                                    <div class="text-muted">{{ predictions.factors.user_velocity }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center p-3 bg-light rounded">
+                                    <i class="fas fa-tasks fa-2x text-info mb-2"></i>
+                                    <div class="fw-bold">Текущая нагрузка</div>
+                                    <div class="text-muted">{{ predictions.factors.current_workload }}</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -199,29 +383,33 @@
                     
                     <div class="row mt-4 text-center">
                         <div class="col-md-4">
-                            <h6>Тренд</h6>
-                            <span class="badge 
-                                {% if trends.trend == 'improving' %}bg-success
-                                {% elseif trends.trend == 'declining' %}bg-danger
-                                {% else %}bg-secondary{% endif %} fs-5">
-                                {% if trends.trend == 'improving' %}
-                                    <i class="fas fa-arrow-up me-1"></i>Растет
-                                {% elseif trends.trend == 'declining' %}
-                                    <i class="fas fa-arrow-down me-1"></i>Снижается
-                                {% else %}
-                                    <i class="fas fa-minus me-1"></i>Стабильно
-                                {% endif %}
-                            </span>
+                            <h6>Средняя продуктивность</h6>
+                            <div class="fs-4">
+                                {% set total_productivity = 0 %}
+                                {% for trend in trends %}
+                                    {% set total_productivity = total_productivity + trend.productivity_score %}
+                                {% endfor %}
+                                {{ (total_productivity / trends|length)|round }}%
+                            </div>
                         </div>
                         <div class="col-md-4">
-                            <h6>Средний процент</h6>
-                            <div class="fs-4">{{ trends.average_completion_rate }}%</div>
+                            <h6>Завершено задач</h6>
+                            <div class="fs-4">
+                                {% set total_tasks = 0 %}
+                                {% for trend in trends %}
+                                    {% set total_tasks = total_tasks + trend.tasks_completed %}
+                                {% endfor %}
+                                {{ total_tasks }}
+                            </div>
                         </div>
                         <div class="col-md-4">
-                            <h6>Лучшая неделя</h6>
-                            <div class="fs-6">
-                                {{ trends.best_week.week|date('d.m.Y') }}<br>
-                                <span class="text-success">{{ trends.best_week.completion_rate }}%</span>
+                            <h6>Среднее время выполнения</h6>
+                            <div class="fs-4">
+                                {% set total_time = 0 %}
+                                {% for trend in trends %}
+                                    {% set total_time = total_time + trend.average_completion_time %}
+                                {% endfor %}
+                                {{ (total_time / trends|length)|round(1) }} дней
                             </div>
                         </div>
                     </div>
@@ -260,24 +448,24 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Trends Chart
-    const trendsData = {{ trends.weekly_data|json_encode|raw }};
+    const trendsData = {{ trends|json_encode|raw }};
     
     new Chart(document.getElementById('trendsChart'), {
         type: 'line',
         data: {
-            labels: trendsData.map(d => new Date(d.week).toLocaleDateString('ru-RU', {month: 'short', day: 'numeric'})),
+            labels: trendsData.map(d => d.month),
             datasets: [
                 {
-                    label: 'Процент завершения',
-                    data: trendsData.map(d => d.completion_rate),
+                    label: 'Продуктивность (%)',
+                    data: trendsData.map(d => d.productivity_score),
                     borderColor: '#007bff',
                     backgroundColor: 'rgba(0, 123, 255, 0.1)',
                     tension: 0.4,
                     fill: true
                 },
                 {
-                    label: 'Всего задач',
-                    data: trendsData.map(d => d.total),
+                    label: 'Завершено задач',
+                    data: trendsData.map(d => d.tasks_completed),
                     borderColor: '#28a745',
                     backgroundColor: 'rgba(40, 167, 69, 0.1)',
                     tension: 0.4,
@@ -299,8 +487,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     position: 'left',
                     title: {
                         display: true,
-                        text: 'Процент завершения (%)'
-                    }
+                        text: 'Продуктивность (%)'
+                    },
+                    min: 0,
+                    max: 100
                 },
                 y1: {
                     type: 'linear',
