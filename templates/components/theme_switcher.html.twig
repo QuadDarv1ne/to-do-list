@@ -14,19 +14,29 @@
     </button>
 
     <div class="theme-dropdown">
-        <div class="theme-option" data-theme-value="light" data-action="click->theme-switcher#setLight">
+        <div class="theme-option" data-theme-value="light" data-action="click->theme-switcher#setTheme">
             <i class="fas fa-sun"></i>
             <span>Светлая</span>
             <i class="fas fa-check theme-check"></i>
         </div>
-        <div class="theme-option" data-theme-value="dark" data-action="click->theme-switcher#setDark">
+        <div class="theme-option" data-theme-value="dark" data-action="click->theme-switcher#setTheme">
             <i class="fas fa-moon"></i>
             <span>Тёмная</span>
             <i class="fas fa-check theme-check"></i>
         </div>
-        <div class="theme-option" data-theme-value="system" data-action="click->theme-switcher#setSystem">
-            <i class="fas fa-desktop"></i>
-            <span>Системная</span>
+        <div class="theme-option" data-theme-value="orange" data-action="click->theme-switcher#setTheme">
+            <i class="fas fa-fire"></i>
+            <span>Оранжевая</span>
+            <i class="fas fa-check theme-check"></i>
+        </div>
+        <div class="theme-option" data-theme-value="purple" data-action="click->theme-switcher#setTheme">
+            <i class="fas fa-star"></i>
+            <span>Фиолетовая</span>
+            <i class="fas fa-check theme-check"></i>
+        </div>
+        <div class="theme-option" data-theme-value="custom" data-action="click->theme-switcher#setTheme">
+            <i class="fas fa-palette"></i>
+            <span>Настраиваемая</span>
             <i class="fas fa-check theme-check"></i>
         </div>
     </div>
@@ -172,12 +182,12 @@
                 }
             });
 
-            // Отслеживание системной темы
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-                if (this.currentTheme === 'system') {
-                    this.applyTheme('system');
-                }
-            });
+            // Отслеживание системной темы - удалено, так как используем только 5 явных тем
+            // window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            //     if (this.currentTheme === 'system') {
+            //         this.applyTheme('system');
+            //     }
+            // });
         }
 
         toggle() {
@@ -190,22 +200,9 @@
             wrapper.classList.remove('show-dropdown');
         }
 
-        setLight(e) {
+        setTheme(e) {
             e.stopPropagation();
-            this.setTheme('light');
-        }
-
-        setDark(e) {
-            e.stopPropagation();
-            this.setTheme('dark');
-        }
-
-        setSystem(e) {
-            e.stopPropagation();
-            this.setTheme('system');
-        }
-
-        setTheme(theme) {
+            const theme = e.currentTarget.getAttribute('data-theme-value');
             this.currentTheme = theme;
             localStorage.setItem('theme', theme);
             this.applyTheme(theme);
@@ -217,27 +214,27 @@
         }
 
         applyTheme(theme) {
-            let effectiveTheme = theme;
+            // Применяем тему напрямую
+            document.documentElement.setAttribute('data-theme', theme);
             
-            if (theme === 'system') {
-                effectiveTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-            }
-
-            document.documentElement.setAttribute('data-theme', effectiveTheme);
+            // Обновляем цвета body в зависимости от темы
+            const themeColors = {
+                'light': { bg: '#f9fafb', color: '#1f2937' },
+                'dark': { bg: '#0f172a', color: '#f9fafb' },
+                'orange': { bg: '#fff7ed', color: '#1c1917' },
+                'purple': { bg: '#faf5ff', color: '#1e1b4b' },
+                'custom': { bg: '#f9fafb', color: '#1f2937' }
+            };
             
-            if (effectiveTheme === 'dark') {
-                document.body.style.backgroundColor = '#0f172a';
-                document.body.style.color = '#e2e8f0';
-            } else {
-                document.body.style.backgroundColor = '#f5f6fa';
-                document.body.style.color = '#333';
-            }
+            const colors = themeColors[theme] || themeColors['light'];
+            document.body.style.backgroundColor = colors.bg;
+            document.body.style.color = colors.color;
 
             this.updateActiveOption();
         }
 
         getSavedTheme() {
-            return localStorage.getItem('theme') || 'system';
+            return localStorage.getItem('theme') || 'light';
         }
 
         updateActiveOption() {
