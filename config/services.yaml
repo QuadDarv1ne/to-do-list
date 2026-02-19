@@ -8,6 +8,7 @@ services:
         autoconfigure: true
         bind:
             $projectDir: '%kernel.project_dir%'
+            $kernelProjectDir: '%kernel.project_dir%'
             $uploadsDirectory: '%uploads_directory%'
             $environment: '%kernel.environment%'
 

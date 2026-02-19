@@ -2,8 +2,11 @@
 
 namespace App\Controller;
 
-use App\Repository\UserRepository;
+use App\Entity\Resource;
+use App\Entity\Task;
+use App\Repository\ResourceRepository;
 use App\Repository\TaskRepository;
+use App\Service\ResourceManagementService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -11,34 +14,34 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
-use App\Entity\User;
+use Doctrine\ORM\EntityManagerInterface;
 
 #[Route('/resource')]
 class ResourceController extends AbstractController
 {
     public function __construct(
-        private UserRepository $userRepository,
-        private TaskRepository $taskRepository
+        private ResourceManagementService $resourceManagementService,
+        private ResourceRepository $resourceRepository,
+        private TaskRepository $taskRepository,
+        private EntityManagerInterface $entityManager
     ) {
     }
 
     #[Route('', name: 'app_resource_index', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
-    public function index(#[CurrentUser] User $user, Request $request): Response
+    public function index(#[CurrentUser] $user, Request $request): Response
     {
         // Добавляем пагинацию
         $page = max(1, $request->query->getInt('page', 1));
         $limit = 50;
         
-        $qb = $this->userRepository->createQueryBuilder('u')
-            ->where('u.isActive = :active')
-            ->setParameter('active', true)
-            ->orderBy('u.fullName', 'ASC')
+        $qb = $this->resourceRepository->createQueryBuilder('r')
+            ->orderBy('r.name', 'ASC')
             ->setFirstResult(($page - 1) * $limit)
             ->setMaxResults($limit);
         
         $resources = $qb->getQuery()->getResult();
-        $total = $this->userRepository->count(['isActive' => true]);
+        $total = $this->resourceRepository->count([]);
         
         return $this->render('resource/index.html.twig', [
             'resources' => $resources,
@@ -48,35 +51,94 @@ class ResourceController extends AbstractController
         ]);
     }
 
+    #[Route('/create', name: 'app_resource_create', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function create(Request $request): Response
+    {
+        if ($request->isMethod('POST')) {
+            $data = json_decode($request->getContent(), true);
+            
+            $resource = $this->resourceManagementService->createResource([
+                'name' => $data['name'],
+                'email' => $data['email'] ?? null,
+                'description' => $data['description'] ?? null,
+                'hourly_rate' => $data['hourly_rate'] ?? '0.00',
+                'capacity_per_week' => $data['capacity_per_week'] ?? 40,
+                'status' => $data['status'] ?? 'available',
+                'skills' => $data['skills'] ?? []
+            ]);
+            
+            return $this->redirectToRoute('app_resource_index');
+        }
+
+        return $this->render('resource/create.html.twig');
+    }
+
+    #[Route('/{id}', name: 'app_resource_show', methods: ['GET'], requirements: ['id' => '\d+'])]
+    #[IsGranted('ROLE_USER')]
+    public function show(Resource $resource): Response
+    {
+        return $this->render('resource/show.html.twig', [
+            'resource' => $resource,
+        ]);
+    }
+
+    #[Route('/{id}/edit', name: 'app_resource_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function edit(Request $request, Resource $resource): Response
+    {
+        if ($request->isMethod('POST')) {
+            $data = json_decode($request->getContent(), true);
+            
+            $this->resourceManagementService->updateResource($resource, [
+                'name' => $data['name'] ?? $resource->getName(),
+                'email' => $data['email'] ?? $resource->getEmail(),
+                'description' => $data['description'] ?? $resource->getDescription(),
+                'hourly_rate' => $data['hourly_rate'] ?? $resource->getHourlyRate(),
+                'capacity_per_week' => $data['capacity_per_week'] ?? $resource->getCapacityPerWeek(),
+                'status' => $data['status'] ?? $resource->getStatus()
+            ]);
+            
+            return $this->redirectToRoute('app_resource_show', ['id' => $resource->getId()]);
+        }
+
+        return $this->render('resource/edit.html.twig', [
+            'resource' => $resource,
+        ]);
+    }
+
+    #[Route('/{id}/delete', name: 'app_resource_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function delete(Request $request, Resource $resource): Response
+    {
+        if ($this->isCsrfTokenValid('delete'.$resource->getId(), $request->request->get('_token'))) {
+            $this->resourceManagementService->deleteResource($resource);
+        }
+
+        return $this->redirectToRoute('app_resource_index');
+    }
+
     #[Route('/availability', name: 'app_resource_availability', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
-    public function getAvailability(): JsonResponse
+    public function getAvailability(Request $request): JsonResponse
     {
-        // Оптимизация: загружаем пользователей с количеством задач одним запросом
-        $qb = $this->userRepository->createQueryBuilder('u')
-            ->select('u.id, u.fullName, u.email, u.roles, COUNT(t.id) as taskCount')
-            ->leftJoin('u.assignedTasks', 't')
-            ->where('u.isActive = :active')
-            ->setParameter('active', true)
-            ->groupBy('u.id')
-            ->setMaxResults(100);
+        $from = new \DateTime($request->query->get('from', 'today'));
+        $to = new \DateTime($request->query->get('to', '+1 month'));
         
-        $results = $qb->getQuery()->getResult();
+        $resources = $this->resourceRepository->findAll();
         $availabilityData = [];
 
-        foreach ($results as $result) {
-            $capacity = 40;
-            $taskCount = $result['taskCount'] ?? 0;
-            $utilization = $taskCount > 0 ? min(100, ($taskCount * 8 / $capacity) * 100) : 0;
-
+        foreach ($resources as $resource) {
+            $availability = $this->resourceManagementService->getResourceAvailability($resource, $from, $to);
+            
             $availabilityData[] = [
-                'id' => $result['id'],
-                'name' => $result['fullName'],
-                'email' => $result['email'],
-                'role' => is_array($result['roles']) ? ($result['roles'][0] ?? 'USER') : 'USER',
-                'capacity' => $capacity,
-                'utilization' => round($utilization, 2),
-                'available' => $utilization < 80
+                'id' => $resource->getId(),
+                'name' => $resource->getName(),
+                'email' => $resource->getEmail(),
+                'capacity' => $resource->getCapacityPerWeek(),
+                'utilization' => $availability['utilization_percentage'],
+                'available' => $availability['status'] === 'available' || $availability['status'] === 'underutilized',
+                'status' => $availability['status']
             ];
         }
 
@@ -87,103 +149,65 @@ class ResourceController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function getResourceWorkload(int $id): JsonResponse
     {
-        // Оптимизированный запрос с предзагрузкой задач
-        $resource = $this->userRepository->createQueryBuilder('u')
-            ->select('u, t')
-            ->leftJoin('u.assignedTasks', 't')
-            ->where('u.id = :id')
-            ->setParameter('id', $id)
-            ->getQuery()
-            ->getOneOrNullResult();
+        $resource = $this->resourceRepository->find($id);
         
         if (!$resource) {
             return $this->json(['error' => 'Resource not found'], 404);
         }
 
-        $assignedTasks = $resource->getAssignedTasks(); // Уже загружены через JOIN
-        $workloadData = [
-            'id' => $resource->getId(),
-            'name' => $resource->getFullName(),
-            'email' => $resource->getEmail(),
-            'tasks_count' => count($assignedTasks),
-            'tasks' => [],
-        ];
-
-        foreach ($assignedTasks as $task) {
-            $workloadData['tasks'][] = [
-                'id' => $task->getId(),
-                'title' => $task->getTitle(),
-                'priority' => $task->getPriority(),
-                'status' => $task->getStatus(),
-                'dueDate' => $task->getDueDate()?->format('Y-m-d') ?? null,
-                'totalTimeSpent' => $task->getTotalTimeSpent(),
-            ];
-        }
+        $from = new \DateTime('-1 week');
+        $to = new \DateTime('+1 month');
+        
+        $workloadData = $this->resourceManagementService->getResourceWorkload($resource, $from, $to);
 
         return $this->json($workloadData);
     }
 
     #[Route('/allocation', name: 'app_resource_allocation', methods: ['POST'])]
-    #[IsGranted('ROLE_ADMIN')]
+    #[IsGranted('ROLE_MANAGER')]
     public function allocateResource(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
         
         $taskId = $data['task_id'] ?? null;
         $resourceId = $data['resource_id'] ?? null;
+        $hours = $data['hours'] ?? 1;
+        $dateStr = $data['date'] ?? 'today';
         
         if (!$taskId || !$resourceId) {
             return $this->json(['error' => 'Task ID and Resource ID are required'], 400);
         }
 
         $task = $this->taskRepository->find($taskId);
-        $resource = $this->userRepository->find($resourceId);
+        $resource = $this->resourceRepository->find($resourceId);
         
         if (!$task || !$resource) {
             return $this->json(['error' => 'Task or Resource not found'], 404);
         }
 
-        // Assign the task to the resource
-        $task->setAssignedUser($resource);
-        
-        // Here you would typically persist the changes to the database
-        // $this->entityManager->flush();
-        
-        return $this->json([
-            'success' => true,
-            'message' => 'Resource allocated successfully',
-            'task_id' => $taskId,
-            'resource_id' => $resourceId
-        ]);
+        try {
+            $allocation = $this->resourceManagementService->allocateResource($task, $resource, $hours, new \DateTime($dateStr));
+            
+            return $this->json([
+                'success' => true,
+                'message' => 'Resource allocated successfully',
+                'allocation_id' => $allocation->getId(),
+                'task_id' => $taskId,
+                'resource_id' => $resourceId
+            ]);
+        } catch (\Exception $e) {
+            return $this->json(['error' => 'Failed to allocate resource: ' . $e->getMessage()], 500);
+        }
     }
 
     #[Route('/forecast', name: 'app_resource_forecast', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
     public function forecast(): JsonResponse
     {
-        // Оптимизация: загружаем данные одним запросом с JOIN
-        $qb = $this->userRepository->createQueryBuilder('u')
-            ->select('u.id, u.fullName, u.email, SUM(t.estimatedHours) as totalHours, COUNT(t.id) as taskCount')
-            ->leftJoin('u.assignedTasks', 't', 'WITH', 't.status != :completed AND t.dueDate >= :now')
-            ->where('u.isActive = :active')
-            ->setParameter('active', true)
-            ->setParameter('completed', 'completed')
-            ->setParameter('now', new \DateTime())
-            ->groupBy('u.id')
-            ->setMaxResults(100);
+        $resources = $this->resourceRepository->findAll();
+        $resourceIds = array_map(fn($r) => $r->getId(), $resources);
         
-        $results = $qb->getQuery()->getResult();
-        $forecastData = [];
-
-        foreach ($results as $result) {
-            $forecastData[] = [
-                'id' => $result['id'],
-                'name' => $result['fullName'],
-                'email' => $result['email'],
-                'total_upcoming_hours' => (float)($result['totalHours'] ?? 0),
-                'upcoming_tasks_count' => (int)($result['taskCount'] ?? 0),
-            ];
-        }
+        $forecastData = $this->resourceManagementService->getResourceForecast($resourceIds, 4);
 
         return $this->json($forecastData);
     }
@@ -192,26 +216,38 @@ class ResourceController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function getSkills(): JsonResponse
     {
-        // Оптимизация: выбираем только нужные поля
-        $qb = $this->userRepository->createQueryBuilder('u')
-            ->select('u.id, u.fullName, u.email, u.position, u.department')
-            ->where('u.isActive = :active')
-            ->setParameter('active', true)
-            ->setMaxResults(100);
+        $resources = $this->resourceRepository->findAll();
+        $resourceIds = array_map(fn($r) => $r->getId(), $resources);
         
-        $results = $qb->getQuery()->getResult();
-        $skillsData = [];
-
-        foreach ($results as $result) {
-            $skillsData[] = [
-                'id' => $result['id'],
-                'name' => $result['fullName'],
-                'email' => $result['email'],
-                'position' => $result['position'] ?? '',
-                'department' => $result['department'] ?? '',
-            ];
-        }
+        $skillsData = $this->resourceManagementService->getSkillMatrix($resourceIds);
 
         return $this->json($skillsData);
+    }
+
+    #[Route('/conflicts', name: 'app_resource_conflicts', methods: ['GET'])]
+    #[IsGranted('ROLE_MANAGER')]
+    public function getConflicts(Request $request): JsonResponse
+    {
+        $from = new \DateTime($request->query->get('from', 'today'));
+        $to = new \DateTime($request->query->get('to', '+1 month'));
+        
+        $conflictsData = $this->resourceManagementService->getResourceConflicts($from, $to);
+
+        return $this->json($conflictsData);
+    }
+
+    #[Route('/utilization-report', name: 'app_resource_utilization_report', methods: ['GET'])]
+    #[IsGranted('ROLE_MANAGER')]
+    public function utilizationReport(Request $request): JsonResponse
+    {
+        $from = new \DateTime($request->query->get('from', '-1 month'));
+        $to = new \DateTime($request->query->get('to', 'now'));
+        
+        $resources = $this->resourceRepository->findAll();
+        $resourceIds = array_map(fn($r) => $r->getId(), $resources);
+        
+        $reportData = $this->resourceManagementService->getUtilizationReport($resourceIds, $from, $to);
+
+        return $this->json($reportData);
     }
 }

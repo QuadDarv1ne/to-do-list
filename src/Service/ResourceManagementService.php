@@ -4,38 +4,82 @@ namespace App\Service;
 
 use App\Entity\User;
 use App\Entity\Task;
+use App\Entity\Resource;
+use App\Entity\ResourceAllocation;
+use App\Entity\Skill;
+use App\Repository\ResourceRepository;
+use App\Repository\ResourceAllocationRepository;
+use App\Repository\SkillRepository;
+use Doctrine\ORM\EntityManagerInterface;
 
 class ResourceManagementService
 {
+    public function __construct(
+        private ResourceRepository $resourceRepository,
+        private ResourceAllocationRepository $allocationRepository,
+        private SkillRepository $skillRepository,
+        private EntityManagerInterface $entityManager
+    ) {}
+
     /**
      * Get resource availability
      */
-    public function getResourceAvailability(User $user, \DateTime $from, \DateTime $to): array
+    public function getResourceAvailability(Resource $resource, \DateTime $from, \DateTime $to): array
     {
+        $allocations = $this->allocationRepository->findBy([
+            'resource' => $resource,
+            'date' => [$from, $to]
+        ]);
+
+        $allocatedHours = 0;
+        foreach ($allocations as $allocation) {
+            $allocatedHours += (float)$allocation->getHours();
+        }
+
+        $totalHours = $resource->getCapacityPerWeek() * (ceil(($to->diff($from)->days) / 7));
+        $availableHours = $totalHours - $allocatedHours;
+        $utilizationPercentage = $totalHours > 0 ? ($allocatedHours / $totalHours) * 100 : 0;
+
         return [
-            'total_hours' => 160, // 40 hours/week * 4 weeks
-            'allocated_hours' => 120,
-            'available_hours' => 40,
-            'utilization_percentage' => 75,
-            'status' => 'available', // available, busy, overloaded
-            'calendar' => $this->getAvailabilityCalendar($user, $from, $to)
+            'total_hours' => $totalHours,
+            'allocated_hours' => $allocatedHours,
+            'available_hours' => $availableHours,
+            'utilization_percentage' => round($utilizationPercentage, 2),
+            'status' => $this->calculateResourceStatus($utilizationPercentage),
+            'calendar' => $this->getAvailabilityCalendar($resource, $from, $to)
         ];
     }
 
     /**
      * Get availability calendar
      */
-    private function getAvailabilityCalendar(User $user, \DateTime $from, \DateTime $to): array
+    private function getAvailabilityCalendar(Resource $resource, \DateTime $from, \DateTime $to): array
     {
         $calendar = [];
         $current = clone $from;
         
         while ($current <= $to) {
+            $dayAllocations = $this->allocationRepository->findBy([
+                'resource' => $resource,
+                'date' => new \DateTimeImmutable($current->format('Y-m-d'))
+            ]);
+
+            $allocatedHours = 0;
+            foreach ($dayAllocations as $allocation) {
+                $allocatedHours += (float)$allocation->getHours();
+            }
+
+            $dailyCapacity = $resource->getCapacityPerWeek() / 7; // Daily capacity
+            $availableHours = $dailyCapacity - $allocatedHours;
+            $status = $allocatedHours >= $dailyCapacity ? 'overbooked' : ($allocatedHours >= $dailyCapacity * 0.8 ? 'busy' : 'available');
+
             $calendar[$current->format('Y-m-d')] = [
-                'available_hours' => 8,
-                'allocated_hours' => rand(0, 8),
-                'status' => 'available'
+                'available_hours' => $availableHours,
+                'allocated_hours' => $allocatedHours,
+                'daily_capacity' => $dailyCapacity,
+                'status' => $status
             ];
+
             $current->modify('+1 day');
         }
         
@@ -43,76 +87,131 @@ class ResourceManagementService
     }
 
     /**
+     * Calculate resource status based on utilization
+     */
+    private function calculateResourceStatus(float $utilization): string
+    {
+        if ($utilization >= 100) {
+            return 'overloaded';
+        } elseif ($utilization >= 85) {
+            return 'busy';
+        } elseif ($utilization >= 20) {
+            return 'available';
+        } else {
+            return 'underutilized';
+        }
+    }
+
+    /**
      * Allocate resource to task
      */
-    public function allocateResource(Task $task, User $user, float $hours, \DateTime $date): array
+    public function allocateResource(Task $task, Resource $resource, float $hours, \DateTime $date): ResourceAllocation
     {
-        // TODO: Save to database
-        return [
-            'id' => uniqid(),
-            'task_id' => $task->getId(),
-            'user_id' => $user->getId(),
-            'hours' => $hours,
-            'date' => $date,
-            'status' => 'allocated'
-        ];
+        $allocation = new ResourceAllocation();
+        $allocation->setTask($task);
+        $allocation->setResource($resource);
+        $allocation->setHours(number_format($hours, 2));
+        $allocation->setDate(new \DateTimeImmutable($date->format('Y-m-d')));
+        $allocation->setStatus('confirmed');
+
+        $this->entityManager->persist($allocation);
+        $this->entityManager->flush();
+
+        return $allocation;
     }
 
     /**
      * Get resource workload
      */
-    public function getResourceWorkload(User $user, \DateTime $from, \DateTime $to): array
+    public function getResourceWorkload(Resource $resource, \DateTime $from, \DateTime $to): array
     {
+        $allocations = $this->allocationRepository->createQueryBuilder('ra')
+            ->select('ra, t')
+            ->join('ra.task', 't')
+            ->where('ra.resource = :resource')
+            ->andWhere('ra.date BETWEEN :from AND :to')
+            ->setParameter('resource', $resource)
+            ->setParameter('from', new \DateTimeImmutable($from->format('Y-m-d')))
+            ->setParameter('to', new \DateTimeImmutable($to->format('Y-m-d')))
+            ->getQuery()
+            ->getResult();
+
+        $totalHours = 0;
+        $byPriority = ['urgent' => 0, 'high' => 0, 'medium' => 0, 'low' => 0];
+        $byProject = [];
+
+        foreach ($allocations as $allocation) {
+            $hours = (float)$allocation->getHours();
+            $totalHours += $hours;
+
+            $task = $allocation->getTask();
+            if ($task) {
+                $priority = $task->getPriority() ?? 'medium';
+                $byPriority[$priority] += $hours;
+
+                // Group by project if available
+                $project = $task->getProject() ?? 'unassigned';
+                if (!isset($byProject[$project])) {
+                    $byProject[$project] = 0;
+                }
+                $byProject[$project] += $hours;
+            }
+        }
+
+        $capacity = $resource->getCapacityPerWeek() * (ceil(($to->diff($from)->days) / 7));
+        $utilization = $capacity > 0 ? ($totalHours / $capacity) * 100 : 0;
+
         return [
-            'user' => [
-                'id' => $user->getId(),
-                'name' => $user->getUsername()
+            'resource' => [
+                'id' => $resource->getId(),
+                'name' => $resource->getName()
             ],
             'period' => [
                 'from' => $from->format('Y-m-d'),
                 'to' => $to->format('Y-m-d')
             ],
             'workload' => [
-                'total_tasks' => 15,
-                'total_hours' => 120,
-                'by_priority' => [
-                    'urgent' => 30,
-                    'high' => 50,
-                    'medium' => 30,
-                    'low' => 10
-                ],
-                'by_project' => []
+                'total_allocations' => count($allocations),
+                'total_hours' => $totalHours,
+                'by_priority' => $byPriority,
+                'by_project' => $byProject
             ],
-            'capacity' => 160,
-            'utilization' => 75
+            'capacity' => $capacity,
+            'utilization' => round($utilization, 2)
         ];
     }
 
     /**
      * Balance team workload
      */
-    public function balanceTeamWorkload(array $userIds): array
+    public function balanceTeamWorkload(array $resourceIds): array
     {
         $workloads = [];
         
-        foreach ($userIds as $userId) {
-            // TODO: Get user workload
-            $workloads[$userId] = rand(50, 150);
+        foreach ($resourceIds as $resourceId) {
+            $resource = $this->resourceRepository->find($resourceId);
+            if ($resource) {
+                $currentDate = new \DateTime();
+                $nextWeek = (clone $currentDate)->modify('+1 week');
+                
+                $workload = $this->getResourceWorkload($resource, $currentDate, $nextWeek);
+                $workloads[$resourceId] = $workload['utilization'];
+            }
         }
 
-        $average = array_sum($workloads) / count($workloads);
+        $average = count($workloads) > 0 ? array_sum($workloads) / count($workloads) : 0;
         $recommendations = [];
 
-        foreach ($workloads as $userId => $workload) {
+        foreach ($workloads as $resourceId => $workload) {
             if ($workload > $average * 1.2) {
                 $recommendations[] = [
-                    'user_id' => $userId,
+                    'resource_id' => $resourceId,
                     'action' => 'reduce',
                     'amount' => $workload - $average
                 ];
             } elseif ($workload < $average * 0.8) {
                 $recommendations[] = [
-                    'user_id' => $userId,
+                    'resource_id' => $resourceId,
                     'action' => 'increase',
                     'amount' => $average - $workload
                 ];
@@ -129,48 +228,97 @@ class ResourceManagementService
     /**
      * Find available resources
      */
-    public function findAvailableResources(\DateTime $date, float $requiredHours, array $skills = []): array
+    public function findAvailableResources(\DateTime $date, float $requiredHours, array $skillRequirements = []): array
     {
-        // TODO: Query database
-        return [];
+        $allResources = $this->resourceRepository->findAll();
+        $availableResources = [];
+
+        foreach ($allResources as $resource) {
+            // Check if resource has required skills
+            $hasRequiredSkills = true;
+            if (!empty($skillRequirements)) {
+                $resourceSkills = $resource->getSkills();
+                foreach ($skillRequirements as $skill) {
+                    $found = false;
+                    foreach ($resourceSkills as $resourceSkill) {
+                        if ($resourceSkill->getName() === $skill) {
+                            $found = true;
+                            break;
+                        }
+                    }
+                    if (!$found) {
+                        $hasRequiredSkills = false;
+                        break;
+                    }
+                }
+            }
+
+            if ($hasRequiredSkills && $resource->isAvailable($date, $requiredHours)) {
+                $availableResources[] = $resource;
+            }
+        }
+
+        return $availableResources;
     }
 
     /**
      * Get resource utilization report
      */
-    public function getUtilizationReport(array $userIds, \DateTime $from, \DateTime $to): array
+    public function getUtilizationReport(array $resourceIds, \DateTime $from, \DateTime $to): array
     {
         $report = [];
         
-        foreach ($userIds as $userId) {
-            $report[] = [
-                'user_id' => $userId,
-                'utilization' => rand(60, 95),
-                'billable_hours' => rand(80, 120),
-                'non_billable_hours' => rand(20, 40),
-                'overtime_hours' => rand(0, 20)
-            ];
+        foreach ($resourceIds as $resourceId) {
+            $resource = $this->resourceRepository->find($resourceId);
+            if ($resource) {
+                $workload = $this->getResourceWorkload($resource, $from, $to);
+                
+                $report[] = [
+                    'resource_id' => $resourceId,
+                    'name' => $resource->getName(),
+                    'utilization' => $workload['utilization'],
+                    'total_allocated_hours' => $workload['workload']['total_hours'],
+                    'capacity' => $workload['capacity'],
+                    'status' => $resource->getStatus()
+                ];
+            }
         }
 
+        $avgUtilization = count($report) > 0 ? array_sum(array_column($report, 'utilization')) / count($report) : 0;
+
         return [
-            'period' => ['from' => $from, 'to' => $to],
+            'period' => [
+                'from' => $from->format('Y-m-d'),
+                'to' => $to->format('Y-m-d')
+            ],
             'resources' => $report,
-            'team_average' => array_sum(array_column($report, 'utilization')) / count($report)
+            'team_average_utilization' => round($avgUtilization, 2)
         ];
     }
 
     /**
      * Create resource pool
      */
-    public function createResourcePool(string $name, array $userIds, array $skills): array
+    public function createResourcePool(string $name, array $resourceIds, array $skillRequirements): array
     {
-        // TODO: Save to database
+        // In a real implementation, we would create a ResourcePool entity
+        // For now, we'll just return the data
+        
+        $resources = [];
+        foreach ($resourceIds as $resourceId) {
+            $resource = $this->resourceRepository->find($resourceId);
+            if ($resource) {
+                $resources[] = $resource;
+            }
+        }
+
         return [
             'id' => uniqid(),
             'name' => $name,
-            'members' => $userIds,
-            'skills' => $skills,
-            'created_at' => new \DateTime()
+            'resources' => array_map(fn($r) => ['id' => $r->getId(), 'name' => $r->getName()], $resources),
+            'skills' => $skillRequirements,
+            'created_at' => new \DateTime(),
+            'member_count' => count($resources)
         ];
     }
 
@@ -179,7 +327,9 @@ class ResourceManagementService
      */
     public function getResourcePools(): array
     {
-        // TODO: Get from database
+        // In a real implementation, we would query the ResourcePool entity
+        // For now, we'll return an empty array
+        
         return [];
     }
 
@@ -202,7 +352,7 @@ class ResourceManagementService
      */
     public function approveResourceRequest(int $requestId, User $approver): bool
     {
-        // TODO: Update in database
+        // In a real implementation, we would update the request status in DB
         return true;
     }
 
@@ -211,18 +361,29 @@ class ResourceManagementService
      */
     public function getResourceConflicts(\DateTime $from, \DateTime $to): array
     {
+        $conflicts = [];
+        
+        // Find resources that are overbooked (allocated hours > capacity)
+        $allResources = $this->resourceRepository->findAll();
+        
+        foreach ($allResources as $resource) {
+            $workload = $this->getResourceWorkload($resource, $from, $to);
+            
+            if ($workload['utilization'] > 100) {
+                $conflicts[] = [
+                    'resource_id' => $resource->getId(),
+                    'resource_name' => $resource->getName(),
+                    'allocated_hours' => $workload['workload']['total_hours'],
+                    'capacity' => $workload['capacity'],
+                    'overallocation' => $workload['workload']['total_hours'] - $workload['capacity'],
+                    'status' => 'overbooked'
+                ];
+            }
+        }
+
         return [
-            'conflicts' => [
-                [
-                    'user_id' => 1,
-                    'date' => '2026-02-20',
-                    'allocated_hours' => 12,
-                    'available_hours' => 8,
-                    'overallocation' => 4,
-                    'tasks' => []
-                ]
-            ],
-            'total_conflicts' => 1
+            'conflicts' => $conflicts,
+            'total_conflicts' => count($conflicts)
         ];
     }
 
@@ -231,24 +392,40 @@ class ResourceManagementService
      */
     public function resolveConflict(int $conflictId, string $resolution): bool
     {
-        // TODO: Apply resolution
+        // In a real implementation, we would apply the resolution logic
         return true;
     }
 
     /**
      * Get resource forecast
      */
-    public function getResourceForecast(array $userIds, int $weeks = 4): array
+    public function getResourceForecast(array $resourceIds, int $weeks = 4): array
     {
         $forecast = [];
         
-        for ($i = 1; $i <= $weeks; $i++) {
-            $week = (new \DateTime())->modify("+$i weeks");
+        for ($i = 0; $i < $weeks; $i++) {
+            $startDate = (new \DateTime())->modify("+$i weeks");
+            $endDate = (clone $startDate)->modify('+6 days'); // End of week
+            
+            $weekAllocations = 0;
+            $availableCapacity = 0;
+            
+            foreach ($resourceIds as $resourceId) {
+                $resource = $this->resourceRepository->find($resourceId);
+                if ($resource) {
+                    $workload = $this->getResourceWorkload($resource, $startDate, $endDate);
+                    $weekAllocations += $workload['workload']['total_hours'];
+                    $availableCapacity += $resource->getCapacityPerWeek();
+                }
+            }
+            
             $forecast[] = [
-                'week' => $week->format('Y-W'),
-                'required_resources' => rand(5, 15),
-                'available_resources' => count($userIds),
-                'shortage' => max(0, rand(5, 15) - count($userIds))
+                'week_start' => $startDate->format('Y-m-d'),
+                'week_end' => $endDate->format('Y-m-d'),
+                'allocated_hours' => $weekAllocations,
+                'available_capacity' => $availableCapacity,
+                'utilization_percentage' => $availableCapacity > 0 ? round(($weekAllocations / $availableCapacity) * 100, 2) : 0,
+                'shortage' => max(0, $weekAllocations - $availableCapacity)
             ];
         }
 
@@ -258,37 +435,45 @@ class ResourceManagementService
     /**
      * Get skill matrix
      */
-    public function getSkillMatrix(array $userIds): array
+    public function getSkillMatrix(array $resourceIds): array
     {
-        $skills = ['PHP', 'JavaScript', 'Python', 'DevOps', 'Design', 'Testing'];
         $matrix = [];
 
-        foreach ($userIds as $userId) {
-            $userSkills = [];
-            foreach ($skills as $skill) {
-                $userSkills[$skill] = rand(1, 5); // 1-5 proficiency
+        foreach ($resourceIds as $resourceId) {
+            $resource = $this->resourceRepository->find($resourceId);
+            if ($resource) {
+                $resourceSkills = $resource->getSkills();
+                $skills = [];
+                
+                foreach ($resourceSkills as $skill) {
+                    $skills[$skill->getName()] = $skill->getProficiencyLevel();
+                }
+                
+                $matrix[$resourceId] = [
+                    'name' => $resource->getName(),
+                    'skills' => $skills
+                ];
             }
-            $matrix[$userId] = $userSkills;
         }
 
         return [
-            'skills' => $skills,
-            'matrix' => $matrix
+            'resources' => $matrix
         ];
     }
 
     /**
      * Calculate resource cost
      */
-    public function calculateResourceCost(User $user, float $hours, float $hourlyRate): array
+    public function calculateResourceCost(Resource $resource, float $hours, ?float $hourlyRate = null): array
     {
-        $baseCost = $hours * $hourlyRate;
+        $rate = $hourlyRate ?? (float)$resource->getHourlyRate();
+        $baseCost = $hours * $rate;
         $overhead = $baseCost * 0.3; // 30% overhead
         $total = $baseCost + $overhead;
 
         return [
             'hours' => $hours,
-            'hourly_rate' => $hourlyRate,
+            'hourly_rate' => $rate,
             'base_cost' => $baseCost,
             'overhead' => $overhead,
             'total_cost' => $total
@@ -298,8 +483,11 @@ class ResourceManagementService
     /**
      * Get resource efficiency
      */
-    public function getResourceEfficiency(User $user, \DateTime $from, \DateTime $to): array
+    public function getResourceEfficiency(Resource $resource, \DateTime $from, \DateTime $to): array
     {
+        // In a real implementation, we would calculate efficiency based on completed tasks
+        // For now, we'll return mock data
+        
         return [
             'tasks_completed' => 25,
             'hours_worked' => 160,
@@ -313,16 +501,151 @@ class ResourceManagementService
     /**
      * Optimize resource allocation
      */
-    public function optimizeAllocation(array $tasks, array $users): array
+    public function optimizeAllocation(array $tasks, array $resources): array
     {
-        // TODO: Implement optimization algorithm
+        // A simple optimization algorithm that tries to balance the load
+        $allocations = [];
+        
+        usort($tasks, function($a, $b) {
+            // Sort by priority (urgent first)
+            $priorityOrder = ['urgent' => 4, 'high' => 3, 'medium' => 2, 'low' => 1];
+            return ($priorityOrder[$b->getPriority()] ?? 2) <=> ($priorityOrder[$a->getPriority()] ?? 2);
+        });
+        
+        foreach ($tasks as $task) {
+            // Find the most suitable resource based on skills and availability
+            $bestResource = null;
+            $minLoad = PHP_INT_MAX;
+            
+            foreach ($resources as $resource) {
+                // Check if resource has required skills
+                $hasSkills = true;
+                if ($task->getRequiredSkills()->count() > 0) {
+                    foreach ($task->getRequiredSkills() as $requiredSkill) {
+                        $hasResourceSkill = false;
+                        foreach ($resource->getSkills() as $resourceSkill) {
+                            if ($resourceSkill->getName() === $requiredSkill->getName()) {
+                                $hasResourceSkill = true;
+                                break;
+                            }
+                        }
+                        if (!$hasResourceSkill) {
+                            $hasSkills = false;
+                            break;
+                        }
+                    }
+                }
+                
+                if ($hasSkills) {
+                    // Calculate current load for this resource
+                    $currentDate = new \DateTime();
+                    $nextMonth = (clone $currentDate)->modify('+1 month');
+                    $workload = $this->getResourceWorkload($resource, $currentDate, $nextMonth);
+                    $currentLoad = $workload['utilization'];
+                    
+                    if ($currentLoad < $minLoad) {
+                        $minLoad = $currentLoad;
+                        $bestResource = $resource;
+                    }
+                }
+            }
+            
+            if ($bestResource) {
+                $allocations[] = [
+                    'task_id' => $task->getId(),
+                    'resource_id' => $bestResource->getId(),
+                    'resource_name' => $bestResource->getName(),
+                    'allocation_confirmed' => true
+                ];
+            }
+        }
+
         return [
-            'allocations' => [],
+            'allocations' => $allocations,
             'optimization_score' => 85,
             'improvements' => [
-                'Reduced overallocation by 20%',
-                'Improved skill matching by 15%'
+                'Balanced workload distribution',
+                'Improved skill matching'
             ]
         ];
+    }
+
+    /**
+     * Get all resources
+     */
+    public function getAllResources(): array
+    {
+        return $this->resourceRepository->findAll();
+    }
+
+    /**
+     * Create a new resource
+     */
+    public function createResource(array $data): Resource
+    {
+        $resource = new Resource();
+        $resource->setName($data['name']);
+        $resource->setEmail($data['email'] ?? null);
+        $resource->setDescription($data['description'] ?? null);
+        $resource->setHourlyRate($data['hourly_rate'] ?? '0.00');
+        $resource->setCapacityPerWeek($data['capacity_per_week'] ?? 40);
+        $resource->setStatus($data['status'] ?? 'available');
+
+        // Add skills if provided
+        if (isset($data['skills']) && is_array($data['skills'])) {
+            foreach ($data['skills'] as $skillName) {
+                $skill = $this->skillRepository->findOneBy(['name' => $skillName]);
+                if (!$skill) {
+                    $skill = new Skill();
+                    $skill->setName($skillName);
+                    $skill->setDescription("$skillName skill");
+                    $this->entityManager->persist($skill);
+                }
+                $resource->addSkill($skill);
+            }
+        }
+
+        $this->entityManager->persist($resource);
+        $this->entityManager->flush();
+
+        return $resource;
+    }
+
+    /**
+     * Update a resource
+     */
+    public function updateResource(Resource $resource, array $data): Resource
+    {
+        if (isset($data['name'])) {
+            $resource->setName($data['name']);
+        }
+        if (isset($data['email'])) {
+            $resource->setEmail($data['email']);
+        }
+        if (isset($data['description'])) {
+            $resource->setDescription($data['description']);
+        }
+        if (isset($data['hourly_rate'])) {
+            $resource->setHourlyRate($data['hourly_rate']);
+        }
+        if (isset($data['capacity_per_week'])) {
+            $resource->setCapacityPerWeek($data['capacity_per_week']);
+        }
+        if (isset($data['status'])) {
+            $resource->setStatus($data['status']);
+        }
+
+        $this->entityManager->flush();
+
+        return $resource;
+    }
+
+    /**
+     * Delete a resource
+     */
+    public function deleteResource(Resource $resource): void
+    {
+        $this->entityManager->remove($resource);
+        $this->entityManager->flush();
     }
 }

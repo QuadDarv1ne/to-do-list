@@ -2,30 +2,307 @@
 
 namespace App\Controller;
 
+use App\Entity\Document;
+use App\Entity\User;
+use App\Repository\DocumentRepository;
 use App\Repository\TaskRepository;
+use App\Service\DocumentService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
-use App\Entity\User;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 #[Route('/document')]
 class DocumentController extends AbstractController
 {
     public function __construct(
-        private TaskRepository $taskRepository
+        private DocumentService $documentService,
+        private DocumentRepository $documentRepository,
+        private TaskRepository $taskRepository,
+        private EntityManagerInterface $entityManager
     ) {
     }
 
     #[Route('', name: 'app_document_index', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
-    public function index(#[CurrentUser] User $user): Response
+    public function index(#[CurrentUser] User $user, Request $request): Response
     {
+        $page = $request->query->getInt('page', 1);
+        $limit = $request->query->getInt('limit', 20);
+        $offset = ($page - 1) * $limit;
+        
+        $documents = $this->documentService->getDocumentsByUser($user, $limit, $offset);
+        $total = $this->documentRepository->count(['createdBy' => $user->getId()]);
+        
         return $this->render('document/index.html.twig', [
-            'documents' => [], // Placeholder - would load actual documents
+            'documents' => $documents,
+            'total' => $total,
+            'page' => $page,
+            'pages' => ceil($total / $limit),
+        ]);
+    }
+
+    #[Route('/create', name: 'app_document_create', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function create(Request $request, #[CurrentUser] User $user): Response
+    {
+        if ($request->isMethod('POST')) {
+            $data = json_decode($request->getContent(), true);
+            
+            $document = $this->documentService->createDocument([
+                'title' => $data['title'],
+                'content' => $data['content'] ?? '',
+                'description' => $data['description'] ?? '',
+                'status' => $data['status'] ?? 'draft',
+                'content_type' => $data['content_type'] ?? 'text/markdown',
+                'parent_id' => $data['parent_id'] ?? null,
+                'tags' => $data['tags'] ?? []
+            ], $user);
+            
+            return $this->redirectToRoute('app_document_show', ['id' => $document->getId()]);
+        }
+
+        return $this->render('document/create.html.twig');
+    }
+
+    #[Route('/{id}', name: 'app_document_show', methods: ['GET'], requirements: ['id' => '\d+'])]
+    #[IsGranted('ROLE_USER')]
+    public function show(Document $document, #[CurrentUser] User $user): Response
+    {
+        // Check if user has access to this document
+        if ($document->getCreatedBy() !== $user->getId() && !in_array('ROLE_ADMIN', $user->getRoles())) {
+            throw $this->createAccessDeniedException();
+        }
+        
+        return $this->render('document/show.html.twig', [
+            'document' => $document,
+        ]);
+    }
+
+    #[Route('/{id}/edit', name: 'app_document_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
+    #[IsGranted('ROLE_USER')]
+    public function edit(Request $request, Document $document, #[CurrentUser] User $user): Response
+    {
+        // Check if user has access to edit this document
+        if ($document->getCreatedBy() !== $user->getId() && !in_array('ROLE_ADMIN', $user->getRoles())) {
+            throw $this->createAccessDeniedException();
+        }
+        
+        if ($request->isMethod('POST')) {
+            $data = json_decode($request->getContent(), true);
+            
+            $this->documentService->updateDocument($document, [
+                'title' => $data['title'] ?? $document->getTitle(),
+                'content' => $data['content'] ?? $document->getContent(),
+                'description' => $data['description'] ?? $document->getDescription(),
+                'status' => $data['status'] ?? $document->getStatus(),
+                'content_type' => $data['content_type'] ?? $document->getContentType(),
+                'parent_id' => $data['parent_id'] ?? $document->getParentId(),
+                'tags' => $data['tags'] ?? []
+            ]);
+            
+            return $this->redirectToRoute('app_document_show', ['id' => $document->getId()]);
+        }
+
+        return $this->render('document/edit.html.twig', [
+            'document' => $document,
+        ]);
+    }
+
+    #[Route('/{id}/delete', name: 'app_document_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
+    #[IsGranted('ROLE_USER')]
+    public function delete(Request $request, Document $document, #[CurrentUser] User $user): Response
+    {
+        // Check if user has access to delete this document
+        if ($document->getCreatedBy() !== $user->getId() && !in_array('ROLE_ADMIN', $user->getRoles())) {
+            throw $this->createAccessDeniedException();
+        }
+        
+        if ($this->isCsrfTokenValid('delete'.$document->getId(), $request->request->get('_token'))) {
+            $this->documentService->deleteDocument($document);
+        }
+
+        return $this->redirectToRoute('app_document_index');
+    }
+
+    #[Route('/upload', name: 'app_document_upload', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function upload(Request $request, #[CurrentUser] User $user): Response
+    {
+        if ($request->isMethod('POST')) {
+            /** @var UploadedFile|null $uploadedFile */
+            $uploadedFile = $request->files->get('file');
+            
+            if (!$uploadedFile) {
+                $this->addFlash('error', 'No file uploaded');
+                return $this->redirectToRoute('app_document_upload');
+            }
+            
+            try {
+                $document = $this->documentService->uploadDocument($uploadedFile, $user, [
+                    'title' => $request->request->get('title', $uploadedFile->getClientOriginalName()),
+                    'description' => $request->request->get('description', ''),
+                    'status' => $request->request->get('status', 'published'),
+                    'parent_id' => $request->request->getInt('parent_id', 0) ?: null,
+                    'tags' => explode(',', $request->request->get('tags', ''))
+                ]);
+                
+                $this->addFlash('success', 'Document uploaded successfully');
+                return $this->redirectToRoute('app_document_show', ['id' => $document->getId()]);
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'Upload failed: ' . $e->getMessage());
+            }
+        }
+
+        return $this->render('document/upload.html.twig');
+    }
+
+    #[Route('/download/{id}', name: 'app_document_download', methods: ['GET'], requirements: ['id' => '\d+'])]
+    #[IsGranted('ROLE_USER')]
+    public function download(Document $document, #[CurrentUser] User $user): BinaryFileResponse
+    {
+        // Check if user has access to this document
+        if ($document->getCreatedBy() !== $user->getId() && !in_array('ROLE_ADMIN', $user->getRoles())) {
+            throw $this->createAccessDeniedException();
+        }
+        
+        if ($document->getFileName()) {
+            // Serve uploaded file
+            $filePath = $this->documentService->getFilePath($document);
+            
+            if (!file_exists($filePath)) {
+                throw $this->createNotFoundException('Document file not found');
+            }
+            
+            $response = new BinaryFileResponse($filePath);
+            $response->setContentDisposition(
+                ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+                $document->getFileName()
+            );
+            
+            return $response;
+        } else {
+            // Serve content as file
+            $content = $document->getContent();
+            $response = new Response($content);
+            $response->headers->set('Content-Type', $document->getContentType() ?: 'text/plain');
+            $response->headers->set('Content-Disposition', 'attachment; filename="' . $document->getTitle() . '.txt"');
+            
+            return $response;
+        }
+    }
+
+    #[Route('/search', name: 'app_document_search', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
+    public function search(Request $request, #[CurrentUser] User $user): JsonResponse
+    {
+        $query = $request->query->get('q', '');
+        $limit = $request->query->getInt('limit', 10);
+        $offset = $request->query->getInt('offset', 0);
+        
+        if (empty($query)) {
+            return $this->json(['documents' => [], 'total' => 0]);
+        }
+        
+        $documents = $this->documentService->searchDocuments($query, $user, $limit, $offset);
+        $total = count($this->documentService->searchDocuments($query, $user)); // This is a simplified count
+        
+        return $this->json([
+            'documents' => array_map(function($doc) {
+                return [
+                    'id' => $doc->getId(),
+                    'title' => $doc->getTitle(),
+                    'description' => $doc->getDescription(),
+                    'status' => $doc->getStatus(),
+                    'created_at' => $doc->getCreatedAt()->format('Y-m-d H:i:s'),
+                    'preview' => $this->documentService->generatePreview($doc, 150)
+                ];
+            }, $documents),
+            'total' => $total
+        ]);
+    }
+
+    #[Route('/statistics', name: 'app_document_statistics', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
+    public function statistics(#[CurrentUser] User $user): JsonResponse
+    {
+        $stats = $this->documentService->getDocumentStatistics($user);
+        
+        return $this->json($stats);
+    }
+
+    #[Route('/recent', name: 'app_document_recent', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
+    public function recent(#[CurrentUser] User $user): JsonResponse
+    {
+        $documents = $this->documentService->getRecentDocuments(10, $user);
+        
+        return $this->json(array_map(function($doc) {
+            return [
+                'id' => $doc->getId(),
+                'title' => $doc->getTitle(),
+                'status' => $doc->getStatus(),
+                'created_at' => $doc->getCreatedAt()->format('Y-m-d H:i:s')
+            ];
+        }, $documents));
+    }
+
+    #[Route('/duplicate/{id}', name: 'app_document_duplicate', methods: ['POST'], requirements: ['id' => '\d+'])]
+    #[IsGranted('ROLE_USER')]
+    public function duplicate(Request $request, Document $document, #[CurrentUser] User $user): Response
+    {
+        // Check if user has access to this document
+        if ($document->getCreatedBy() !== $user->getId() && !in_array('ROLE_ADMIN', $user->getRoles())) {
+            throw $this->createAccessDeniedException();
+        }
+        
+        $newTitle = $request->request->get('title', $document->getTitle() . ' (Copy)');
+        
+        $newDocument = $this->documentService->duplicateDocument($document, $user, $newTitle);
+        
+        return $this->redirectToRoute('app_document_show', ['id' => $newDocument->getId()]);
+    }
+
+    #[Route('/publish/{id}', name: 'app_document_publish', methods: ['POST'], requirements: ['id' => '\d+'])]
+    #[IsGranted('ROLE_USER')]
+    public function publish(Document $document, #[CurrentUser] User $user): JsonResponse
+    {
+        // Check if user has access to this document
+        if ($document->getCreatedBy() !== $user->getId() && !in_array('ROLE_ADMIN', $user->getRoles())) {
+            throw $this->createAccessDeniedException();
+        }
+        
+        $document = $this->documentService->publishDocument($document);
+        
+        return $this->json([
+            'success' => true,
+            'message' => 'Document published successfully',
+            'status' => $document->getStatus()
+        ]);
+    }
+
+    #[Route('/unpublish/{id}', name: 'app_document_unpublish', methods: ['POST'], requirements: ['id' => '\d+'])]
+    #[IsGranted('ROLE_USER')]
+    public function unpublish(Document $document, #[CurrentUser] User $user): JsonResponse
+    {
+        // Check if user has access to this document
+        if ($document->getCreatedBy() !== $user->getId() && !in_array('ROLE_ADMIN', $user->getRoles())) {
+            throw $this->createAccessDeniedException();
+        }
+        
+        $document = $this->documentService->unpublishDocument($document);
+        
+        return $this->json([
+            'success' => true,
+            'message' => 'Document unpublished successfully',
+            'status' => $document->getStatus()
         ]);
     }
 
@@ -62,7 +339,7 @@ class DocumentController extends AbstractController
 
     #[Route('/generate', name: 'app_document_generate', methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
-    public function generateDocument(Request $request): JsonResponse
+    public function generateDocument(Request $request, #[CurrentUser] User $user): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
         
@@ -93,6 +370,25 @@ class DocumentController extends AbstractController
 
         // Generate document content based on template type
         $documentContent = $this->generateDocumentContent($templateType, $taskData);
+        
+        // Optionally save as a new document
+        if ($data['save_as_document'] ?? false) {
+            $document = $this->documentService->createDocument([
+                'title' => $data['title'] ?? $this->generateTemplateName($templateType),
+                'content' => $documentContent,
+                'description' => $data['description'] ?? 'Auto-generated document',
+                'status' => 'draft',
+                'content_type' => 'text/plain'
+            ], $user);
+            
+            return $this->json([
+                'success' => true,
+                'content' => $documentContent,
+                'document_id' => $document->getId(),
+                'filename' => $this->generateFilename($templateType),
+                'mimeType' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            ]);
+        }
         
         return $this->json([
             'success' => true,
@@ -227,6 +523,20 @@ class DocumentController extends AbstractController
         }
         
         return $content;
+    }
+
+    private function generateTemplateName(string $templateType): string
+    {
+        switch ($templateType) {
+            case 'report':
+                return "Project Report";
+            case 'summary':
+                return "Task Summary";
+            case 'minutes':
+                return "Meeting Minutes";
+            default:
+                return "Generated Document";
+        }
     }
 
     private function generateFilename(string $templateType): string

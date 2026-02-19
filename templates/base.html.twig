@@ -43,10 +43,11 @@
 
     {% block stylesheets %}
         <!-- Minified CSS - оптимизированные файлы -->
-        <link rel="stylesheet" href="/css/app-bundle.min.css">
         <link rel="stylesheet" href="/css/themes-bundle.min.css">
         <link rel="stylesheet" href="/css/components-bundle.min.css">
         <link rel="stylesheet" href="/css/navbar-enhanced.min.css">
+        <link rel="stylesheet" href="/css/ui-enhancements.css">
+        <link rel="stylesheet" href="/css/app-enhanced.css">
     {% endblock %}
 </head>
 <body>
@@ -202,6 +203,11 @@
                         <a class="quick-action-btn-enhanced" href="{{ path('app_task_new') }}" title="Новая задача">
                             <i class="fas fa-plus"></i>
                         </a>
+                    </li>
+                    
+                    <!-- Theme Switcher -->
+                    <li class="nav-item me-2">
+                        {% include 'components/theme_switcher.html.twig' %}
                     </li>
                     
                     <!-- Notifications -->
@@ -452,6 +458,7 @@
         {# Core scripts - always loaded #}
         <script src="/js/core-bundle.min.js" defer></script>
         <script src="/js/navbar-enhanced.js" defer></script>
+        <script src="/js/theme-switcher.js" defer></script>
         
         {# Common features - for authenticated users #}
         {% if app.user %}
@@ -473,6 +480,10 @@
 
         {% if app.request.attributes.get('_route') starts with 'app_dashboard' or app.request.attributes.get('_route') starts with 'app_analytics' %}
             <script src="/js/dashboard-widgets.js" defer></script>
+        {% endif %}
+        
+        {% if app.request.attributes.get('_route') starts with 'app_settings' %}
+            <script src="/js/settings-enhanced.js" defer></script>
         {% endif %}
 
         {# Performance monitoring - only in dev mode #}
