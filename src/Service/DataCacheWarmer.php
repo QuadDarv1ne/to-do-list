@@ -32,20 +32,39 @@ class DataCacheWarmer
         ];
 
         try {
-            $users = $this->userRepository->findAll();
+            // Используем пагинацию вместо findAll() для экономии памяти
+            $batchSize = 50;
+            $offset = 0;
             
-            foreach ($users as $user) {
-                try {
-                    $this->warmupUserCache($user);
-                    $results['users_processed']++;
-                    $results['cache_entries'] += 3; // stats, trends, quick_stats
-                } catch (\Exception $e) {
-                    $results['errors']++;
-                    $this->logger->error('Cache warmup failed for user', [
-                        'user_id' => $user->getId(),
-                        'error' => $e->getMessage()
-                    ]);
+            while (true) {
+                $users = $this->userRepository->createQueryBuilder('u')
+                    ->setMaxResults($batchSize)
+                    ->setFirstResult($offset)
+                    ->getQuery()
+                    ->getResult();
+                
+                if (empty($users)) {
+                    break;
                 }
+                
+                foreach ($users as $user) {
+                    try {
+                        $this->warmupUserCache($user);
+                        $results['users_processed']++;
+                        $results['cache_entries'] += 3; // stats, trends, quick_stats
+                    } catch (\Exception $e) {
+                        $results['errors']++;
+                        $this->logger->error('Cache warmup failed for user', [
+                            'user_id' => $user->getId(),
+                            'error' => $e->getMessage()
+                        ]);
+                    }
+                }
+                
+                $offset += $batchSize;
+                
+                // Очищаем EntityManager для освобождения памяти
+                $this->userRepository->getEntityManager()->clear();
             }
         } catch (\Exception $e) {
             $this->logger->error('Cache warmup failed', ['error' => $e->getMessage()]);

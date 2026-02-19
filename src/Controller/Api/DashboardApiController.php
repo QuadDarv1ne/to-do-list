@@ -231,9 +231,12 @@ class DashboardApiController extends AbstractController
     {
         $streak = 0;
         $currentDate = new \DateTime();
+        $currentDate->setTime(0, 0, 0); // Начало дня
         
-        while (true) {
-            $nextDate = (clone $currentDate)->modify('+1 day');
+        // Проверяем последовательные дни назад от сегодня
+        for ($i = 0; $i < 365; $i++) {
+            $startOfDay = (clone $currentDate)->modify("-{$i} days");
+            $endOfDay = (clone $startOfDay)->setTime(23, 59, 59);
             
             $tasksCompleted = $this->taskRepository->createQueryBuilder('t')
                 ->select('COUNT(t.id)')
@@ -242,22 +245,19 @@ class DashboardApiController extends AbstractController
                 ->andWhere('t.completedAt BETWEEN :start AND :end')
                 ->setParameter('user', $user)
                 ->setParameter('completed', 'completed')
-                ->setParameter('start', $currentDate)
-                ->setParameter('end', $nextDate)
+                ->setParameter('start', $startOfDay)
+                ->setParameter('end', $endOfDay)
                 ->getQuery()
                 ->getSingleScalarResult();
 
             if ($tasksCompleted > 0) {
                 $streak++;
-                $currentDate->modify('-1 day');
             } else {
+                // Прерываем серию при первом дне без задач
                 break;
             }
-            
-            // Limit to prevent infinite loop
-            if ($streak > 365) break;
         }
-
+        
         return $streak;
     }
 }

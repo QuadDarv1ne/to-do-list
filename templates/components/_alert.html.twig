@@ -16,7 +16,7 @@
     {% endif %}
     
     {% if message_html is defined %}
-        {{ message_html|raw }}
+        {{ message_html|e('html') }}
     {% else %}
         {{ message }}
     {% endif %}

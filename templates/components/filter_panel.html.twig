@@ -21,7 +21,7 @@
     <div class="collapse show" id="filterPanel">
         <div class="card-body">
             <form method="get" action="{{ action }}" class="row g-3" id="filter-form">
-                {{ filter_content|raw }}
+                {{ filter_content|e('html') }}
                 
                 <div class="col-12">
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">

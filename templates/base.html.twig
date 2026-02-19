@@ -370,7 +370,7 @@
             <a href="{{ path('app_task_index') }}" class="bottom-nav-item{{ 'app_task' in app.request.attributes.get('_route') ? ' active' : '' }}">
                 <i class="fas fa-tasks bottom-nav-item-icon"></i>
                 <span class="bottom-nav-item-label">Задачи</span>
-                {% if task_stats.pending > 0 %}
+                {% if task_stats is defined and task_stats.pending > 0 %}
                     <span class="nav-badge">{{ task_stats.pending > 9 ? '9+' : task_stats.pending }}</span>
                 {% endif %}
             </a>

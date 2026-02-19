@@ -13,6 +13,27 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class RealTimeNotificationController extends AbstractController
 {
+    #[Route('', name: 'app_notifications_list', methods: ['GET'])]
+    public function listNotifications(NotificationService $notificationService): Response
+    {
+        $user = $this->getUser();
+        $notifications = $notificationService->getUnreadNotifications($user);
+        
+        $data = [];
+        foreach ($notifications as $notification) {
+            $data[] = [
+                'id' => $notification->getId(),
+                'title' => $notification->getTitle(),
+                'message' => $notification->getMessage(),
+                'is_read' => $notification->isRead(),
+                'created_at' => $notification->getCreatedAt()->format('c'),
+                'task_id' => $notification->getTask() ? $notification->getTask()->getId() : null
+            ];
+        }
+        
+        return $this->json($data);
+    }
+
     #[Route('/stream', name: 'app_notifications_stream', methods: ['GET'])]
     public function notificationStream(Request $request, NotificationService $notificationService): Response
     {
@@ -47,6 +68,24 @@ class RealTimeNotificationController extends AbstractController
             'success' => true,
             'marked_count' => $count
         ]);
+    }
+
+    #[Route('/{id}/read', name: 'app_notifications_mark_read', methods: ['POST'])]
+    public function markAsRead(
+        int $id, 
+        NotificationService $notificationService,
+        \App\Repository\NotificationRepository $notificationRepository
+    ): Response {
+        $user = $this->getUser();
+        
+        $notification = $notificationRepository->find($id);
+        
+        if (!$notification || $notification->getUser() !== $user) {
+            return $this->json(['error' => 'Notification not found'], 404);
+        }
+        
+        $notificationService->markAsRead($notification);
+        return $this->json(['success' => true]);
     }
 
     #[Route('/recent', name: 'app_notifications_recent', methods: ['GET'])]

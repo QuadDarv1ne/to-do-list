@@ -17,10 +17,10 @@ class QueryPerformanceListener implements EventSubscriberInterface
 
     public function __construct(
         private QueryPerformanceMonitor $monitor,
-        private string $environment
+        string $environment = 'prod'
     ) {
         // Включаем только в dev окружении
-        $this->enabled = $this->environment === 'dev';
+        $this->enabled = $environment === 'dev';
     }
 
     public static function getSubscribedEvents(): array

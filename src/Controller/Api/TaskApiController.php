@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller\API;
+namespace App\Controller\Api;
 
 use App\Entity\Task;
 use App\Entity\User;
@@ -15,7 +15,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
 #[Route('/api/tasks')]
-class TaskAPIController extends AbstractController
+class TaskApiController extends AbstractController
 {
     public function __construct(
         private TaskRepository $taskRepository,

@@ -9,7 +9,7 @@
     {% if title is defined or header_content is defined %}
     <div class="{{ header_class }}">
         {% if header_content is defined %}
-            {{ header_content|raw }}
+            {{ header_content|e('html') }}
         {% else %}
             <h5 class="mb-0">
                 {% if icon is defined %}<i class="{{ icon }} me-2"></i>{% endif %}
@@ -21,7 +21,7 @@
     
     <div class="{{ body_class }}">
         {% if content_html is defined %}
-            {{ content_html|raw }}
+            {{ content_html|e('html') }}
         {% else %}
             {{ content }}
         {% endif %}
@@ -29,7 +29,7 @@
     
     {% if footer_content is defined %}
     <div class="{{ footer_class }}">
-        {{ footer_content|raw }}
+        {{ footer_content|e('html') }}
     </div>
     {% endif %}
 </div>

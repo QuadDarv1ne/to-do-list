@@ -4,284 +4,192 @@ namespace App\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
-use App\Entity\ActivityLog;
-use App\Entity\Comment;
-use App\Entity\TaskNotification;
-use App\Entity\TaskTimeTracking;
 
 /**
- * Service for cleaning up old data
+ * Сервис для автоматической очистки устаревших данных
  */
 class DataCleanupService
 {
-    private EntityManagerInterface $entityManager;
-    private LoggerInterface $logger;
-
     public function __construct(
-        EntityManagerInterface $entityManager,
-        LoggerInterface $logger
-    ) {
-        $this->entityManager = $entityManager;
-        $this->logger = $logger;
-    }
+        private EntityManagerInterface $entityManager,
+        private LoggerInterface $logger
+    ) {}
 
     /**
-     * Clean up old activity logs
+     * Очистка старых логов активности
      */
-    public function cleanOldActivityLogs(int $daysToKeep = 30): int
+    public function cleanupActivityLogs(int $daysToKeep = 90): int
     {
         $cutoffDate = new \DateTime("-{$daysToKeep} days");
         
-        $this->logger->info('Starting activity log cleanup', [
-            'cutoff_date' => $cutoffDate->format('Y-m-d H:i:s'),
-            'days_to_keep' => $daysToKeep
-        ]);
-
         $qb = $this->entityManager->createQueryBuilder();
-        
-        $deletedCount = $qb
-            ->delete(ActivityLog::class, 'al')
-            ->where('al.createdAt < :cutoffDate')
-            ->setParameter('cutoffDate', $cutoffDate)
+        $deleted = $qb->delete('App\Entity\ActivityLog', 'a')
+            ->where('a.createdAt < :cutoff')
+            ->setParameter('cutoff', $cutoffDate)
             ->getQuery()
             ->execute();
 
-        $this->logger->info('Activity log cleanup completed', [
-            'deleted_count' => $deletedCount,
-            'cutoff_date' => $cutoffDate->format('Y-m-d H:i:s')
+        $this->logger->info('Activity logs cleaned up', [
+            'deleted' => $deleted,
+            'cutoff_date' => $cutoffDate->format('Y-m-d')
         ]);
 
-        return $deletedCount;
+        return $deleted;
     }
 
     /**
-     * Clean up old notifications
+     * Очистка прочитанных уведомлений
      */
-    public function cleanOldNotifications(int $daysToKeep = 30): int
+    public function cleanupReadNotifications(int $daysToKeep = 30): int
     {
         $cutoffDate = new \DateTime("-{$daysToKeep} days");
         
-        $this->logger->info('Starting notification cleanup', [
-            'cutoff_date' => $cutoffDate->format('Y-m-d H:i:s'),
-            'days_to_keep' => $daysToKeep
-        ]);
-
         $qb = $this->entityManager->createQueryBuilder();
-        
-        $deletedCount = $qb
-            ->delete(TaskNotification::class, 'tn')
-            ->where('tn.createdAt < :cutoffDate')
-            ->setParameter('cutoffDate', $cutoffDate)
+        $deleted = $qb->delete('App\Entity\Notification', 'n')
+            ->where('n.isRead = :read')
+            ->andWhere('n.createdAt < :cutoff')
+            ->setParameter('read', true)
+            ->setParameter('cutoff', $cutoffDate)
             ->getQuery()
             ->execute();
 
-        $this->logger->info('Notification cleanup completed', [
-            'deleted_count' => $deletedCount,
-            'cutoff_date' => $cutoffDate->format('Y-m-d H:i:s')
+        $this->logger->info('Read notifications cleaned up', [
+            'deleted' => $deleted,
+            'cutoff_date' => $cutoffDate->format('Y-m-d')
         ]);
 
-        return $deletedCount;
+        return $deleted;
     }
 
     /**
-     * Clean up old comments
+     * Очистка завершенных задач
      */
-    public function cleanOldComments(int $daysToKeep = 60): int
+    public function archiveCompletedTasks(int $daysToKeep = 365): int
     {
         $cutoffDate = new \DateTime("-{$daysToKeep} days");
         
-        $this->logger->info('Starting comment cleanup', [
-            'cutoff_date' => $cutoffDate->format('Y-m-d H:i:s'),
-            'days_to_keep' => $daysToKeep
-        ]);
-
-        // First, find comments that are older than cutoff and not associated with active tasks
+        // Помечаем как архивные вместо удаления
         $qb = $this->entityManager->createQueryBuilder();
-        
-        $deletedCount = $qb
-            ->delete(Comment::class, 'c')
-            ->where('c.createdAt < :cutoffDate')
-            ->setParameter('cutoffDate', $cutoffDate)
+        $archived = $qb->update('App\Entity\Task', 't')
+            ->set('t.isArchived', ':archived')
+            ->where('t.status = :status')
+            ->andWhere('t.completedAt < :cutoff')
+            ->setParameter('archived', true)
+            ->setParameter('status', 'completed')
+            ->setParameter('cutoff', $cutoffDate)
             ->getQuery()
             ->execute();
 
-        $this->logger->info('Comment cleanup completed', [
-            'deleted_count' => $deletedCount,
-            'cutoff_date' => $cutoffDate->format('Y-m-d H:i:s')
+        $this->logger->info('Completed tasks archived', [
+            'archived' => $archived,
+            'cutoff_date' => $cutoffDate->format('Y-m-d')
         ]);
 
-        return $deletedCount;
+        return $archived;
     }
 
     /**
-     * Clean up old time tracking records
+     * Очистка временных файлов
      */
-    public function cleanOldTimeTracking(int $daysToKeep = 90): int
+    public function cleanupTempFiles(string $tempDir): int
+    {
+        if (!is_dir($tempDir)) {
+            return 0;
+        }
+
+        $deleted = 0;
+        $cutoffTime = time() - (24 * 3600); // 24 часа
+
+        $files = glob($tempDir . '/*');
+        foreach ($files as $file) {
+            if (is_file($file) && filemtime($file) < $cutoffTime) {
+                if (unlink($file)) {
+                    $deleted++;
+                }
+            }
+        }
+
+        $this->logger->info('Temp files cleaned up', ['deleted' => $deleted]);
+        return $deleted;
+    }
+
+    /**
+     * Очистка истории изменений задач
+     */
+    public function cleanupTaskHistory(int $daysToKeep = 180): int
     {
         $cutoffDate = new \DateTime("-{$daysToKeep} days");
         
-        $this->logger->info('Starting time tracking cleanup', [
-            'cutoff_date' => $cutoffDate->format('Y-m-d H:i:s'),
-            'days_to_keep' => $daysToKeep
-        ]);
-
         $qb = $this->entityManager->createQueryBuilder();
-        
-        $deletedCount = $qb
-            ->delete(TaskTimeTracking::class, 'ttt')
-            ->where('ttt.createdAt < :cutoffDate')
-            ->setParameter('cutoffDate', $cutoffDate)
+        $deleted = $qb->delete('App\Entity\TaskHistory', 'h')
+            ->where('h.createdAt < :cutoff')
+            ->setParameter('cutoff', $cutoffDate)
             ->getQuery()
             ->execute();
 
-        $this->logger->info('Time tracking cleanup completed', [
-            'deleted_count' => $deletedCount,
-            'cutoff_date' => $cutoffDate->format('Y-m-d H:i:s')
+        $this->logger->info('Task history cleaned up', [
+            'deleted' => $deleted,
+            'cutoff_date' => $cutoffDate->format('Y-m-d')
         ]);
 
-        return $deletedCount;
+        return $deleted;
     }
 
     /**
-     * Clean up old password reset requests
+     * Полная очистка всех устаревших данных
      */
-    public function cleanOldPasswordResetRequests(int $daysToKeep = 7): int
+    public function cleanupAll(): array
     {
-        $cutoffDate = new \DateTime("-{$daysToKeep} days");
-        
-        $this->logger->info('Starting password reset request cleanup', [
-            'cutoff_date' => $cutoffDate->format('Y-m-d H:i:s'),
-            'days_to_keep' => $daysToKeep
-        ]);
-
-        $resetRequestRepo = $this->entityManager->getRepository('App:ResetPasswordRequest');
-        
-        $qb = $this->entityManager->createQueryBuilder();
-        
-        $deletedCount = $qb
-            ->delete('App:ResetPasswordRequest', 'rpr')
-            ->where('rpr.expiresAt < :cutoffDate')
-            ->setParameter('cutoffDate', $cutoffDate)
-            ->getQuery()
-            ->execute();
-
-        $this->logger->info('Password reset request cleanup completed', [
-            'deleted_count' => $deletedCount,
-            'cutoff_date' => $cutoffDate->format('Y-m-d H:i:s')
-        ]);
-
-        return $deletedCount;
-    }
-
-    /**
-     * Perform comprehensive cleanup
-     */
-    public function performComprehensiveCleanup(array $options = []): array
-    {
-        $startTime = microtime(true);
-        $this->logger->info('Starting comprehensive data cleanup');
-        
-        $defaults = [
-            'activity_logs_days' => 30,
-            'notifications_days' => 30,
-            'comments_days' => 60,
-            'time_tracking_days' => 90,
-            'password_reset_days' => 7,
-        ];
-        
-        $options = array_merge($defaults, $options);
-        
         $results = [
-            'activity_logs_deleted' => $this->cleanOldActivityLogs($options['activity_logs_days']),
-            'notifications_deleted' => $this->cleanOldNotifications($options['notifications_days']),
-            'comments_deleted' => $this->cleanOldComments($options['comments_days']),
-            'time_tracking_deleted' => $this->cleanOldTimeTracking($options['time_tracking_days']),
-            'password_reset_requests_deleted' => $this->cleanOldPasswordResetRequests($options['password_reset_days']),
+            'activity_logs' => $this->cleanupActivityLogs(),
+            'notifications' => $this->cleanupReadNotifications(),
+            'archived_tasks' => $this->archiveCompletedTasks(),
+            'task_history' => $this->cleanupTaskHistory(),
+            'timestamp' => date('Y-m-d H:i:s')
         ];
-        
-        $results['total_deleted'] = array_sum($results);
-        $results['duration'] = round(microtime(true) - $startTime, 2);
-        
-        $this->logger->info('Comprehensive data cleanup completed', [
-            'total_deleted' => $results['total_deleted'],
-            'duration' => $results['duration']
-        ]);
-        
+
+        $this->logger->info('Full cleanup completed', $results);
         return $results;
     }
 
     /**
-     * Get statistics about old data
+     * Получение статистики по данным для очистки
      */
-    public function getOldDataStatistics(array $options = []): array
+    public function getCleanupStats(): array
     {
-        $defaults = [
-            'activity_logs_days' => 30,
-            'notifications_days' => 30,
-            'comments_days' => 60,
-            'time_tracking_days' => 90,
-            'password_reset_days' => 7,
-        ];
-        
-        $options = array_merge($defaults, $options);
-        
         $stats = [];
-        
-        // Count old activity logs
-        $cutoffDate = new \DateTime("-{$options['activity_logs_days']} days");
+
+        // Старые логи активности
         $qb = $this->entityManager->createQueryBuilder();
-        $stats['activity_logs_old'] = $qb
-            ->select('COUNT(al.id)')
-            ->from(ActivityLog::class, 'al')
-            ->where('al.createdAt < :cutoffDate')
-            ->setParameter('cutoffDate', $cutoffDate)
+        $stats['old_activity_logs'] = $qb->select('COUNT(a.id)')
+            ->from('App\Entity\ActivityLog', 'a')
+            ->where('a.createdAt < :cutoff')
+            ->setParameter('cutoff', new \DateTime('-90 days'))
             ->getQuery()
             ->getSingleScalarResult();
-        
-        // Count old notifications
-        $cutoffDate = new \DateTime("-{$options['notifications_days']} days");
+
+        // Прочитанные уведомления
         $qb = $this->entityManager->createQueryBuilder();
-        $stats['notifications_old'] = $qb
-            ->select('COUNT(tn.id)')
-            ->from(TaskNotification::class, 'tn')
-            ->where('tn.createdAt < :cutoffDate')
-            ->setParameter('cutoffDate', $cutoffDate)
+        $stats['old_notifications'] = $qb->select('COUNT(n.id)')
+            ->from('App\Entity\Notification', 'n')
+            ->where('n.isRead = :read')
+            ->andWhere('n.createdAt < :cutoff')
+            ->setParameter('read', true)
+            ->setParameter('cutoff', new \DateTime('-30 days'))
             ->getQuery()
             ->getSingleScalarResult();
-        
-        // Count old comments
-        $cutoffDate = new \DateTime("-{$options['comments_days']} days");
+
+        // Старые завершенные задачи
         $qb = $this->entityManager->createQueryBuilder();
-        $stats['comments_old'] = $qb
-            ->select('COUNT(c.id)')
-            ->from(Comment::class, 'c')
-            ->where('c.createdAt < :cutoffDate')
-            ->setParameter('cutoffDate', $cutoffDate)
+        $stats['old_completed_tasks'] = $qb->select('COUNT(t.id)')
+            ->from('App\Entity\Task', 't')
+            ->where('t.status = :status')
+            ->andWhere('t.completedAt < :cutoff')
+            ->setParameter('status', 'completed')
+            ->setParameter('cutoff', new \DateTime('-365 days'))
             ->getQuery()
             ->getSingleScalarResult();
-        
-        // Count old time tracking
-        $cutoffDate = new \DateTime("-{$options['time_tracking_days']} days");
-        $qb = $this->entityManager->createQueryBuilder();
-        $stats['time_tracking_old'] = $qb
-            ->select('COUNT(ttt.id)')
-            ->from(TaskTimeTracking::class, 'ttt')
-            ->where('ttt.createdAt < :cutoffDate')
-            ->setParameter('cutoffDate', $cutoffDate)
-            ->getQuery()
-            ->getSingleScalarResult();
-        
-        // Count old password reset requests
-        $cutoffDate = new \DateTime("-{$options['password_reset_days']} days");
-        $qb = $this->entityManager->createQueryBuilder();
-        $stats['password_reset_requests_old'] = $qb
-            ->select('COUNT(rpr.id)')
-            ->from('App:ResetPasswordRequest', 'rpr')
-            ->where('rpr.expiresAt < :cutoffDate')
-            ->setParameter('cutoffDate', $cutoffDate)
-            ->getQuery()
-            ->getSingleScalarResult();
-        
+
         return $stats;
     }
 }

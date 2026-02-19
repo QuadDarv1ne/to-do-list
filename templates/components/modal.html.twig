@@ -30,12 +30,12 @@
             {% endif %}
             
             <div class="modal-body">
-                {{ content|raw }}
+                {{ content|default('')|e('html') }}
             </div>
             
             {% if footer is defined %}
             <div class="modal-footer">
-                {{ footer|raw }}
+                {{ footer|default('')|e('html') }}
             </div>
             {% endif %}
         </div>

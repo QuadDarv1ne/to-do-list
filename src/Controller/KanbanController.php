@@ -32,12 +32,12 @@ class KanbanController extends AbstractController
         $categoryId = $request->query->get('category');
         $assignedUserId = $request->query->get('assigned_user');
         
-        // Get tasks grouped by status
+        // Get tasks grouped by status with optimized JOIN
         $qb = $this->taskRepository->createQueryBuilder('t')
-            ->leftJoin('t.user', 'u')
-            ->leftJoin('t.assignedUser', 'au')
-            ->leftJoin('t.category', 'c')
-            ->leftJoin('t.tags', 'tg');
+            ->leftJoin('t.user', 'u')->addSelect('u')
+            ->leftJoin('t.assignedUser', 'au')->addSelect('au')
+            ->leftJoin('t.category', 'c')->addSelect('c')
+            ->leftJoin('t.tags', 'tg')->addSelect('tg');
         
         // Access control
         if (!in_array('ROLE_ADMIN', $user->getRoles())) {
@@ -114,7 +114,14 @@ class KanbanController extends AbstractController
     #[Route('/task/{id}/status', name: 'app_kanban_update_status', methods: ['POST'])]
     public function updateStatus(int $id, Request $request): JsonResponse
     {
-        $task = $this->taskRepository->find($id);
+        // Optimized: preload related entities
+        $task = $this->taskRepository->createQueryBuilder('t')
+            ->leftJoin('t.user', 'u')->addSelect('u')
+            ->leftJoin('t.assignedUser', 'au')->addSelect('au')
+            ->where('t.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
         
         if (!$task) {
             return $this->json(['success' => false, 'message' => 'Task not found'], 404);
@@ -159,6 +166,7 @@ class KanbanController extends AbstractController
     #[Route('/task/{id}/position', name: 'app_kanban_update_position', methods: ['POST'])]
     public function updatePosition(int $id, Request $request): JsonResponse
     {
+        // Optimized: minimal query for position update
         $task = $this->taskRepository->find($id);
         
         if (!$task) {

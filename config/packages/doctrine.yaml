@@ -8,11 +8,7 @@ doctrine:
         
         profiling_collect_backtrace: '%kernel.debug%'
         
-        # Оптимизации подключения к БД
-        options:
-            1002: "SET sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))" # MySQL
-        
-        # Настройки для PostgreSQL
+        # Настройки для PostgreSQL/MySQL (не применяются к SQLite)
         charset: utf8
         default_table_options:
             charset: utf8mb4
@@ -25,28 +21,16 @@ doctrine:
             Doctrine\DBAL\Platforms\PostgreSQLPlatform: identity
         auto_mapping: true
         
-        # Оптимизации ORM
-        auto_generate_proxy_classes: false
-        proxy_dir: '%kernel.cache_dir%/doctrine/orm/Proxies'
-        proxy_namespace: Proxies
-        
         # Включаем второй уровень кэша
         second_level_cache:
             enabled: true
-            default_lifetime: 3600
-            default_lock_lifetime: 60
-            file_lock_region_directory: '%kernel.cache_dir%/doctrine/orm/slc/filelock'
+            region_lifetime: 3600
+            region_lock_lifetime: 60
             regions:
                 user_cache:
                     lifetime: 7200
-                    cache_driver:
-                        type: pool
-                        pool: doctrine.second_level_cache_pool
                 task_cache:
                     lifetime: 1800
-                    cache_driver:
-                        type: pool
-                        pool: doctrine.second_level_cache_pool
         
         mappings:
             App:
@@ -98,8 +82,6 @@ when@prod:
             result_cache_driver:
                 type: pool
                 pool: doctrine.result_cache_pool
-            # Включаем автогенерацию прокси только в dev
-            auto_generate_proxy_classes: false
 
     framework:
         cache:

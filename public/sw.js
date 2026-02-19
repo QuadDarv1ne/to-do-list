@@ -1,13 +1,13 @@
 /**
  * Service Worker for CRM To-Do List App
  * Advanced PWA with offline support, background sync, and push notifications
- * Version: 2.0.0
+ * Version: 2.0.2
  */
 
-const CACHE_NAME = 'crm-todo-v2';
-const STATIC_CACHE = 'static-v2';
-const DYNAMIC_CACHE = 'dynamic-v2';
-const IMAGE_CACHE = 'images-v2';
+const CACHE_NAME = 'crm-todo-v2.2';
+const STATIC_CACHE = 'static-v2.2';
+const DYNAMIC_CACHE = 'dynamic-v2.2';
+const IMAGE_CACHE = 'images-v2.2';
 
 // App shell - critical resources
 const APP_SHELL = [
@@ -181,11 +181,10 @@ async function cacheFirst(request, cacheName) {
         
         return networkResponse;
     } catch (error) {
-        console.warn('[SW] Fetch failed, no cache:', request.url);
-        return new Response('Offline - resource not available', {
-            status: 503,
-            statusText: 'Service Unavailable'
-        });
+        console.warn('[SW] Fetch failed for static asset:', request.url);
+        // Для статических ресурсов просто пропускаем запрос дальше
+        // Браузер сам обработает ошибку
+        throw error;
     }
 }
 
@@ -196,15 +195,9 @@ async function cacheFirst(request, cacheName) {
  * @returns {Promise<Response>} Response
  */
 async function networkFirstWithTimeout(request, fallbackUrl = '/offline-page.html') {
-    const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Network timeout')), NETWORK_TIMEOUT);
-    });
-    
     try {
-        const networkResponse = await Promise.race([
-            fetch(request),
-            timeoutPromise
-        ]);
+        // Пробуем сеть без таймаута для обычных запросов
+        const networkResponse = await fetch(request);
         
         // Cache successful responses
         if (networkResponse.ok) {
@@ -234,10 +227,16 @@ async function networkFirstWithTimeout(request, fallbackUrl = '/offline-page.htm
             }
         }
         
-        return new Response('Offline - resource not available', {
-            status: 503,
-            statusText: 'Service Unavailable'
-        });
+        // Для API запросов возвращаем ошибку
+        if (isApiRequest(request)) {
+            return new Response(JSON.stringify({ error: 'Offline' }), {
+                status: 503,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
+        
+        // Для остальных - пропускаем
+        return fetch(request);
     }
 }
 
