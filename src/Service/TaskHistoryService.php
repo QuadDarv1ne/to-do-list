@@ -197,7 +197,8 @@ class TaskHistoryService
      */
     public function getChangeDescription(TaskHistory $history): string
     {
-        $userName = $history->getUser()->getFullName();
+        $user = $history->getUser();
+        $userName = $user ? $user->getFullName() : 'Система';
         
         return match($history->getAction()) {
             'created' => "{$userName} создал(а) задачу",

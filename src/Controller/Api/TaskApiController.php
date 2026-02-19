@@ -330,10 +330,10 @@ class TaskApiController extends AbstractController
             'updated_at' => $task->getUpdatedAt()?->format('c'),
             'due_date' => $task->getDueDate()?->format('c'),
             'completed_at' => $task->getCompletedAt()?->format('c'),
-            'user' => [
+            'user' => $task->getUser() ? [
                 'id' => $task->getUser()->getId(),
                 'name' => $task->getUser()->getFullName()
-            ],
+            ] : null,
             'assigned_user' => $task->getAssignedUser() ? [
                 'id' => $task->getAssignedUser()->getId(),
                 'name' => $task->getAssignedUser()->getFullName()

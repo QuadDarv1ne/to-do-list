@@ -82,10 +82,11 @@ class BulkTaskOperationService
             // Send notifications for completed tasks (after commit)
             if ($newStatus === 'completed' && $updatedCount > 0) {
                 foreach ($tasks as $task) {
-                    if ($task->getUser()->getId() !== $currentUser->getId()) {
+                    $taskUser = $task->getUser();
+                    if ($taskUser && $taskUser->getId() !== $currentUser->getId()) {
                         try {
                             $this->notificationService->sendTaskCompletionNotification(
-                                $task->getUser(),
+                                $taskUser,
                                 $currentUser,
                                 $task->getId(),
                                 $task->getTitle()
@@ -361,7 +362,8 @@ class BulkTaskOperationService
     {
         // User can edit if they are the creator or assigned user, or if they are admin
         $isAdmin = in_array('ROLE_ADMIN', $user->getRoles());
-        $isOwner = $task->getUser()->getId() === $user->getId();
+        $taskUser = $task->getUser();
+        $isOwner = $taskUser && $taskUser->getId() === $user->getId();
         $isAssigned = $task->getAssignedUser() && $task->getAssignedUser()->getId() === $user->getId();
 
         return $isAdmin || $isOwner || $isAssigned;
@@ -374,7 +376,8 @@ class BulkTaskOperationService
     {
         // User can delete if they are the creator or if they are admin
         $isAdmin = in_array('ROLE_ADMIN', $user->getRoles());
-        $isOwner = $task->getUser()->getId() === $user->getId();
+        $taskUser = $task->getUser();
+        $isOwner = $taskUser && $taskUser->getId() === $user->getId();
 
         return $isAdmin || $isOwner;
     }

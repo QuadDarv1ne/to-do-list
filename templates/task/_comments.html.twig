@@ -1,42 +1,60 @@
 {# templates/task/_comments.html.twig #}
-<div class="card mt-4">
-    <div class="card-header">
-        <h5 class="mb-0">
-            <i class="fas fa-comments me-2"></i>
-            Комментарии ({{ comments|length }})
+<div class="card mt-4 comments-card">
+    <div class="card-header bg-white border-0">
+        <h5 class="mb-0 d-flex align-items-center">
+            <div class="comment-icon-wrapper me-3">
+                <i class="fas fa-comments"></i>
+            </div>
+            <div>
+                <span class="fw-bold">Комментарии</span>
+                <span class="badge bg-primary ms-2">{{ comments|length }}</span>
+            </div>
         </h5>
     </div>
     <div class="card-body">
         {% if comments is empty %}
-            <p class="text-muted fst-italic">К этой задаче пока нет комментариев.</p>
+            <div class="empty-comments text-center py-4">
+                <i class="fas fa-comment-slash fa-3x text-muted mb-3" style="opacity: 0.3;"></i>
+                <p class="text-muted mb-0">К этой задаче пока нет комментариев</p>
+            </div>
         {% else %}
             <div class="comments-list">
                 {% for comment in comments %}
-                    <div class="comment-item mb-3 p-3 border-start border-primary border-3 bg-light">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <h6 class="mb-1">
-                                    <i class="fas fa-user-circle me-1"></i>
-                                    {{ comment.author.fullName }}
-                                </h6>
-                                <small class="text-muted">
-                                    <i class="far fa-clock me-1"></i>
-                                    {{ comment.createdAt|date('d.m.Y H:i') }}
-                                </small>
+                    <div class="comment-item" data-comment-id="{{ comment.id }}">
+                        <div class="comment-avatar">
+                            <div class="avatar-circle">
+                                {{ comment.author.firstName|first }}{{ comment.author.lastName|first }}
                             </div>
-                            {% if app.user == comment.author or app.user.hasRole('ROLE_ADMIN') %}
-                                <form method="post" action="{{ path('app_comment_delete', {'id': comment.id}) }}" 
-                                      onsubmit="return confirm('Вы уверены, что хотите удалить этот комментарий?')" 
-                                      class="d-inline">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ comment.id) }}">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
-                            {% endif %}
                         </div>
-                        <div class="mt-2">
-                            <p class="mb-0">{{ comment.content|nl2br }}</p>
+                        <div class="comment-content">
+                            <div class="comment-header">
+                                <div class="comment-author">
+                                    <span class="author-name">{{ comment.author.fullName }}</span>
+                                    {% if comment.author.hasRole('ROLE_ADMIN') %}
+                                        <span class="badge bg-danger badge-sm ms-2">Admin</span>
+                                    {% endif %}
+                                </div>
+                                <div class="comment-meta">
+                                    <span class="comment-time">
+                                        <i class="far fa-clock me-1"></i>
+                                        {{ comment.createdAt|date('d.m.Y H:i') }}
+                                    </span>
+                                    {% if app.user == comment.author or app.user.hasRole('ROLE_ADMIN') %}
+                                        <form method="post" 
+                                              action="{{ path('app_comment_delete', {'id': comment.id}) }}" 
+                                              onsubmit="return confirm('Удалить комментарий?')" 
+                                              class="d-inline ms-2">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ comment.id) }}">
+                                            <button type="submit" class="btn-comment-delete" title="Удалить">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="comment-text">
+                                {{ comment.content|nl2br }}
+                            </div>
                         </div>
                     </div>
                 {% endfor %}
@@ -44,23 +62,207 @@
         {% endif %}
         
         {# Comment form #}
-        <div class="mt-4">
-            <h6 class="mb-3">
+        <div class="comment-form-wrapper">
+            <h6 class="comment-form-title">
                 <i class="fas fa-comment-dots me-2"></i>
                 Добавить комментарий
             </h6>
-            {{ form_start(comment_form) }}
+            {{ form_start(comment_form, {'attr': {'class': 'comment-form'}}) }}
                 <div class="mb-3">
-                    {{ form_widget(comment_form.content, {'attr': {'class': 'form-control', 'rows': 3}}) }}
+                    {{ form_widget(comment_form.content, {
+                        'attr': {
+                            'class': 'form-control comment-textarea',
+                            'rows': 3,
+                            'placeholder': 'Напишите ваш комментарий...'
+                        }
+                    }) }}
                     {{ form_errors(comment_form.content) }}
                 </div>
-                <div class="d-grid">
-                    <button type="submit" class="btn btn-primary">
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary btn-comment-submit">
                         <i class="fas fa-paper-plane me-2"></i>
-                        Отправить комментарий
+                        Отправить
                     </button>
                 </div>
             {{ form_end(comment_form) }}
         </div>
     </div>
 </div>
+
+<style>
+.comments-card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.comment-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.25rem;
+}
+
+.comments-list {
+    margin-bottom: 2rem;
+}
+
+.comment-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border-left: 4px solid #667eea;
+    transition: all 0.3s ease;
+    animation: slideIn 0.4s ease-out backwards;
+}
+
+.comment-item:nth-child(1) { animation-delay: 0.1s; }
+.comment-item:nth-child(2) { animation-delay: 0.2s; }
+.comment-item:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.comment-item:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.comment-avatar {
+    flex-shrink: 0;
+}
+
+.avatar-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.125rem;
+}
+
+.comment-content {
+    flex: 1;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.author-name {
+    font-weight: 600;
+    color: #212529;
+}
+
+.comment-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.comment-time {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.btn-comment-delete {
+    background: none;
+    border: none;
+    color: #dc3545;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 6px;
+}
+
+.btn-comment-delete:hover {
+    background: #dc3545;
+    color: white;
+}
+
+.comment-text {
+    color: #495057;
+    line-height: 1.6;
+}
+
+.comment-form-wrapper {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 2px solid #e9ecef;
+}
+
+.comment-form-title {
+    color: #495057;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.comment-textarea {
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+    resize: vertical;
+}
+
+.comment-textarea:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+}
+
+.btn-comment-submit {
+    border-radius: 10px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-comment-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.empty-comments {
+    animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+</style>

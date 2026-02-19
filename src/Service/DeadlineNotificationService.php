@@ -170,12 +170,14 @@ class DeadlineNotificationService
     {
         $dueDate = $task->getDueDate();
         $timeLeft = $dueDate ? $dueDate->diff(new \DateTime())->format('%d дней %h часов') : 'не указан';
+        $taskUser = $task->getUser();
+        $userName = $taskUser ? $taskUser->getFullName() : 'Пользователь';
         
         return "
         <html>
         <body style='font-family: Arial, sans-serif; margin: 20px;'>
             <h2 style='color: #d32f2f;'>Напоминание о дедлайне</h2>
-            <p>Здравствуйте, {$task->getUser()->getFullName()}!</p>
+            <p>Здравствуйте, {$userName}!</p>
             <p>Срок выполнения задачи <strong>{$task->getTitle()}</strong> истекает завтра.</p>
             
             <div style='background-color: #f5f5f5; padding: 15px; border-left: 4px solid #d32f2f; margin: 20px 0;'>
