@@ -6,6 +6,15 @@
 (function() {
     'use strict';
 
+    /**
+     * Экранирование HTML для предотвращения XSS
+     */
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
     // Initialize on DOM ready
     document.addEventListener('DOMContentLoaded', function() {
         initTooltips();
@@ -447,7 +456,7 @@
         }
         
         indicator.className = `position-fixed bottom-0 end-0 m-3 p-3 rounded shadow bg-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} text-white`;
-        indicator.innerHTML = `<i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : 'spinner fa-spin'} me-2"></i>${message}`;
+        indicator.innerHTML = `<i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : 'spinner fa-spin'} me-2"></i>${escapeHtml(message)}`;
         indicator.style.display = 'block';
         
         if (type !== 'info') {

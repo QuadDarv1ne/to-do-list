@@ -14,7 +14,8 @@ class OfflineSupport {
     init() {
         this.setupEventListeners();
         this.addOfflineIndicatorStyles();
-        this.checkConnection();
+        // Не проверяем соединение при инициализации - используем navigator.onLine
+        // checkConnection будет вызван только при событиях online/offline
         this.startPeriodicSync();
     }
 

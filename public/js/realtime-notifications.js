@@ -31,6 +31,15 @@
         }
 
         /**
+         * Экранирование HTML для предотвращения XSS
+         */
+        escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        /**
          * Initialize real-time notifications
          */
         init() {
@@ -302,12 +311,12 @@
                     <div class="toast-icon ${this.getIconClass(notification.type)}">
                         <i class="fas ${this.getIcon(notification.type)}"></i>
                     </div>
-                    <strong class="me-auto">${notification.title}</strong>
+                    <strong class="me-auto">${this.escapeHtml(notification.title)}</strong>
                     <small class="text-muted">${this.formatTime(notification.createdAt)}</small>
                     <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
                 </div>
                 <div class="toast-body">
-                    ${notification.message}
+                    ${this.escapeHtml(notification.message)}
                 </div>
             `;
 

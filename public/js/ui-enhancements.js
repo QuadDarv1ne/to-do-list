@@ -8,6 +8,15 @@ class UIEnhancements {
         this.init();
     }
 
+    /**
+     * Экранирование HTML для предотвращения XSS
+     */
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
     init() {
         this.initRippleEffect();
         this.initAnimateOnScroll();
@@ -232,7 +241,7 @@ class UIEnhancements {
 
         toast.innerHTML = `
             <i class="fas ${icons[type] || icons.info} me-2"></i>
-            ${message}
+            ${this.escapeHtml(message)}
         `;
 
         document.body.appendChild(toast);
@@ -254,6 +263,14 @@ class UIEnhancements {
         const dialog = document.createElement('div');
         dialog.className = 'modal fade show animate-scale-in';
         dialog.style.cssText = 'display: block; z-index: 9999;';
+        
+        // Экранируем сообщение
+        const escapeHtml = (text) => {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        };
+        
         dialog.innerHTML = `
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
@@ -261,7 +278,7 @@ class UIEnhancements {
                         <h5 class="modal-title">Подтверждение</h5>
                     </div>
                     <div class="modal-body">
-                        <p>${message}</p>
+                        <p>${escapeHtml(message)}</p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-action="cancel">Отмена</button>

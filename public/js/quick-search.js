@@ -15,6 +15,15 @@ class QuickSearch {
         this.init();
     }
     
+    /**
+     * Экранирование HTML для предотвращения XSS
+     */
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
     init() {
         this.createSearchModal();
         this.bindKeyboardShortcuts();
@@ -183,9 +192,11 @@ class QuickSearch {
     renderResultItem(item, index) {
         const highlightedTitle = this.highlightMatch(item.title, this.searchInput.value);
         const highlightedDesc = item.description ? this.highlightMatch(item.description, this.searchInput.value) : '';
+        const escapedUrl = this.escapeHtml(item.url);
+        const escapedMeta = item.meta ? this.escapeHtml(item.meta) : '';
         
         return `
-            <div class="result-item" data-index="${index}" data-url="${item.url}">
+            <div class="result-item" data-index="${index}" data-url="${escapedUrl}">
                 <div class="result-item-icon">
                     <i class="fas ${this.getTypeIcon(item.type)}"></i>
                 </div>
@@ -193,7 +204,7 @@ class QuickSearch {
                     <div class="result-item-title">${highlightedTitle}</div>
                     ${highlightedDesc ? `<div class="result-item-description">${highlightedDesc}</div>` : ''}
                     <div class="result-item-meta">
-                        ${item.meta || ''}
+                        ${escapedMeta}
                     </div>
                 </div>
                 <div class="result-item-action">
@@ -239,9 +250,15 @@ class QuickSearch {
     }
     
     highlightMatch(text, query) {
-        if (!query) return text;
-        const regex = new RegExp(`(${this.escapeRegex(query)})`, 'gi');
-        return text.replace(regex, '<mark>$1</mark>');
+        if (!query) return this.escapeHtml(text);
+        
+        // Сначала экранируем текст
+        const escapedText = this.escapeHtml(text);
+        const escapedQuery = this.escapeHtml(query);
+        
+        // Затем добавляем подсветку
+        const regex = new RegExp(`(${this.escapeRegex(escapedQuery)})`, 'gi');
+        return escapedText.replace(regex, '<mark>$1</mark>');
     }
     
     escapeRegex(string) {

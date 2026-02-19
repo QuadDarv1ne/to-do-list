@@ -18,10 +18,17 @@ window.showToast = function(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `alert alert-${type} alert-dismissible fade show`;
     toast.style.cssText = 'margin-bottom: 10px; min-width: 300px;';
-    toast.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
-    `;
+    
+    // Безопасное добавление текста
+    const messageSpan = document.createElement('span');
+    messageSpan.textContent = message;
+    toast.appendChild(messageSpan);
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'btn-close';
+    closeBtn.onclick = function() { this.parentElement.remove(); };
+    toast.appendChild(closeBtn);
     
     container.appendChild(toast);
     

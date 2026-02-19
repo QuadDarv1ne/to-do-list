@@ -11,6 +11,15 @@ class AdvancedNotifications {
         this.init();
     }
 
+    /**
+     * Экранирование HTML для предотвращения XSS
+     */
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
     init() {
         this.createNotificationCenter();
         this.startPolling();
@@ -416,11 +425,11 @@ class AdvancedNotifications {
                 <div class="notification-item-header">
                     <div class="notification-item-title">
                         <i class="fas fa-${this.getNotificationIcon(notification.type)} me-2"></i>
-                        ${notification.title}
+                        ${this.escapeHtml(notification.title)}
                     </div>
                     <div class="notification-item-time">${this.formatTime(notification.createdAt)}</div>
                 </div>
-                <div class="notification-item-content">${notification.message}</div>
+                <div class="notification-item-content">${this.escapeHtml(notification.message)}</div>
                 ${notification.actions ? this.renderActions(notification.actions) : ''}
             </div>
         `;

@@ -48,57 +48,10 @@
     </noscript>
 
     {% block stylesheets %}
-        <!-- Main CSS -->
-        <link rel="stylesheet" href="/css/main.css">
-        <link rel="stylesheet" href="/css/themes.css">
-        <link rel="stylesheet" href="/css/components.css">
-        <link rel="stylesheet" href="/css/pages.css">
-        <link rel="preload" href="/css/card-system.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-        <link rel="preload" href="/css/layout-system.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-        <link rel="preload" href="/css/navigation-system.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-        <link rel="preload" href="/css/table-system.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-        <link rel="preload" href="/css/typography-system.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-        <link rel="preload" href="/css/modal-system.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-        
-        <!-- Page-specific styles loaded on demand -->
-        <link rel="preload" href="/css/pages.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-        <link rel="preload" href="/css/main.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-        
-        <!-- Accessibility & Mobile -->
-        <link rel="preload" href="/css/accessibility-improvements.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-        <link rel="preload" href="/css/mobile-table-adaptation.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-        <link rel="preload" href="/css/mobile-bottom-nav.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-        
-        <!-- Feature-specific styles -->
-        <link rel="preload" href="/css/task-grouping.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-        <link rel="preload" href="/css/realtime-notifications.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-        <link rel="preload" href="/css/dashboard-widgets-improved.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-        <link rel="preload" href="/css/kanban-improved.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-        <link rel="preload" href="/css/header-footer-improved.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-        
-        <!-- Fallback для браузеров без JavaScript -->
-        <noscript>
-            <link rel="stylesheet" href="/css/design-system-tokens.css">
-            <link rel="stylesheet" href="/css/dark-theme-improved.css">
-            <link rel="stylesheet" href="/css/button-system.css">
-            <link rel="stylesheet" href="/css/form-system.css">
-            <link rel="stylesheet" href="/css/card-system.css">
-            <link rel="stylesheet" href="/css/layout-system.css">
-            <link rel="stylesheet" href="/css/navigation-system.css">
-            <link rel="stylesheet" href="/css/table-system.css">
-            <link rel="stylesheet" href="/css/typography-system.css">
-            <link rel="stylesheet" href="/css/modal-system.css">
-            <link rel="stylesheet" href="/css/pages.css">
-            <link rel="stylesheet" href="/css/main.css">
-            <link rel="stylesheet" href="/css/accessibility-improvements.css">
-            <link rel="stylesheet" href="/css/mobile-table-adaptation.css">
-            <link rel="stylesheet" href="/css/mobile-bottom-nav.css">
-            <link rel="stylesheet" href="/css/task-grouping.css">
-            <link rel="stylesheet" href="/css/realtime-notifications.css">
-            <link rel="stylesheet" href="/css/dashboard-widgets-improved.css">
-            <link rel="stylesheet" href="/css/kanban-improved.css">
-            <link rel="stylesheet" href="/css/header-footer-improved.css">
-        </noscript>
+        <!-- Bundled CSS - оптимизированные файлы -->
+        <link rel="stylesheet" href="/css/app-bundle.css">
+        <link rel="stylesheet" href="/css/themes-bundle.css">
+        <link rel="stylesheet" href="/css/components-bundle.css">
     {% endblock %}
 </head>
 <body>

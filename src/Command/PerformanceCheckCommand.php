@@ -1,12 +1,4 @@
-#!/usr/bin/env php
 <?php
-
-/**
- * Performance Check Script
- * Проверка производительности приложения
- *
- * Использование: php bin/console app:performance-check
- */
 
 namespace App\Command;
 
