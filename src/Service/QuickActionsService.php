@@ -9,17 +9,61 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class QuickActionsService
 {
+    private array $taskCache = [];
+
     public function __construct(
         private TaskRepository $taskRepository,
         private EntityManagerInterface $entityManager
     ) {}
 
     /**
-     * Get task by ID
+     * Get task by ID with caching
      */
     public function getTask(int $taskId): ?Task
     {
-        return $this->taskRepository->find($taskId);
+        if (!isset($this->taskCache[$taskId])) {
+            $this->taskCache[$taskId] = $this->taskRepository->find($taskId);
+        }
+        return $this->taskCache[$taskId];
+    }
+
+    /**
+     * Bulk operations for better performance
+     */
+    public function bulkQuickActions(array $operations): array
+    {
+        $results = [];
+        $taskIds = array_unique(array_column($operations, 'taskId'));
+        
+        // Предзагружаем все задачи одним запросом
+        $tasks = $this->taskRepository->findBy(['id' => $taskIds]);
+        foreach ($tasks as $task) {
+            $this->taskCache[$task->getId()] = $task;
+        }
+
+        foreach ($operations as $operation) {
+            $taskId = $operation['taskId'];
+            $action = $operation['action'];
+            $params = $operation['params'] ?? [];
+
+            $result = match($action) {
+                'complete' => $this->quickComplete($taskId),
+                'delete' => $this->quickDelete($taskId),
+                'assign' => $this->quickAssign($taskId, $params['user']),
+                'priority' => $this->quickChangePriority($taskId, $params['priority']),
+                'status' => $this->quickChangeStatus($taskId, $params['status']),
+                'move_today' => $this->quickMoveToToday($taskId),
+                'move_tomorrow' => $this->quickMoveToTomorrow($taskId),
+                'move_next_week' => $this->quickMoveToNextWeek($taskId),
+                default => false
+            };
+
+            $results[$taskId] = $result;
+        }
+
+        // Один flush для всех операций
+        $this->entityManager->flush();
+        return $results;
     }
 
     /**
@@ -48,82 +92,83 @@ class QuickActionsService
     }
 
     /**
-     * Quick complete task
+     * Quick complete task (optimized)
      */
     public function quickComplete(int $taskId): bool
     {
-        $task = $this->taskRepository->find($taskId);
+        $task = $this->getTask($taskId);
         if (!$task) {
             return false;
         }
 
         $task->setStatus('completed');
         $task->setCompletedAt(new \DateTime());
-        $this->entityManager->flush();
+        // Не вызываем flush здесь для bulk операций
 
         return true;
     }
 
     /**
-     * Quick delete task
+     * Quick delete task (optimized)
      */
     public function quickDelete(int $taskId): bool
     {
-        $task = $this->taskRepository->find($taskId);
+        $task = $this->getTask($taskId);
         if (!$task) {
             return false;
         }
 
         $this->entityManager->remove($task);
-        $this->entityManager->flush();
+        unset($this->taskCache[$taskId]);
+        // Не вызываем flush здесь для bulk операций
 
         return true;
     }
 
     /**
-     * Quick assign task
+     * Quick assign task (optimized)
      */
     public function quickAssign(int $taskId, User $user): bool
     {
-        $task = $this->taskRepository->find($taskId);
+        $task = $this->getTask($taskId);
         if (!$task) {
             return false;
         }
 
         $task->setAssignedUser($user);
-        $this->entityManager->flush();
+        // Не вызываем flush здесь для bulk операций
 
         return true;
     }
 
     /**
-     * Quick change priority
+     * Quick change priority (optimized)
      */
     public function quickChangePriority(int $taskId, string $priority): bool
     {
-        $task = $this->taskRepository->find($taskId);
+        $task = $this->getTask($taskId);
         if (!$task) {
             return false;
         }
 
         $task->setPriority($priority);
-        $this->entityManager->flush();
+        // Не вызываем flush здесь для bulk операций
 
         return true;
     }
 
     /**
-     * Quick change status
+     * Quick change status (optimized)
      */
     public function quickChangeStatus(int $taskId, string $status): bool
     {
-        $task = $this->taskRepository->find($taskId);
+        $task = $this->getTask($taskId);
         if (!$task) {
             return false;
         }
 
         $task->setStatus($status);
-        $this->entityManager->flush();
+        // Не вызываем flush здесь для bulk операций
 
         return true;
     }
@@ -157,51 +202,57 @@ class QuickActionsService
     }
 
     /**
-     * Quick move to today
+     * Quick move to today (optimized)
      */
     public function quickMoveToToday(int $taskId): bool
     {
-        $task = $this->taskRepository->find($taskId);
+        $task = $this->getTask($taskId);
         if (!$task) {
             return false;
         }
 
         $task->setDeadline(new \DateTime('today 23:59:59'));
-        $this->entityManager->flush();
-
         return true;
     }
 
     /**
-     * Quick move to tomorrow
+     * Quick move to tomorrow (optimized)
      */
     public function quickMoveToTomorrow(int $taskId): bool
     {
-        $task = $this->taskRepository->find($taskId);
+        $task = $this->getTask($taskId);
         if (!$task) {
             return false;
         }
 
         $task->setDeadline(new \DateTime('tomorrow 23:59:59'));
-        $this->entityManager->flush();
-
         return true;
     }
 
     /**
-     * Quick move to next week
+     * Quick move to next week (optimized)
      */
     public function quickMoveToNextWeek(int $taskId): bool
     {
-        $task = $this->taskRepository->find($taskId);
+        $task = $this->getTask($taskId);
         if (!$task) {
             return false;
         }
 
         $task->setDeadline(new \DateTime('+1 week'));
-        $this->entityManager->flush();
-
         return true;
+    }
+
+    /**
+     * Single operation with immediate flush (for backward compatibility)
+     */
+    public function executeQuickAction(int $taskId, string $action, array $params = []): bool
+    {
+        $result = $this->bulkQuickActions([
+            ['taskId' => $taskId, 'action' => $action, 'params' => $params]
+        ]);
+        
+        return $result[$taskId] ?? false;
     }
 
     /**

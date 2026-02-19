@@ -35,7 +35,15 @@ class BulkTaskOperationService
      */
     public function bulkUpdateStatus(array $taskIds, string $newStatus, User $currentUser): array
     {
-        $tasks = $this->taskRepository->findBy(['id' => $taskIds]);
+        // Оптимизированный запрос с предзагрузкой пользователей
+        $tasks = $this->taskRepository->createQueryBuilder('t')
+            ->select('t, u, au')
+            ->leftJoin('t.user', 'u')
+            ->leftJoin('t.assignedUser', 'au')
+            ->where('t.id IN (:taskIds)')
+            ->setParameter('taskIds', $taskIds)
+            ->getQuery()
+            ->getResult();
         $updatedCount = 0;
         $failedTasks = [];
 
@@ -119,7 +127,15 @@ class BulkTaskOperationService
      */
     public function bulkUpdatePriority(array $taskIds, string $newPriority, User $currentUser): array
     {
-        $tasks = $this->taskRepository->findBy(['id' => $taskIds]);
+        // Оптимизированный запрос с предзагрузкой пользователей
+        $tasks = $this->taskRepository->createQueryBuilder('t')
+            ->select('t, u, au')
+            ->leftJoin('t.user', 'u')
+            ->leftJoin('t.assignedUser', 'au')
+            ->where('t.id IN (:taskIds)')
+            ->setParameter('taskIds', $taskIds)
+            ->getQuery()
+            ->getResult();
         $updatedCount = 0;
         $failedTasks = [];
 
@@ -161,7 +177,15 @@ class BulkTaskOperationService
      */
     public function bulkAssignToUser(array $taskIds, User $assignedUser, User $currentUser): array
     {
-        $tasks = $this->taskRepository->findBy(['id' => $taskIds]);
+        // Оптимизированный запрос с предзагрузкой пользователей
+        $tasks = $this->taskRepository->createQueryBuilder('t')
+            ->select('t, u, au')
+            ->leftJoin('t.user', 'u')
+            ->leftJoin('t.assignedUser', 'au')
+            ->where('t.id IN (:taskIds)')
+            ->setParameter('taskIds', $taskIds)
+            ->getQuery()
+            ->getResult();
         $updatedCount = 0;
         $failedTasks = [];
 
@@ -216,7 +240,15 @@ class BulkTaskOperationService
      */
     public function bulkDelete(array $taskIds, User $currentUser): array
     {
-        $tasks = $this->taskRepository->findBy(['id' => $taskIds]);
+        // Оптимизированный запрос с предзагрузкой пользователей
+        $tasks = $this->taskRepository->createQueryBuilder('t')
+            ->select('t, u, au')
+            ->leftJoin('t.user', 'u')
+            ->leftJoin('t.assignedUser', 'au')
+            ->where('t.id IN (:taskIds)')
+            ->setParameter('taskIds', $taskIds)
+            ->getQuery()
+            ->getResult();
         $deletedCount = 0;
         $failedTasks = [];
 
@@ -269,7 +301,16 @@ class BulkTaskOperationService
      */
     public function bulkAddTags(array $taskIds, array $tagIds, User $currentUser): array
     {
-        $tasks = $this->taskRepository->findBy(['id' => $taskIds]);
+        // Оптимизированный запрос с предзагрузкой пользователей и тегов
+        $tasks = $this->taskRepository->createQueryBuilder('t')
+            ->select('t, u, au')
+            ->leftJoin('t.user', 'u')
+            ->leftJoin('t.assignedUser', 'au')
+            ->where('t.id IN (:taskIds)')
+            ->setParameter('taskIds', $taskIds)
+            ->getQuery()
+            ->getResult();
+        
         $tags = $this->entityManager->getRepository(\App\Entity\Tag::class)->findBy(['id' => $tagIds]);
         
         $updatedCount = 0;

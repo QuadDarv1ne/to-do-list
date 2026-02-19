@@ -146,10 +146,13 @@ class ActivityFeedService
     {
         $from = new \DateTime("-{$days} days");
 
+        // Оптимизированный запрос с JOIN для избежания N+1 проблемы
         $results = $this->activityLogRepository->createQueryBuilder('a')
-            ->select('IDENTITY(a.user) as user_id, COUNT(a.id) as activity_count')
+            ->select('u, COUNT(a.id) as activity_count')
+            ->leftJoin('a.user', 'u')
             ->where('a.createdAt >= :from')
-            ->groupBy('a.user')
+            ->andWhere('u IS NOT NULL')
+            ->groupBy('u.id')
             ->orderBy('activity_count', 'DESC')
             ->setMaxResults($limit)
             ->setParameter('from', $from)
@@ -158,13 +161,10 @@ class ActivityFeedService
 
         $users = [];
         foreach ($results as $result) {
-            $user = $this->entityManager->getRepository('App\Entity\User')->find($result['user_id']);
-            if ($user) {
-                $users[] = [
-                    'user' => $user,
-                    'activity_count' => (int)$result['activity_count']
-                ];
-            }
+            $users[] = [
+                'user' => $result[0], // Пользователь уже загружен через JOIN
+                'activity_count' => (int)$result['activity_count']
+            ];
         }
 
         return $users;

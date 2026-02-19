@@ -217,45 +217,61 @@ class TaskInsightsService
      * Get user collaboration insights
      */
     public function getCollaborationInsights(User $user): array
-    {
-        // Get tasks assigned to this user by others
-        $assignedToMe = $this->taskRepository->findByAssignedUser($user);
+        {
+            // Оптимизированный запрос с JOIN для избежания N+1 проблемы
+            $assignedToMeQuery = $this->taskRepository->createQueryBuilder('t')
+                ->select('t, u')
+                ->leftJoin('t.user', 'u')
+                ->where('t.assignedUser = :user')
+                ->setParameter('user', $user)
+                ->getQuery();
 
-        // Get tasks this user created and assigned to others
-        $assignedByMe = $this->taskRepository->findBy(['user' => $user]);
+            $assignedToMe = $assignedToMeQuery->getResult();
 
-        $collaborators = [];
-        foreach ($assignedToMe as $task) {
-            $creator = $task->getUser();
-            if ($creator && $creator->getId() !== $user->getId()) {
-                $collaboratorId = $creator->getId();
-                $collaborators[$collaboratorId] = [
-                    'name' => $creator->getFullName(),
-                    'tasks_received' => ($collaborators[$collaboratorId]['tasks_received'] ?? 0) + 1,
-                    'completed_tasks' => ($collaborators[$collaboratorId]['completed_tasks'] ?? 0) + ($task->isCompleted() ? 1 : 0)
-                ];
+            // Оптимизированный запрос для задач, созданных пользователем
+            $assignedByMeQuery = $this->taskRepository->createQueryBuilder('t')
+                ->select('t, au')
+                ->leftJoin('t.assignedUser', 'au')
+                ->where('t.user = :user')
+                ->andWhere('t.assignedUser IS NOT NULL')
+                ->setParameter('user', $user)
+                ->getQuery();
+
+            $assignedByMe = $assignedByMeQuery->getResult();
+
+            $collaborators = [];
+            foreach ($assignedToMe as $task) {
+                $creator = $task->getUser(); // Уже загружен через JOIN
+                if ($creator && $creator->getId() !== $user->getId()) {
+                    $collaboratorId = $creator->getId();
+                    $collaborators[$collaboratorId] = [
+                        'name' => $creator->getFullName(),
+                        'tasks_received' => ($collaborators[$collaboratorId]['tasks_received'] ?? 0) + 1,
+                        'completed_tasks' => ($collaborators[$collaboratorId]['completed_tasks'] ?? 0) + ($task->isCompleted() ? 1 : 0)
+                    ];
+                }
             }
+
+            $assignedToOthers = [];
+            foreach ($assignedByMe as $task) {
+                $assignedUser = $task->getAssignedUser(); // Уже загружен через JOIN
+                if ($assignedUser && $assignedUser->getId() !== $user->getId()) {
+                    $assignedUserId = $assignedUser->getId();
+                    $assignedToOthers[$assignedUserId] = [
+                        'name' => $assignedUser->getFullName(),
+                        'tasks_assigned' => ($assignedToOthers[$assignedUserId]['tasks_assigned'] ?? 0) + 1,
+                        'completed_tasks' => ($assignedToOthers[$assignedUserId]['completed_tasks'] ?? 0) + ($task->isCompleted() ? 1 : 0)
+                    ];
+                }
+            }
+
+            return [
+                'collaborators' => $collaborators,
+                'assigned_to_others' => $assignedToOthers,
+                'total_collaboration_score' => $this->calculateCollaborationScore($collaborators, $assignedToOthers)
+            ];
         }
 
-        $assignedToOthers = [];
-        foreach ($assignedByMe as $task) {
-            $assignedUser = $task->getAssignedUser();
-            if ($assignedUser && $assignedUser->getId() !== $user->getId()) {
-                $assignedUserId = $assignedUser->getId();
-                $assignedToOthers[$assignedUserId] = [
-                    'name' => $assignedUser->getFullName(),
-                    'tasks_assigned' => ($assignedToOthers[$assignedUserId]['tasks_assigned'] ?? 0) + 1,
-                    'completed_tasks' => ($assignedToOthers[$assignedUserId]['completed_tasks'] ?? 0) + ($task->isCompleted() ? 1 : 0)
-                ];
-            }
-        }
-
-        return [
-            'collaborators' => $collaborators,
-            'assigned_to_others' => $assignedToOthers,
-            'total_collaboration_score' => $this->calculateCollaborationScore($collaborators, $assignedToOthers)
-        ];
-    }
 
     /**
      * Calculate collaboration score
