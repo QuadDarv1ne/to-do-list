@@ -27,10 +27,12 @@ class NotificationRepository extends ServiceEntityRepository
 
     /**
      * @return Notification[]
+     * Optimized with JOIN to preload related task data
      */
     public function findByUserUnread($user): array
     {
         return $this->createQueryBuilder('n')
+            ->leftJoin('n.task', 't')->addSelect('t')
             ->andWhere('n.user = :user')
             ->andWhere('n.isRead = :isRead')
             ->setParameter('user', $user)
@@ -42,10 +44,12 @@ class NotificationRepository extends ServiceEntityRepository
 
     /**
      * @return Notification[]
+     * Optimized with JOIN to preload related task data
      */
     public function findByUser($user): array
     {
         return $this->createQueryBuilder('n')
+            ->leftJoin('n.task', 't')->addSelect('t')
             ->andWhere('n.user = :user')
             ->setParameter('user', $user)
             ->orderBy('n.createdAt', 'DESC')
@@ -71,12 +75,14 @@ class NotificationRepository extends ServiceEntityRepository
         
     /**
      * Get notifications created after a specific date for a user (optimized for SSE)
+     * Optimized with JOIN to preload related task data
      *
      * @return Notification[]
      */
     public function findUnreadForUserSince(\DateTimeInterface $date, $user): array
     {
         return $this->createQueryBuilder('n')
+            ->leftJoin('n.task', 't')->addSelect('t')
             ->andWhere('n.user = :user')
             ->andWhere('n.isRead = :isRead')
             ->andWhere('n.createdAt > :date')

@@ -28,10 +28,12 @@ class CommentRepository extends ServiceEntityRepository
 
     /**
      * Find comments for a specific task ordered by creation date
+     * Optimized with JOIN to preload author data
      */
     public function findByTask(Task $task): array
     {
         return $this->createQueryBuilder('c')
+            ->leftJoin('c.author', 'a')->addSelect('a')
             ->andWhere('c.task = :task')
             ->setParameter('task', $task)
             ->orderBy('c.createdAt', 'ASC')
@@ -41,10 +43,12 @@ class CommentRepository extends ServiceEntityRepository
 
     /**
      * Find comments by author
+     * Optimized with JOIN to preload task data
      */
     public function findByAuthor(User $author): array
     {
         return $this->createQueryBuilder('c')
+            ->leftJoin('c.task', 't')->addSelect('t')
             ->andWhere('c.author = :author')
             ->setParameter('author', $author)
             ->orderBy('c.createdAt', 'DESC')
