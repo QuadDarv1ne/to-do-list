@@ -30,15 +30,25 @@ class QuickActionsService
     }
 
     /**
-     * Bulk operations for better performance
+     * Bulk operations for better performance (optimized)
      */
     public function bulkQuickActions(array $operations): array
     {
         $results = [];
         $taskIds = array_unique(array_column($operations, 'taskId'));
 
-        // Предзагружаем все задачи одним запросом
-        $tasks = $this->taskRepository->findBy(['id' => $taskIds]);
+        // Предзагружаем все задачи одним запросом с JOIN для связанных сущностей
+        $tasks = $this->taskRepository->createQueryBuilder('t')
+            ->select('t, u, au, c, tags')
+            ->leftJoin('t.user', 'u')
+            ->leftJoin('t.assignedUser', 'au')
+            ->leftJoin('t.category', 'c')
+            ->leftJoin('t.tags', 'tags')
+            ->where('t.id IN (:taskIds)')
+            ->setParameter('taskIds', $taskIds)
+            ->getQuery()
+            ->getResult();
+        
         foreach ($tasks as $task) {
             $this->taskCache[$task->getId()] = $task;
         }

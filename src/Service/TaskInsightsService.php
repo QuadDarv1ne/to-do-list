@@ -214,7 +214,7 @@ class TaskInsightsService
     }
 
     /**
-     * Get user collaboration insights
+     * Get user collaboration insights (optimized with JOIN)
      */
     public function getCollaborationInsights(User $user): array
     {
@@ -228,7 +228,7 @@ class TaskInsightsService
 
         $assignedToMe = $assignedToMeQuery->getResult();
 
-        // Оптимизированный запрос для задач, созданных пользователем
+        // Оптимизированный запрос для задач, созданных пользователем с JOIN
         $assignedByMeQuery = $this->taskRepository->createQueryBuilder('t')
             ->select('t, au')
             ->leftJoin('t.assignedUser', 'au')

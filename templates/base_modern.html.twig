@@ -283,6 +283,120 @@
         {% block body %}{% endblock %}
     </main>
 
+    <!-- Footer -->
+    <footer class="footer-modern">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h6 class="footer-title">
+                    <i class="fas fa-chart-line me-2"></i>CRM Tasks
+                </h6>
+                <p class="footer-text">
+                    Профессиональная система управления задачами и CRM
+                </p>
+            </div>
+            <div class="footer-section">
+                <h6 class="footer-title">Навигация</h6>
+                <ul class="footer-links">
+                    <li><a href="{{ path('app_dashboard') }}"><i class="fas fa-home me-2"></i>Панель</a></li>
+                    <li><a href="{{ path('app_task_index') }}"><i class="fas fa-tasks me-2"></i>Задачи</a></li>
+                    <li><a href="{{ path('app_kanban_board') }}"><i class="fas fa-columns me-2"></i>Канбан</a></li>
+                    <li><a href="{{ path('app_calendar') }}"><i class="fas fa-calendar me-2"></i>Календарь</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h6 class="footer-title">CRM</h6>
+                <ul class="footer-links">
+                    <li><a href="{{ path('app_deals_index') }}"><i class="fas fa-handshake me-2"></i>Сделки</a></li>
+                    <li><a href="{{ path('app_clients_index') }}"><i class="fas fa-users me-2"></i>Клиенты</a></li>
+                    <li><a href="{{ path('app_analytics_dashboard') }}"><i class="fas fa-chart-bar me-2"></i>Аналитика</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h6 class="footer-title">Личное</h6>
+                <ul class="footer-links">
+                    <li><a href="{{ path('app_goals_index') }}"><i class="fas fa-bullseye me-2"></i>Цели</a></li>
+                    <li><a href="{{ path('app_habits_index') }}"><i class="fas fa-fire me-2"></i>Привычки</a></li>
+                    <li><a href="{{ path('app_profile_show') }}"><i class="fas fa-user me-2"></i>Профиль</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; {{ "now"|date("Y") }} CRM Task Management. Все права защищены.</p>
+            <p>Версия 2.0</p>
+        </div>
+    </footer>
+
+    <style>
+    .footer-modern {
+        background: var(--bg-card);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 2rem 1.5rem 1rem;
+        margin-top: 3rem;
+        margin-left: var(--sidebar-width);
+    }
+    .footer-content {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+    .footer-title {
+        color: var(--text-light);
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    .footer-text {
+        color: rgba(241, 245, 249, 0.6);
+        font-size: 0.875rem;
+        line-height: 1.6;
+    }
+    .footer-links {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .footer-links li {
+        margin-bottom: 0.5rem;
+    }
+    .footer-links a {
+        color: rgba(241, 245, 249, 0.7);
+        text-decoration: none;
+        font-size: 0.875rem;
+        transition: color 0.2s;
+    }
+    .footer-links a:hover {
+        color: var(--primary);
+    }
+    .footer-bottom {
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding-top: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: rgba(241, 245, 249, 0.5);
+        font-size: 0.875rem;
+    }
+    .footer-bottom p {
+        margin: 0;
+    }
+    @media (max-width: 768px) {
+        .footer-modern {
+            margin-left: 0;
+            padding-bottom: calc(var(--sidebar-width) + 1rem);
+        }
+        .footer-content {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        .footer-bottom {
+            flex-direction: column;
+            gap: 0.5rem;
+            text-align: center;
+        }
+    }
+    </style>
+
     <!-- Logout Confirmation Modal -->
     <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">

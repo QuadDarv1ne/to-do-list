@@ -11,21 +11,6 @@ export default class extends Controller {
         this.monitorPerformance();
     }
 
-    disconnect() {
-        // Очистка при отключении контроллера
-        if (this.observer) {
-            this.observer.disconnect();
-        }
-        
-        // Очистка таймеров если используются
-        if (window.timerManager) {
-            const stats = window.timerManager.getStats();
-            if (stats.total > 0) {
-                console.log('[Performance] Cleaning up timers:', stats);
-            }
-        }
-    }
-
     setupPerformanceOptimizations() {
         // Оптимизация скролла
         this.optimizeScroll();

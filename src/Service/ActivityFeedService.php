@@ -141,7 +141,7 @@ class ActivityFeedService
     }
 
     /**
-     * Get most active users
+     * Get most active users (optimized with JOIN)
      */
     public function getMostActiveUsers(int $days = 7, int $limit = 10): array
     {
@@ -149,21 +149,26 @@ class ActivityFeedService
 
         // Оптимизированный запрос с JOIN для избежания N+1 проблемы
         $results = $this->activityLogRepository->createQueryBuilder('a')
-            ->select('u, COUNT(a.id) as activity_count')
+            ->select('u.id, u.firstName, u.lastName, u.email, COUNT(a.id) as activity_count')
             ->leftJoin('a.user', 'u')
             ->where('a.createdAt >= :from')
             ->andWhere('u IS NOT NULL')
-            ->groupBy('u.id')
+            ->groupBy('u.id, u.firstName, u.lastName, u.email')
             ->orderBy('activity_count', 'DESC')
             ->setMaxResults($limit)
             ->setParameter('from', $from)
             ->getQuery()
-            ->getResult();
+            ->getArrayResult();
 
         $users = [];
         foreach ($results as $result) {
             $users[] = [
-                'user' => $result[0], // Пользователь уже загружен через JOIN
+                'user' => [
+                    'id' => $result['id'],
+                    'firstName' => $result['firstName'],
+                    'lastName' => $result['lastName'],
+                    'email' => $result['email'],
+                ],
                 'activity_count' => (int)$result['activity_count'],
             ];
         }
