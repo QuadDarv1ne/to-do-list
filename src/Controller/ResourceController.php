@@ -87,13 +87,20 @@ class ResourceController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function getResourceWorkload(int $id): JsonResponse
     {
-        $resource = $this->userRepository->find($id);
+        // Оптимизированный запрос с предзагрузкой задач
+        $resource = $this->userRepository->createQueryBuilder('u')
+            ->select('u, t')
+            ->leftJoin('u.assignedTasks', 't')
+            ->where('u.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
         
         if (!$resource) {
             return $this->json(['error' => 'Resource not found'], 404);
         }
 
-        $assignedTasks = $this->taskRepository->findBy(['assignedUser' => $resource]);
+        $assignedTasks = $resource->getAssignedTasks(); // Уже загружены через JOIN
         $workloadData = [
             'id' => $resource->getId(),
             'name' => $resource->getFullName(),
