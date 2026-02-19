@@ -4,9 +4,9 @@
 
 {% block stylesheets %}
 {{ parent() }}
-<link rel="stylesheet" href="/css/tasks-enhanced.min.css">
-<link rel="stylesheet" href="/css/task-design-enhancements.css">
-<script src="/js/table-enhancements.js" defer></script>
+<link rel="stylesheet" href="{{ asset('css/tasks-enhanced.min.css') }}">
+<link rel="stylesheet" href="{{ asset('css/task-design-enhancements.css') }}">
+<script src="{{ asset('js/table-enhancements.js') }}" defer></script>
 {% endblock %}
 
 {% block body %}

@@ -106,22 +106,22 @@ class SecurityValidationMiddleware implements HttpKernelInterface, TerminableInt
     
     /**
      * Add security headers to response
+     * CSP теперь обрабатывается через NelmioSecurityBundle
      */
     private function addSecurityHeaders(Response $response): void
     {
         // Prevent MIME-type sniffing
         $response->headers->set('X-Content-Type-Options', 'nosniff');
-        
+
         // Prevent clickjacking
         $response->headers->set('X-Frame-Options', 'DENY');
-        
+
         // Enable XSS protection
         $response->headers->set('X-XSS-Protection', '1; mode=block');
-        
+
         // Referrer policy
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
-        
-        // Content Security Policy
-        $response->headers->set('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.example.com;");
+
+        // CSP теперь добавляется через NelmioSecurityBundle
     }
 }

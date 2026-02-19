@@ -6,8 +6,8 @@
 
 {% block stylesheets %}
     {{ parent() }}
-    <link rel="stylesheet" href="/css/users-enhanced.css">
-    <script src="/js/table-enhancements.js" defer></script>
+    <link rel="stylesheet" href="{{ asset('css/users-enhanced.css') }}">
+    <script src="{{ asset('js/table-enhancements.js') }}" defer></script>
 {% endblock %}
 
 {% block body %}

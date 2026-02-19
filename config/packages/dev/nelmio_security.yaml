@@ -1,0 +1,86 @@
+# Content Security Policy - Development Environment
+#宽松ная политика для упрощения разработки
+
+nelmio_security:
+    csp:
+        enabled: true
+        
+        # Хосты, для которых применяется CSP
+        hosts: []
+        
+        # Отчёт о нарушениях
+        report_endpoint:
+            log_channel: security
+            log_level: notice
+            filters:
+                domains: true
+                schemes: true
+                browser_bugs: true
+                injected_scripts: true
+            dismiss: []
+        
+        report_logger_service: logger
+        
+        # Режим принудительного применения CSP
+        enforce:
+            # Уровень CSP (level1_fallback для совместимости)
+            level1_fallback: true
+            
+            # Источники по умолчанию
+            default-src:
+                - 'self'
+            
+            # Директивы CSP
+            script-src:
+                - 'self'
+                - 'unsafe-inline'
+                - 'unsafe-eval'
+                - https://cdn.jsdelivr.net
+                - https://cdnjs.cloudflare.com
+            
+            style-src:
+                - 'self'
+                - 'unsafe-inline'
+                - https://cdn.jsdelivr.net
+                - https://cdnjs.cloudflare.com
+            
+            img-src:
+                - 'self'
+                - 'data:'
+                - 'blob:'
+                - 'https:'
+            
+            font-src:
+                - 'self'
+                - 'data:'
+                - https://cdnjs.cloudflare.com
+                - https://fonts.gstatic.com
+            
+            connect-src:
+                - 'self'
+                - https://api.example.com
+                - 'ws://localhost:*'
+                - 'http://localhost:*'
+            
+            frame-src:
+                - 'self'
+            
+            object-src:
+                - 'none'
+            
+            base-uri:
+                - 'self'
+            
+            form-action:
+                - 'self'
+            
+            frame-ancestors:
+                - 'self'
+            
+            worker-src:
+                - 'self'
+                - 'blob:'
+            
+            # Разрешаем загрузку стилей с разных источников (для asset mapper)
+            manifest-src:
+                - 'self'

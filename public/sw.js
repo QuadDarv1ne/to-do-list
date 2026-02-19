@@ -1,447 +1,263 @@
 /**
- * Service Worker for CRM To-Do List App
- * Advanced PWA with offline support, background sync, and push notifications
- * Version: 2.0.2
+ * Service Worker для PWA
+ * Offline поддержка, кэширование, push-уведомления
+ * 
+ * Версия: 2.0
+ * Дата: 19 февраля 2026
  */
 
-const CACHE_NAME = 'crm-todo-v2.2';
-const STATIC_CACHE = 'static-v2.2';
-const DYNAMIC_CACHE = 'dynamic-v2.2';
-const IMAGE_CACHE = 'images-v2.2';
+const CACHE_NAME = 'crm-cache-v2';
+const STATIC_CACHE = 'static-v2';
+const DYNAMIC_CACHE = 'dynamic-v2';
+const OFFLINE_PAGE = '/offline-page.html';
 
-// App shell - critical resources
-const APP_SHELL = [
+// Критические ресурсы для кэширования
+const CRITICAL_ASSETS = [
     '/',
-    '/dashboard',
-    '/tasks',
-    '/login',
-    '/offline',
+    '/offline-page.html',
     '/manifest.json',
-    '/css/optimized-core.css',
-    '/css/header-footer-improved.css',
-    '/css/mobile-table-adaptation.css',
-    '/css/accessibility-improvements.css',
-    '/js/toast-system.js',
-    '/js/utils.js',
-    '/js/theme-switcher.js',
-    '/offline-page.html'
+    '/css/themes-bundle.min.css',
+    '/css/components-bundle.min.css',
+    '/css/navbar-enhanced.min.css',
+    '/css/base-layout.css',
+    '/js/critical-functions.js',
+    '/js/core-bundle.min.js',
+    'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
+    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];
 
-// Network timeout for fetch requests
-const NETWORK_TIMEOUT = 5000;
-
-// Maximum cache size for dynamic content
-const MAX_DYNAMIC_CACHE_SIZE = 50;
-
-// ============================================
-// INSTALL EVENT
-// ============================================
-
+// ============================================================================
+// INSTALL - Кэширование критических ресурсов
+// ============================================================================
 self.addEventListener('install', (event) => {
     console.log('[SW] Installing Service Worker...');
     
-    // Skip waiting to activate immediately
-    self.skipWaiting();
-    
     event.waitUntil(
-        Promise.all([
-            // Cache app shell
-            caches.open(STATIC_CACHE).then((cache) => {
-                console.log('[SW] Caching app shell');
-                return cache.addAll(APP_SHELL).catch(err => {
-                    console.warn('[SW] Some app shell resources failed to cache:', err);
-                });
-            }),
-            
-            // Pre-cache critical images
-            caches.open(IMAGE_CACHE).then((cache) => {
-                console.log('[SW] Pre-caching images');
-                return cache.addAll([
-                    '/favicon.ico',
-                    '/icons/icon-192x192.png',
-                    '/icons/icon-512x512.png'
-                ]).catch(err => {
-                    console.warn('[SW] Some images failed to cache:', err);
-                });
+        caches.open(STATIC_CACHE)
+            .then((cache) => {
+                console.log('[SW] Caching critical assets');
+                return cache.addAll(CRITICAL_ASSETS);
             })
-        ]).then(() => {
-            console.log('[SW] Installation complete, app shell cached');
-        })
+            .then(() => {
+                console.log('[SW] Installation complete, skipping waiting');
+                return self.skipWaiting();
+            })
+            .catch((error) => {
+                console.error('[SW] Installation failed:', error);
+            })
     );
 });
 
-// ============================================
-// ACTIVATE EVENT
-// ============================================
-
+// ============================================================================
+// ACTIVATE - Очистка старых кэшей
+// ============================================================================
 self.addEventListener('activate', (event) => {
     console.log('[SW] Activating Service Worker...');
     
     event.waitUntil(
-        Promise.all([
-            // Clean up old caches
-            caches.keys().then((cacheNames) => {
+        caches.keys()
+            .then((keys) => {
+                const oldKeys = keys.filter(key => 
+                    key !== STATIC_CACHE && 
+                    key !== DYNAMIC_CACHE &&
+                    key !== CACHE_NAME
+                );
+                
                 return Promise.all(
-                    cacheNames.map((cacheName) => {
-                        if (cacheName !== STATIC_CACHE && 
-                            cacheName !== DYNAMIC_CACHE && 
-                            cacheName !== IMAGE_CACHE &&
-                            cacheName !== CACHE_NAME) {
-                            console.log('[SW] Deleting old cache:', cacheName);
-                            return caches.delete(cacheName);
-                        }
+                    oldKeys.map(key => {
+                        console.log('[SW] Removing old cache:', key);
+                        return caches.delete(key);
                     })
                 );
-            }),
-            
-            // Take control of all pages immediately
-            self.clients.claim().then(() => {
-                console.log('[SW] Service Worker activated and controlling clients');
-                
-                // Notify all clients about activation
-                self.clients.matchAll().then((clients) => {
-                    clients.forEach((client) => {
-                        client.postMessage({ type: 'SW_ACTIVATED' });
-                    });
-                });
             })
-        ])
+            .then(() => {
+                console.log('[SW] Activation complete, claiming clients');
+                return self.clients.claim();
+            })
     );
 });
 
-// ============================================
-// FETCH EVENT - NETWORK FIRST WITH CACHE FALLBACK
-// ============================================
-
+// ============================================================================
+// FETCH - Стратегии кэширования
+// ============================================================================
 self.addEventListener('fetch', (event) => {
     const { request } = event;
     const url = new URL(request.url);
     
-    // Skip non-GET requests
+    // Игнорируем не GET запросы
     if (request.method !== 'GET') {
         return;
     }
     
-    // Skip chrome extensions and other non-http(s) requests
+    // Игнорируем chrome-extension и другие не-http запросы
     if (!url.protocol.startsWith('http')) {
         return;
     }
     
-    // Skip cross-origin requests (except CDN)
-    if (url.origin !== self.location.origin && 
-        !url.origin.includes('cdn.jsdelivr.net') &&
-        !url.origin.includes('cdnjs.cloudflare.com')) {
+    // Стратегия для API запросов - Network First
+    if (url.pathname.startsWith('/api/')) {
+        event.respondWith(networkFirst(request));
         return;
     }
     
-    // Handle different request types with appropriate strategies
-    if (isStaticAsset(request)) {
-        // Cache-first for static assets
-        event.respondWith(cacheFirst(request, STATIC_CACHE));
-    } else if (isImageRequest(request)) {
-        // Cache-first for images
-        event.respondWith(cacheFirst(request, IMAGE_CACHE));
-    } else if (isApiRequest(request)) {
-        // Network-first with timeout for API requests
-        event.respondWith(networkFirstWithTimeout(request));
-    } else if (isNavigationRequest(request)) {
-        // Network-first with timeout for navigation
-        event.respondWith(networkFirstWithTimeout(request, '/offline-page.html'));
-    } else {
-        // Stale-while-revalidate for other requests
-        event.respondWith(staleWhileRevalidate(request, DYNAMIC_CACHE));
+    // Стратегия для статических ресурсов - Cache First
+    if (isStaticAsset(url)) {
+        event.respondWith(cacheFirst(request));
+        return;
     }
+    
+    // Стратегия для HTML страниц - Stale While Revalidate
+    if (request.headers.get('accept')?.includes('text/html')) {
+        event.respondWith(staleWhileRevalidate(request));
+        return;
+    }
+    
+    // Default стратегия
+    event.respondWith(networkFirst(request));
 });
 
-// ============================================
-// CACHING STRATEGIES
-// ============================================
+// ============================================================================
+// Стратегии кэширования
+// ============================================================================
 
-/**
- * Cache-first strategy
- * @param {Request} request - Request object
- * @param {string} cacheName - Cache name
- * @returns {Promise<Response>} Response
- */
-async function cacheFirst(request, cacheName) {
-    const cache = await caches.open(cacheName);
-    const cachedResponse = await cache.match(request);
+// Cache First - для статических ресурсов
+async function cacheFirst(request) {
+    const cachedResponse = await caches.match(request);
     
     if (cachedResponse) {
-        console.log('[SW] Cache hit:', request.url);
+        // Обновляем кэш в фоне
+        fetch(request).then(response => {
+            if (response && response.status === 200) {
+                caches.open(STATIC_CACHE).then(cache => {
+                    cache.put(request, response);
+                });
+            }
+        }).catch(() => {
+            // Игнорируем ошибки сети
+        });
+        
         return cachedResponse;
     }
     
     try {
         const networkResponse = await fetch(request);
         
-        if (networkResponse.ok) {
+        if (networkResponse && networkResponse.status === 200) {
+            const cache = await caches.open(STATIC_CACHE);
             cache.put(request, networkResponse.clone());
         }
         
         return networkResponse;
     } catch (error) {
-        console.warn('[SW] Fetch failed for static asset:', request.url);
-        // Для статических ресурсов просто пропускаем запрос дальше
-        // Браузер сам обработает ошибку
-        throw error;
+        console.error('[SW] Cache First failed:', error);
+        return new Response('Offline', {
+            status: 503,
+            statusText: 'Service Unavailable'
+        });
     }
 }
 
-/**
- * Network-first with timeout strategy
- * @param {Request} request - Request object
- * @param {string} fallbackUrl - Fallback URL for offline
- * @returns {Promise<Response>} Response
- */
-async function networkFirstWithTimeout(request, fallbackUrl = '/offline-page.html') {
+// Network First - для API и динамического контента
+async function networkFirst(request) {
     try {
-        // Пробуем сеть без таймаута для обычных запросов
         const networkResponse = await fetch(request);
         
-        // Cache successful responses
-        if (networkResponse.ok) {
+        if (networkResponse && networkResponse.status === 200) {
             const cache = await caches.open(DYNAMIC_CACHE);
             cache.put(request, networkResponse.clone());
-            
-            // Limit cache size
-            await limitCacheSize(DYNAMIC_CACHE, MAX_DYNAMIC_CACHE_SIZE);
         }
         
         return networkResponse;
     } catch (error) {
         console.log('[SW] Network failed, trying cache:', request.url);
         
-        const cache = await caches.open(DYNAMIC_CACHE);
-        const cachedResponse = await cache.match(request);
+        const cachedResponse = await caches.match(request);
         
         if (cachedResponse) {
             return cachedResponse;
         }
         
-        // Return fallback for navigation requests
-        if (request.mode === 'navigate') {
-            const fallback = await caches.match(fallbackUrl);
-            if (fallback) {
-                return fallback;
-            }
+        // Если это запрос на навигацию, возвращаем offline страницу
+        if (request.headers.get('accept')?.includes('text/html')) {
+            return caches.match(OFFLINE_PAGE);
         }
         
-        // Для API запросов возвращаем ошибку
-        if (isApiRequest(request)) {
-            return new Response(JSON.stringify({ error: 'Offline' }), {
-                status: 503,
-                headers: { 'Content-Type': 'application/json' }
-            });
-        }
-        
-        // Для остальных - пропускаем
-        return fetch(request);
+        return new Response(JSON.stringify({
+            error: 'Offline',
+            message: 'No connection and resource not in cache'
+        }), {
+            status: 503,
+            headers: { 'Content-Type': 'application/json' }
+        });
     }
 }
 
-/**
- * Stale-while-revalidate strategy
- * @param {Request} request - Request object
- * @param {string} cacheName - Cache name
- * @returns {Promise<Response>} Response
- */
-async function staleWhileRevalidate(request, cacheName) {
-    const cache = await caches.open(cacheName);
+// Stale While Revalidate - для HTML страниц
+async function staleWhileRevalidate(request) {
+    const cache = await caches.open(DYNAMIC_CACHE);
     const cachedResponse = await cache.match(request);
     
     const fetchPromise = fetch(request).then((networkResponse) => {
-        if (networkResponse.ok) {
+        if (networkResponse && networkResponse.status === 200) {
             cache.put(request, networkResponse.clone());
         }
         return networkResponse;
-    }).catch(() => cachedResponse);
+    }).catch(() => {
+        // Если сеть недоступна, возвращаем кэш или offline страницу
+        return cachedResponse || caches.match(OFFLINE_PAGE);
+    });
     
     return cachedResponse || fetchPromise;
 }
 
-// ============================================
-// HELPER FUNCTIONS
-// ============================================
+// ============================================================================
+// Вспомогательные функции
+// ============================================================================
 
-/**
- * Check if request is for static asset
- * @param {Request} request - Request object
- * @returns {boolean} Is static asset
- */
-function isStaticAsset(request) {
-    const url = new URL(request.url);
-    return url.pathname.match(/\.(css|js|woff2?|ttf|eot)$/i) !== null;
-}
-
-/**
- * Check if request is for image
- * @param {Request} request - Request object
- * @returns {boolean} Is image request
- */
-function isImageRequest(request) {
-    return request.destination === 'image' || 
-           new URL(request.url).pathname.match(/\.(png|jpg|jpeg|gif|svg|webp|ico)$/i) !== null;
-}
-
-/**
- * Check if request is API request
- * @param {Request} request - Request object
- * @returns {boolean} Is API request
- */
-function isApiRequest(request) {
-    return request.url.includes('/api/');
-}
-
-/**
- * Check if request is navigation request
- * @param {Request} request - Request object
- * @returns {boolean} Is navigation request
- */
-function isNavigationRequest(request) {
-    return request.mode === 'navigate';
-}
-
-/**
- * Limit cache size
- * @param {string} cacheName - Cache name
- * @param {number} maxSize - Maximum size
- */
-async function limitCacheSize(cacheName, maxSize) {
-    const cache = await caches.open(cacheName);
-    const keys = await cache.keys();
+// Проверка на статический ресурс
+function isStaticAsset(url) {
+    const staticExtensions = [
+        '.css', '.js', '.jpg', '.jpeg', '.png', '.gif', '.svg',
+        '.webp', '.ico', '.woff', '.woff2', '.ttf', '.eot',
+        '.json', '.xml', '.txt'
+    ];
     
-    if (keys.length > maxSize) {
-        await cache.delete(keys[0]);
-    }
+    const pathname = url.pathname.toLowerCase();
+    return staticExtensions.some(ext => pathname.endsWith(ext)) ||
+           url.hostname.includes('cdn.jsdelivr.net') ||
+           url.hostname.includes('cdnjs.cloudflare.com');
 }
 
-// ============================================
-// BACKGROUND SYNC
-// ============================================
-
-self.addEventListener('sync', (event) => {
-    console.log('[SW] Sync event:', event.tag);
-    
-    if (event.tag === 'sync-tasks') {
-        event.waitUntil(syncTasks());
-    } else if (event.tag === 'sync-offline-actions') {
-        event.waitUntil(syncOfflineActions());
-    }
-});
-
-/**
- * Sync pending tasks with server
- */
-async function syncTasks() {
-    console.log('[SW] Syncing tasks...');
-    
-    try {
-        const pendingTasks = JSON.parse(localStorage.getItem('pendingTasks') || '[]');
-        
-        if (pendingTasks.length === 0) {
-            console.log('[SW] No pending tasks to sync');
-            return;
-        }
-        
-        const promises = pendingTasks.map(task => {
-            return fetch('/api/tasks', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify(task)
-            });
-        });
-        
-        const responses = await Promise.all(promises);
-        const successCount = responses.filter(r => r.ok).length;
-        
-        if (successCount === pendingTasks.length) {
-            localStorage.removeItem('pendingTasks');
-            console.log('[SW] All tasks synced successfully');
-            
-            // Notify client
-            self.clients.matchAll().then(clients => {
-                clients.forEach(client => {
-                    client.postMessage({ type: 'TASKS_SYNCED', count: successCount });
-                });
-            });
-        }
-    } catch (error) {
-        console.error('[SW] Task sync failed:', error);
-        throw error; // Retry
-    }
-}
-
-/**
- * Sync offline actions (generic)
- */
-async function syncOfflineActions() {
-    console.log('[SW] Syncing offline actions...');
-    
-    try {
-        const offlineActions = JSON.parse(localStorage.getItem('offlineActions') || '[]');
-        
-        if (offlineActions.length === 0) {
-            return;
-        }
-        
-        for (const action of offlineActions) {
-            try {
-                await fetch(action.url, {
-                    method: action.method,
-                    headers: action.headers,
-                    body: action.body
-                });
-                
-                // Remove successful action
-                offlineActions.splice(offlineActions.indexOf(action), 1);
-            } catch (error) {
-                console.warn('[SW] Action sync failed:', error);
-            }
-        }
-        
-        localStorage.setItem('offlineActions', JSON.stringify(offlineActions));
-    } catch (error) {
-        console.error('[SW] Offline actions sync failed:', error);
-        throw error;
-    }
-}
-
-// ============================================
-// PUSH NOTIFICATIONS
-// ============================================
-
+// ============================================================================
+// Push уведомления
+// ============================================================================
 self.addEventListener('push', (event) => {
-    console.log('[SW] Push received');
-    
-    if (!self.Notification || self.Notification.permission !== 'granted') {
-        return;
-    }
+    console.log('[SW] Push received:', event);
     
     let data = {};
     
-    try {
-        data = event.data ? event.data.json() : {};
-    } catch (e) {
-        console.warn('[SW] Failed to parse push data:', e);
+    if (event.data) {
+        try {
+            data = event.data.json();
+        } catch (e) {
+            data = { title: 'Уведомление', body: event.data.text() };
+        }
     }
     
-    const title = data.title || 'CRM Задачи';
+    const title = data.title || 'CRM Tasks';
     const options = {
-        body: data.body || 'У вас новые уведомления',
-        icon: '/icons/icon-192x192.png',
-        badge: '/icons/icon-96x96.png',
-        tag: data.tag || 'todo-notification',
-        data: { url: data.url || '/notifications' },
-        requireInteraction: false,
-        silent: false,
-        actions: [
-            { action: 'view', title: 'Просмотреть' },
+        body: data.body || 'Новое уведомление',
+        icon: data.icon || '/icons/icon-192x192.png',
+        badge: data.badge || '/icons/icon-72x72.png',
+        image: data.image,
+        data: data.data || {},
+        actions: data.actions || [
+            { action: 'view', title: 'Просмотр' },
             { action: 'dismiss', title: 'Закрыть' }
-        ]
+        ],
+        tag: data.tag || 'default',
+        requireInteraction: data.requireInteraction || false,
+        silent: data.silent || false
     };
     
     event.waitUntil(
@@ -449,12 +265,11 @@ self.addEventListener('push', (event) => {
     );
 });
 
-// ============================================
-// NOTIFICATION CLICK
-// ============================================
-
+// ============================================================================
+// Обработка кликов по уведомлениям
+// ============================================================================
 self.addEventListener('notificationclick', (event) => {
-    console.log('[SW] Notification click:', event.action);
+    console.log('[SW] Notification click:', event);
     
     event.notification.close();
     
@@ -466,17 +281,15 @@ self.addEventListener('notificationclick', (event) => {
     
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true })
-            .then((clientList) => {
-                // Try to focus existing window
-                for (const client of clientList) {
-                    if (client.url.includes(self.location.origin) && 'focus' in client) {
-                        client.focus();
-                        client.navigate(urlToOpen);
-                        return;
+            .then((windowClients) => {
+                // Проверяем, есть ли уже открытая вкладка
+                for (let client of windowClients) {
+                    if (client.url === urlToOpen && 'focus' in client) {
+                        return client.focus();
                     }
                 }
                 
-                // Open new window
+                // Открываем новую вкладку
                 if (clients.openWindow) {
                     return clients.openWindow(urlToOpen);
                 }
@@ -484,10 +297,34 @@ self.addEventListener('notificationclick', (event) => {
     );
 });
 
-// ============================================
-// MESSAGE HANDLING
-// ============================================
+// ============================================================================
+// Фоновая синхронизация
+// ============================================================================
+self.addEventListener('sync', (event) => {
+    console.log('[SW] Sync event:', event.tag);
+    
+    if (event.tag === 'sync-tasks') {
+        event.waitUntil(syncTasks());
+    }
+    
+    if (event.tag === 'sync-notifications') {
+        event.waitUntil(syncNotifications());
+    }
+});
 
+async function syncTasks() {
+    console.log('[SW] Syncing tasks...');
+    // Логика синхронизации задач
+}
+
+async function syncNotifications() {
+    console.log('[SW] Syncing notifications...');
+    // Логика синхронизации уведомлений
+}
+
+// ============================================================================
+// Сообщения от клиентов
+// ============================================================================
 self.addEventListener('message', (event) => {
     console.log('[SW] Message received:', event.data);
     
@@ -495,22 +332,14 @@ self.addEventListener('message', (event) => {
         self.skipWaiting();
     }
     
-    if (event.data && event.data.type === 'CACHE_URLS') {
-        event.waitUntil(
-            caches.open(DYNAMIC_CACHE).then((cache) => {
-                return cache.addAll(event.data.urls);
-            })
-        );
-    }
-    
     if (event.data && event.data.type === 'CLEAR_CACHE') {
         event.waitUntil(
-            caches.keys().then((cacheNames) => {
+            caches.keys().then(keys => {
                 return Promise.all(
-                    cacheNames.map((cacheName) => caches.delete(cacheName))
+                    keys.map(key => caches.delete(key))
                 );
             }).then(() => {
-                self.clients.matchAll().then(clients => {
+                return self.clients.matchAll().then(clients => {
                     clients.forEach(client => {
                         client.postMessage({ type: 'CACHE_CLEARED' });
                     });
@@ -518,6 +347,31 @@ self.addEventListener('message', (event) => {
             })
         );
     }
+    
+    if (event.data && event.data.type === 'GET_CACHE_STATUS') {
+        event.waitUntil(
+            getCacheStatus().then(status => {
+                event.ports[0].postMessage(status);
+            })
+        );
+    }
 });
+
+async function getCacheStatus() {
+    const keys = await caches.keys();
+    const cacheInfo = {};
+    
+    for (const key of keys) {
+        const cache = await caches.open(key);
+        const requests = await cache.keys();
+        cacheInfo[key] = requests.length;
+    }
+    
+    return {
+        caches: cacheInfo,
+        version: '2.0',
+        timestamp: new Date().toISOString()
+    };
+}
 
 console.log('[SW] Service Worker loaded');

@@ -16,3 +16,9 @@ controllers:
 api_routes:
     resource: routes/api/
     type: directory
+
+# CSP Report endpoint
+csp_report:
+    path: /csp-report
+    controller: App\Controller\CspReportController::report
+    methods: [POST]

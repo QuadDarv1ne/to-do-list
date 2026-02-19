@@ -1,0 +1,15 @@
+# Content Security Policy - Base Configuration
+# Общие настройки для всех окружений
+
+nelmio_security:
+    # Отчёт о нарушениях
+    csp:
+        enabled: true
+        
+        # Хосты, для которых применяется CSP (пусто = для всех)
+        hosts: []
+        
+        # Настройки отчётности
+        report_endpoint:
+            log_channel: security
+        report_logger_service: logger

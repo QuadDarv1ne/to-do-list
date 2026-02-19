@@ -1,113 +1,116 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" class="no-js">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}CRM система: Анализ продаж{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{% block meta_description %}CRM система для управления задачами и продажами{% endblock %}">
+    <meta name="robots" content="index, follow">
     
-    <!-- Critical CSS inline для мгновенной загрузки -->
-    <style>
-        body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
-        .container-fluid{width:100%;padding:0 15px}
-        .card{background:#fff;border:1px solid #dee2e6;border-radius:0.375rem;margin-bottom:1rem}
-        .btn{display:inline-block;padding:0.375rem 0.75rem;border:1px solid transparent;border-radius:0.375rem;text-decoration:none;cursor:pointer}
-        .btn-primary{background:#0d6efd;border-color:#0d6efd;color:#fff}
-        .skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:loading 1.5s infinite}
-        @keyframes loading{0%{background-position:200% 0}100%{background-position:-200% 0}}
-    </style>
-    
-    <!-- Content Security Policy -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; img-src 'self' data: https:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;">
+    <title>{% block title %}CRM система: Управление задачами{% endblock %}</title>
+
+    <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
-    
+
     <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0d6efd">
+    <link rel="manifest" href="{{ asset('manifest.json') }}">
+    <meta name="theme-color" content="#667eea">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="To-Do List">
+    <meta name="apple-mobile-web-app-title" content="CRM Tasks">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    
+
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token('authenticate') }}">
-    
-    <!-- Resource Hints - Preconnect to CDN -->
+
+    <!-- CSP Nonce для production -->
+    {% if app.environment == 'prod' %}
+    <meta name="csp-nonce" content="{{ csp_nonce('script') }}">
+    {% endif %}
+
+    <!-- DNS Prefetch -->
     <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-    
-    <!-- Critical CSS - загружаем синхронно -->
+
+    <!-- Critical CSS Inline -->
+    <style>
+        :root{
+            --primary:#667eea;
+            --primary-dark:#5568d3;
+            --secondary:#764ba2;
+            --success:#10b981;
+            --danger:#ef4444;
+            --warning:#f59e0b;
+            --info:#3b82f6;
+            --light:#f8f9fa;
+            --dark:#1e293b;
+        }
+        *{margin:0;padding:0;box-sizing:border-box}
+        html{font-size:16px;scroll-behavior:smooth}
+        body{
+            font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+            line-height:1.6;color:#333;background:#f5f6fa;
+            opacity:0;transition:opacity 0.4s ease;
+        }
+        body.loaded{opacity:1}
+        body.no-js{opacity:1}
+        .visually-hidden{
+            position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+            overflow:hidden;clip:rect(0,0,0,0);border:0;
+        }
+        .page-loader{
+            position:fixed;top:0;left:0;width:100%;height:100%;
+            background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+            display:flex;justify-content:center;align-items:center;
+            z-index:9999;transition:opacity 0.5s ease,visibility 0.5s ease;
+        }
+        .page-loader.hidden{opacity:0;visibility:hidden}
+        .spinner{
+            width:60px;height:60px;border:6px solid rgba(255,255,255,0.2);
+            border-top-color:#fff;border-radius:50%;
+            animation:spin 1s linear infinite;
+            box-shadow:0 0 30px rgba(255,255,255,0.3);
+        }
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .skip-link{
+            position:absolute;top:-50px;left:20px;
+            background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+            color:#fff;padding:12px 24px;border-radius:8px;
+            z-index:10000;text-decoration:none;font-weight:500;
+            box-shadow:0 4px 15px rgba(102,126,234,0.4);
+            transition:top 0.3s ease,transform 0.3s ease;
+        }
+        .skip-link:focus{top:20px;transform:translateY(2px)}
+    </style>
+
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     {% block stylesheets %}
-        <!-- Minified CSS - оптимизированные файлы -->
-        <link rel="stylesheet" href="/css/themes-bundle.min.css">
-        <link rel="stylesheet" href="/css/components-bundle.min.css">
-        <link rel="stylesheet" href="/css/navbar-enhanced.min.css">
-        <link rel="stylesheet" href="/css/ui-enhancements.css">
-        <link rel="stylesheet" href="/css/app-enhanced.css">
-        <link rel="stylesheet" href="/css/task-design-enhancements.css">
+        <!-- Application CSS -->
+        <link rel="stylesheet" href="{{ asset('css/themes-bundle.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/components-bundle.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/navbar-enhanced.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/base-layout.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/ui-enhancements.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/app-enhanced.css') }}">
     {% endblock %}
 </head>
 <body>
-    <!-- Skip Link for Accessibility -->
-    <a href="#main-content" class="skip-link visually-hidden-focusable">
+    <!-- Page Loader -->
+    <div class="page-loader" id="pageLoader">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Skip Link -->
+    <a href="#main-content" class="skip-link visually-hidden">
         <i class="fas fa-arrow-down me-2"></i>Перейти к основному контенту
     </a>
 
-    <!-- Keyboard Shortcuts Help Modal -->
-    <div class="modal fade" id="keyboardShortcutsModal" tabindex="-1" aria-labelledby="keyboardShortcutsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="keyboardShortcutsModalLabel">
-                        <i class="fas fa-keyboard me-2"></i>Горячие клавиши
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="list-group list-group-flush">
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-tasks me-2"></i>Задачи</span>
-                            <kbd class="bg-light px-2 py-1 rounded">T</kbd>
-                        </div>
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-chart-line me-2"></i>Дашборд</span>
-                            <kbd class="bg-light px-2 py-1 rounded">D</kbd>
-                        </div>
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-columns me-2"></i>Канбан</span>
-                            <kbd class="bg-light px-2 py-1 rounded">K</kbd>
-                        </div>
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-calendar me-2"></i>Календарь</span>
-                            <kbd class="bg-light px-2 py-1 rounded">C</kbd>
-                        </div>
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-user me-2"></i>Профиль</span>
-                            <kbd class="bg-light px-2 py-1 rounded">P</kbd>
-                        </div>
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-plus me-2"></i>Новая задача</span>
-                            <kbd class="bg-light px-2 py-1 rounded">N</kbd>
-                        </div>
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-search me-2"></i>Поиск</span>
-                            <kbd class="bg-light px-2 py-1 rounded">Ctrl</kbd> + <kbd class="bg-light px-2 py-1 rounded">K</kbd>
-                        </div>
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-question-circle me-2"></i>Справка</span>
-                            <kbd class="bg-light px-2 py-1 rounded">?</kbd>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <nav class="navbar navbar-expand-lg navbar-enhanced">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-enhanced sticky-top" role="navigation" aria-label="Основная навигация">
         <div class="container-fluid">
             <a class="navbar-brand-enhanced" href="{{ path('app_dashboard') }}">
                 <div class="brand-icon">
@@ -118,174 +121,108 @@
                     <div class="brand-subtitle">Task Management</div>
                 </div>
             </a>
-            
-            <button class="navbar-toggler navbar-toggler-enhanced" type="button" 
-                    data-bs-toggle="collapse" 
-                    data-bs-target="#navbarNav"
-                    aria-controls="navbarNav"
-                    aria-expanded="false"
+
+            <button class="navbar-toggler navbar-toggler-enhanced" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false"
                     aria-label="Переключить навигацию">
                 <span class="navbar-toggler-icon navbar-toggler-icon-enhanced"></span>
             </button>
-            
+
             <div class="collapse navbar-collapse navbar-collapse-enhanced" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     {% if app.user %}
                         <li class="nav-item">
                             <a class="nav-link nav-link-enhanced" href="{{ path('app_dashboard') }}">
-                                <i class="fas fa-home"></i>
-                                <span>Панель</span>
+                                <i class="fas fa-home"></i><span>Панель</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link nav-link-enhanced" href="{{ path('app_task_index') }}">
-                                <i class="fas fa-tasks"></i>
-                                <span>Задачи</span>
+                                <i class="fas fa-tasks"></i><span>Задачи</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link nav-link-enhanced" href="{{ path('app_kanban_board') }}">
-                                <i class="fas fa-columns"></i>
-                                <span class="d-none d-lg-inline">Канбан</span>
+                                <i class="fas fa-columns"></i><span>Канбан</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link nav-link-enhanced" href="{{ path('app_calendar') }}">
-                                <i class="fas fa-calendar"></i>
-                                <span class="d-none d-lg-inline">Календарь</span>
+                                <i class="fas fa-calendar"></i><span>Календарь</span>
                             </a>
                         </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link nav-link-enhanced dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-briefcase"></i>
-                                <span>CRM</span>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-enhanced">
-                                <li><a class="dropdown-item dropdown-item-enhanced" href="{{ path('app_deals_index') }}">
-                                    <i class="fas fa-handshake"></i>Сделки
-                                </a></li>
-                                <li><a class="dropdown-item dropdown-item-enhanced" href="{{ path('app_clients_index') }}">
-                                    <i class="fas fa-users"></i>Клиенты
-                                </a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown d-none d-xl-block">
-                            <a class="nav-link nav-link-enhanced dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-chart-line"></i>
-                                <span>Аналитика</span>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-enhanced">
-                                <li><a class="dropdown-item dropdown-item-enhanced" href="{{ path('app_analytics_dashboard') }}">
-                                    <i class="fas fa-chart-pie"></i>Дашборд
-                                </a></li>
-                                <li><a class="dropdown-item dropdown-item-enhanced" href="{{ path('app_advanced_analytics') }}">
-                                    <i class="fas fa-chart-area"></i>Расширенная
-                                </a></li>
-                                <li><a class="dropdown-item dropdown-item-enhanced" href="{{ path('app_sales_analytics') }}">
-                                    <i class="fas fa-dollar-sign"></i>Продажи
-                                </a></li>
-                            </ul>
-                        </li>
-                        {% if app.user.hasRole('ROLE_ADMIN') %}
-                            <li class="nav-item d-none d-xl-block">
-                                <a class="nav-link nav-link-enhanced" href="{{ path('app_user_index') }}">
-                                    <i class="fas fa-users-cog"></i>
-                                    <span>Пользователи</span>
-                                </a>
-                            </li>
-                        {% endif %}
                     {% endif %}
                 </ul>
-                
+
                 {% if app.user %}
                 <ul class="navbar-nav ms-auto align-items-center">
                     <!-- Quick Actions -->
                     <li class="nav-item d-none d-lg-block me-2">
-                        <a class="quick-action-btn-enhanced" href="{{ path('app_task_new') }}" title="Новая задача">
+                        <a class="quick-action-btn-enhanced" href="{{ path('app_task_new') }}" 
+                           title="Новая задача" aria-label="Новая задача">
                             <i class="fas fa-plus"></i>
                         </a>
                     </li>
-                    
+
                     <!-- Theme Switcher -->
                     <li class="nav-item me-2">
                         {% include 'components/theme_switcher.html.twig' %}
                     </li>
-                    
+
                     <!-- Notifications -->
                     <li class="nav-item dropdown me-2">
-                        <a class="quick-action-btn-enhanced position-relative" 
-                           href="#" 
-                           role="button" 
-                           data-bs-toggle="dropdown"
-                           aria-expanded="false"
-                           aria-label="Уведомления">
+                        <a class="quick-action-btn-enhanced position-relative"
+                           href="#" role="button" data-bs-toggle="dropdown"
+                           aria-expanded="false" aria-label="Уведомления">
                             <i class="fas fa-bell"></i>
-                            <span class="notification-badge-enhanced">3</span>
+                            <span class="notification-badge-enhanced" id="notificationCount">
+                                {{ app.user.unreadNotifications|default(0) }}
+                            </span>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-enhanced dropdown-menu-end" style="min-width: 300px;">
+                        <ul class="dropdown-menu dropdown-menu-end" style="min-width: 300px;">
+                            <li><h6 class="dropdown-header">Уведомления</h6></li>
+                            <li><hr class="dropdown-divider"></li>
                             <li>
-                                <h6 class="dropdown-header dropdown-header-enhanced">
-                                    Уведомления
-                                </h6>
-                            </li>
-                            <li><hr class="dropdown-divider dropdown-divider-enhanced"></li>
-                            <li>
-                                <a class="dropdown-item dropdown-item-enhanced" href="#">
-                                    <i class="fas fa-info-circle"></i>
+                                <a class="dropdown-item" href="{{ path('app_notification_index') }}">
+                                    <i class="fas fa-bell text-primary me-2"></i>
                                     <div>
-                                        <div class="fw-semibold">Новая задача назначена</div>
-                                        <small class="text-muted">5 минут назад</small>
+                                        <div class="fw-semibold">Просмотреть все</div>
+                                        <small class="text-muted">{{ app.user.unreadNotifications|default(0) }} непрочитанных</small>
                                     </div>
-                                </a>
-                            </li>
-                            <li><hr class="dropdown-divider dropdown-divider-enhanced"></li>
-                            <li>
-                                <a class="dropdown-item dropdown-item-enhanced text-center" href="{{ path('app_notification_index') }}">
-                                    Все уведомления
                                 </a>
                             </li>
                         </ul>
                     </li>
-                    
+
                     <!-- User Dropdown -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link p-0" 
-                           href="#" 
-                           role="button" 
-                           data-bs-toggle="dropdown"
-                           aria-expanded="false"
-                           aria-label="Меню пользователя">
+                        <a class="nav-link p-0" href="#" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">
                             <div class="user-avatar-enhanced">
                                 {{ app.user.firstName|first }}{{ app.user.lastName|first }}
                             </div>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-enhanced dropdown-menu-end">
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><div class="dropdown-header">
+                                <strong>{{ app.user.fullName }}</strong>
+                                <div class="text-muted small">{{ app.user.email }}</div>
+                            </div></li>
+                            <li><hr class="dropdown-divider"></li>
                             <li>
-                                <div class="dropdown-header dropdown-header-enhanced">
-                                    <strong>{{ app.user.fullName }}</strong>
-                                    <div class="small text-muted">{{ app.user.email }}</div>
-                                </div>
-                            </li>
-                            <li><hr class="dropdown-divider dropdown-divider-enhanced"></li>
-                            <li>
-                                <a class="dropdown-item dropdown-item-enhanced" href="{{ path('app_profile_show') }}">
-                                    <i class="fas fa-user"></i>Мой профиль
+                                <a class="dropdown-item" href="{{ path('app_profile_show') }}">
+                                    <i class="fas fa-user me-2"></i>Мой профиль
                                 </a>
                             </li>
                             <li>
-                                <a class="dropdown-item dropdown-item-enhanced" href="{{ path('app_settings') }}">
-                                    <i class="fas fa-cog"></i>Настройки
+                                <a class="dropdown-item" href="{{ path('app_settings') }}">
+                                    <i class="fas fa-cog me-2"></i>Настройки
                                 </a>
                             </li>
+                            <li><hr class="dropdown-divider"></li>
                             <li>
-                                <a class="dropdown-item dropdown-item-enhanced" href="{{ path('app_2fa_setup') }}">
-                                    <i class="fas fa-shield-alt"></i>Безопасность
-                                </a>
-                            </li>
-                            <li><hr class="dropdown-divider dropdown-divider-enhanced"></li>
-                            <li>
-                                <a class="dropdown-item dropdown-item-enhanced text-danger" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
-                                    <i class="fas fa-sign-out-alt"></i>Выход
+                                <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Выход
                                 </a>
                             </li>
                         </ul>
@@ -308,967 +245,127 @@
             </div>
         </div>
     </nav>
-    
+
+    <!-- Main Content -->
     <main class="container-fluid mt-4" id="main-content" role="main" aria-label="Основное содержимое">
         {% block body %}{% endblock %}
     </main>
 
     <!-- Mobile Bottom Navigation -->
     {% if app.user %}
-    <nav class="bottom-nav">
+    <nav class="bottom-nav" role="navigation" aria-label="Мобильная навигация">
         <div class="bottom-nav-items">
             <a href="{{ path('app_dashboard') }}" class="bottom-nav-item{{ app.request.attributes.get('_route') == 'app_dashboard' ? ' active' : '' }}">
                 <i class="fas fa-home bottom-nav-item-icon"></i>
                 <span class="bottom-nav-item-label">Главная</span>
             </a>
-            
             <a href="{{ path('app_task_index') }}" class="bottom-nav-item{{ 'app_task' in app.request.attributes.get('_route') ? ' active' : '' }}">
                 <i class="fas fa-tasks bottom-nav-item-icon"></i>
                 <span class="bottom-nav-item-label">Задачи</span>
-                {% if task_stats is defined and task_stats.pending > 0 %}
-                    <span class="nav-badge">{{ task_stats.pending > 9 ? '9+' : task_stats.pending }}</span>
-                {% endif %}
             </a>
-            
             <a href="{{ path('app_task_new') }}" class="bottom-nav-item quick-action">
                 <i class="fas fa-plus bottom-nav-item-icon"></i>
                 <span class="bottom-nav-item-label">Новая</span>
             </a>
-            
             <a href="{{ path('app_kanban_board') }}" class="bottom-nav-item{{ app.request.attributes.get('_route') == 'app_kanban_board' ? ' active' : '' }}">
                 <i class="fas fa-columns bottom-nav-item-icon"></i>
                 <span class="bottom-nav-item-label">Канбан</span>
             </a>
-            
             <a href="{{ path('app_calendar') }}" class="bottom-nav-item{{ app.request.attributes.get('_route') == 'app_calendar' ? ' active' : '' }}">
                 <i class="fas fa-calendar bottom-nav-item-icon"></i>
                 <span class="bottom-nav-item-label">Календарь</span>
             </a>
         </div>
     </nav>
-    
-    <!-- FAB Button Alternative -->
-    <button class="bottom-nav-fab" id="fabButton" onclick="toggleFabMenu()">
+
+    <!-- FAB Button -->
+    <button class="bottom-nav-fab" id="fabButton" onclick="toggleFabMenu()" aria-label="Быстрые действия">
         <i class="fas fa-plus"></i>
     </button>
-    
+
     <!-- FAB Menu -->
     <div class="bottom-nav-fab-menu" id="fabMenu">
         <a href="{{ path('app_task_new') }}" class="bottom-nav-fab-menu-item">
-            <i class="fas fa-tasks"></i>
-            <span>Новая задача</span>
+            <i class="fas fa-tasks"></i><span>Новая задача</span>
         </a>
         <a href="{{ path('app_deals_new') }}" class="bottom-nav-fab-menu-item">
-            <i class="fas fa-handshake"></i>
-            <span>Новая сделка</span>
+            <i class="fas fa-handshake"></i><span>Новая сделка</span>
         </a>
         <a href="{{ path('app_clients_new') }}" class="bottom-nav-fab-menu-item">
-            <i class="fas fa-users"></i>
-            <span>Новый клиент</span>
+            <i class="fas fa-users"></i><span>Новый клиент</span>
         </a>
     </div>
-    
-    <!-- FAB Backdrop -->
     <div class="bottom-nav-fab-backdrop" id="fabBackdrop" onclick="toggleFabMenu()"></div>
     {% endif %}
 
-    <!-- Bootstrap JS -->
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
-    
-    <!-- Preload critical JS -->
-    <link rel="preload" href="/js/logger.js" as="script">
-    <link rel="preload" href="/js/timer-manager.js" as="script">
-    <link rel="preload" href="/js/event-manager.js" as="script">
-    <link rel="preload" href="/js/core-bundle.min.js" as="script">
-    {% if app.user %}
-        <link rel="preload" href="/js/common-bundle.min.js" as="script">
-    {% endif %}
-    
-    <!-- Service Worker Registration -->
-    <script>
-        // FAB Menu toggle
-        function toggleFabMenu() {
-            const menu = document.getElementById('fabMenu');
-            const backdrop = document.getElementById('fabBackdrop');
-            menu.classList.toggle('show');
-            backdrop.classList.toggle('show');
-        }
-
-        // Close FAB menu on escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                const menu = document.getElementById('fabMenu');
-                const backdrop = document.getElementById('fabBackdrop');
-                menu.classList.remove('show');
-                backdrop.classList.remove('show');
-            }
-        });
-
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(function(registration) {
-                        console.log('SW registered: ', registration);
-                    })
-                    .catch(function(registrationError) {
-                        console.log('SW registration failed: ', registrationError);
-                    });
-            });
-        }
-        
-        // Flash messages to toast
-        {% for flash_message in app.session.flashbag.get('success') %}
-            document.addEventListener('DOMContentLoaded', () => {
-                setTimeout(() => showToast('{{ flash_message|e('js') }}', 'success'), 100);
-            });
-        {% endfor %}
-        
-        {% for flash_message in app.session.flashbag.get('error') %}
-            document.addEventListener('DOMContentLoaded', () => {
-                setTimeout(() => showToast('{{ flash_message|e('js') }}', 'error'), 100);
-            });
-        {% endfor %}
-        
-        {% for flash_message in app.session.flashbag.get('warning') %}
-            document.addEventListener('DOMContentLoaded', () => {
-                setTimeout(() => showToast('{{ flash_message|e('js') }}', 'warning'), 100);
-            });
-        {% endfor %}
-        
-        {% for flash_message in app.session.flashbag.get('info') %}
-            document.addEventListener('DOMContentLoaded', () => {
-                setTimeout(() => showToast('{{ flash_message|e('js') }}', 'info'), 100);
-            });
-        {% endfor %}
-    </script>
     
     {% block javascripts %}
         {% block importmap %}{{ importmap('app') }}{% endblock %}
 
-        {# Environment flag for JS #}
+        <!-- Environment flag -->
         <meta name="environment" content="{{ app.environment }}" data-environment="{{ app.environment }}">
 
-        {# Console wrapper - disable logs in production #}
-        <script src="/js/console-wrapper.js"></script>
+        <!-- CSP Nonce -->
+        {% set nonce = app.environment == 'prod' ? csp_nonce('script') : '' %}
+        {% set nonce_attr = nonce ? 'nonce="' ~ nonce ~ '"' : '' %}
 
-        {# Utility scripts - load first #}
-        <script src="/js/logger.js" defer></script>
-        <script src="/js/timer-manager.js" defer></script>
-        <script src="/js/event-manager.js" defer></script>
+        <!-- Critical functions - load first without defer -->
+        <script {{ nonce_attr }} src="{{ asset('js/critical-functions.js') }}"></script>
 
-        {# Core scripts - always loaded #}
-        <script src="/js/core-bundle.min.js" defer></script>
-        <script src="/js/navbar-enhanced.js" defer></script>
-        <script src="/js/theme-switcher.js" defer></script>
-        
-        {# Common features - for authenticated users #}
+        <!-- Utility scripts -->
+        <script {{ nonce_attr }} src="{{ asset('js/console-wrapper.js') }}"></script>
+        <script {{ nonce_attr }} src="{{ asset('js/logger.js') }}" defer></script>
+        <script {{ nonce_attr }} src="{{ asset('js/timer-manager.js') }}" defer></script>
+        <script {{ nonce_attr }} src="{{ asset('js/event-manager.js') }}" defer></script>
+
+        <!-- Core bundle -->
+        <script {{ nonce_attr }} src="{{ asset('js/core-bundle.min.js') }}" defer></script>
+        <script {{ nonce_attr }} src="{{ asset('js/navbar-enhanced.js') }}" defer></script>
+        <script {{ nonce_attr }} src="{{ asset('js/theme-switcher.js') }}" defer></script>
+
         {% if app.user %}
-            <script src="/js/common-bundle.min.js" defer></script>
+            <script {{ nonce_attr }} src="{{ asset('js/common-bundle.min.js') }}" defer></script>
+            <script {{ nonce_attr }} src="{{ asset('js/notifications-realtime.js') }}" defer></script>
         {% endif %}
-        
-        {# Page-specific scripts - loaded conditionally #}
+
+        <!-- Page-specific scripts -->
         {% if app.request.attributes.get('_route') starts with 'app_task' %}
-            <script src="/js/table-enhancements.js" defer></script>
+            <script {{ nonce_attr }} src="{{ asset('js/table-enhancements.js') }}" defer></script>
         {% endif %}
-
         {% if app.request.attributes.get('_route') == 'app_kanban_board' %}
-            <script src="/js/kanban-enhanced.js" defer></script>
+            <script {{ nonce_attr }} src="{{ asset('js/kanban-enhanced.js') }}" defer></script>
         {% endif %}
-
         {% if app.request.attributes.get('_route') == 'app_calendar' %}
-            <script src="/js/calendar-enhanced.js" defer></script>
+            <script {{ nonce_attr }} src="{{ asset('js/calendar-enhanced.js') }}" defer></script>
         {% endif %}
-
         {% if app.request.attributes.get('_route') starts with 'app_dashboard' or app.request.attributes.get('_route') starts with 'app_analytics' %}
-            <script src="/js/dashboard-widgets.js" defer></script>
+            <script {{ nonce_attr }} src="{{ asset('js/dashboard-widgets.js') }}" defer></script>
         {% endif %}
-        
         {% if app.request.attributes.get('_route') starts with 'app_settings' %}
-            <script src="/js/settings-enhanced.js" defer></script>
-        {% endif %}
-
-        {# Performance monitoring - only in dev mode #}
-        {% if app.environment == 'dev' %}
-            <script src="/js/performance-monitor.js" defer></script>
+            <script {{ nonce_attr }} src="{{ asset('js/settings-enhanced.js') }}" defer></script>
         {% endif %}
     {% endblock %}
+
+    <!-- Flash messages -->
+    {% set nonce = app.environment == 'prod' ? csp_nonce('script') : '' %}
+    {% set nonce_attr = nonce ? 'nonce="' ~ nonce ~ '"' : '' %}
     
-    <!-- Real-time Notifications JavaScript -->
-    {% if app.user %}
-    <script>
-        class RealTimeNotifications {
-            constructor() {
-                this.eventSource = null;
-                this.notificationCountElement = document.getElementById('notificationCount');
-                this.notificationsMenu = document.getElementById('notificationsMenu');
-                this.markAllReadBtn = document.getElementById('markAllRead');
-                this.toastContainer = document.getElementById('notificationToastContainer');
-                this.updateInProgress = false;
-                this.lastUpdate = 0;
-                this.updateThrottle = 5000; // Минимум 5 секунд между обновлениями
-                
-                this.init();
-            }
-            
-            init() {
-                this.bindEvents();
-                // Первое обновление через 1 секунду после загрузки
-                setTimeout(() => this.updateNotificationCount(), 1000);
-                // Затем каждые 5 минут
-                setInterval(() => this.updateNotificationCount(), 300000);
-            }
-            
-            connect() {
-                // Отключено для снижения нагрузки
-            }
-            
-            startPolling() {
-                // Отключено - используем редкие обновления
-            }
-            
-            handleNotification(notification) {
-                // Update notification count
-                this.updateNotificationCount();
-                
-                // Show toast notification
-                this.showNotificationToast(notification);
-                
-                // Add to dropdown menu
-                this.addNotificationToMenu(notification);
-                
-                // Play sound if enabled
-                this.playNotificationSound();
-            }
-            
-            showNotificationToast(notification) {
-                const toastHtml = `
-                    <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-                        <div class="toast-header">
-                            <strong class="me-auto">${notification.title}</strong>
-                            <small class="text-muted">только что</small>
-                            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
-                        </div>
-                        <div class="toast-body">
-                            ${notification.message}
-                        </div>
-                    </div>
-                `;
-                
-                this.toastContainer.insertAdjacentHTML('beforeend', toastHtml);
-                const toastElement = this.toastContainer.lastElementChild;
-                const toast = new bootstrap.Toast(toastElement);
-                toast.show();
-                
-                // Auto-remove after showing
-                toastElement.addEventListener('hidden.bs.toast', () => {
-                    toastElement.remove();
-                });
-            }
-            
-            addNotificationToMenu(notification) {
-                const menuItem = document.createElement('li');
-                menuItem.innerHTML = `
-                    <a class="dropdown-item d-flex flex-column fw-bold" href="#">
-                        <div class="d-flex justify-content-between">
-                            <span>${notification.title}</span>
-                            <small class="text-muted">только что</small>
-                        </div>
-                        <div class="text-muted small">${notification.message}</div>
-                    </a>
-                `;
-                
-                // Insert after header but before existing notifications
-                const divider = this.notificationsMenu.querySelector('.dropdown-divider');
-                this.notificationsMenu.insertBefore(menuItem, divider);
-            }
-            
-            async updateNotificationCount() {
-                // Throttle - не обновляем чаще чем раз в 5 секунд
-                const now = Date.now();
-                if (this.updateInProgress || (now - this.lastUpdate) < this.updateThrottle) {
-                    return;
-                }
-                
-                this.updateInProgress = true;
-                this.lastUpdate = now;
-                
-                try {
-                    const response = await fetch('/api/notifications/unread-count', {
-                        cache: 'no-cache'
-                    });
-                    const data = await response.json();
-                    
-                    if (this.notificationCountElement) {
-                        this.notificationCountElement.textContent = data.unread;
-                        this.notificationCountElement.classList.toggle('d-none', data.unread === 0);
-                    }
-                } catch (error) {
-                    console.error('Failed to update notification count:', error);
-                } finally {
-                    this.updateInProgress = false;
-                }
-            }
-            
-            bindEvents() {
-                if (this.markAllReadBtn) {
-                    this.markAllReadBtn.addEventListener('click', async (e) => {
-                        e.preventDefault();
-                        await this.markAllAsRead();
-                    });
-                }
-            }
-            
-            async markAllAsRead() {
-                try {
-                    const response = await fetch('/api/notifications/mark-all-read', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        }
-                    });
-                    
-                    if (response.ok) {
-                        await this.updateNotificationCount();
-                        // Clear dropdown notifications
-                        const notificationItems = this.notificationsMenu.querySelectorAll('.dropdown-item.fw-bold');
-                        notificationItems.forEach(item => item.classList.remove('fw-bold'));
-                    }
-                } catch (error) {
-                    console.error('Failed to mark notifications as read:', error);
-                }
-            }
-            
-            playNotificationSound() {
-                // Optional: play notification sound
-                // const audio = new Audio('/sounds/notification.mp3');
-                // audio.play().catch(e => console.log('Audio play failed:', e));
-            }
-            
-            disconnect() {
-                if (this.eventSource) {
-                    this.eventSource.close();
-                }
-            }
-        }
-        
-        // Initialize real-time notifications
-        document.addEventListener('DOMContentLoaded', () => {
-            window.realTimeNotifications = new RealTimeNotifications();
+    <script {{ nonce_attr }}>
+        window.addEventListener('DOMContentLoaded', function() {
+            {% for flash_message in app.session.flashbag.get('success') %}
+            setTimeout(() => showToast('{{ flash_message|e('js') }}', 'success'), 100);
+            {% endfor %}
+            {% for flash_message in app.session.flashbag.get('error') %}
+            setTimeout(() => showToast('{{ flash_message|e('js') }}', 'error'), 100);
+            {% endfor %}
+            {% for flash_message in app.session.flashbag.get('warning') %}
+            setTimeout(() => showToast('{{ flash_message|e('js') }}', 'warning'), 100);
+            {% endfor %}
         });
     </script>
-    {% endif %}
-    
-    {% if app.user %}
-    <!-- Quick Task Modal -->
-    <div class="modal fade" id="quickTaskModal" tabindex="-1" aria-labelledby="quickTaskModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="quickTaskModalLabel">Быстрое создание задачи</h5>
-                    <button type="button" class="btn-close btn-enhanced" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="quick-task-form">
-                        <div class="mb-3">
-                            <label for="quick-task-title" class="form-label">Название задачи *</label>
-                            <input type="text" class="form-control" id="quick-task-title" required placeholder="Введите название задачи">
-                        </div>
-                        <div class="mb-3">
-                            <label for="quick-task-description" class="form-label">Описание</label>
-                            <textarea class="form-control" id="quick-task-description" rows="3" placeholder="Добавьте описание задачи"></textarea>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="quick-task-priority" class="form-label">Приоритет</label>
-                                <select class="form-select" id="quick-task-priority">
-                                    <option value="low">Низкий</option>
-                                    <option value="medium" selected>Средний</option>
-                                    <option value="high">Высокий</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="quick-task-due-date" class="form-label">Срок выполнения</label>
-                                <input type="date" class="form-control" id="quick-task-due-date">
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="quick-task-category" class="form-label">Категория</label>
-                            <select class="form-select" id="quick-task-category">
-                                <option value="">Без категории</option>
-                                {% if app.user %}
-                                    {% for category in app.user.taskCategories %}
-                                        <option value="{{ category.id }}">{{ category.name }}</option>
-                                    {% endfor %}
-                                {% endif %}
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="quick-task-assigned-user" class="form-label">Назначить пользователю</label>
-                            <select class="form-select" id="quick-task-assigned-user">
-                                <option value="">Назначить себе</option>
-                                {% if app.user %}
-                                    <option value="{{ app.user.id }}">{{ app.user.fullName }}</option>
-                                    <!-- This will be populated dynamically via JavaScript -->
-                                {% endif %}
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="quick-task-tags" class="form-label">Теги</label>
-                            <select class="form-select" id="quick-task-tags" multiple>
-                                <!-- This will be populated dynamically via JavaScript -->
-                            </select>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary btn-enhanced" data-bs-dismiss="modal">Отмена</button>
-                    <button type="button" class="btn btn-primary btn-enhanced" id="save-quick-task">Создать задачу</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Floating Quick Task Button -->
-    <button type="button" 
-            class="btn btn-primary btn-lg btn-enhanced rounded-circle shadow position-fixed fab-enter" 
-            style="bottom: 30px; right: 30px; z-index: 1000; width: 60px; height: 60px;" 
-            id="quick-task-fab" 
-            data-bs-toggle="modal" 
-            data-bs-target="#quickTaskModal"
-            aria-label="Быстрое создание задачи"
-            title="Быстрое создание задачи (N)">
-        <i class="fas fa-plus"></i>
-    </button>
-    {% endif %}
-    
-    <script>
-        // PWA Installation
-        let deferredPrompt;
-        
-        window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevent Chrome 67 and earlier from automatically showing the prompt
-            e.preventDefault();
-            // Stash the event so it can be triggered later
-            deferredPrompt = e;
-            
-            // Show the install prompt after a delay
-            setTimeout(() => {
-                const installPrompt = document.getElementById('installPrompt');
-                if (installPrompt && !localStorage.getItem('installPromptDismissed')) {
-                    installPrompt.classList.add('show');
-                }
-            }, 3000);
-        });
-        
-        // Installation button handler
-        document.addEventListener('DOMContentLoaded', function() {
-            const installButton = document.getElementById('installButton');
-            const dismissButton = document.getElementById('dismissInstall');
-            const installPrompt = document.getElementById('installPrompt');
-            
-            if (installButton) {
-                installButton.addEventListener('click', async () => {
-                    if (!deferredPrompt) return;
-                    
-                    // Show the install prompt
-                    deferredPrompt.prompt();
-                    
-                    // Wait for the user to respond to the prompt
-                    const { outcome } = await deferredPrompt.userChoice;
-                    
-                    if (outcome === 'accepted') {
-                        showToast('Приложение установлено!', 'success');
-                    }
-                    
-                    // We've used the prompt, and can't use it again, throw it away
-                    deferredPrompt = null;
-                    installPrompt.classList.remove('show');
-                });
-            }
-            
-            if (dismissButton) {
-                dismissButton.addEventListener('click', () => {
-                    installPrompt.classList.remove('show');
-                    localStorage.setItem('installPromptDismissed', 'true');
-                });
-            }
-        });
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            // Theme switching is now handled by theme-switcher.js
-            
-            // Keyboard Shortcuts
-            const shortcuts = {
-                'n': () => {
-                    if (document.getElementById('quick-task-fab')) {
-                        document.getElementById('quick-task-fab').click();
-                    }
-                },
-                't': () => window.location.href = '{{ path('app_task_index') }}',
-                'd': () => window.location.href = '{{ path('app_dashboard') }}',
-                'c': () => window.location.href = '{{ path('app_task_category_index') }}',
-                'p': () => window.location.href = '{{ path('app_profile_show') }}',
-                '?': () => showKeyboardShortcuts()
-            };
-            
-            document.addEventListener('keydown', function(e) {
-                // Ignore if typing in input/textarea
-                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-                
-                const key = e.key.toLowerCase();
-                if (shortcuts[key] && (e.ctrlKey || !Object.keys(shortcuts).includes(key))) {
-                    e.preventDefault();
-                    shortcuts[key]();
-                }
-            });
-            
-            // Show shortcuts modal
-            const showShortcutsBtn = document.getElementById('showShortcuts');
-            if (showShortcutsBtn) {
-                showShortcutsBtn.addEventListener('click', showKeyboardShortcuts);
-            }
-            
-            function showKeyboardShortcuts() {
-                const modalHtml = `
-                    <div class="modal fade" id="shortcutsModal" tabindex="-1">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title"><i class="fas fa-keyboard me-2"></i>Горячие клавиши</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <h6>Навигация</h6>
-                                            <ul class="list-unstyled">
-                                                <li class="mb-2"><kbd class="kbd-shortcut">d</kbd> Панель управления</li>
-                                                <li class="mb-2"><kbd class="kbd-shortcut">t</kbd> Задачи</li>
-                                                <li class="mb-2"><kbd class="kbd-shortcut">c</kbd> Категории</li>
-                                                <li class="mb-2"><kbd class="kbd-shortcut">p</kbd> Профиль</li>
-                                            </ul>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <h6>Действия</h6>
-                                            <ul class="list-unstyled">
-                                                <li class="mb-2"><kbd class="kbd-shortcut">n</kbd> Быстрое создание задачи</li>
-                                                <li class="mb-2"><kbd class="kbd-shortcut">?</kbd> Показать горячие клавиши</li>
-                                                <li class="mb-2"><kbd class="kbd-shortcut">Esc</kbd> Закрыть модальные окна</li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                // Remove existing modal if present
-                const existingModal = document.getElementById('shortcutsModal');
-                if (existingModal) existingModal.remove();
-                
-                document.body.insertAdjacentHTML('beforeend', modalHtml);
-                const modal = new bootstrap.Modal(document.getElementById('shortcutsModal'));
-                modal.show();
-                
-                // Clean up after modal is hidden
-                document.getElementById('shortcutsModal').addEventListener('hidden.bs.modal', function() {
-                    this.remove();
-                });
-            }
-            
-            // Navbar scroll effect
-            let lastScrollTop = 0;
-            const navbar = document.querySelector('.navbar');
-            
-            window.addEventListener('scroll', function() {
-                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                
-                if (scrollTop > 50) {
-                    navbar.classList.add('scrolled');
-                } else {
-                    navbar.classList.remove('scrolled');
-                }
-                
-                lastScrollTop = scrollTop;
-            });
-            
-            // Focus management for modals
-            document.addEventListener('shown.bs.modal', function(e) {
-                const modal = e.target;
-                const firstFocusable = modal.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-                if (firstFocusable) {
-                    firstFocusable.focus();
-                }
-            });
-            
-            // Enhanced keyboard navigation
-            document.addEventListener('keydown', function(e) {
-                // ESC to close modals
-                if (e.key === 'Escape') {
-                    const modals = document.querySelectorAll('.modal.show');
-                    modals.forEach(modal => {
-                        const bsModal = bootstrap.Modal.getInstance(modal);
-                        if (bsModal) bsModal.hide();
-                    });
-                }
-                
-                // Tab navigation improvements
-                if (e.key === 'Tab') {
-                    const activeModal = document.querySelector('.modal.show');
-                    if (activeModal) {
-                        const focusableElements = activeModal.querySelectorAll(
-                            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-                        );
-                        const firstElement = focusableElements[0];
-                        const lastElement = focusableElements[focusableElements.length - 1];
-                        
-                        if (e.shiftKey && document.activeElement === firstElement) {
-                            lastElement.focus();
-                            e.preventDefault();
-                        } else if (!e.shiftKey && document.activeElement === lastElement) {
-                            firstElement.focus();
-                            e.preventDefault();
-                        }
-                    }
-                }
-            });
-            // Quick Task functionality
-            const quickTaskFab = document.getElementById('quick-task-fab');
-            const saveQuickTaskBtn = document.getElementById('save-quick-task');
-            const quickTaskForm = document.getElementById('quick-task-form');
-            
-            // Function to populate dropdowns when modal is shown
-            const quickTaskModal = document.getElementById('quickTaskModal');
-            quickTaskModal.addEventListener('shown.bs.modal', function() {
-                // Populate categories dropdown
-                const categorySelect = document.getElementById('quick-task-category');
-                // Clear existing options except the first one
-                while (categorySelect.options.length > 1) {
-                    categorySelect.remove(1);
-                }
-                
-                fetch('{{ path('app_api_categories') }}')
-                    .then(resp => resp.json())
-                    .then(categories => {
-                        categories.forEach(category => {
-                            const option = document.createElement('option');
-                            option.value = category.id;
-                            option.textContent = category.name;
-                            categorySelect.appendChild(option);
-                        });
-                    })
-                    .catch(error => {
-                        console.error('Error loading categories:', error);
-                    });
-                
-                // Populate users dropdown
-                const userSelect = document.getElementById('quick-task-assigned-user');
-                // Clear existing options except the first one
-                while (userSelect.options.length > 1) {
-                    userSelect.remove(1);
-                }
-                
-                // Add current user option (if user is authenticated)
-                {% if app.user %}
-                const currentUserOption = document.createElement('option');
-                currentUserOption.value = '{{ app.user.id }}';
-                currentUserOption.textContent = '{{ app.user.fullName }}';
-                userSelect.appendChild(currentUserOption);
-                {% endif %}
-                
-                fetch('{{ path('app_api_users') }}')
-                    .then(resp => resp.json())
-                    .then(users => {
-                        users.forEach(user => {
-                            // Don't add the current user again (only applicable when user is logged in)
-                            {% if app.user %}
-                            if (user.id != '{{ app.user.id }}') {
-                            {% endif %}
-                                const option = document.createElement('option');
-                                option.value = user.id;
-                                option.textContent = user.fullName;
-                                userSelect.appendChild(option);
-                            {% if app.user %}
-                            }
-                            {% endif %}
-                        });
-                    })
-                    .catch(error => {
-                        console.error('Error loading users:', error);
-                    });
-                
-                // Populate tags dropdown
-                const tagSelect = document.getElementById('quick-task-tags');
-                // Clear all options
-                tagSelect.innerHTML = '';
-                
-                fetch('{{ path('app_api_tags') }}')
-                    .then(resp => resp.json())
-                    .then(tags => {
-                        tags.forEach(tag => {
-                            const option = document.createElement('option');
-                            option.value = tag.id;
-                            option.textContent = tag.name;
-                            tagSelect.appendChild(option);
-                        });
-                    })
-                    .catch(error => {
-                        console.error('Error loading tags:', error);
-                    });
-            });
-            
-            // Alternative approach: Create API endpoints and populate from them
-            // For now, let's create a simpler solution that loads the data when modal opens
-            
-            saveQuickTaskBtn.addEventListener('click', function() {
-                const title = document.getElementById('quick-task-title').value.trim();
-                
-                if (!title) {
-                    alert('Пожалуйста, введите название задачи');
-                    return;
-                }
-                
-                // Collect form data
-                const formData = {
-                    title: title,
-                    description: document.getElementById('quick-task-description').value,
-                    priority: document.getElementById('quick-task-priority').value,
-                    dueDate: document.getElementById('quick-task-due-date').value,
-                    category: document.getElementById('quick-task-category').value,
-                    assignedUser: document.getElementById('quick-task-assigned-user').value,
-                    tags: Array.from(document.getElementById('quick-task-tags').selectedOptions).map(option => option.value)
-                };
-                
-                // Send AJAX request to create the task
-                fetch('{{ path('app_task_quick_create') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    body: JSON.stringify(formData)
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Close modal
-                        const modal = bootstrap.Modal.getInstance(document.getElementById('quickTaskModal'));
-                        if (modal) {
-                            modal.hide();
-                        }
-                        
-                        // Reset form
-                        quickTaskForm.reset();
-                        
-                        // Show success message
-                        alert(data.message);
-                        
-                        // Optionally redirect to task list or show the new task
-                        window.location.reload(); // Refresh the page to show the new task
-                    } else {
-                        alert(data.message || 'Ошибка при создании задачи');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Произошла ошибка при создании задачи');
-                });
-            });
-        });
-    </script>
-    
-    <!-- Enhanced Footer -->
-    <footer class="footer-enhanced">
-        <div class="container">
-            <div class="row">
-                <!-- Company Info -->
-                <div class="col-lg-4 col-md-6 footer-section">
-                    <h5 class="footer-title">
-                        <i class="fas fa-chart-line"></i>
-                        CRM Task Management
-                    </h5>
-                    <p class="footer-description">
-                        Современная система управления задачами и проектами для эффективной работы вашей команды. 
-                        Планируйте, отслеживайте и достигайте целей вместе.
-                    </p>
-                    <div class="social-links">
-                        <a href="#" class="social-link" aria-label="Facebook">
-                            <i class="fab fa-facebook-f"></i>
-                        </a>
-                        <a href="#" class="social-link" aria-label="Twitter">
-                            <i class="fab fa-twitter"></i>
-                        </a>
-                        <a href="#" class="social-link" aria-label="LinkedIn">
-                            <i class="fab fa-linkedin-in"></i>
-                        </a>
-                        <a href="#" class="social-link" aria-label="GitHub">
-                            <i class="fab fa-github"></i>
-                        </a>
-                    </div>
-                </div>
-                
-                <!-- Quick Links -->
-                <div class="col-lg-2 col-md-6 footer-section">
-                    <h5 class="footer-title">
-                        <i class="fas fa-link"></i>
-                        Навигация
-                    </h5>
-                    <ul class="footer-links">
-                        <li><a href="{{ path('app_dashboard') }}" class="footer-link">
-                            <i class="fas fa-home"></i>Панель
-                        </a></li>
-                        <li><a href="{{ path('app_task_index') }}" class="footer-link">
-                            <i class="fas fa-tasks"></i>Задачи
-                        </a></li>
-                        <li><a href="{{ path('app_kanban_board') }}" class="footer-link">
-                            <i class="fas fa-columns"></i>Канбан
-                        </a></li>
-                        <li><a href="{{ path('app_calendar') }}" class="footer-link">
-                            <i class="fas fa-calendar"></i>Календарь
-                        </a></li>
-                    </ul>
-                </div>
-                
-                <!-- Analytics Links -->
-                <div class="col-lg-3 col-md-6 footer-section">
-                    <h5 class="footer-title">
-                        <i class="fas fa-chart-bar"></i>
-                        Аналитика
-                    </h5>
-                    <ul class="footer-links">
-                        <li><a href="{{ path('app_analytics_dashboard') }}" class="footer-link">
-                            <i class="fas fa-chart-pie"></i>Дашборд
-                        </a></li>
-                        <li><a href="{{ path('app_advanced_analytics') }}" class="footer-link">
-                            <i class="fas fa-chart-area"></i>Расширенная
-                        </a></li>
-                        <li><a href="{{ path('app_sales_analytics') }}" class="footer-link">
-                            <i class="fas fa-dollar-sign"></i>Продажи
-                        </a></li>
-                        {% if app.user and app.user.hasRole('ROLE_ADMIN') %}
-                        <li><a href="{{ path('app_performance_index') }}" class="footer-link">
-                            <i class="fas fa-tachometer-alt"></i>Производительность
-                        </a></li>
-                        {% endif %}
-                    </ul>
-                </div>
-                
-                <!-- Support Links -->
-                <div class="col-lg-3 col-md-6 footer-section">
-                    <h5 class="footer-title">
-                        <i class="fas fa-life-ring"></i>
-                        Поддержка
-                    </h5>
-                    <ul class="footer-links">
-                        <li><a href="{{ path('app_about') }}" class="footer-link">
-                            <i class="fas fa-info-circle"></i>О системе
-                        </a></li>
-                        <li><a href="#" class="footer-link">
-                            <i class="fas fa-book"></i>Документация
-                        </a></li>
-                        <li><a href="#" class="footer-link">
-                            <i class="fas fa-headset"></i>Техподдержка
-                        </a></li>
-                        <li><a href="#" class="footer-link">
-                            <i class="fas fa-shield-alt"></i>Безопасность
-                        </a></li>
-                    </ul>
-                </div>
-            </div>
-            
-            <!-- Footer Bottom -->
-            <div class="footer-bottom">
-                <p class="footer-bottom-text">
-                    © {{ "now"|date("Y") }} CRM Task Management. Все права защищены.
-                </p>
-                <div class="footer-bottom-links">
-                    <a href="#" class="footer-bottom-link">Политика конфиденциальности</a>
-                    <a href="#" class="footer-bottom-link">Условия использования</a>
-                    <a href="#" class="footer-bottom-link">Лицензия</a>
-                </div>
-            </div>
-        </div>
-    </footer>
-    
-    <!-- Logout Confirmation Modal -->
-    {% if app.user %}
-    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title" id="logoutModalLabel">
-                        <i class="fas fa-sign-out-alt me-2 text-danger"></i>Выход из системы
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body text-center py-4">
-                    <div class="mb-3">
-                        <i class="fas fa-question-circle fa-3x text-warning"></i>
-                    </div>
-                    <h6 class="mb-3">Вы уверены, что хотите выйти?</h6>
-                    <p class="text-muted mb-0">
-                        Вы сможете войти снова, используя свои учетные данные
-                    </p>
-                </div>
-                <div class="modal-footer border-0 justify-content-center">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times me-2"></i>Отмена
-                    </button>
-                    <a href="{{ path('app_logout') }}" class="btn btn-danger">
-                        <i class="fas fa-sign-out-alt me-2"></i>Да, выйти
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-    
-    <script>
-        // Enhanced dropdown menu behavior
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add smooth animations to dropdowns
-            const dropdowns = document.querySelectorAll('.dropdown-toggle');
-            dropdowns.forEach(dropdown => {
-                dropdown.addEventListener('show.bs.dropdown', function() {
-                    const menu = this.nextElementSibling;
-                    if (menu && menu.classList.contains('dropdown-menu')) {
-                        menu.style.animation = 'slideDown 0.3s ease-out';
-                    }
-                });
-            });
-            
-            // Close dropdown when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!e.target.closest('.dropdown')) {
-                    const openDropdowns = document.querySelectorAll('.dropdown-menu.show');
-                    openDropdowns.forEach(menu => {
-                        const dropdown = bootstrap.Dropdown.getInstance(menu.previousElementSibling);
-                        if (dropdown) dropdown.hide();
-                    });
-                }
-            });
-        });
-        
-        // Add CSS animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideDown {
-                from {
-                    opacity: 0;
-                    transform: translateY(-10px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-        `;
-        document.head.appendChild(style);
-    </script>
+
+    {% block additional_javascripts %}{% endblock %}
 </body>
 </html>

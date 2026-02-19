@@ -1,0 +1,87 @@
+# Content Security Policy - Production Environment
+# Строгая политика для максимальной безопасности
+
+nelmio_security:
+    csp:
+        enabled: true
+        
+        # Хосты, для которых применяется CSP
+        hosts: []
+        
+        # Отчёт о нарушениях
+        report_endpoint:
+            log_channel: security
+            log_level: warning
+            filters:
+                domains: true
+                schemes: true
+                browser_bugs: true
+                injected_scripts: true
+            dismiss: []
+        
+        report_logger_service: logger
+        
+        # Режим принудительного применения CSP
+        enforce:
+            # Уровень CSP (level1_fallback для совместимости)
+            level1_fallback: true
+            
+            # Источники по умолчанию
+            default-src:
+                - 'self'
+            
+            # Директивы CSP - строгая политика
+            script-src:
+                - 'self'
+                - 'strict-dynamic'
+                - https://cdn.jsdelivr.net
+                - https://cdnjs.cloudflare.com
+                # 'unsafe-inline' и 'unsafe-eval' ЗАПРЕЩЕНЫ
+            
+            style-src:
+                - 'self'
+                - 'unsafe-inline'  # Требуется для Bootstrap
+                - https://cdn.jsdelivr.net
+                - https://cdnjs.cloudflare.com
+            
+            img-src:
+                - 'self'
+                - 'data:'
+                - 'blob:'
+                - 'https:'
+            
+            font-src:
+                - 'self'
+                - https://cdnjs.cloudflare.com
+                - https://fonts.gstatic.com
+            
+            connect-src:
+                - 'self'
+                - https://api.example.com
+            
+            frame-src:
+                - 'self'
+            
+            object-src:
+                - 'none'
+            
+            base-uri:
+                - 'self'
+            
+            form-action:
+                - 'self'
+            
+            # Запрет встраивания страницы (защита от clickjacking)
+            frame-ancestors:
+                - 'none'
+            
+            worker-src:
+                - 'self'
+                - 'blob:'
+            
+            # Разрешаем загрузку manifest.json
+            manifest-src:
+                - 'self'
+            
+            # Требовать HTTPS для всех ресурсов
+            upgrade-insecure-requests: true
