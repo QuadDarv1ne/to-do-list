@@ -98,6 +98,35 @@
     --color-pink-100: #fce7f3;
     --color-pink-200: #fbcfe8;
     --color-pink-300: #f9a8d4;
+    
+    /* ============================================
+       COMMON TRANSITIONS & EFFECTS
+       ============================================ */
+    --transition-fast: all 0.15s ease;
+    --transition-base: all 0.3s ease;
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: all 0.5s ease;
+    
+    /* ============================================
+       COMMON SHADOWS
+       ============================================ */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.15);
+    --shadow-xl: 0 12px 28px rgba(0, 0, 0, 0.2);
+    
+    /* Button Shadows */
+    --shadow-btn-primary: 0 4px 12px rgba(102, 126, 234, 0.3);
+    --shadow-btn-primary-hover: 0 8px 20px rgba(102, 126, 234, 0.4);
+    --shadow-btn-success: 0 4px 12px rgba(40, 167, 69, 0.3);
+    --shadow-btn-success-hover: 0 8px 20px rgba(40, 167, 69, 0.4);
+    --shadow-btn-danger: 0 4px 12px rgba(220, 53, 69, 0.3);
+    --shadow-btn-danger-hover: 0 8px 20px rgba(220, 53, 69, 0.4);
+    --shadow-btn-warning: 0 4px 12px rgba(255, 193, 7, 0.3);
+    --shadow-btn-warning-hover: 0 8px 20px rgba(255, 193, 7, 0.4);
+    --shadow-btn-info: 0 4px 12px rgba(23, 162, 184, 0.3);
+    --shadow-btn-info-hover: 0 8px 20px rgba(23, 162, 184, 0.4);
     --color-pink-400: #f472b6;
     --color-pink-500: #ec4899;
     --color-pink-600: #db2777;
@@ -2118,6 +2147,21 @@ a:hover {
 .z-50 { z-index: 50 !important; }
 
 /* === MODERN UTILITY CLASSES === */
+
+/* Border radius utilities */
+.rounded-none { border-radius: 0 !important; }
+.rounded-sm { border-radius: 0.125rem !important; }
+.rounded { border-radius: 0.25rem !important; }
+.rounded-md { border-radius: 0.375rem !important; }
+.rounded-lg { border-radius: 0.5rem !important; }
+.rounded-xl { border-radius: 0.75rem !important; }
+.rounded-2xl { border-radius: 1rem !important; }
+.rounded-3xl { border-radius: 1.5rem !important; }
+.rounded-full { border-radius: 9999px !important; }
+
+/* Common border radius */
+.rounded-8 { border-radius: 8px !important; }
+.rounded-12 { border-radius: 12px !important; }
 
 /* Backdrop blur */
 .backdrop-blur {

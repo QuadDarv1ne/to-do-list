@@ -22,6 +22,10 @@
     --bg-hover: rgba(0,0,0,0.03);
     --shadow: 0 1px 2px rgba(0,0,0,0.05);
     --shadow-hover: 0 2px 8px rgba(0,0,0,0.08);
+    
+    /* Animation */
+    --animation-duration: 0.3s;
+    --animation-timing: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* === DARK THEME === */
@@ -104,6 +108,19 @@
     --bg-card: var(--custom-bg-card, #ffffff);
     --bg-elevated: var(--custom-bg-elevated, #fafafa);
     --bg-hover: var(--custom-bg-hover, rgba(0,0,0,0.03));
+}
+
+/* === THEME TRANSITIONS === */
+* {
+    transition: background-color var(--animation-duration) var(--animation-timing),
+                color var(--animation-duration) var(--animation-timing),
+                border-color var(--animation-duration) var(--animation-timing);
+}
+
+/* Exclude specific elements from theme transitions */
+.no-theme-transition,
+.no-theme-transition * {
+    transition: none !important;
 }
 
 /* === CALENDAR FIXES === */

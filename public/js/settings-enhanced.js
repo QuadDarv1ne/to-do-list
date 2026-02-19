@@ -284,16 +284,7 @@ async function saveShortcuts() {
     }
 }
 
-/**
- * Helper functions
- */
-function showToast(message, type = 'info') {
-    if (typeof window.showToast === 'function') {
-        window.showToast(message, type);
-    } else {
-        alert(message);
-    }
-}
+// showToast теперь в utils.js
 
 // Export for use in other scripts
 window.SettingsEnhanced = {
