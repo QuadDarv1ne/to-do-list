@@ -335,22 +335,43 @@
     </div>
 
     {% if notifications %}
-        <div class="stats-bar">
-            <div class="stat-card">
-                <div class="stat-number">{{ notifications|length }}</div>
-                <div class="stat-label">Всего</div>
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card-modern text-center h-100">
+                    <div class="card-body-modern py-4">
+                        <div class="stat-icon mb-3">
+                            <i class="fas fa-bell fa-2x text-primary"></i>
+                        </div>
+                        <h3 class="text-primary mb-1">{{ notifications|length }}</h3>
+                        <p class="text-muted mb-0">Всего</p>
+                    </div>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-number text-primary">{{ unreadCount }}</div>
-                <div class="stat-label">Непрочитанные</div>
+            <div class="col-md-4">
+                <div class="card-modern text-center h-100">
+                    <div class="card-body-modern py-4">
+                        <div class="stat-icon mb-3">
+                            <i class="fas fa-envelope fa-2x text-warning"></i>
+                        </div>
+                        <h3 class="text-warning mb-1">{{ unreadCount }}</h3>
+                        <p class="text-muted mb-0">Непрочитанные</p>
+                    </div>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-number text-success">{{ notifications|filter(n => n.isRead)|length }}</div>
-                <div class="stat-label">Прочитанные</div>
+            <div class="col-md-4">
+                <div class="card-modern text-center h-100">
+                    <div class="card-body-modern py-4">
+                        <div class="stat-icon mb-3">
+                            <i class="fas fa-envelope-open fa-2x text-success"></i>
+                        </div>
+                        <h3 class="text-success mb-1">{{ notifications|filter(n => n.isRead)|length }}</h3>
+                        <p class="text-muted mb-0">Прочитанные</p>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="card border-0 shadow-sm">
+        <div class="card-modern">
             <div class="list-group list-group-flush" id="notifications-list">
                 {% for notification in notifications %}
                 <div class="list-group-item notification-item position-relative {% if not notification.isRead %}unread{% endif %}" 
@@ -380,14 +401,14 @@
                             <div class="notification-actions">
                                 {% if notification.task %}
                                     <a href="{{ path('app_task_show', {'id': notification.task.id}) }}" 
-                                       class="btn btn-notification btn-primary">
+                                       class="btn btn-notification btn-primary-modern">
                                         <i class="fas fa-eye"></i>
                                         Просмотреть задачу
                                     </a>
                                 {% endif %}
                                 
                                 {% if not notification.isRead %}
-                                    <button class="btn btn-notification btn-success" 
+                                    <button class="btn btn-notification btn-success-modern" 
                                             onclick="markAsRead({{ notification.id }})">
                                         <i class="fas fa-check"></i>
                                         Прочитано
@@ -406,12 +427,12 @@
             </div>
         </div>
     {% else %}
-        <div class="card border-0 shadow-sm">
-            <div class="empty-state">
-                <i class="fas fa-bell-slash"></i>
+        <div class="card-modern">
+            <div class="card-body-modern text-center py-5">
+                <i class="fas fa-bell-slash fa-3x text-muted mb-4"></i>
                 <h3 class="mb-3">Уведомлений нет</h3>
                 <p class="text-muted mb-4">Здесь будут отображаться ваши уведомления</p>
-                <a href="{{ path('app_dashboard') }}" class="btn btn-primary">
+                <a href="{{ path('app_dashboard') }}" class="btn btn-primary-modern">
                     <i class="fas fa-home me-2"></i>
                     На главную
                 </a>
@@ -468,132 +489,6 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
         });
     });
 });
-
-async function markAsRead(notificationId) {
-    try {
-        const response = await fetch(`/notifications/mark-as-read/${notificationId}`, {
-            method: 'POST',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (response.ok) {
-            const item = document.getElementById(`notification-${notificationId}`);
-            if (item) {
-                item.classList.remove('unread');
-                item.dataset.read = 'true';
-                
-                const btn = item.querySelector('.btn-success');
-                if (btn) {
-                    btn.remove();
-                    const badge = document.createElement('span');
-                    badge.className = 'badge bg-success px-3 py-2';
-                    badge.innerHTML = '<i class="fas fa-check me-1"></i>Прочитано';
-                    item.querySelector('.notification-actions').appendChild(badge);
-                }
-                
-                // Update stats
-                updateStats();
-                
-                showToast('Уведомление отмечено как прочитанное', 'success');
-            }
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        showToast('Ошибка при отметке уведомления', 'error');
-    }
-}
-
-async function markAllAsRead() {
-    if (!confirm('Отметить все уведомления как прочитанные?')) {
-        return;
-    }
-    
-    try {
-        const response = await fetch('/notifications/mark-all-as-read', {
-            method: 'POST',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (response.ok) {
-            location.reload();
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        showToast('Ошибка при отметке уведомлений', 'error');
-    }
-}
-
-function updateStats() {
-    const items = document.querySelectorAll('.notification-item');
-    const unread = Array.from(items).filter(item => item.dataset.read === 'false').length;
-    const read = items.length - unread;
-    
-    const statCards = document.querySelectorAll('.stat-card .stat-number');
-    if (statCards[1]) animateNumber(statCards[1], unread);
-    if (statCards[2]) animateNumber(statCards[2], read);
-}
-
-function animateNumber(element, targetNumber) {
-    const start = parseInt(element.textContent) || 0;
-    const duration = 500;
-    const increment = (targetNumber - start) / (duration / 16);
-    let current = start;
-    
-    const timer = setInterval(() => {
-        current += increment;
-        if ((increment > 0 && current >= targetNumber) || (increment < 0 && current <= targetNumber)) {
-            element.textContent = targetNumber;
-            clearInterval(timer);
-        } else {
-            element.textContent = Math.round(current);
-        }
-    }, 16);
-}
-
-function showToast(message, type = 'info') {
-    const toastContainer = document.getElementById('toast-container') || createToastContainer();
-    
-    const toast = document.createElement('div');
-    toast.className = `toast-notification toast-${type}`;
-    toast.innerHTML = `
-        <div class="toast-icon">
-            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-        </div>
-        <div class="toast-message">${message}</div>
-        <button class="toast-close" onclick="this.parentElement.remove()">
-            <i class="fas fa-times"></i>
-        </button>
-    `;
-    
-    toastContainer.appendChild(toast);
-    setTimeout(() => toast.classList.add('show'), 10);
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
-
-function createToastContainer() {
-    const container = document.createElement('div');
-    container.id = 'toast-container';
-    container.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 9999;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    `;
-    document.body.appendChild(container);
-    return container;
-}
 
 async function markAsRead(notificationId) {
     try {

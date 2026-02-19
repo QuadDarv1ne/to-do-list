@@ -204,8 +204,13 @@ class TaskControllerTest extends WebTestCase
         }
         
         // Remove test user if it was created during test
-        if ($this->userRepository->findOneBy(['email' => 'test@example.com'])) {
-            $entityManager->remove($this->testUser);
+        $testUser = $this->userRepository->findOneBy(['email' => 'test@example.com']);
+        if ($testUser && $testUser === $this->testUser) {
+            // Re-attach the entity if it's detached
+            if (!$entityManager->contains($testUser)) {
+                $testUser = $entityManager->merge($testUser);
+            }
+            $entityManager->remove($testUser);
         }
         
         $entityManager->flush();

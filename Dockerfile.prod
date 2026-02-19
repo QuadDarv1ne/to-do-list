@@ -10,7 +10,8 @@ RUN apk add --no-cache \
     postgresql-dev \
     sqlite-dev \
     nginx \
-    supervisor
+    supervisor \
+    curl
 
 # Install PHP extensions
 RUN docker-php-ext-install \

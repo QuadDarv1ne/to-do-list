@@ -1,0 +1,56 @@
+# Тестовые аккаунты для Task Management System
+
+## Администраторы
+
+### Главный администратор
+Email: admin@example.com
+Пароль: admin123
+ФИО: Admin User
+Роли: ROLE_ADMIN, ROLE_USER
+
+### Менеджер
+Email: manager@example.com
+Пароль: manager123
+ФИО: Иван Менеджеров
+Роли: ROLE_ADMIN, ROLE_USER
+
+### Аналитик
+Email: analyst@example.com
+Пароль: analyst123
+ФИО: Анна Аналитикова
+Роли: ROLE_ADMIN, ROLE_USER
+
+### Разработчик
+Email: developer@example.com
+Пароль: dev123
+ФИО: Алексей Разработчиков
+Роли: ROLE_ADMIN, ROLE_USER
+
+## Обычные пользователи
+
+### Пользователь 1
+Email: user1@example.com
+Пароль: user123
+ФИО: Петр Пользователев
+Роли: ROLE_ADMIN, ROLE_USER
+
+### Пользователь 2
+Email: user2@example.com
+Пароль: user123
+ФИО: Мария Сотрудникова
+Роли: ROLE_ADMIN, ROLE_USER
+
+---
+
+## Доступ к системе
+
+URL: http://localhost:8000
+Страница входа: http://localhost:8000/login
+
+Все аккаунты созданы: 2026-02-19
+
+## Примечания
+
+- Все пользователи имеют роли ROLE_ADMIN и ROLE_USER
+- Пароли простые для тестирования (не использовать в production!)
+- Для изменения ролей используйте команду или интерфейс администратора

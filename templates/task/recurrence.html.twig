@@ -28,11 +28,11 @@
     <div class="row">
         <div class="col-lg-8">
             <!-- Recurrence Settings Form -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0"><i class="fas fa-cog me-2"></i>Настройки повторения</h5>
+            <div class="card-modern mb-4">
+                <div class="card-header-modern">
+                    <h5 class="card-title mb-0 text-primary"><i class="fas fa-cog me-2"></i>Настройки повторения</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body-modern">
                     {{ form_start(form) }}
                     <div class="row">
                         <div class="col-md-6">
@@ -60,11 +60,11 @@
 
             <!-- Recurrence Info -->
             {% if recurrence %}
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0"><i class="fas fa-info-circle me-2"></i>Текущие настройки</h5>
+            <div class="card-modern">
+                <div class="card-header-modern">
+                    <h5 class="card-title mb-0 text-primary"><i class="fas fa-info-circle me-2"></i>Текущие настройки</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body-modern">
                     <div class="row">
                         <div class="col-md-6">
                             <p><strong>Частота:</strong> 
@@ -109,11 +109,11 @@
 
         <div class="col-lg-4">
             <!-- Task Summary -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0"><i class="fas fa-info-circle me-2"></i>Информация о задаче</h5>
+            <div class="card-modern mb-4">
+                <div class="card-header-modern">
+                    <h5 class="card-title mb-0 text-primary"><i class="fas fa-info-circle me-2"></i>Информация о задаче</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body-modern">
                     <div class="mb-3">
                         <label class="form-label">Название:</label>
                         <p class="mb-0">{{ task.name }}</p>
@@ -170,16 +170,16 @@
             </div>
 
             <!-- Quick Actions -->
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0"><i class="fas fa-bolt me-2"></i>Быстрые действия</h5>
+            <div class="card-modern">
+                <div class="card-header-modern">
+                    <h5 class="card-title mb-0 text-primary"><i class="fas fa-bolt me-2"></i>Быстрые действия</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body-modern">
                     <div class="d-grid gap-2">
-                        <a href="{{ path('app_task_show', {'id': task.id}) }}" class="btn btn-outline-primary">
+                        <a href="{{ path('app_task_show', {'id': task.id}) }}" class="btn btn-outline-primary-modern">
                             <i class="fas fa-arrow-left me-2"></i>Назад к задаче
                         </a>
-                        <a href="{{ path('app_task_edit', {'id': task.id}) }}" class="btn btn-outline-secondary">
+                        <a href="{{ path('app_task_edit', {'id': task.id}) }}" class="btn btn-outline-secondary-modern">
                             <i class="fas fa-edit me-2"></i>Редактировать задачу
                         </a>
                     </div>

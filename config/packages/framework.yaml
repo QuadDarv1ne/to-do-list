@@ -37,15 +37,6 @@ framework:
                 'X-Frame-Options': 'DENY'
                 'X-XSS-Protection': '1; mode=block'
                 'Referrer-Policy': 'strict-origin-when-cross-origin'
-    
-    # Response headers for security
-    http_response:
-        headers:
-            'X-Content-Type-Options': 'nosniff'
-            'X-Frame-Options': 'DENY'
-            'X-XSS-Protection': '1; mode=block'
-            'Referrer-Policy': 'strict-origin-when-cross-origin'
-            'Permissions-Policy': 'geolocation=(), microphone=(), camera=()'
 
     # Enable trusted headers for reverse proxy
     # trusted_proxies: '%env(default::TRUSTED_PROXIES)%'
