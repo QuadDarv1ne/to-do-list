@@ -52,9 +52,13 @@ class Tag
     #[ORM\ManyToMany(targetEntity: Task::class, mappedBy: 'tags')]
     private Collection $tasks;
 
+    #[ORM\ManyToMany(targetEntity: KnowledgeBaseArticle::class, mappedBy: 'tags')]
+    private Collection $knowledgeBaseArticles;
+
     public function __construct()
     {
         $this->tasks = new ArrayCollection();
+        $this->knowledgeBaseArticles = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable();
     }
 
@@ -150,6 +154,33 @@ class Tag
     {
         if ($this->tasks->removeElement($task)) {
             $task->removeTag($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, KnowledgeBaseArticle>
+     */
+    public function getKnowledgeBaseArticles(): Collection
+    {
+        return $this->knowledgeBaseArticles;
+    }
+
+    public function addKnowledgeBaseArticle(KnowledgeBaseArticle $article): static
+    {
+        if (!$this->knowledgeBaseArticles->contains($article)) {
+            $this->knowledgeBaseArticles->add($article);
+            $article->addTag($this);
+        }
+
+        return $this;
+    }
+
+    public function removeKnowledgeBaseArticle(KnowledgeBaseArticle $article): static
+    {
+        if ($this->knowledgeBaseArticles->removeElement($article)) {
+            $article->removeTag($this);
         }
 
         return $this;

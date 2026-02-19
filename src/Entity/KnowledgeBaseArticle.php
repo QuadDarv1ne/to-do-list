@@ -10,6 +10,10 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: KnowledgeBaseArticleRepository::class)]
 #[ORM\Table(name: 'knowledge_base_articles')]
+#[ORM\Index(columns: ['author_id'], name: 'idx_author')]
+#[ORM\Index(columns: ['status'], name: 'idx_status')]
+#[ORM\Index(columns: ['created_at'], name: 'idx_created')]
+#[ORM\Index(columns: ['slug'], name: 'idx_slug')]
 class KnowledgeBaseArticle
 {
     #[ORM\Id]
@@ -39,7 +43,7 @@ class KnowledgeBaseArticle
     #[ORM\Column(length: 50)]
     private ?string $status = null;
 
-    #[ORM\ManyToOne(targetEntity: self::class)]
+    #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'childArticles')]
     #[ORM\JoinColumn(name: 'parent_article_id', referencedColumnName: 'id', onDelete: 'SET NULL')]
     private ?self $parentArticle = null;
 

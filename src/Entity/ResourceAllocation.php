@@ -8,6 +8,10 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ResourceAllocationRepository::class)]
 #[ORM\Table(name: 'resource_allocations')]
+#[ORM\Index(columns: ['resource_id', 'date'], name: 'idx_resource_date')]
+#[ORM\Index(columns: ['task_id'], name: 'idx_task')]
+#[ORM\Index(columns: ['date'], name: 'idx_date')]
+#[ORM\Index(columns: ['status'], name: 'idx_status')]
 class ResourceAllocation
 {
     #[ORM\Id]

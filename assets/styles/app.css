@@ -613,7 +613,8 @@
     }
     
     .task-meta {
-        flex-wrap: nowrap;
+        flex-wrap: wrap;
+        font-size: 0.85rem;
     }
     
     .voice-recognition-indicator {
@@ -622,12 +623,69 @@
         padding: 8px 16px;
         font-size: 0.875rem;
     }
+    
+    /* Improve button sizing on small devices */
+    .btn {
+        padding: 10px 16px;
+        min-height: 44px;
+    }
+    
+    .form-control {
+        min-height: 44px;
+        padding: 10px 12px;
+    }
+    
+    .form-select {
+        min-height: 44px;
+        padding: 10px 40px 10px 12px;
+    }
+    
+    /* Adjust task items for better readability */
+    .task-item-enhanced {
+        padding: 1.25rem;
+        min-height: auto;
+    }
+    
+    /* Adjust dashboard cards */
+    .dashboard-card-enhanced {
+        padding: 1.25rem;
+        min-height: 140px;
+    }
+    
+    /* Improve navigation on small tablets */
+    .nav-tabs .nav-link {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+        min-height: 44px;
+    }
+    
+    /* Better modal spacing */
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        padding: 1.25rem;
+    }
+    
+    /* Adjust floating action button */
+    .fab-enter {
+        width: 60px;
+        height: 60px;
+        bottom: 80px;
+        right: 20px;
+    }
+    
+    /* Ensure proper spacing for form elements */
+    .mb-3, .form-group {
+        margin-bottom: 1.25rem;
+    }
 }
 
 /* Medium devices (landscape tablets, 768px and up) */
 @media only screen and (min-width: 768px) and (max-width: 992px) {
     .container {
         max-width: 100%;
+        padding-left: 20px;
+        padding-right: 20px;
     }
     
     .voice-recognition-indicator {
@@ -639,6 +697,53 @@
     .voice-command-feedback {
         bottom: 15px;
         padding: 12px 20px;
+    }
+    
+    /* Optimize for tablet layouts */
+    .row > [class*='col-'] {
+        margin-bottom: 1rem;
+    }
+    
+    .card {
+        margin-bottom: 1rem;
+    }
+    
+    /* Adjust task items for tablet */
+    .task-item-enhanced {
+        padding: 1.5rem;
+    }
+    
+    .task-meta {
+        font-size: 0.875rem;
+    }
+    
+    /* Better form controls on tablets */
+    .form-control {
+        padding: 10px 12px;
+        font-size: 15px;
+    }
+    
+    .form-select {
+        padding: 10px 40px 10px 12px;
+    }
+    
+    /* Adjust dashboard cards */
+    .dashboard-card-enhanced {
+        padding: 1.5rem;
+    }
+    
+    /* Optimize navigation */
+    .nav-tabs .nav-link {
+        padding: 10px 20px;
+    }
+    
+    /* Better modal presentation */
+    .modal-dialog {
+        max-width: 90%;
+    }
+    
+    .modal-content {
+        border-radius: 16px;
     }
 }
 
@@ -660,45 +765,112 @@
 @media (hover: none) and (pointer: coarse) {
     /* Increase touch targets for mobile devices */
     .btn {
-        min-height: 44px;
-        min-width: 44px;
-        padding: 10px 16px;
+        min-height: 48px; /* Standard touch target size */
+        min-width: 48px;
+        padding: 12px 16px;
+        border-radius: 8px;
     }
     
     .btn-sm {
+        min-height: 40px;
+        min-width: 40px;
+        padding: 8px 12px;
+    }
+    
+    .btn-xs {
         min-height: 36px;
         min-width: 36px;
-        padding: 6px 12px;
+        padding: 6px 10px;
     }
     
     .form-control {
-        min-height: 44px;
-        padding: 10px 12px;
+        min-height: 48px;
+        padding: 12px 14px;
+        font-size: 16px; /* Better for touch input */
+        border-radius: 8px;
     }
     
-    .nav-link {
-        padding-top: 10px;
-        padding-bottom: 10px;
+    .form-select {
+        min-height: 48px;
+        padding: 12px 40px 12px 14px;
+        font-size: 16px;
+        border-radius: 8px;
     }
     
-    .dropdown-item {
-        padding: 8px 16px;
-        min-height: 40px;
-    }
-    
-    .task-item-enhanced {
-        min-height: 60px;
-    }
-    
-    /* Increase size of interactive elements */
     .form-check-input {
-        width: 20px;
-        height: 20px;
-        margin-top: -1px;
+        width: 22px;
+        height: 22px;
+        margin-top: 0;
     }
     
     .form-check-label {
-        padding-left: 8px;
+        padding-left: 10px;
+        font-size: 16px;
+    }
+    
+    .nav-link {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        min-height: 48px;
+    }
+    
+    .dropdown-item {
+        padding: 12px 16px;
+        min-height: 48px;
+        font-size: 16px;
+    }
+    
+    .task-item-enhanced {
+        min-height: 80px;
+        padding: 16px;
+    }
+    
+    .task-item-enhanced .form-check {
+        min-height: 22px;
+    }
+    
+    /* Increase size of interactive elements */
+    .task-item-enhanced .form-check-input {
+        width: 22px;
+        height: 22px;
+        margin-top: 0;
+    }
+    
+    .task-item-enhanced .form-check-label {
+        padding-left: 10px;
+        font-size: 16px;
+    }
+    
+    /* Touch-friendly icons */
+    .fas {
+        min-width: 24px;
+        min-height: 24px;
+    }
+    
+    /* Better touch targets for action buttons */
+    .btn-group .btn,
+    .btn-group-vertical .btn {
+        min-height: 48px;
+        min-width: 48px;
+    }
+    
+    /* Ensure adequate spacing between touch targets */
+    .list-group-item {
+        padding: 16px;
+        min-height: 60px;
+    }
+    
+    /* Touch-friendly dropdowns */
+    .dropdown-menu {
+        padding: 8px 0;
+    }
+    
+    /* Touch-friendly modals */
+    .modal-header .btn-close {
+        width: 40px;
+        height: 40px;
+        padding: 10px;
+        margin: -10px -10px -10px auto;
     }
 }
 
@@ -733,12 +905,202 @@
 /* High contrast mode support */
 @media (prefers-contrast: high) {
     .task-item-enhanced {
-        border: 1px solid var(--bs-gray-600);
+        border: 2px solid var(--bs-gray-600);
     }
     
     .btn {
+        border: 2px solid var(--bs-gray-600);
+    }
+    
+    .card {
+        border: 2px solid var(--bs-gray-600);
+    }
+    
+    .form-control {
+        border: 2px solid var(--bs-gray-600);
+    }
+    
+    .form-select {
+        border: 2px solid var(--bs-gray-600);
+    }
+    
+    .badge {
         border: 1px solid var(--bs-gray-600);
     }
+    
+    /* Ensure sufficient color contrast */
+    .text-primary {
+        color: var(--bs-blue) !important;
+    }
+    
+    .text-secondary {
+        color: var(--bs-gray-700) !important;
+    }
+    
+    .text-success {
+        color: var(--bs-green) !important;
+    }
+    
+    .text-danger {
+        color: var(--bs-red) !important;
+    }
+    
+    .text-warning {
+        color: var(--bs-yellow) !important;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .dashboard-card-enhanced:hover {
+        transform: none;
+    }
+    
+    #voiceControlBtn.listening {
+        animation: none;
+    }
+    
+    /* Remove animations from task items */
+    .task-item-enhanced {
+        transition: none;
+    }
+    
+    .task-item-enhanced:hover {
+        transform: none;
+    }
+    
+    /* Remove animations from buttons */
+    .btn {
+        transition: none;
+    }
+    
+    .btn:hover {
+        transform: none;
+    }
+    
+    /* Remove animations from badges */
+    .badge-animated {
+        transition: none;
+    }
+    
+    .badge-animated:hover {
+        transform: none;
+    }
+    
+    /* Remove animations from dropdowns */
+    .dropdown-menu {
+        transition: none;
+    }
+    
+    /* Remove animations from modals */
+    .modal.fade .modal-dialog {
+        transition: none;
+    }
+}
+
+/* Focus indicators for accessibility */
+*:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+*:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+*:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* Better focus management for touch devices */
+@media (hover: none) and (pointer: coarse) {
+    *:focus {
+        outline: 2px solid var(--primary);
+        outline-offset: 2px;
+    }
+}
+
+/* Screen reader only content */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Visually hidden but available for screen readers */
+.visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+/* Skip link for keyboard navigation */
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 6px;
+    background: var(--primary);
+    color: white;
+    padding: 8px;
+    text-decoration: none;
+    border-radius: 0 0 8px 8px;
+    z-index: 10000;
+    transition: top 0.3s;
+}
+
+.skip-link:focus {
+    top: 0;
+}
+
+/* Better color contrast for all elements */
+.btn-primary {
+    color: white;
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-secondary {
+    color: white;
+    background-color: var(--secondary);
+    border-color: var(--secondary);
+}
+
+.text-muted {
+    color: var(--text-secondary) !important;
+}
+
+/* Ensure sufficient contrast for form elements */
+.form-control:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.form-select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
 }
 
 /* Reduced motion support */
@@ -767,29 +1129,273 @@
         right: 10px;
         padding: 8px 16px;
         font-size: 0.875rem;
+        min-width: 120px;
+        text-align: center;
     }
     
     .voice-command-feedback {
         bottom: 10px;
         padding: 12px 20px;
         font-size: 0.875rem;
+        left: 50%;
+        transform: translateX(-50%);
+        max-width: 90%;
+        min-width: 200px;
     }
     
     .dashboard-card-enhanced {
         margin-bottom: 1rem;
+        padding: 1rem;
+        min-height: 120px;
     }
     
     .task-item-enhanced {
         padding: 1rem;
+        margin-bottom: 1rem;
+        min-height: auto;
+    }
+    
+    /* Improve task item layout on mobile */
+    .task-item-enhanced .task-title {
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .task-item-enhanced .task-meta {
+        font-size: 0.8rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+    
+    /* Better spacing for mobile */
+    .mb-1 { margin-bottom: 0.25rem !important; }
+    .mb-2 { margin-bottom: 0.5rem !important; }
+    .mb-3 { margin-bottom: 0.75rem !important; }
+    .mb-4 { margin-bottom: 1rem !important; }
+    .mb-5 { margin-bottom: 1.25rem !important; }
+    
+    .mt-1 { margin-top: 0.25rem !important; }
+    .mt-2 { margin-top: 0.5rem !important; }
+    .mt-3 { margin-top: 0.75rem !important; }
+    .mt-4 { margin-top: 1rem !important; }
+    .mt-5 { margin-top: 1.25rem !important; }
+    
+    /* Adjust navigation for mobile */
+    .navbar {
+        padding: 0.5rem 1rem;
+    }
+    
+    .navbar-brand {
+        font-size: 1.1rem;
+    }
+    
+    /* Better table display on mobile */
+    .table-responsive {
+        border: none;
+        margin: 0;
+    }
+    
+    /* Adjust modal content for mobile */
+    .modal-dialog {
+        margin: 0.5rem;
+        width: calc(100% - 1rem);
+    }
+    
+    .modal-content {
+        border-radius: 12px;
+    }
+    
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        padding: 1rem;
+    }
+    
+    /* Better button groups on mobile */
+    .btn-group,
+    .btn-group-vertical {
+        gap: 0.25rem;
+    }
+    
+    .btn-group > .btn,
+    .btn-group-vertical > .btn {
+        flex: 1 1 auto;
+        min-width: 44px;
+        min-height: 44px;
+    }
+    
+    /* Adjust floating action button */
+    .fab-enter {
+        width: 56px;
+        height: 56px;
+        bottom: 80px;
+        right: 20px;
+        z-index: 1000;
+    }
+    
+    /* Improve form layout on mobile */
+    .form-control,
+    .form-select {
+        min-height: 44px;
+        padding: 10px 12px;
+        font-size: 16px;
+    }
+    
+    /* Better dropdowns on mobile */
+    .dropdown-menu {
+        min-width: 200px;
     }
 }
 
 @media (max-width: 575px) {
     .dashboard-card-enhanced {
         margin-bottom: 1rem;
+        padding: 0.75rem;
+        min-height: 100px;
     }
     
     .task-item-enhanced {
-        padding: 1rem;
+        padding: 0.75rem;
+        margin-bottom: 0.75rem;
+        min-height: auto;
+    }
+    
+    /* Adjust typography for small screens */
+    body {
+        font-size: 13px;
+        line-height: 1.4;
+    }
+    
+    .h1, h1 {
+        font-size: 1.4rem;
+    }
+    
+    .h2, h2 {
+        font-size: 1.2rem;
+    }
+    
+    .h3, h3 {
+        font-size: 1.1rem;
+    }
+    
+    .task-title {
+        font-size: 0.95rem;
+    }
+    
+    .task-meta {
+        font-size: 0.75rem;
+    }
+    
+    /* Adjust buttons for small screens */
+    .btn {
+        padding: 8px 12px;
+        font-size: 13px;
+        min-height: 40px;
+    }
+    
+    .btn-sm {
+        padding: 6px 10px;
+        font-size: 12px;
+        min-height: 36px;
+    }
+    
+    /* Adjust form controls */
+    .form-control,
+    .form-select {
+        padding: 8px 10px;
+        font-size: 14px;
+        min-height: 40px;
+    }
+    
+    /* Adjust navigation */
+    .navbar-brand {
+        font-size: 1rem;
+    }
+    
+    /* Adjust voice controls */
+    .voice-recognition-indicator {
+        top: 8px;
+        right: 8px;
+        padding: 6px 12px;
+        font-size: 0.7rem;
+        min-width: 100px;
+    }
+    
+    .voice-command-feedback {
+        bottom: 8px;
+        padding: 8px 12px;
+        font-size: 0.75rem;
+        min-width: 180px;
+    }
+    
+    /* Adjust modal for very small screens */
+    .modal-dialog {
+        margin: 0.25rem;
+        width: calc(100% - 0.5rem);
+    }
+    
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        padding: 0.75rem;
+    }
+    
+    .modal-title {
+        font-size: 1.1rem;
+    }
+    
+    /* Adjust floating action button */
+    .fab-enter {
+        width: 52px;
+        height: 52px;
+        bottom: 70px;
+        right: 16px;
+    }
+    
+    /* Adjust spacing for small screens */
+    .mb-1 { margin-bottom: 0.2rem !important; }
+    .mb-2 { margin-bottom: 0.4rem !important; }
+    .mb-3 { margin-bottom: 0.6rem !important; }
+    .mb-4 { margin-bottom: 0.8rem !important; }
+    .mb-5 { margin-bottom: 1rem !important; }
+    
+    .mt-1 { margin-top: 0.2rem !important; }
+    .mt-2 { margin-top: 0.4rem !important; }
+    .mt-3 { margin-top: 0.6rem !important; }
+    .mt-4 { margin-top: 0.8rem !important; }
+    .mt-5 { margin-top: 1rem !important; }
+    
+    .p-1 { padding: 0.2rem !important; }
+    .p-2 { padding: 0.4rem !important; }
+    .p-3 { padding: 0.6rem !important; }
+    .p-4 { padding: 0.8rem !important; }
+    .p-5 { padding: 1rem !important; }
+    
+    /* Adjust dropdowns */
+    .dropdown-menu {
+        min-width: 160px;
+        font-size: 13px;
+    }
+    
+    .dropdown-item {
+        padding: 8px 12px;
+        min-height: 36px;
+    }
+    
+    /* Adjust card layout */
+    .card {
+        margin-bottom: 0.75rem;
+    }
+    
+    .card-body {
+        padding: 0.75rem;
+    }
+    
+    /* Adjust tabs */
+    .nav-tabs .nav-link {
+        padding: 8px 12px;
+        font-size: 12px;
+        min-height: 40px;
     }
 }

@@ -116,8 +116,16 @@ class Task
     #[ORM\OneToMany(mappedBy: 'task', targetEntity: TaskAttachment::class, orphanRemoval: true)]
     private Collection $attachments;
 
+    #[ORM\OneToMany(mappedBy: 'task', targetEntity: ResourceAllocation::class)]
+    private Collection $allocations;
+
+    #[ORM\ManyToMany(targetEntity: Skill::class, mappedBy: 'tasks')]
+    private Collection $skills;
+
     public function __construct()
     {
+        $this->allocations = new ArrayCollection();
+        $this->skills = new ArrayCollection();
         $this->comments = new ArrayCollection();
         $this->activityLogs = new ArrayCollection();
         $this->notifications = new ArrayCollection();
@@ -719,6 +727,62 @@ class Task
             if ($attachment->getTask() === $this) {
                 $attachment->setTask(null);
             }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ResourceAllocation>
+     */
+    public function getAllocations(): Collection
+    {
+        return $this->allocations;
+    }
+
+    public function addAllocation(ResourceAllocation $allocation): static
+    {
+        if (!$this->allocations->contains($allocation)) {
+            $this->allocations->add($allocation);
+            $allocation->setTask($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAllocation(ResourceAllocation $allocation): static
+    {
+        if ($this->allocations->removeElement($allocation)) {
+            if ($allocation->getTask() === $this) {
+                $allocation->setTask(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Skill>
+     */
+    public function getSkills(): Collection
+    {
+        return $this->skills;
+    }
+
+    public function addSkill(Skill $skill): static
+    {
+        if (!$this->skills->contains($skill)) {
+            $this->skills->add($skill);
+            $skill->addTask($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSkill(Skill $skill): static
+    {
+        if ($this->skills->removeElement($skill)) {
+            $skill->removeTask($this);
         }
 
         return $this;

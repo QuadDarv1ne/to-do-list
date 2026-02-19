@@ -125,7 +125,8 @@ class ResourceController extends AbstractController
         $from = new \DateTime($request->query->get('from', 'today'));
         $to = new \DateTime($request->query->get('to', '+1 month'));
         
-        $resources = $this->resourceRepository->findAll();
+        // Оптимизировано: загружаем ресурсы с allocations одним запросом
+        $resources = $this->resourceRepository->findWithAllocations($from, $to);
         $availabilityData = [];
 
         foreach ($resources as $resource) {
@@ -204,7 +205,8 @@ class ResourceController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function forecast(): JsonResponse
     {
-        $resources = $this->resourceRepository->findAll();
+        // Оптимизировано: загружаем ресурсы со skills одним запросом
+        $resources = $this->resourceRepository->findAllWithSkills();
         $resourceIds = array_map(fn($r) => $r->getId(), $resources);
         
         $forecastData = $this->resourceManagementService->getResourceForecast($resourceIds, 4);
@@ -216,7 +218,8 @@ class ResourceController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function getSkills(): JsonResponse
     {
-        $resources = $this->resourceRepository->findAll();
+        // Оптимизировано: загружаем ресурсы со skills одним запросом
+        $resources = $this->resourceRepository->findAllWithSkills();
         $resourceIds = array_map(fn($r) => $r->getId(), $resources);
         
         $skillsData = $this->resourceManagementService->getSkillMatrix($resourceIds);

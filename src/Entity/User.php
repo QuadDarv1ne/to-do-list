@@ -144,6 +144,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
     #[ORM\Column(type: Types::INTEGER, options: ['default' => 0])]
     private int $failedLoginAttempts = 0;
 
+    #[ORM\OneToMany(mappedBy: 'author', targetEntity: KnowledgeBaseArticle::class)]
+    private Collection $articles;
+
     public function __construct()
     {
         $this->tasks = new ArrayCollection();
@@ -156,6 +159,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
         $this->systemNotifications = new ArrayCollection();
         $this->timeTrackings = new ArrayCollection();
         $this->tags = new ArrayCollection();
+        $this->articles = new ArrayCollection();
         $this->createdAt = new \DateTime();
     }
 
@@ -894,5 +898,34 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
     public function canManageResources(): bool
     {
         return $this->isManager() || $this->isAdmin();
+    }
+
+    /**
+     * @return Collection<int, KnowledgeBaseArticle>
+     */
+    public function getArticles(): Collection
+    {
+        return $this->articles;
+    }
+
+    public function addArticle(KnowledgeBaseArticle $article): static
+    {
+        if (!$this->articles->contains($article)) {
+            $this->articles->add($article);
+            $article->setAuthor($this);
+        }
+
+        return $this;
+    }
+
+    public function removeArticle(KnowledgeBaseArticle $article): static
+    {
+        if ($this->articles->removeElement($article)) {
+            if ($article->getAuthor() === $this) {
+                $article->setAuthor(null);
+            }
+        }
+
+        return $this;
     }
 }

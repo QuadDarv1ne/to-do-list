@@ -230,30 +230,13 @@ class ResourceManagementService
      */
     public function findAvailableResources(\DateTime $date, float $requiredHours, array $skillRequirements = []): array
     {
-        $allResources = $this->resourceRepository->findAll();
+        // Оптимизировано: используем репозиторий для фильтрации в SQL
+        $resources = $this->resourceRepository->findAvailableByDateAndSkills($date, $skillRequirements);
         $availableResources = [];
 
-        foreach ($allResources as $resource) {
-            // Check if resource has required skills
-            $hasRequiredSkills = true;
-            if (!empty($skillRequirements)) {
-                $resourceSkills = $resource->getSkills();
-                foreach ($skillRequirements as $skill) {
-                    $found = false;
-                    foreach ($resourceSkills as $resourceSkill) {
-                        if ($resourceSkill->getName() === $skill) {
-                            $found = true;
-                            break;
-                        }
-                    }
-                    if (!$found) {
-                        $hasRequiredSkills = false;
-                        break;
-                    }
-                }
-            }
-
-            if ($hasRequiredSkills && $resource->isAvailable($date, $requiredHours)) {
+        foreach ($resources as $resource) {
+            // Проверяем доступность по часам
+            if ($resource->isAvailable($date, $requiredHours)) {
                 $availableResources[] = $resource;
             }
         }
@@ -575,7 +558,8 @@ class ResourceManagementService
      */
     public function getAllResources(): array
     {
-        return $this->resourceRepository->findAll();
+        // Оптимизировано: загружаем со skills
+        return $this->resourceRepository->findAllWithSkills();
     }
 
     /**
