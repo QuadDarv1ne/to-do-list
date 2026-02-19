@@ -17,6 +17,7 @@ class EmailNotificationService
         private Environment $twig,
         private UrlGeneratorInterface $urlGenerator,
         private ?PerformanceMonitorService $performanceMonitor = null,
+        private string $fromEmail = 'noreply@todolist.local'
     ) {
     }
 
@@ -30,7 +31,7 @@ class EmailNotificationService
             $task = $notification->getTask();
 
             $email = (new Email())
-                ->from('noreply@todolist.local')
+                ->from($this->fromEmail)
                 ->to($recipient->getEmail())
                 ->subject($notification->getSubject())
                 ->html($this->renderTemplate($notification));

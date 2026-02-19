@@ -1,0 +1,34 @@
+#!/bin/sh
+
+# Pre-commit hook для проверки кода перед коммитом
+
+echo "Running pre-commit checks..."
+
+# Проверка PHP CS Fixer
+echo "Checking code style..."
+vendor/bin/php-cs-fixer fix --dry-run --diff --using-cache=yes
+
+if [ $? -ne 0 ]; then
+    echo ""
+    echo "❌ Code style check failed!"
+    echo "Run 'composer cs:fix' to automatically fix issues."
+    exit 1
+fi
+
+echo "✅ Code style check passed!"
+
+# Проверка PHPStan (только изменённые файлы)
+echo "Running static analysis..."
+vendor/bin/phpstan analyse --memory-limit=1G --error-format=table
+
+if [ $? -ne 0 ]; then
+    echo ""
+    echo "❌ Static analysis failed!"
+    exit 1
+fi
+
+echo "✅ Static analysis passed!"
+
+echo ""
+echo "✅ All pre-commit checks passed!"
+exit 0

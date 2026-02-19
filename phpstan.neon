@@ -1,0 +1,31 @@
+parameters:
+    level: 8
+    paths:
+        - src/
+        - tests/
+    excludePaths:
+        - src/Kernel.php
+        - migrations/*
+    symfony:
+        containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml
+    checkGenericClassInNonGenericObjectType: false
+
+rules:
+    # Symfony правила
+    - Symfony\PHPStanBundle\Rules\UnusedPrivateParameterRule
+    - Symfony\PHPStanBundle\Rules\UnusedPrivateServiceRule
+
+    # Best practices
+    - PHPStan\Rules\Functions\NoReturnInVoidFunctionRule
+    - PHPStan\Rules\Classes\NoDeprecatedClassRule
+
+    # Проверка типов
+    - PHPStan\Rules\StrictCalls\StrictFunctionCallsRule
+    - PHPStan\Rules\StrictCalls\DynamicCallOnStaticMethodsRule
+
+ignoreErrors:
+    # Исключения для легаси кода
+    - '#Unsafe usage of new static\(\)#'
+    - '#Access to private property#'
+
+reportUnmatchedIgnoredErrors: false

@@ -113,6 +113,34 @@
         "symfony/debug-bundle": "8.0.*",
         "symfony/maker-bundle": "^1.65.1",
         "symfony/stopwatch": "8.0.*",
-        "symfony/web-profiler-bundle": "8.0.*"
+        "symfony/web-profiler-bundle": "8.0.*",
+        "friendsofphp/php-cs-fixer": "^3.94.1",
+        "phpstan/phpstan": "^2.1.39",
+        "phpstan/phpstan-symfony": "^2.0.14",
+        "phpstan/phpstan-doctrine": "^2.0.17",
+        "phpstan/phpstan-phpunit": "^2.0.16"
+    },
+    "scripts": {
+        "auto-scripts": {
+            "cache:clear": "symfony-cmd",
+            "assets:install %PUBLIC_DIR%": "symfony-cmd",
+            "importmap:install": "symfony-cmd"
+        },
+        "post-install-cmd": [
+            "@auto-scripts"
+        ],
+        "post-update-cmd": [
+            "@auto-scripts"
+        ],
+        "cs": "php-cs-fixer fix --dry-run --diff",
+        "cs:fix": "php-cs-fixer fix",
+        "phpstan": "phpstan analyse --memory-limit=1G",
+        "test": "php bin/phpunit",
+        "test:coverage": "php bin/phpunit --coverage-html coverage",
+        "check": [
+            "@cs",
+            "@phpstan",
+            "@test"
+        ]
     }
 }

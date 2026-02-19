@@ -23,7 +23,7 @@
             </div>
             <span>Заказы</span>
         </div>
-        <div class="stat-value">{{ task_stats.total }}</div>
+        <div class="stat-value">{{ task_stats.total|default(0) }}</div>
     </div>
     
     <div class="stat-card bonuses">
@@ -43,7 +43,7 @@
             </div>
             <span>Клиенты</span>
         </div>
-        <div class="stat-value">{{ task_stats.completed }}</div>
+        <div class="stat-value">{{ task_stats.completed|default(0) }}</div>
     </div>
 </div>
 

@@ -22,19 +22,22 @@ class DeadlineNotificationService
     private MailerInterface $mailer;
     private NotifierInterface $notifier;
     private LoggerInterface $logger;
+    private string $fromEmail;
 
     public function __construct(
         EntityManagerInterface $entityManager,
         TaskRepository $taskRepository,
         MailerInterface $mailer,
         NotifierInterface $notifier,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        string $fromEmail = 'noreply@todo-app.com'
     ) {
         $this->entityManager = $entityManager;
         $this->taskRepository = $taskRepository;
         $this->mailer = $mailer;
         $this->notifier = $notifier;
         $this->logger = $logger;
+        $this->fromEmail = $fromEmail;
     }
 
     /**
@@ -90,7 +93,7 @@ class DeadlineNotificationService
     {
         try {
             $email = (new Email())
-                ->from('noreply@todo-app.com')
+                ->from($this->fromEmail)
                 ->to($user->getEmail())
                 ->subject('Напоминание о дедлайне задачи')
                 ->html($this->generateDeadlineEmailContent($task));
@@ -148,7 +151,7 @@ class DeadlineNotificationService
             
             // SMS notification using mailer as fallback
             $smsEmail = (new Email())
-                ->from('sms@todo-app.com')
+                ->from($this->fromEmail)
                 ->to($user->getEmail())
                 ->subject('SMS: Срочное напоминание')
                 ->text("Срочно! Задача '{$task->getTitle()}' истекает завтра. Приоритет: {$task->getPriorityLabel()}");

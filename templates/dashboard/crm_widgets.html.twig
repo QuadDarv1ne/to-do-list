@@ -9,7 +9,7 @@
                     <h6 class="mb-0">Выручка за месяц</h6>
                     <i class="fas fa-ruble-sign fa-2x opacity-50"></i>
                 </div>
-                <h2 class="mb-0">{{ month_revenue|number_format(0, '.', ' ') }} ₽</h2>
+                <h2 class="mb-0">{{ month_revenue|default(0)|number_format(0, '.', ' ') }} ₽</h2>
                 <small class="opacity-75">{{ "now"|date("F Y") }}</small>
             </div>
         </div>
@@ -23,9 +23,9 @@
                     <h6 class="mb-0">Активные сделки</h6>
                     <i class="fas fa-handshake fa-2x opacity-50"></i>
                 </div>
-                <h2 class="mb-0">{{ active_deals|length }}</h2>
+                <h2 class="mb-0">{{ active_deals|default([])|length }}</h2>
                 <small class="opacity-75">
-                    {% if overdue_deals_count > 0 %}
+                    {% if overdue_deals_count|default(0) > 0 %}
                         <i class="fas fa-exclamation-triangle me-1"></i>{{ overdue_deals_count }} просрочено
                     {% else %}
                         Все в срок
@@ -43,8 +43,8 @@
                     <h6 class="mb-0">Всего клиентов</h6>
                     <i class="fas fa-users fa-2x opacity-50"></i>
                 </div>
-                <h2 class="mb-0">{{ total_clients }}</h2>
-                <small class="opacity-75">+{{ new_clients_this_month }} в этом месяце</small>
+                <h2 class="mb-0">{{ total_clients|default(0) }}</h2>
+                <small class="opacity-75">+{{ new_clients_this_month|default(0) }} в этом месяце</small>
             </div>
         </div>
     </div>
@@ -57,11 +57,11 @@
                     <h6 class="mb-0">Конверсия</h6>
                     <i class="fas fa-chart-line fa-2x opacity-50"></i>
                 </div>
-                <h2 class="mb-0">{{ crm_metrics.conversion_rate|number_format(1) }}%</h2>
+                <h2 class="mb-0">{{ crm_metrics.conversion_rate|default(0)|number_format(1) }}%</h2>
                 <small class="opacity-75">
-                    {% if crm_metrics.conversion_trend > 0 %}
+                    {% if crm_metrics.conversion_trend|default(0) > 0 %}
                         <i class="fas fa-arrow-up me-1"></i>+{{ crm_metrics.conversion_trend|number_format(1) }}%
-                    {% elseif crm_metrics.conversion_trend < 0 %}
+                    {% elseif crm_metrics.conversion_trend|default(0) < 0 %}
                         <i class="fas fa-arrow-down me-1"></i>{{ crm_metrics.conversion_trend|number_format(1) }}%
                     {% else %}
                         Без изменений
@@ -88,7 +88,7 @@
                 </div>
             </div>
             <div class="card-body">
-                {% if deals_by_stage is not empty %}
+                {% if deals_by_stage is defined and deals_by_stage is not empty %}
                     {% set total_deals = 0 %}
                     {% for stage in deals_by_stage %}
                         {% set total_deals = total_deals + stage.count %}
@@ -142,11 +142,11 @@
                 </div>
             </div>
             <div class="card-body">
-                {% if top_clients is not empty %}
+                {% if top_clients is defined and top_clients is not empty %}
                     <div class="list-group list-group-flush">
                         {% for item in top_clients %}
                             {% set client = item[0] %}
-                            {% set revenue = item.total_revenue %}
+                            {% set revenue = item.total_revenue|default(0) %}
                             <div class="list-group-item border-0 px-0 py-2">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
@@ -154,7 +154,7 @@
                                             {{ client.companyName }}
                                         </a>
                                         <div class="small text-muted">
-                                            {{ client.completedDealsCount }} сделок
+                                            {{ client.completedDealsCount|default(0) }} сделок
                                         </div>
                                     </div>
                                     <div class="text-end">
@@ -194,7 +194,7 @@
                 </div>
             </div>
             <div class="card-body p-0">
-                {% if active_deals is not empty %}
+                {% if active_deals is defined and active_deals is not empty %}
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
                             <thead class="table-light">

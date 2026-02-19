@@ -91,31 +91,18 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
 
     public function getStatistics(): array
     {
-        $totalUsers = $this->createQueryBuilder('u')
-            ->select('COUNT(u.id)')
-            ->getQuery()
-            ->getSingleScalarResult();
-        
-        $activeUsers = $this->createQueryBuilder('u')
-            ->select('COUNT(u.id)')
-            ->andWhere('u.isActive = :active')
-            ->setParameter('active', true)
-            ->getQuery()
-            ->getSingleScalarResult();
-            
-        $adminUsers = $this->createQueryBuilder('u')
-            ->select('COUNT(u.id)')
-            ->andWhere('u.roles LIKE :admin_role')
+        // Optimize by using single query with conditional aggregation
+        $qb = $this->createQueryBuilder('u')
+            ->select('
+                COUNT(u.id) as total,
+                SUM(CASE WHEN u.isActive = true THEN 1 ELSE 0 END) as active,
+                SUM(CASE WHEN u.roles LIKE :admin_role THEN 1 ELSE 0 END) as admins,
+                SUM(CASE WHEN u.roles LIKE :manager_role THEN 1 ELSE 0 END) as managers
+            ')
             ->setParameter('admin_role', '%ROLE_ADMIN%')
-            ->getQuery()
-            ->getSingleScalarResult();
-                
-        $managerUsers = $this->createQueryBuilder('u')
-            ->select('COUNT(u.id)')
-            ->andWhere('u.roles LIKE :manager_role')
-            ->setParameter('manager_role', '%ROLE_MANAGER%')
-            ->getQuery()
-            ->getSingleScalarResult();
+            ->setParameter('manager_role', '%ROLE_MANAGER%');
+        
+        $stats = $qb->getQuery()->getSingleResult();
         
         // Get users who logged in today
         $today = new \DateTime();
@@ -131,11 +118,11 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getSingleScalarResult();
         
         return [
-            'total' => $totalUsers,
-            'active' => $activeUsers,
-            'admins' => $adminUsers,
-            'managers' => $managerUsers,
-            'active_today' => $activeToday,
+            'total' => (int) $stats['total'],
+            'active' => (int) $stats['active'],
+            'admins' => (int) $stats['admins'],
+            'managers' => (int) $stats['managers'],
+            'active_today' => (int) $activeToday,
         ];
     }
 
