@@ -24,25 +24,25 @@
     
     <div class="row">
         <div class="col-lg-8">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white py-3">
+            <div class="card-modern">
+                <div class="card-header-modern">
                     <h5 class="mb-0 text-primary">
                         <i class="fas fa-user-circle me-2"></i>
                         Основная информация
                     </h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body-modern">
                     {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
                     
                     <div class="row g-4">
                         <div class="col-md-6">
                             <div class="form-group-enhanced">
                                 {{ form_label(form.username, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                                <div class="input-group">
-                                    <span class="input-group-text">
+                                <div class="input-group input-group-modern">
+                                    <span class="input-group-text input-group-text-modern">
                                         <i class="fas fa-user"></i>
                                     </span>
-                                    {{ form_widget(form.username, {'attr': {'class': 'form-control form-control-enhanced', 'placeholder': 'Введите имя пользователя'}}) }}
+                                    {{ form_widget(form.username, {'attr': {'class': 'form-control-modern', 'placeholder': 'Введите имя пользователя'}}) }}
                                 </div>
                                 <div class="invalid-feedback">
                                     Пожалуйста, введите корректное имя пользователя.
@@ -53,11 +53,11 @@
                         <div class="col-md-6">
                             <div class="form-group-enhanced">
                                 {{ form_label(form.email, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                                <div class="input-group">
-                                    <span class="input-group-text">
+                                <div class="input-group input-group-modern">
+                                    <span class="input-group-text input-group-text-modern">
                                         <i class="fas fa-envelope"></i>
                                     </span>
-                                    {{ form_widget(form.email, {'attr': {'class': 'form-control form-control-enhanced', 'placeholder': 'Введите email'}}) }}
+                                    {{ form_widget(form.email, {'attr': {'class': 'form-control-modern', 'placeholder': 'Введите email'}}) }}
                                 </div>
                                 <div class="invalid-feedback">
                                     Пожалуйста, введите корректный email.
@@ -68,11 +68,11 @@
                         <div class="col-md-6">
                             <div class="form-group-enhanced">
                                 {{ form_label(form.firstName, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                                <div class="input-group">
-                                    <span class="input-group-text">
+                                <div class="input-group input-group-modern">
+                                    <span class="input-group-text input-group-text-modern">
                                         <i class="fas fa-id-card"></i>
                                     </span>
-                                    {{ form_widget(form.firstName, {'attr': {'class': 'form-control form-control-enhanced', 'placeholder': 'Введите имя'}}) }}
+                                    {{ form_widget(form.firstName, {'attr': {'class': 'form-control-modern', 'placeholder': 'Введите имя'}}) }}
                                 </div>
                             </div>
                         </div>
@@ -80,11 +80,11 @@
                         <div class="col-md-6">
                             <div class="form-group-enhanced">
                                 {{ form_label(form.lastName, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                                <div class="input-group">
-                                    <span class="input-group-text">
+                                <div class="input-group input-group-modern">
+                                    <span class="input-group-text input-group-text-modern">
                                         <i class="fas fa-id-card"></i>
                                     </span>
-                                    {{ form_widget(form.lastName, {'attr': {'class': 'form-control form-control-enhanced', 'placeholder': 'Введите фамилию'}}) }}
+                                    {{ form_widget(form.lastName, {'attr': {'class': 'form-control-modern', 'placeholder': 'Введите фамилию'}}) }}
                                 </div>
                             </div>
                         </div>
@@ -92,11 +92,11 @@
                         <div class="col-md-6">
                             <div class="form-group-enhanced">
                                 {{ form_label(form.phone, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                                <div class="input-group">
-                                    <span class="input-group-text">
+                                <div class="input-group input-group-modern">
+                                    <span class="input-group-text input-group-text-modern">
                                         <i class="fas fa-phone"></i>
                                     </span>
-                                    {{ form_widget(form.phone, {'attr': {'class': 'form-control form-control-enhanced', 'placeholder': '+7 (900) 123-4567'}}) }}
+                                    {{ form_widget(form.phone, {'attr': {'class': 'form-control-modern', 'placeholder': '+7 (900) 123-4567'}}) }}
                                 </div>
                             </div>
                         </div>
@@ -104,11 +104,11 @@
                         <div class="col-md-6">
                             <div class="form-group-enhanced">
                                 {{ form_label(form.position, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                                <div class="input-group">
-                                    <span class="input-group-text">
+                                <div class="input-group input-group-modern">
+                                    <span class="input-group-text input-group-text-modern">
                                         <i class="fas fa-briefcase"></i>
                                     </span>
-                                    {{ form_widget(form.position, {'attr': {'class': 'form-control form-control-enhanced', 'placeholder': 'Должность'}}) }}
+                                    {{ form_widget(form.position, {'attr': {'class': 'form-control-modern', 'placeholder': 'Должность'}}) }}
                                 </div>
                             </div>
                         </div>
@@ -116,11 +116,11 @@
                         <div class="col-12">
                             <div class="form-group-enhanced">
                                 {{ form_label(form.department, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                                <div class="input-group">
-                                    <span class="input-group-text">
+                                <div class="input-group input-group-modern">
+                                    <span class="input-group-text input-group-text-modern">
                                         <i class="fas fa-building"></i>
                                     </span>
-                                    {{ form_widget(form.department, {'attr': {'class': 'form-control form-control-enhanced', 'placeholder': 'Отдел или департамент'}}) }}
+                                    {{ form_widget(form.department, {'attr': {'class': 'form-control-modern', 'placeholder': 'Отдел или департамент'}}) }}
                                 </div>
                             </div>
                         </div>
@@ -128,23 +128,23 @@
                         <div class="col-12">
                             <div class="form-group-enhanced">
                                 {{ form_label(form.notes, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                                <div class="input-group">
-                                    <span class="input-group-text">
+                                <div class="input-group input-group-modern">
+                                    <span class="input-group-text input-group-text-modern">
                                         <i class="fas fa-sticky-note"></i>
                                     </span>
-                                    {{ form_widget(form.notes, {'attr': {'class': 'form-control form-control-enhanced', 'rows': '4', 'placeholder': 'Дополнительная информация о себе'}}) }}
+                                    {{ form_widget(form.notes, {'attr': {'class': 'form-control-modern', 'rows': '4', 'placeholder': 'Дополнительная информация о себе'}}) }}
                                 </div>
                                 <div class="form-text">Максимум 500 символов</div>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="d-flex gap-3 mt-4 pt-3 border-top">
-                        <button type="submit" class="btn btn-primary btn-lg px-4 py-2">
+                    <div class="d-flex gap-3 mt-4 pt-3 border-top border-light">
+                        <button type="submit" class="btn btn-primary-modern btn-lg px-4 py-2">
                             <i class="fas fa-save me-2"></i>
                             Сохранить изменения
                         </button>
-                        <a href="{{ path('app_profile_show') }}" class="btn btn-outline-secondary btn-lg px-4 py-2">
+                        <a href="{{ path('app_profile_show') }}" class="btn btn-outline-secondary-modern btn-lg px-4 py-2">
                             <i class="fas fa-times me-2"></i>
                             Отмена
                         </a>
@@ -157,14 +157,14 @@
         
         <div class="col-lg-4">
             <!-- Profile Preview Card -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white py-3">
+            <div class="card-modern mb-4">
+                <div class="card-header-modern">
                     <h5 class="mb-0 text-info">
                         <i class="fas fa-eye me-2"></i>
                         Предварительный просмотр
                     </h5>
                 </div>
-                <div class="card-body text-center">
+                <div class="card-body-modern text-center">
                     <div class="avatar-preview bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 100px; height: 100px;">
                         <i class="fas fa-user fa-3x text-primary"></i>
                     </div>
@@ -172,7 +172,7 @@
                     <p class="text-muted mb-2" id="previewUsername">@{{ app.user.username }}</p>
                     <p class="mb-3" id="previewEmail">{{ app.user.email }}</p>
                     <div class="d-grid gap-2">
-                        <button class="btn btn-outline-primary btn-sm">
+                        <button class="btn btn-outline-primary-modern btn-sm">
                             <i class="fas fa-camera me-1"></i>
                             Загрузить фото
                         </button>
@@ -181,14 +181,14 @@
             </div>
             
             <!-- Quick Tips -->
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white py-3">
+            <div class="card-modern">
+                <div class="card-header-modern">
                     <h5 class="mb-0 text-warning">
                         <i class="fas fa-lightbulb me-2"></i>
                         Советы
                     </h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body-modern">
                     <ul class="list-unstyled mb-0">
                         <li class="mb-2">
                             <i class="fas fa-check-circle text-success me-2"></i>

@@ -286,25 +286,25 @@
 }) }}
 
 <div class="container py-4 notifications-container">
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="notifications-header">
+    <div class="card-modern shadow-lg mb-4">
+        <div class="gradient-bg px-4 py-4">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <div>
-                    <h1 class="mb-1">
+                    <h1 class="mb-1 text-white">
                         <i class="fas fa-bell me-2"></i>
                         Уведомления
                     </h1>
-                    <p class="mb-0 opacity-75">Будьте в курсе всех событий</p>
+                    <p class="mb-0 opacity-75 text-white">Будьте в курсе всех событий</p>
                 </div>
                 <div class="d-flex gap-2">
                     {% set unreadCount = notifications|filter(n => not n.isRead)|length %}
                     {% if unreadCount > 0 %}
-                        <button class="btn btn-light" onclick="markAllAsRead()">
+                        <button class="btn btn-outline-light" onclick="markAllAsRead()">
                             <i class="fas fa-check-double me-2"></i>
                             Отметить все ({{ unreadCount }})
                         </button>
                     {% endif %}
-                    <a href="{{ path('app_dashboard') }}" class="btn btn-light">
+                    <a href="{{ path('app_dashboard') }}" class="btn btn-outline-light">
                         <i class="fas fa-arrow-left me-2"></i>
                         Назад
                     </a>
@@ -312,23 +312,25 @@
             </div>
         </div>
         
-        <div class="notification-filters">
-            <button class="filter-btn active" data-filter="all">
-                <i class="fas fa-list me-2"></i>
-                Все
-            </button>
-            <button class="filter-btn" data-filter="unread">
-                <i class="fas fa-envelope me-2"></i>
-                Непрочитанные
-            </button>
-            <button class="filter-btn" data-filter="read">
-                <i class="fas fa-envelope-open me-2"></i>
-                Прочитанные
-            </button>
-            <button class="filter-btn" data-filter="task">
-                <i class="fas fa-tasks me-2"></i>
-                Задачи
-            </button>
+        <div class="card-body-modern p-3">
+            <div class="d-flex gap-2 flex-wrap">
+                <button class="filter-btn active" data-filter="all">
+                    <i class="fas fa-list me-2"></i>
+                    Все
+                </button>
+                <button class="filter-btn" data-filter="unread">
+                    <i class="fas fa-envelope me-2"></i>
+                    Непрочитанные
+                </button>
+                <button class="filter-btn" data-filter="read">
+                    <i class="fas fa-envelope-open me-2"></i>
+                    Прочитанные
+                </button>
+                <button class="filter-btn" data-filter="task">
+                    <i class="fas fa-tasks me-2"></i>
+                    Задачи
+                </button>
+            </div>
         </div>
     </div>
 

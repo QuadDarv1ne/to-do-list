@@ -1,0 +1,18 @@
+# robots.txt for Task Management System
+User-agent: *
+Disallow: /admin/
+Disallow: /api/
+Disallow: /login
+Disallow: /register
+Disallow: /reset-password/
+Disallow: /2fa/
+Disallow: /_profiler/
+Disallow: /_wdt/
+Disallow: /assets/
+Disallow: /build/
+
+# Allow public pages
+Allow: /
+
+# Sitemap location
+Sitemap: https://example.com/sitemap.xml
