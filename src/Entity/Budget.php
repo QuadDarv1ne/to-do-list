@@ -280,8 +280,9 @@ class Budget
         if ($this->amount == 0) {
             return 0;
         }
-        
+
         $percentage = (bcdiv($this->usedAmount ?? '0', $this->amount, 4) * 100);
+
         return round((float)$percentage, 2);
     }
 

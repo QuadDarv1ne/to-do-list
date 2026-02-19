@@ -8,7 +8,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
-use Symfony\Component\Security\Core\Exception\TooManyLoginAttemptsAuthenticationException;
 
 class RateLimitSubscriber implements EventSubscriberInterface
 {
@@ -48,6 +47,7 @@ class RateLimitSubscriber implements EventSubscriberInterface
         // Check general request rate limiting
         if ($this->rateLimitingService->isRequestRateLimited($request)) {
             $this->handleRateLimitExceeded($event, 'Too many requests. Please try again later.');
+
             return;
         }
 
@@ -55,6 +55,7 @@ class RateLimitSubscriber implements EventSubscriberInterface
         if (str_starts_with($path, '/api/')) {
             if ($this->rateLimitingService->isApiRateLimited($request)) {
                 $this->handleRateLimitExceeded($event, 'API rate limit exceeded.', true);
+
                 return;
             }
         }
@@ -64,6 +65,7 @@ class RateLimitSubscriber implements EventSubscriberInterface
             $username = $request->request->get('_username') ?? '';
             if ($username && $this->rateLimitingService->isLoginRateLimited($username)) {
                 $this->handleRateLimitExceeded($event, 'Too many login attempts. Please try again later.');
+
                 return;
             }
         }
@@ -101,7 +103,7 @@ class RateLimitSubscriber implements EventSubscriberInterface
             $response = new Response(
                 $this->getRateLimitTemplate($message),
                 429,
-                ['Content-Type' => 'text/html']
+                ['Content-Type' => 'text/html'],
             );
         }
 

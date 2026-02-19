@@ -21,16 +21,16 @@ class RegistrationController extends AbstractController
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('registration_controller_register');
         }
-        
+
         // Rate limiting: Check if too many registrations from same IP recently
         $session = $request->getSession();
         $lastRegistration = $session->get('last_registration_attempt', 0);
         $currentTime = time();
-        
+
         // Prevent registration attempts within 30 seconds of last attempt
         if ($currentTime - $lastRegistration < 30) {
             $this->addFlash('error', 'Пожалуйста, подождите перед повторной попыткой регистрации.');
-            
+
             try {
                 return $this->redirectToRoute('app_register');
             } finally {
@@ -39,21 +39,21 @@ class RegistrationController extends AbstractController
                 }
             }
         }
-        
+
         $user = new User();
         $form = $this->createForm(RegistrationFormType::class, $user);
         $form->handleRequest($request);
-        
+
         if ($form->isSubmitted() && $form->isValid()) {
             // Update last registration attempt time
             $session->set('last_registration_attempt', $currentTime);
-            
+
             // Encode the plain password
             $user->setPassword(
                 $userPasswordHasher->hashPassword(
                     $user,
-                    $form->get('plainPassword')->getData()
-                )
+                    $form->get('plainPassword')->getData(),
+                ),
             );
 
             $entityManager->persist($user);

@@ -21,14 +21,14 @@ class NotificationPreferenceService
                 'task_commented' => true,
                 'deadline_reminder' => true,
                 'daily_digest' => false,
-                'weekly_summary' => true
+                'weekly_summary' => true,
             ],
             'push' => [
                 'enabled' => true,
                 'task_assigned' => true,
                 'task_completed' => false,
                 'task_commented' => true,
-                'deadline_reminder' => true
+                'deadline_reminder' => true,
             ],
             'in_app' => [
                 'enabled' => true,
@@ -36,18 +36,18 @@ class NotificationPreferenceService
                 'task_completed' => true,
                 'task_commented' => true,
                 'deadline_reminder' => true,
-                'mentions' => true
+                'mentions' => true,
             ],
             'quiet_hours' => [
                 'enabled' => false,
                 'start' => '22:00',
-                'end' => '08:00'
+                'end' => '08:00',
             ],
             'frequency' => [
                 'immediate' => true,
                 'batched' => false,
-                'batch_interval' => 60 // minutes
-            ]
+                'batch_interval' => 60, // minutes
+            ],
         ];
     }
 
@@ -78,11 +78,11 @@ class NotificationPreferenceService
         }
 
         // Check quiet hours
-        if ($this->isQuietHours($preferences)) {
-            return false;
-        }
+        return !($this->isQuietHours($preferences))
 
-        return true;
+
+
+        ;
     }
 
     /**
@@ -96,7 +96,7 @@ class NotificationPreferenceService
 
         $now = new \DateTime();
         $currentTime = $now->format('H:i');
-        
+
         $start = $preferences['quiet_hours']['start'];
         $end = $preferences['quiet_hours']['end'];
 
@@ -117,18 +117,18 @@ class NotificationPreferenceService
             'email' => [
                 'name' => 'Email',
                 'description' => 'Уведомления на электронную почту',
-                'icon' => 'fa-envelope'
+                'icon' => 'fa-envelope',
             ],
             'push' => [
                 'name' => 'Push',
                 'description' => 'Push-уведомления в браузере',
-                'icon' => 'fa-bell'
+                'icon' => 'fa-bell',
             ],
             'in_app' => [
                 'name' => 'В приложении',
                 'description' => 'Уведомления внутри системы',
-                'icon' => 'fa-inbox'
-            ]
+                'icon' => 'fa-inbox',
+            ],
         ];
     }
 
@@ -144,7 +144,7 @@ class NotificationPreferenceService
             'deadline_reminder' => 'Напоминание о дедлайне',
             'mentions' => 'Упоминания',
             'daily_digest' => 'Ежедневная сводка',
-            'weekly_summary' => 'Еженедельный отчет'
+            'weekly_summary' => 'Еженедельный отчет',
         ];
     }
 
@@ -169,9 +169,9 @@ class NotificationPreferenceService
             'by_channel' => [
                 'email' => 0,
                 'push' => 0,
-                'in_app' => 0
+                'in_app' => 0,
             ],
-            'by_type' => []
+            'by_type' => [],
         ];
     }
 }

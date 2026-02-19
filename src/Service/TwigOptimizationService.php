@@ -2,8 +2,8 @@
 
 namespace App\Service;
 
-use Symfony\Component\Filesystem\Filesystem;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Filesystem\Filesystem;
 use Twig\Environment;
 
 class TwigOptimizationService
@@ -12,7 +12,7 @@ class TwigOptimizationService
         private Environment $twig,
         private Filesystem $filesystem,
         private LoggerInterface $logger,
-        private string $projectDir
+        private string $projectDir,
     ) {
     }
 
@@ -23,7 +23,7 @@ class TwigOptimizationService
     {
         $templatesDir = $this->projectDir . '/templates';
         $templates = $this->findTemplates($templatesDir);
-        
+
         $warmedUp = 0;
         $errors = [];
 
@@ -35,11 +35,11 @@ class TwigOptimizationService
             } catch (\Exception $e) {
                 $errors[] = [
                     'template' => $template,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ];
                 $this->logger->warning('Failed to warm up template', [
                     'template' => $template,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ]);
             }
         }
@@ -47,8 +47,8 @@ class TwigOptimizationService
         return [
             'success' => true,
             'templates_warmed' => $warmedUp,
-            'total_templates' => count($templates),
-            'errors' => $errors
+            'total_templates' => \count($templates),
+            'errors' => $errors,
         ];
     }
 
@@ -71,7 +71,7 @@ class TwigOptimizationService
             if (is_dir($path)) {
                 $templates = array_merge(
                     $templates,
-                    $this->findTemplates($path, $relativePath . '/')
+                    $this->findTemplates($path, $relativePath . '/'),
                 );
             } elseif (str_ends_with($item, '.twig')) {
                 $templates[] = $relativePath;
@@ -88,43 +88,43 @@ class TwigOptimizationService
     {
         $templatesDir = $this->projectDir . '/templates';
         $srcDir = $this->projectDir . '/src';
-        
+
         $allTemplates = $this->findTemplates($templatesDir);
         $usedTemplates = [];
-        
+
         // Find templates referenced in PHP files
         $phpFiles = $this->findPhpFiles($srcDir);
-        
+
         foreach ($phpFiles as $phpFile) {
             $content = file_get_contents($phpFile);
-            
+
             // Match render() calls
-            preg_match_all('/render\([\'"]([^\'"]+\.twig)[\'"]/', $content, $matches);
+            preg_match_all('/render\\([\'"]([^\'"]+\\.twig)[\'"]/', $content, $matches);
             foreach ($matches[1] as $template) {
                 $usedTemplates[$template] = true;
             }
-            
+
             // Match include() calls in Twig
-            preg_match_all('/include\([\'"]([^\'"]+\.twig)[\'"]/', $content, $matches);
+            preg_match_all('/include\\([\'"]([^\'"]+\\.twig)[\'"]/', $content, $matches);
             foreach ($matches[1] as $template) {
                 $usedTemplates[$template] = true;
             }
         }
-        
+
         // Find templates referenced in other templates
         foreach ($allTemplates as $template) {
             $templatePath = $templatesDir . '/' . $template;
             if (file_exists($templatePath)) {
                 $content = file_get_contents($templatePath);
-                
+
                 // Match extends, include, embed
-                preg_match_all('/{%\s*(extends|include|embed)\s+[\'"]([^\'"]+\.twig)[\'"]/', $content, $matches);
+                preg_match_all('/{%\\s*(extends|include|embed)\\s+[\'"]([^\'"]+\\.twig)[\'"]/', $content, $matches);
                 foreach ($matches[2] as $referencedTemplate) {
                     $usedTemplates[$referencedTemplate] = true;
                 }
             }
         }
-        
+
         // Find potentially unused templates
         $unusedTemplates = [];
         foreach ($allTemplates as $template) {
@@ -132,12 +132,12 @@ class TwigOptimizationService
                 $unusedTemplates[] = $template;
             }
         }
-        
+
         return [
-            'total_templates' => count($allTemplates),
-            'used_templates' => count($usedTemplates),
+            'total_templates' => \count($allTemplates),
+            'used_templates' => \count($usedTemplates),
             'unused_templates' => $unusedTemplates,
-            'usage_percent' => round((count($usedTemplates) / count($allTemplates)) * 100, 2)
+            'usage_percent' => round((\count($usedTemplates) / \count($allTemplates)) * 100, 2),
         ];
     }
 
@@ -173,20 +173,20 @@ class TwigOptimizationService
     {
         $templatesDir = $this->projectDir . '/templates';
         $templates = $this->findTemplates($templatesDir);
-        
+
         $includeUsage = [];
-        
+
         foreach ($templates as $template) {
             $templatePath = $templatesDir . '/' . $template;
             if (!file_exists($templatePath)) {
                 continue;
             }
-            
+
             $content = file_get_contents($templatePath);
-            
+
             // Find all includes
-            preg_match_all('/{%\s*include\s+[\'"]([^\'"]+\.twig)[\'"]/', $content, $matches);
-            
+            preg_match_all('/{%\\s*include\\s+[\'"]([^\'"]+\\.twig)[\'"]/', $content, $matches);
+
             foreach ($matches[1] as $includedTemplate) {
                 if (!isset($includeUsage[$includedTemplate])) {
                     $includeUsage[$includedTemplate] = [];
@@ -194,25 +194,25 @@ class TwigOptimizationService
                 $includeUsage[$includedTemplate][] = $template;
             }
         }
-        
+
         // Find most used includes
         $mostUsed = [];
         foreach ($includeUsage as $included => $usedIn) {
-            if (count($usedIn) > 1) {
+            if (\count($usedIn) > 1) {
                 $mostUsed[] = [
                     'template' => $included,
-                    'used_count' => count($usedIn),
-                    'used_in' => $usedIn
+                    'used_count' => \count($usedIn),
+                    'used_in' => $usedIn,
                 ];
             }
         }
-        
-        usort($mostUsed, fn($a, $b) => $b['used_count'] <=> $a['used_count']);
-        
+
+        usort($mostUsed, fn ($a, $b) => $b['used_count'] <=> $a['used_count']);
+
         return [
-            'total_includes' => count($includeUsage),
-            'reused_includes' => count($mostUsed),
-            'most_used' => array_slice($mostUsed, 0, 10)
+            'total_includes' => \count($includeUsage),
+            'reused_includes' => \count($mostUsed),
+            'most_used' => \array_slice($mostUsed, 0, 10),
         ];
     }
 }

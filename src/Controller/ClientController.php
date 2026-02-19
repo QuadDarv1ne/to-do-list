@@ -19,9 +19,9 @@ class ClientController extends AbstractController
     public function index(ClientRepository $clientRepository): Response
     {
         $user = $this->getUser();
-        
+
         // Менеджеры видят только своих клиентов, админы - всех (с оптимизированными запросами)
-        $clients = $this->isGranted('ROLE_ADMIN') 
+        $clients = $this->isGranted('ROLE_ADMIN')
             ? $clientRepository->findAllWithRelations()
             : $clientRepository->findByManager($user);
 
@@ -52,6 +52,7 @@ class ClientController extends AbstractController
             $em->flush();
 
             $this->addFlash('success', 'Клиент успешно создан');
+
             return $this->redirectToRoute('app_clients_index');
         }
 
@@ -91,6 +92,7 @@ class ClientController extends AbstractController
             $em->flush();
 
             $this->addFlash('success', 'Клиент успешно обновлён');
+
             return $this->redirectToRoute('app_clients_show', ['id' => $client->getId()]);
         }
 
@@ -108,6 +110,7 @@ class ClientController extends AbstractController
         $em->flush();
 
         $this->addFlash('success', 'Клиент успешно удалён');
+
         return $this->redirectToRoute('app_clients_index');
     }
 }

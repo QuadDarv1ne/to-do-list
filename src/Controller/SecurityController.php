@@ -2,14 +2,13 @@
 
 namespace App\Controller;
 
+use App\Repository\ActivityLogRepository;
 use App\Service\PerformanceMonitorService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
-use App\Repository\ActivityLogRepository;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 class SecurityController extends AbstractController
 {
@@ -19,10 +18,10 @@ class SecurityController extends AbstractController
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('security_controller_login');
         }
-        
+
         // Если пользователь уже авторизован, перенаправляем на главную
         if ($this->getUser()) {
-            
+
             try {
                 return $this->redirectToRoute('app_dashboard');
             } finally {
@@ -34,7 +33,7 @@ class SecurityController extends AbstractController
 
         // Получаем ошибку входа, если есть
         $error = $authenticationUtils->getLastAuthenticationError();
-        
+
         // Последний введенный email
         $lastUsername = $authenticationUtils->getLastUsername();
 
@@ -67,7 +66,7 @@ class SecurityController extends AbstractController
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('security_controller_access_denied');
         }
-        
+
         try {
             return $this->render('security/access_denied.html.twig', [], new Response('Доступ запрещен', 403));
         } finally {

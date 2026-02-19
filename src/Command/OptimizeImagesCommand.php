@@ -12,12 +12,12 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:optimize-images',
-    description: 'Оптимизация изображений в директории uploads'
+    description: 'Оптимизация изображений в директории uploads',
 )]
 class OptimizeImagesCommand extends Command
 {
     public function __construct(
-        private ImageOptimizationService $imageOptimizer
+        private ImageOptimizationService $imageOptimizer,
     ) {
         parent::__construct();
     }
@@ -36,9 +36,10 @@ class OptimizeImagesCommand extends Command
 
         // Статистика до оптимизации
         $statsBefore = $this->imageOptimizer->getStatistics();
-        
+
         if ($input->getOption('stats')) {
             $this->displayStats($io, $statsBefore);
+
             return Command::SUCCESS;
         }
 
@@ -46,11 +47,11 @@ class OptimizeImagesCommand extends Command
         $io->section('Оптимизация изображений');
         $results = $this->imageOptimizer->optimizeAll();
 
-        $io->text(sprintf(
+        $io->text(\sprintf(
             'Обработано: %d, Оптимизировано: %d, Ошибок: %d',
             $results['processed'],
             $results['optimized'],
-            $results['errors']
+            $results['errors'],
         ));
 
         if ($results['saved_bytes'] > 0) {
@@ -63,11 +64,11 @@ class OptimizeImagesCommand extends Command
             $io->section('Создание WebP версий');
             $webpResults = $this->imageOptimizer->createWebPVersions();
 
-            $io->text(sprintf(
+            $io->text(\sprintf(
                 'Обработано: %d, Создано: %d, Ошибок: %d',
                 $webpResults['processed'],
                 $webpResults['created'],
-                $webpResults['errors']
+                $webpResults['errors'],
             ));
         }
 
@@ -76,13 +77,14 @@ class OptimizeImagesCommand extends Command
         $this->displayStats($io, $statsAfter);
 
         $io->success('Оптимизация завершена!');
+
         return Command::SUCCESS;
     }
 
     private function displayStats(SymfonyStyle $io, array $stats): void
     {
         $io->section('Статистика изображений');
-        
+
         $totalSizeMB = round($stats['total_size'] / 1024 / 1024, 2);
         $io->text("Всего изображений: {$stats['total_images']}");
         $io->text("Общий размер: {$totalSizeMB} MB");

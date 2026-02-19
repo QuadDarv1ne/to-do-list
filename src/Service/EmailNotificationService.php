@@ -4,7 +4,6 @@ namespace App\Service;
 
 use App\Entity\TaskNotification;
 use App\Entity\User;
-use App\Service\PerformanceMonitorService;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -17,7 +16,7 @@ class EmailNotificationService
         private Environment $twig,
         private UrlGeneratorInterface $urlGenerator,
         private ?PerformanceMonitorService $performanceMonitor = null,
-        private string $fromEmail = 'noreply@todolist.local'
+        private string $fromEmail = 'noreply@todolist.local',
     ) {
     }
 
@@ -26,6 +25,7 @@ class EmailNotificationService
         if ($this->performanceMonitor) {
             $this->performanceMonitor->startTiming('email_notification_service_send_task_notification');
         }
+
         try {
             $recipient = $notification->getRecipient();
             $task = $notification->getTask();
@@ -52,6 +52,7 @@ class EmailNotificationService
         if ($this->performanceMonitor) {
             $this->performanceMonitor->startTiming('email_notification_service_render_template');
         }
+
         try {
             $task = $notification->getTask();
             $recipient = $notification->getRecipient();
@@ -75,6 +76,7 @@ class EmailNotificationService
         if ($this->performanceMonitor) {
             $this->performanceMonitor->startTiming('email_notification_service_send_task_assignment_notification');
         }
+
         try {
             $notification = new TaskNotification();
             $notification->setType('assignment');
@@ -97,6 +99,7 @@ class EmailNotificationService
         if ($this->performanceMonitor) {
             $this->performanceMonitor->startTiming('email_notification_service_send_task_update_notification');
         }
+
         try {
             $notification = new TaskNotification();
             $notification->setType('update');
@@ -119,6 +122,7 @@ class EmailNotificationService
         if ($this->performanceMonitor) {
             $this->performanceMonitor->startTiming('email_notification_service_send_task_completion_notification');
         }
+
         try {
             $notification = new TaskNotification();
             $notification->setType('completion');

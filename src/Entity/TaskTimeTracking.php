@@ -5,8 +5,6 @@ namespace App\Entity;
 use App\Repository\TaskTimeTrackingRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use App\Entity\User;
-use App\Entity\Task;
 
 #[ORM\Entity(repositoryClass: TaskTimeTrackingRepository::class)]
 #[ORM\Table(name: 'task_time_tracking')]

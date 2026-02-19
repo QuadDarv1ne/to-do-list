@@ -12,7 +12,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:backup',
-    description: 'Manage application backups'
+    description: 'Manage application backups',
 )]
 class BackupCommand extends Command
 {
@@ -50,12 +50,12 @@ class BackupCommand extends Command
         switch ($action) {
             case 'create':
                 $io->writeln('Creating backup...');
-                
+
                 $result = $this->backupService->createBackup([
                     'include_database' => $includeDatabase,
-                    'type' => 'full'
+                    'type' => 'full',
                 ]);
-                
+
                 if ($result['success']) {
                     $io->success('Backup created successfully!');
                     $io->writeln('Path: ' . $result['path']);
@@ -63,15 +63,17 @@ class BackupCommand extends Command
                     $io->writeln('Size: ' . $this->formatFileSize($result['manifest']['size']));
                 } else {
                     $io->error('Backup failed: ' . $result['error']);
+
                     return 1;
                 }
+
                 break;
 
             case 'list':
                 $io->writeln('Listing available backups...');
-                
+
                 $backups = $this->backupService->getBackups();
-                
+
                 if (empty($backups)) {
                     $io->writeln('No backups found.');
                 } else {
@@ -82,52 +84,58 @@ class BackupCommand extends Command
                             $backup['manifest']['timestamp'] ?? 'N/A',
                             $this->formatFileSize($backup['size']),
                             $backup['manifest']['type'] ?? 'N/A',
-                            $backup['manifest']['includes_database'] ?? false ? 'Yes' : 'No'
+                            $backup['manifest']['includes_database'] ?? false ? 'Yes' : 'No',
                         ];
                     }
-                    
+
                     $io->table(
                         ['Name', 'Timestamp', 'Size', 'Type', 'DB Included'],
-                        $rows
+                        $rows,
                     );
                 }
+
                 break;
 
             case 'restore':
                 if (!$backupPath) {
                     $io->error('Backup path is required for restore action');
+
                     return 1;
                 }
-                
+
                 $io->writeln("Restoring from: {$backupPath}");
-                
+
                 $result = $this->backupService->restoreFromBackup($backupPath, [
                     'restore_files' => $restoreFiles || !$restoreFiles && !$restoreDatabase, // Default to true if neither is specified
-                    'restore_database' => $restoreDatabase
+                    'restore_database' => $restoreDatabase,
                 ]);
-                
+
                 if ($result['success']) {
                     $io->success('Restore completed successfully!');
                 } else {
                     $io->error('Restore failed: ' . $result['error']);
+
                     return 1;
                 }
+
                 break;
 
             case 'cleanup':
                 $io->writeln("Cleaning up backups older than {$keepDays} days...");
-                
+
                 $result = $this->backupService->cleanupOldBackups($keepDays);
-                
-                $io->success(sprintf(
+
+                $io->success(\sprintf(
                     'Cleanup completed! Deleted %d backups, kept %d backups.',
                     $result['deleted'],
-                    $result['kept']
+                    $result['kept'],
                 ));
+
                 break;
 
             default:
                 $io->error("Unknown action: {$action}. Use create, list, restore, or cleanup.");
+
                 return 1;
         }
 
@@ -139,7 +147,7 @@ class BackupCommand extends Command
         $units = ['B', 'KB', 'MB', 'GB'];
         $bytes = max($size, 0);
         $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-        $pow = min($pow, count($units) - 1);
+        $pow = min($pow, \count($units) - 1);
 
         $bytes /= pow(1024, $pow);
 

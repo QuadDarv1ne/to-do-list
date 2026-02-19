@@ -15,65 +15,66 @@ use Doctrine\Persistence\ManagerRegistry;
 class TaskRepository extends ServiceEntityRepository
 {
     use CachedRepositoryTrait;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Task::class);
     }
-    
+
     public function setCacheService(QueryCacheService $cacheService): void
     {
         $this->cacheService = $cacheService;
     }
-    
+
     /**
      * Count tasks by status and optionally by user
      */
     public function countByStatus(?User $user = null, ?bool $isDone = null, ?string $status = null): int
     {
         $qb = $this->createQueryBuilder('t');
-        
+
         if ($user !== null) {
             $qb->andWhere('t.assignedUser = :user')
                ->setParameter('user', $user);
         }
-        
+
         if ($isDone !== null) {
             $qb->andWhere('t.status = :statusValue')
                ->setParameter('statusValue', $isDone ? 'completed' : 'pending');
         }
-        
+
         if ($status !== null) {
             $qb->andWhere('t.status = :status')
                ->setParameter('status', $status);
         }
-        
+
         return $qb->select('COUNT(t.id)')
                   ->getQuery()
                   ->getSingleScalarResult();
     }
-    
+
     /**
      * Count tasks by priority and optionally by user
      */
     public function countByPriority(?User $user = null, ?bool $isDone = null, ?string $priority = null): int
     {
         $qb = $this->createQueryBuilder('t');
-        
+
         if ($user !== null) {
             $qb->andWhere('t.assignedUser = :user OR t.user = :user')
                ->setParameter('user', $user);
         }
-        
+
         if ($isDone !== null) {
             $qb->andWhere('t.status = :statusValue')
                ->setParameter('statusValue', $isDone ? 'completed' : 'pending');
         }
-        
+
         if ($priority !== null) {
             $qb->andWhere('t.priority = :priority')
                ->setParameter('priority', $priority);
         }
-        
+
         return $qb->select('COUNT(t.id)')
                   ->getQuery()
                   ->getSingleScalarResult();
@@ -108,7 +109,7 @@ class TaskRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-    
+
     /**
      * Find tasks with deadlines approaching
      */
@@ -123,7 +124,7 @@ class TaskRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-    
+
     /**
      * Find tasks assigned to user or created by user
      */
@@ -140,7 +141,7 @@ class TaskRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-    
+
     /**
      * Find tasks by search query with optimized performance
      * Uses full-text search where possible and limits results
@@ -149,21 +150,21 @@ class TaskRepository extends ServiceEntityRepository
     {
         // Use cached query for common searches
         $cacheKey = 'search_' . md5($searchQuery . '_' . $limit);
-        
+
         if ($this->cacheService) {
             return $this->cachedQuery(
                 $cacheKey,
-                function() use ($searchQuery, $limit) {
+                function () use ($searchQuery, $limit) {
                     return $this->performSearchQuery($searchQuery, $limit);
                 },
                 ['search' => $searchQuery, 'limit' => $limit],
-                300 // 5 minutes cache
+                300, // 5 minutes cache
             );
         }
-        
+
         return $this->performSearchQuery($searchQuery, $limit);
     }
-    
+
     /**
      * Internal search implementation
      */
@@ -187,12 +188,12 @@ class TaskRepository extends ServiceEntityRepository
             ->setParameter('search', '%' . strtolower($searchQuery) . '%')
             ->setParameter('doneStatus', $searchQuery === 'completed' || $searchQuery === 'выполнено' || $searchQuery === 'done')
             ->setMaxResults($limit);
-            
+
         return $qb->orderBy('t.createdAt', 'DESC')
             ->getQuery()
             ->getResult();
     }
-    
+
     /**
      * Find tasks by search query for specific user with caching
      */
@@ -200,21 +201,21 @@ class TaskRepository extends ServiceEntityRepository
     {
         // Use cached query for user-specific searches
         $cacheKey = 'user_search_' . $user->getId() . '_' . md5($searchQuery . '_' . $limit);
-        
+
         if ($this->cacheService) {
             return $this->cachedQuery(
                 $cacheKey,
-                function() use ($searchQuery, $user, $limit) {
+                function () use ($searchQuery, $user, $limit) {
                     return $this->performUserSearchQuery($searchQuery, $user, $limit);
                 },
                 ['user' => $user->getId(), 'search' => $searchQuery, 'limit' => $limit],
-                300 // 5 minutes cache
+                300, // 5 minutes cache
             );
         }
-        
+
         return $this->performUserSearchQuery($searchQuery, $user, $limit);
     }
-    
+
     /**
      * Internal user search implementation
      */
@@ -240,12 +241,12 @@ class TaskRepository extends ServiceEntityRepository
             ->setParameter('search', '%' . strtolower($searchQuery) . '%')
             ->setParameter('doneStatus', $searchQuery === 'completed' || $searchQuery === 'выполнено' || $searchQuery === 'done')
             ->setMaxResults($limit);
-            
+
         return $qb->orderBy('t.createdAt', 'DESC')
             ->getQuery()
             ->getResult();
     }
-    
+
     /**
      * Find tasks by user and status within date range
      */
@@ -266,7 +267,7 @@ class TaskRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-    
+
     /**
      * Search tasks by various criteria with improved performance
      */
@@ -274,21 +275,21 @@ class TaskRepository extends ServiceEntityRepository
     {
         // Create cache key based on criteria
         $cacheKey = 'search_tasks_' . md5(serialize($criteria));
-        
+
         if ($this->cacheService) {
             return $this->cachedQuery(
                 $cacheKey,
-                function() use ($criteria) {
+                function () use ($criteria) {
                     return $this->performSearchTasks($criteria);
                 },
                 $criteria,
-                300 // 5 minutes cache
+                300, // 5 minutes cache
             );
         }
-        
+
         return $this->performSearchTasks($criteria);
     }
-    
+
     /**
      * Internal search tasks implementation with optimized query
      */
@@ -336,49 +337,49 @@ class TaskRepository extends ServiceEntityRepository
             $qb->andWhere('t.dueDate <= :endDate')
                ->setParameter('endDate', $criteria['endDate']);
         }
-        
+
         // Advanced filtering options
         if (!empty($criteria['createdAfter'])) {
             $qb->andWhere('t.createdAt >= :createdAfter')
                ->setParameter('createdAfter', $criteria['createdAfter']);
         }
-        
+
         if (!empty($criteria['createdBefore'])) {
             $qb->andWhere('t.createdAt <= :createdBefore')
                ->setParameter('createdBefore', $criteria['createdBefore']);
         }
-        
+
         if (!empty($criteria['assignedToMe']) && $criteria['assignedToMe']) {
             $qb->andWhere('t.assignedUser = :currentUser')
                ->setParameter('currentUser', $criteria['assignedToMe']);
         }
-        
+
         if (!empty($criteria['createdByMe']) && $criteria['createdByMe']) {
             $qb->andWhere('t.user = :currentUser')
                ->setParameter('currentUser', $criteria['createdByMe']);
         }
-        
+
         if (!empty($criteria['overdue']) && $criteria['overdue']) {
             $qb->andWhere('t.dueDate < :now AND t.status != :completed')
                ->setParameter('now', new \DateTime())
                ->setParameter('completed', 'completed');
         }
-        
+
         if (!empty($criteria['tag'])) {
             $qb->join('t.tags', 'jt')
                ->andWhere('jt.id = :tagId')
                ->setParameter('tagId', $criteria['tag']);
         }
-        
+
         if (!empty($criteria['hideCompleted']) && $criteria['hideCompleted']) {
             $qb->andWhere('t.status != :completedStatus')
                ->setParameter('completedStatus', 'completed');
         }
-        
+
         if (!empty($criteria['sortBy'])) {
             $allowedSortFields = ['t.title', 't.createdAt', 't.dueDate', 't.priority', 't.status'];
             $direction = (!empty($criteria['sortDirection']) && strtoupper($criteria['sortDirection']) === 'ASC') ? 'ASC' : 'DESC';
-            
+
             if ($criteria['sortBy'] === 'tag_count') {
                 // Sort by tag count (tasks with more tags first) - requires special handling
                 $qb = $this->createQueryBuilder('t')
@@ -390,80 +391,80 @@ class TaskRepository extends ServiceEntityRepository
                     ->groupBy('t.id, u.id, au.id, c.id') // Group by all selected non-aggregate fields
                     ->orderBy('tag_count', $direction)
                     ->addOrderBy('t.createdAt', 'DESC');
-                
+
                 // Reapply conditions for this special query
                 if (!empty($criteria['user'])) {
                     $qb->andWhere('t.user = :user OR t.assignedUser = :user')
                        ->setParameter('user', $criteria['user']);
                 }
-                
+
                 if (!empty($criteria['search'])) {
                     $qb->andWhere('LOWER(t.title) LIKE :search OR LOWER(t.description) LIKE :search')
                        ->setParameter('search', '%' . strtolower($criteria['search']) . '%');
                 }
-                
+
                 if (!empty($criteria['status'])) {
                     $qb->andWhere('t.status = :status')
                        ->setParameter('status', $criteria['status']);
                 }
-                
+
                 if (!empty($criteria['priority'])) {
                     $qb->andWhere('t.priority = :priority')
                        ->setParameter('priority', $criteria['priority']);
                 }
-                
+
                 if (!empty($criteria['category'])) {
                     $qb->andWhere('t.category = :category')
                        ->setParameter('category', $criteria['category']);
                 }
-                
+
                 if (!empty($criteria['startDate'])) {
                     $qb->andWhere('t.dueDate >= :startDate')
                        ->setParameter('startDate', $criteria['startDate']);
                 }
-                
+
                 if (!empty($criteria['endDate'])) {
                     $qb->andWhere('t.dueDate <= :endDate')
                        ->setParameter('endDate', $criteria['endDate']);
                 }
-                
+
                 if (!empty($criteria['createdAfter'])) {
                     $qb->andWhere('t.createdAt >= :createdAfter')
                        ->setParameter('createdAfter', $criteria['createdAfter']);
                 }
-                
+
                 if (!empty($criteria['createdBefore'])) {
                     $qb->andWhere('t.createdAt <= :createdBefore')
                        ->setParameter('createdBefore', $criteria['createdBefore']);
                 }
-                
+
                 if (!empty($criteria['assignedToMe']) && $criteria['assignedToMe']) {
                     $qb->andWhere('t.assignedUser = :currentUser')
                        ->setParameter('currentUser', $criteria['assignedToMe']);
                 }
-                
+
                 if (!empty($criteria['createdByMe']) && $criteria['createdByMe']) {
                     $qb->andWhere('t.user = :currentUser')
                        ->setParameter('currentUser', $criteria['createdByMe']);
                 }
-                
+
                 if (!empty($criteria['overdue']) && $criteria['overdue']) {
                     $qb->andWhere('t.dueDate < :now AND t.status != :completed')
                        ->setParameter('now', new \DateTime())
                        ->setParameter('completed', 'completed');
                 }
-                
+
                 if (!empty($criteria['tag'])) {
                     $qb->join('t.tags', 'jt2')
                        ->andWhere('jt2.id = :tagId')
                        ->setParameter('tagId', $criteria['tag']);
                 }
-                
+
                 if (!empty($criteria['hideCompleted']) && $criteria['hideCompleted']) {
                     $qb->andWhere('t.status != :completedStatus')
                        ->setParameter('completedStatus', 'completed');
                 }
-            } elseif (in_array($criteria['sortBy'], ['title', 'createdAt', 'dueDate', 'priority', 'status'])) {
+            } elseif (\in_array($criteria['sortBy'], ['title', 'createdAt', 'dueDate', 'priority', 'status'])) {
                 // Properly prefix the sort field to avoid ambiguity
                 $qb->orderBy('t.' . $criteria['sortBy'], $direction);
             } else {
@@ -472,7 +473,7 @@ class TaskRepository extends ServiceEntityRepository
         } else {
             $qb->orderBy('t.createdAt', 'DESC');
         }
-        
+
         // Apply pagination if offset and limit are provided
         if (isset($criteria['offset']) && isset($criteria['limit'])) {
             $qb->setFirstResult($criteria['offset'])
@@ -482,7 +483,7 @@ class TaskRepository extends ServiceEntityRepository
         return $qb->getQuery()
                   ->getResult();
     }
-    
+
     /**
      * Count tasks by various criteria for pagination
      */
@@ -490,21 +491,21 @@ class TaskRepository extends ServiceEntityRepository
     {
         // Create cache key based on criteria
         $cacheKey = 'count_search_tasks_' . md5(serialize($criteria));
-        
+
         if ($this->cacheService) {
             return $this->cachedQuery(
                 $cacheKey,
-                function() use ($criteria) {
+                function () use ($criteria) {
                     return $this->performCountSearchTasks($criteria);
                 },
                 $criteria,
-                300 // 5 minutes cache
+                300, // 5 minutes cache
             );
         }
-        
+
         return $this->performCountSearchTasks($criteria);
     }
-    
+
     /**
      * Internal count search tasks implementation with optimized query
      */
@@ -550,40 +551,40 @@ class TaskRepository extends ServiceEntityRepository
             $qb->andWhere('t.dueDate <= :endDate')
                ->setParameter('endDate', $criteria['endDate']);
         }
-        
+
         // Advanced filtering options
         if (!empty($criteria['createdAfter'])) {
             $qb->andWhere('t.createdAt >= :createdAfter')
                ->setParameter('createdAfter', $criteria['createdAfter']);
         }
-        
+
         if (!empty($criteria['createdBefore'])) {
             $qb->andWhere('t.createdAt <= :createdBefore')
                ->setParameter('createdBefore', $criteria['createdBefore']);
         }
-        
+
         if (!empty($criteria['assignedToMe']) && $criteria['assignedToMe']) {
             $qb->andWhere('t.assignedUser = :currentUser')
                ->setParameter('currentUser', $criteria['assignedToMe']);
         }
-        
+
         if (!empty($criteria['createdByMe']) && $criteria['createdByMe']) {
             $qb->andWhere('t.user = :currentUser')
                ->setParameter('currentUser', $criteria['createdByMe']);
         }
-        
+
         if (!empty($criteria['overdue']) && $criteria['overdue']) {
             $qb->andWhere('t.dueDate < :now AND t.status != :completed')
                ->setParameter('now', new \DateTime())
                ->setParameter('completed', 'completed');
         }
-        
+
         if (!empty($criteria['tag'])) {
             $qb->join('t.tags', 'jt')
                ->andWhere('jt.id = :tagId')
                ->setParameter('tagId', $criteria['tag']);
         }
-        
+
         if (!empty($criteria['hideCompleted']) && $criteria['hideCompleted']) {
             $qb->andWhere('t.status != :completedStatus')
                ->setParameter('completedStatus', 'completed');
@@ -592,7 +593,7 @@ class TaskRepository extends ServiceEntityRepository
         return (int) $qb->getQuery()
                          ->getSingleScalarResult();
     }
-    
+
     /**
      * Find tasks by tag
      */
@@ -609,7 +610,7 @@ class TaskRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-    
+
     /**
      * Find all tasks sorted by tag count (tasks with more tags first)
      */
@@ -626,7 +627,7 @@ class TaskRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-    
+
     /**
      * Find completed tasks older than a specific date
      */
@@ -640,7 +641,7 @@ class TaskRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-    
+
     /**
      * Get task completion statistics by priority
      */
@@ -658,13 +659,13 @@ class TaskRepository extends ServiceEntityRepository
             $stats[$item['priority']] = [
                 'total' => (int)$item['total'],
                 'completed' => (int)$item['completed'],
-                'percentage' => $item['total'] > 0 ? round(($item['completed'] / $item['total']) * 100, 2) : 0
+                'percentage' => $item['total'] > 0 ? round(($item['completed'] / $item['total']) * 100, 2) : 0,
             ];
         }
-        
+
         return $stats;
     }
-    
+
     /**
      * Calculate average completion time by priority in days
      */
@@ -678,34 +679,34 @@ class TaskRepository extends ServiceEntityRepository
             ->orderBy('t.priority')
             ->getQuery()
             ->getResult();
-        
+
         // Calculate average completion time in PHP to avoid database-specific functions
         $stats = [];
         $priorityTimes = [];
-        
+
         foreach ($result as $item) {
             $priority = $item['priority'];
             $createdAt = $item['createdAt'];
             $completedAt = $item['completedAt'];
-            
+
             if ($createdAt && $completedAt) {
                 $diff = $completedAt->diff($createdAt);
                 $days = $diff->days;
-                
+
                 if (!isset($priorityTimes[$priority])) {
                     $priorityTimes[$priority] = [];
                 }
                 $priorityTimes[$priority][] = $days;
             }
         }
-        
+
         foreach ($priorityTimes as $priority => $times) {
-            $avgDays = count($times) > 0 ? array_sum($times) / count($times) : 0;
+            $avgDays = \count($times) > 0 ? array_sum($times) / \count($times) : 0;
             $stats[$priority] = [
-                'avgDays' => round($avgDays, 2)
+                'avgDays' => round($avgDays, 2),
             ];
         }
-        
+
         return $stats;
     }
 
@@ -713,26 +714,25 @@ class TaskRepository extends ServiceEntityRepository
      * Get task completion trends grouped by date for dashboard
      * Optimized with caching and better database grouping
      *
-     * @return array
      */
     public function getTaskCompletionTrendsByDate(?User $user = null, int $days = 30): array
     {
         $cacheKey = 'trends_' . ($user ? $user->getId() : 'all') . '_' . $days;
-        
+
         if ($this->cacheService) {
             return $this->cachedQuery(
                 $cacheKey,
-                function() use ($user, $days) {
+                function () use ($user, $days) {
                     return $this->performTrendAnalysis($user, $days);
                 },
                 ['user' => $user?->getId(), 'days' => $days],
-                600 // 10 minutes cache
+                600, // 10 minutes cache
             );
         }
-        
+
         return $this->performTrendAnalysis($user, $days);
     }
-    
+
     /**
      * Internal trend analysis implementation
      */
@@ -754,7 +754,7 @@ class TaskRepository extends ServiceEntityRepository
 
         // Process results to group by date
         $dateCounts = [];
-        
+
         foreach ($results as $result) {
             $date = $result['date'];
             if (!isset($dateCounts[$date])) {
@@ -765,31 +765,31 @@ class TaskRepository extends ServiceEntityRepository
                 $dateCounts[$date]['completed'] += $result['count'];
             }
         }
-        
+
         return array_values($dateCounts);
     }
-    
+
     /**
      * Get quick task statistics for dashboard with caching
      */
     public function getQuickStats(User $user): array
     {
         $cacheKey = 'quick_stats_' . $user->getId();
-        
+
         if ($this->cacheService) {
             return $this->cachedQuery(
                 $cacheKey,
-                function() use ($user) {
+                function () use ($user) {
                     return $this->performQuickStats($user);
                 },
                 ['user' => $user->getId()],
-                120 // 2 minutes cache
+                120, // 2 minutes cache
             );
         }
-        
+
         return $this->performQuickStats($user);
     }
-    
+
     /**
      * Internal quick stats implementation
      */
@@ -802,7 +802,7 @@ class TaskRepository extends ServiceEntityRepository
                 'SUM(CASE WHEN t.status = :pending_status THEN 1 ELSE 0 END) as pending',
                 'SUM(CASE WHEN t.status = :in_progress_status THEN 1 ELSE 0 END) as in_progress',
                 'SUM(CASE WHEN t.status = :completed_status THEN 1 ELSE 0 END) as completed',
-                'SUM(CASE WHEN t.dueDate IS NOT NULL AND t.dueDate < :now AND t.status != :completed_status THEN 1 ELSE 0 END) as overdue'
+                'SUM(CASE WHEN t.dueDate IS NOT NULL AND t.dueDate < :now AND t.status != :completed_status THEN 1 ELSE 0 END) as overdue',
             )
             ->where('t.assignedUser = :user OR t.user = :user')
             ->setParameter('user', $user)
@@ -812,13 +812,13 @@ class TaskRepository extends ServiceEntityRepository
             ->setParameter('now', new \DateTime())
             ->getQuery()
             ->getSingleResult();
-        
+
         $totalTasks = (int) $results['total'];
         $pendingTasks = (int) $results['pending'];
         $inProgressTasks = (int) $results['in_progress'];
         $completedTasks = (int) $results['completed'];
         $overdueTasks = (int) $results['overdue'];
-        
+
         // Get recent tasks (last 5) - limit to assigned or created by user
         $recentTasks = $this->createQueryBuilder('t')
             ->where('t.assignedUser = :user OR t.user = :user')
@@ -827,7 +827,7 @@ class TaskRepository extends ServiceEntityRepository
             ->setParameter('user', $user)
             ->getQuery()
             ->getResult();
-        
+
         return [
             'total' => $totalTasks,
             'pending' => $pendingTasks,
@@ -835,10 +835,10 @@ class TaskRepository extends ServiceEntityRepository
             'completed' => $completedTasks,
             'overdue' => $overdueTasks,
             'completion_rate' => $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100, 1) : 0,
-            'recent_tasks' => $recentTasks
+            'recent_tasks' => $recentTasks,
         ];
     }
-    
+
     /**
      * Invalidate cache when task is modified
      */
@@ -850,36 +850,36 @@ class TaskRepository extends ServiceEntityRepository
                 'user_search_' . $user->getId() . '_*',
                 'search_' . $user->getId() . '_*',
                 'quick_stats_' . $user->getId(),
-                'trends_' . $user->getId() . '_*'
+                'trends_' . $user->getId() . '_*',
             ];
-            
+
             foreach ($cacheKeys as $key) {
                 $this->delete($key);
             }
         }
     }
-    
+
     /**
      * Find task by ID with all relations to avoid N+1 queries
      */
     public function findTaskWithRelations(int $id): ?Task
     {
         $cacheKey = 'task_with_relations_' . $id;
-        
+
         if ($this->cacheService) {
             return $this->cachedQuery(
                 $cacheKey,
-                function() use ($id) {
+                function () use ($id) {
                     return $this->performFindTaskWithRelations($id);
                 },
                 ['task_id' => $id],
-                300 // 5 minutes cache
+                300, // 5 minutes cache
             );
         }
-        
+
         return $this->performFindTaskWithRelations($id);
     }
-    
+
     /**
      * Internal method to find task with relations
      */
@@ -903,7 +903,7 @@ class TaskRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult();
     }
-    
+
     /**
      * Find tasks with upcoming deadlines (within next 24 hours)
      */
@@ -911,7 +911,7 @@ class TaskRepository extends ServiceEntityRepository
     {
         $now = new \DateTime();
         $tomorrow = (clone $now)->modify('+1 day');
-        
+
         return $this->createQueryBuilder('t')
             ->andWhere('t.dueDate >= :now')
             ->andWhere('t.dueDate <= :tomorrow')
@@ -923,7 +923,7 @@ class TaskRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-    
+
     /**
      * Get optimized task data for dashboard with all necessary relations
      */
@@ -962,12 +962,12 @@ class TaskRepository extends ServiceEntityRepository
 
         // Execute query and process results to reconstruct objects properly
         $results = $qb->getQuery()->getArrayResult();
-        
+
         // Group tags by task for reconstruction
         $groupedResults = [];
         foreach ($results as $row) {
             $taskId = $row['id'];
-            
+
             if (!isset($groupedResults[$taskId])) {
                 $groupedResults[$taskId] = [
                     'task' => [
@@ -983,30 +983,30 @@ class TaskRepository extends ServiceEntityRepository
                         'user' => [
                             'id' => $row['userId'],
                             'firstName' => $row['firstName'],
-                            'lastName' => $row['lastName']
+                            'lastName' => $row['lastName'],
                         ],
                         'assignedUser' => $row['assignedUserId'] ? [
                             'id' => $row['assignedUserId'],
                             'firstName' => $row['assignedFirstName'],
-                            'lastName' => $row['assignedLastName']
+                            'lastName' => $row['assignedLastName'],
                         ] : null,
                         'category' => $row['categoryId'] ? [
                             'id' => $row['categoryId'],
-                            'name' => $row['categoryName']
+                            'name' => $row['categoryName'],
                         ] : null,
                     ],
-                    'tags' => []
+                    'tags' => [],
                 ];
             }
-            
+
             if ($row['tagId']) {
                 $groupedResults[$taskId]['tags'][$row['tagId']] = [
                     'id' => $row['tagId'],
-                    'name' => $row['tagName']
+                    'name' => $row['tagName'],
                 ];
             }
         }
-        
+
         // Final result with properly structured data
         $finalResults = [];
         foreach ($groupedResults as $groupedResult) {
@@ -1014,10 +1014,10 @@ class TaskRepository extends ServiceEntityRepository
             $taskData['tags'] = array_values($groupedResult['tags']); // Convert to indexed array
             $finalResults[] = $taskData;
         }
-        
+
         return $finalResults;
     }
-    
+
     /**
      * Get optimized dashboard statistics for a user in a single query
      */
@@ -1025,21 +1025,21 @@ class TaskRepository extends ServiceEntityRepository
     {
         // Use cache if available
         $cacheKey = "dashboard_stats_user_{$user->getId()}";
-        
+
         if ($this->cacheService) {
             return $this->cachedQuery(
                 $cacheKey,
-                function() use ($user) {
+                function () use ($user) {
                     return $this->performGetDashboardStats($user);
                 },
                 ['user_id' => $user->getId()],
-                300 // 5 minutes cache
+                300, // 5 minutes cache
             );
         }
-        
+
         return $this->performGetDashboardStats($user);
     }
-    
+
     /**
      * Internal method to get dashboard stats
      */
@@ -1053,7 +1053,7 @@ class TaskRepository extends ServiceEntityRepository
                 'SUM(CASE WHEN t.status = :in_progress_status THEN 1 ELSE 0 END) as in_progress_tasks',
                 'SUM(CASE WHEN t.priority = :urgent_priority THEN 1 ELSE 0 END) as urgent_tasks',
                 'SUM(CASE WHEN t.priority = :high_priority THEN 1 ELSE 0 END) as high_priority_tasks',
-                'SUM(CASE WHEN t.dueDate IS NOT NULL AND t.dueDate < :now AND t.status != :completed_status THEN 1 ELSE 0 END) as overdue_tasks'
+                'SUM(CASE WHEN t.dueDate IS NOT NULL AND t.dueDate < :now AND t.status != :completed_status THEN 1 ELSE 0 END) as overdue_tasks',
             )
             ->where('t.user = :user OR t.assignedUser = :user')
             ->setParameter('user', $user)

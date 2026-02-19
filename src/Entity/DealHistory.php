@@ -57,6 +57,7 @@ class DealHistory
     public function setDeal(?Deal $deal): static
     {
         $this->deal = $deal;
+
         return $this;
     }
 
@@ -68,6 +69,7 @@ class DealHistory
     public function setUser(?User $user): static
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -79,6 +81,7 @@ class DealHistory
     public function setAction(string $action): static
     {
         $this->action = $action;
+
         return $this;
     }
 
@@ -90,6 +93,7 @@ class DealHistory
     public function setDescription(string $description): static
     {
         $this->description = $description;
+
         return $this;
     }
 
@@ -101,6 +105,7 @@ class DealHistory
     public function setOldValue(?array $oldValue): static
     {
         $this->oldValue = $oldValue;
+
         return $this;
     }
 
@@ -112,6 +117,7 @@ class DealHistory
     public function setNewValue(?array $newValue): static
     {
         $this->newValue = $newValue;
+
         return $this;
     }
 
@@ -123,6 +129,7 @@ class DealHistory
     public function setCreatedAt(\DateTimeInterface $createdAt): static
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 }

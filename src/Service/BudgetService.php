@@ -6,13 +6,12 @@ use App\Entity\Budget;
 use App\Entity\User;
 use App\Repository\BudgetRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpFoundation\Response;
 
 class BudgetService
 {
     public function __construct(
         private BudgetRepository $budgetRepository,
-        private EntityManagerInterface $entityManager
+        private EntityManagerInterface $entityManager,
     ) {
     }
 
@@ -83,9 +82,9 @@ class BudgetService
     public function exportBudgetData(array $budgets): string
     {
         $csv = "Title,Description,Amount,Used Amount,Start Date,End Date,Status,Currency,Remaining Amount,Percentage Used,Over Budget\n";
-        
+
         foreach ($budgets as $budget) {
-            $csv .= sprintf(
+            $csv .= \sprintf(
                 '"%s","%s","%s","%s","%s","%s","%s","%s","%s","%.2f","%s"' . "\n",
                 $budget->getTitle(),
                 $budget->getDescription() ?? '',
@@ -97,10 +96,10 @@ class BudgetService
                 $budget->getCurrency(),
                 $budget->getRemainingAmount(),
                 $budget->getPercentageUsed(),
-                $budget->isOverBudget() ? 'Yes' : 'No'
+                $budget->isOverBudget() ? 'Yes' : 'No',
             );
         }
-        
+
         return $csv;
     }
 

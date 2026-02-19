@@ -23,6 +23,7 @@ trait CachedRepositoryTrait
         }
 
         $key = $this->generateCacheKey($queryName, $parameters);
+
         return $this->cacheService->cacheQuery($key, $queryCallback, $ttl);
     }
 
@@ -36,6 +37,7 @@ trait CachedRepositoryTrait
         }
 
         $key = "user_{$userId}_{$queryName}_" . md5(serialize($parameters));
+
         return $this->cacheService->cacheQuery($key, $queryCallback, $ttl);
     }
 
@@ -62,7 +64,7 @@ trait CachedRepositoryTrait
 
         $parameters['page'] = $page;
         $key = $this->generateCacheKey($queryName, $parameters);
-        
+
         return $this->cacheService->cacheQuery($key, $queryCallback, $ttl);
     }
 
@@ -76,6 +78,7 @@ trait CachedRepositoryTrait
         }
 
         $key = $this->generateCacheKey($queryName, $parameters);
+
         return $this->cacheService->invalidate($key);
     }
 
@@ -94,12 +97,12 @@ trait CachedRepositoryTrait
      */
     private function generateCacheKey(string $queryName, array $parameters = []): string
     {
-        $baseKey = get_class($this) . '_' . $queryName;
-        
+        $baseKey = \get_class($this) . '_' . $queryName;
+
         if (!empty($parameters)) {
             $baseKey .= '_' . md5(serialize($parameters));
         }
-        
+
         return $baseKey;
     }
 
@@ -110,9 +113,9 @@ trait CachedRepositoryTrait
     {
         return $this->cachedQuery(
             "find_{$id}",
-            fn() => $this->find($id),
+            fn () => $this->find($id),
             ['id' => $id],
-            $ttl
+            $ttl,
         );
     }
 
@@ -122,12 +125,12 @@ trait CachedRepositoryTrait
     protected function cachedCount(array $criteria = [], int $ttl = 300): int
     {
         $key = 'count_' . md5(serialize($criteria));
-        
+
         return $this->cachedQuery(
             $key,
-            fn() => $this->count($criteria),
+            fn () => $this->count($criteria),
             $criteria,
-            $ttl
+            $ttl,
         );
     }
 
@@ -140,16 +143,16 @@ trait CachedRepositoryTrait
             'criteria' => $criteria,
             'orderBy' => $orderBy,
             'limit' => $limit,
-            'offset' => $offset
+            'offset' => $offset,
         ];
-        
+
         $key = 'findby_' . md5(serialize($keyParams));
-        
+
         return $this->cachedQuery(
             $key,
-            fn() => $this->findBy($criteria, $orderBy, $limit, $offset),
+            fn () => $this->findBy($criteria, $orderBy, $limit, $offset),
             $keyParams,
-            $ttl
+            $ttl,
         );
     }
 
@@ -160,16 +163,16 @@ trait CachedRepositoryTrait
     {
         $keyParams = [
             'criteria' => $criteria,
-            'orderBy' => $orderBy
+            'orderBy' => $orderBy,
         ];
-        
+
         $key = 'findoneby_' . md5(serialize($keyParams));
-        
+
         return $this->cachedQuery(
             $key,
-            fn() => $this->findOneBy($criteria, $orderBy),
+            fn () => $this->findOneBy($criteria, $orderBy),
             $keyParams,
-            $ttl
+            $ttl,
         );
     }
 

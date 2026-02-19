@@ -11,8 +11,9 @@ class RecurringTaskService
 {
     public function __construct(
         private TaskRepository $taskRepository,
-        private EntityManagerInterface $entityManager
-    ) {}
+        private EntityManagerInterface $entityManager,
+    ) {
+    }
 
     /**
      * Create recurring task
@@ -24,11 +25,11 @@ class RecurringTaskService
             'frequency' => $frequency, // daily, weekly, monthly, yearly
             'end_date' => $endDate,
             'last_created' => new \DateTime(),
-            'next_creation' => $this->calculateNextDate(new \DateTime(), $frequency)
+            'next_creation' => $this->calculateNextDate(new \DateTime(), $frequency),
         ];
 
         // TODO: Save to database
-        
+
         return $config;
     }
 
@@ -54,7 +55,7 @@ class RecurringTaskService
     public function processRecurringTasks(): array
     {
         $created = [];
-        
+
         // TODO: Get recurring task configs from database
         $configs = [];
 
@@ -74,18 +75,18 @@ class RecurringTaskService
     private function shouldCreateTask(array $config): bool
     {
         $now = new \DateTime();
-        
+
         // Check if next creation date has passed
         if ($config['next_creation'] > $now) {
             return false;
         }
 
         // Check if end date has passed
-        if ($config['end_date'] && $config['end_date'] < $now) {
-            return false;
-        }
+        return !($config['end_date'] && $config['end_date'] < $now)
 
-        return true;
+
+
+        ;
     }
 
     /**
@@ -94,7 +95,7 @@ class RecurringTaskService
     private function createTaskFromConfig(array $config): Task
     {
         $template = $this->taskRepository->find($config['template_id']);
-        
+
         $task = new Task();
         $task->setTitle($template->getTitle());
         $task->setDescription($template->getDescription());
@@ -138,23 +139,23 @@ class RecurringTaskService
             'daily' => [
                 'name' => 'Ежедневно',
                 'description' => 'Создавать задачу каждый день',
-                'icon' => 'fa-calendar-day'
+                'icon' => 'fa-calendar-day',
             ],
             'weekly' => [
                 'name' => 'Еженедельно',
                 'description' => 'Создавать задачу каждую неделю',
-                'icon' => 'fa-calendar-week'
+                'icon' => 'fa-calendar-week',
             ],
             'monthly' => [
                 'name' => 'Ежемесячно',
                 'description' => 'Создавать задачу каждый месяц',
-                'icon' => 'fa-calendar-alt'
+                'icon' => 'fa-calendar-alt',
             ],
             'yearly' => [
                 'name' => 'Ежегодно',
                 'description' => 'Создавать задачу каждый год',
-                'icon' => 'fa-calendar'
-            ]
+                'icon' => 'fa-calendar',
+            ],
         ];
     }
 

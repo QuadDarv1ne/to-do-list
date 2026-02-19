@@ -18,32 +18,33 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class ProfileController extends AbstractController
 {
     use FlashMessageTrait;
+
     #[Route('/change-password', name: 'app_profile_change_password', methods: ['GET', 'POST'])]
     public function changePassword(
-        Request $request, 
-        UserPasswordHasherInterface $passwordHasher, 
+        Request $request,
+        UserPasswordHasherInterface $passwordHasher,
         EntityManagerInterface $entityManager,
-        ?PerformanceMonitorService $performanceMonitor = null
+        ?PerformanceMonitorService $performanceMonitor = null,
     ): Response {
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('profile_controller_change_password');
         }
-        
+
         $user = $this->getUser();
         $form = $this->createForm(ChangePasswordType::class);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $plainPassword = $form->get('plainPassword')->getData();
-            
+
             // Set new password
             $hashedPassword = $passwordHasher->hashPassword($user, $plainPassword);
             $user->setPassword($hashedPassword);
-            
+
             $entityManager->flush();
-            
+
             $this->flashSuccess('Пароль успешно изменен');
-            
+
             try {
                 return $this->redirectToRoute('app_dashboard');
             } finally {
@@ -63,16 +64,16 @@ class ProfileController extends AbstractController
             }
         }
     }
-    
+
     #[Route('/', name: 'app_profile_show', methods: ['GET'])]
     public function show(?PerformanceMonitorService $performanceMonitor = null): Response
     {
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('profile_controller_show');
         }
-        
+
         $user = $this->getUser();
-        
+
         try {
             return $this->render('profile/show.html.twig', [
                 'user' => $user,
@@ -83,20 +84,20 @@ class ProfileController extends AbstractController
             }
         }
     }
-    
+
     #[Route('/edit', name: 'app_profile_edit', methods: ['GET', 'POST'])]
     public function edit(
-        Request $request, 
+        Request $request,
         EntityManagerInterface $entityManager,
-        ?PerformanceMonitorService $performanceMonitor = null
+        ?PerformanceMonitorService $performanceMonitor = null,
     ): Response {
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('profile_controller_edit');
         }
-        
+
         $user = $this->getUser();
         $originalEmail = $user->getEmail();
-        
+
         $form = $this->createForm(\App\Form\UserType::class, $user, ['is_new' => false]);
         $form->handleRequest($request);
 
@@ -106,9 +107,10 @@ class ProfileController extends AbstractController
             if ($originalEmail !== $newEmail) {
                 $existingUser = $entityManager->getRepository(\App\Entity\User::class)
                     ->findOneBy(['email' => $newEmail]);
-                
+
                 if ($existingUser && $existingUser->getId() !== $user->getId()) {
                     $this->flashError('Пользователь с таким email уже существует');
+
                     try {
                         return $this->redirectToRoute('app_profile_edit');
                     } finally {
@@ -118,11 +120,11 @@ class ProfileController extends AbstractController
                     }
                 }
             }
-            
+
             $entityManager->flush();
-            
+
             $this->flashUpdated('Профиль успешно обновлен');
-            
+
             try {
                 return $this->redirectToRoute('app_profile_show');
             } finally {

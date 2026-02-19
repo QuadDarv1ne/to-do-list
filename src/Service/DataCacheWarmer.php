@@ -4,9 +4,9 @@ namespace App\Service;
 
 use App\Repository\TaskRepository;
 use App\Repository\UserRepository;
+use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
-use Psr\Log\LoggerInterface;
 
 /**
  * Предварительный прогрев кэша для часто используемых данных
@@ -17,8 +17,9 @@ class DataCacheWarmer
         private CacheInterface $cache,
         private TaskRepository $taskRepository,
         private UserRepository $userRepository,
-        private LoggerInterface $logger
-    ) {}
+        private LoggerInterface $logger,
+    ) {
+    }
 
     /**
      * Прогрев кэша для всех активных пользователей
@@ -28,25 +29,25 @@ class DataCacheWarmer
         $results = [
             'users_processed' => 0,
             'cache_entries' => 0,
-            'errors' => 0
+            'errors' => 0,
         ];
 
         try {
             // Используем пагинацию вместо findAll() для экономии памяти
             $batchSize = 50;
             $offset = 0;
-            
+
             while (true) {
                 $users = $this->userRepository->createQueryBuilder('u')
                     ->setMaxResults($batchSize)
                     ->setFirstResult($offset)
                     ->getQuery()
                     ->getResult();
-                
+
                 if (empty($users)) {
                     break;
                 }
-                
+
                 foreach ($users as $user) {
                     try {
                         $this->warmupUserCache($user);
@@ -56,13 +57,13 @@ class DataCacheWarmer
                         $results['errors']++;
                         $this->logger->error('Cache warmup failed for user', [
                             'user_id' => $user->getId(),
-                            'error' => $e->getMessage()
+                            'error' => $e->getMessage(),
                         ]);
                     }
                 }
-                
+
                 $offset += $batchSize;
-                
+
                 // Очищаем EntityManager для освобождения памяти
                 $this->userRepository->getEntityManager()->clear();
             }
@@ -84,8 +85,9 @@ class DataCacheWarmer
             'task_stats_' . $user->getId(),
             function (ItemInterface $item) use ($user) {
                 $item->expiresAfter(300); // 5 минут
+
                 return $this->taskRepository->getQuickStats($user);
-            }
+            },
         );
 
         // Кэшируем тренды
@@ -93,8 +95,9 @@ class DataCacheWarmer
             'task_trends_' . $user->getId(),
             function (ItemInterface $item) use ($user) {
                 $item->expiresAfter(600); // 10 минут
+
                 return $this->taskRepository->getTaskCompletionTrendsByDate($user, 30);
-            }
+            },
         );
 
         // Кэшируем данные дашборда
@@ -102,11 +105,12 @@ class DataCacheWarmer
             'dashboard_data_' . $user->getId(),
             function (ItemInterface $item) use ($user) {
                 $item->expiresAfter(120); // 2 минуты
+
                 return [
                     'timestamp' => time(),
-                    'user_id' => $user->getId()
+                    'user_id' => $user->getId(),
                 ];
-            }
+            },
         );
     }
 
@@ -118,7 +122,7 @@ class DataCacheWarmer
         $keys = [
             'task_stats_' . $user->getId(),
             'task_trends_' . $user->getId(),
-            'dashboard_data_' . $user->getId()
+            'dashboard_data_' . $user->getId(),
         ];
 
         foreach ($keys as $key) {
@@ -127,7 +131,7 @@ class DataCacheWarmer
             } catch (\Exception $e) {
                 $this->logger->warning('Failed to invalidate cache', [
                     'key' => $key,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ]);
             }
         }

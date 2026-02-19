@@ -5,7 +5,6 @@ namespace App\Entity;
 use App\Repository\TaskRecurrenceRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use App\Entity\Task;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: TaskRecurrenceRepository::class)]
@@ -178,7 +177,6 @@ class TaskRecurrence
     /**
      * Get days of week as array
      *
-     * @return array|null
      */
     public function getDaysOfWeekArray(): ?array
     {
@@ -188,7 +186,6 @@ class TaskRecurrence
     /**
      * Getter for Twig template to access days of week array
      *
-     * @return array|null
      */
     public function getDaysOfWeekArrayForTemplate(): ?array
     {
@@ -198,20 +195,17 @@ class TaskRecurrence
     /**
      * Set days of week from array
      *
-     * @param array|null $days
-     * @return static
      */
     public function setDaysOfWeekFromArray(?array $days): static
     {
         $this->daysOfWeek = $days ? implode(',', $days) : null;
-        
+
         return $this;
     }
 
     /**
      * Get days of month as array
      *
-     * @return array|null
      */
     public function getDaysOfMonthArray(): ?array
     {
@@ -221,7 +215,6 @@ class TaskRecurrence
     /**
      * Getter for Twig template to access days of month array
      *
-     * @return array|null
      */
     public function getDaysOfMonthArrayForTemplate(): ?array
     {
@@ -231,13 +224,11 @@ class TaskRecurrence
     /**
      * Set days of month from array
      *
-     * @param array|null $days
-     * @return static
      */
     public function setDaysOfMonthFromArray(?array $days): static
     {
         $this->daysOfMonth = $days ? implode(',', $days) : null;
-        
+
         return $this;
     }
 }

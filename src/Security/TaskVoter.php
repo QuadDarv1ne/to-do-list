@@ -9,14 +9,17 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
 class TaskVoter extends Voter
 {
-    const VIEW = 'TASK_VIEW';
-    const EDIT = 'TASK_EDIT';
-    const DELETE = 'TASK_DELETE';
-    const ASSIGN = 'TASK_ASSIGN';
+    public const VIEW = 'TASK_VIEW';
+
+    public const EDIT = 'TASK_EDIT';
+
+    public const DELETE = 'TASK_DELETE';
+
+    public const ASSIGN = 'TASK_ASSIGN';
 
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return in_array($attribute, [self::VIEW, self::EDIT, self::DELETE, self::ASSIGN])
+        return \in_array($attribute, [self::VIEW, self::EDIT, self::DELETE, self::ASSIGN])
             && $subject instanceof Task;
     }
 

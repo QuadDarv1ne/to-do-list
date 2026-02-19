@@ -2,8 +2,8 @@
 
 namespace App\Repository;
 
-use App\Entity\TaskTimeTracking;
 use App\Entity\Task;
+use App\Entity\TaskTimeTracking;
 use App\Entity\User;
 use App\Repository\Traits\CachedRepositoryTrait;
 use App\Service\QueryCacheService;
@@ -16,7 +16,7 @@ use Doctrine\Persistence\ManagerRegistry;
 class TaskTimeTrackingRepository extends ServiceEntityRepository
 {
     use CachedRepositoryTrait;
-    
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, TaskTimeTracking::class);

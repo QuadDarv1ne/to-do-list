@@ -6,20 +6,21 @@ use App\Entity\Task;
 use App\Entity\TaskDependency;
 use App\Entity\TaskNotification;
 use App\Entity\User;
-use App\Service\PerformanceMonitorService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 
 class TaskDependencyNotificationService
 {
     private EntityManagerInterface $entityManager;
+
     private LoggerInterface $logger;
+
     private ?PerformanceMonitorService $performanceMonitor;
 
     public function __construct(
         EntityManagerInterface $entityManager,
         LoggerInterface $logger,
-        ?PerformanceMonitorService $performanceMonitor = null
+        ?PerformanceMonitorService $performanceMonitor = null,
     ) {
         $this->entityManager = $entityManager;
         $this->logger = $logger;
@@ -35,11 +36,12 @@ class TaskDependencyNotificationService
         Task $task,
         string $type,
         string $subject,
-        string $message
+        string $message,
     ): TaskNotification {
         if ($this->performanceMonitor) {
             $this->performanceMonitor->startTiming('task_dependency_notification_service_create_dependency_notification');
         }
+
         try {
             $notification = new TaskNotification();
             $notification->setRecipient($recipient);
@@ -71,18 +73,19 @@ class TaskDependencyNotificationService
         if ($this->performanceMonitor) {
             $this->performanceMonitor->startTiming('task_dependency_notification_service_send_dependency_created_notification');
         }
+
         try {
             $dependentTask = $dependency->getDependentTask();
             $dependencyTask = $dependency->getDependencyTask();
-            
+
             // Notify the assigned user of the dependent task
             $assignedUser = $dependentTask->getAssignedUser();
             if ($assignedUser) {
                 $subject = 'Добавлена новая зависимость';
-                $message = sprintf(
+                $message = \sprintf(
                     'Задача "%s" теперь зависит от задачи "%s". Необходимо дождаться выполнения зависимости перед началом работы.',
                     $dependentTask->getTitle(),
-                    $dependencyTask->getTitle()
+                    $dependencyTask->getTitle(),
                 );
 
                 $this->createDependencyNotification(
@@ -91,7 +94,7 @@ class TaskDependencyNotificationService
                     $dependentTask,
                     'dependency_created',
                     $subject,
-                    $message
+                    $message,
                 );
             }
         } finally {
@@ -109,18 +112,19 @@ class TaskDependencyNotificationService
         if ($this->performanceMonitor) {
             $this->performanceMonitor->startTiming('task_dependency_notification_service_send_dependency_removed_notification');
         }
+
         try {
             $dependentTask = $dependency->getDependentTask();
             $dependencyTask = $dependency->getDependencyTask();
-            
+
             // Notify the assigned user of the dependent task
             $assignedUser = $dependentTask->getAssignedUser();
             if ($assignedUser) {
                 $subject = 'Зависимость удалена';
-                $message = sprintf(
+                $message = \sprintf(
                     'Зависимость задачи "%s" от задачи "%s" была удалена.',
                     $dependentTask->getTitle(),
-                    $dependencyTask->getTitle()
+                    $dependencyTask->getTitle(),
                 );
 
                 $this->createDependencyNotification(
@@ -129,7 +133,7 @@ class TaskDependencyNotificationService
                     $dependentTask,
                     'dependency_removed',
                     $subject,
-                    $message
+                    $message,
                 );
             }
         } finally {
@@ -147,18 +151,19 @@ class TaskDependencyNotificationService
         if ($this->performanceMonitor) {
             $this->performanceMonitor->startTiming('task_dependency_notification_service_send_dependency_satisfied_notification');
         }
+
         try {
             $dependentTask = $dependency->getDependentTask();
             $dependencyTask = $dependency->getDependencyTask();
-            
+
             // Notify the assigned user of the dependent task that they can now start
             $assignedUser = $dependentTask->getAssignedUser();
             if ($assignedUser) {
                 $subject = 'Зависимость выполнена - можно начинать работу';
-                $message = sprintf(
+                $message = \sprintf(
                     'Зависимость "%s" выполнена. Теперь вы можете начать работу над задачей "%s".',
                     $dependencyTask->getTitle(),
-                    $dependentTask->getTitle()
+                    $dependentTask->getTitle(),
                 );
 
                 $this->createDependencyNotification(
@@ -167,7 +172,7 @@ class TaskDependencyNotificationService
                     $dependentTask,
                     'dependency_satisfied',
                     $subject,
-                    $message
+                    $message,
                 );
             }
         } finally {
@@ -185,6 +190,7 @@ class TaskDependencyNotificationService
         if ($this->performanceMonitor) {
             $this->performanceMonitor->startTiming('task_dependency_notification_service_send_task_blocked_notification');
         }
+
         try {
             $assignedUser = $task->getAssignedUser();
             if (!$assignedUser) {
@@ -203,14 +209,14 @@ class TaskDependencyNotificationService
                 return;
             }
 
-            $dependencyTitles = array_map(fn($dep) => $dep->getTitle(), $blockingDependencies);
+            $dependencyTitles = array_map(fn ($dep) => $dep->getTitle(), $blockingDependencies);
             $dependencyList = implode(', ', $dependencyTitles);
 
             $subject = 'Задача заблокирована';
-            $message = sprintf(
+            $message = \sprintf(
                 'Задача "%s" заблокирована из-за невыполненных зависимостей: %s. Работа над задачей может начаться после выполнения зависимостей.',
                 $task->getTitle(),
-                $dependencyList
+                $dependencyList,
             );
 
             $this->createDependencyNotification(
@@ -219,7 +225,7 @@ class TaskDependencyNotificationService
                 $task,
                 'task_blocked',
                 $subject,
-                $message
+                $message,
             );
         } finally {
             if ($this->performanceMonitor) {
@@ -236,6 +242,7 @@ class TaskDependencyNotificationService
         if ($this->performanceMonitor) {
             $this->performanceMonitor->startTiming('task_dependency_notification_service_send_task_unblocked_notification');
         }
+
         try {
             $assignedUser = $task->getAssignedUser();
             if (!$assignedUser) {
@@ -243,9 +250,9 @@ class TaskDependencyNotificationService
             }
 
             $subject = 'Задача разблокирована - можно начинать работу';
-            $message = sprintf(
+            $message = \sprintf(
                 'Задача "%s" разблокирована. Все зависимости выполнены, теперь можно начинать работу.',
-                $task->getTitle()
+                $task->getTitle(),
             );
 
             $this->createDependencyNotification(
@@ -254,7 +261,7 @@ class TaskDependencyNotificationService
                 $task,
                 'task_unblocked',
                 $subject,
-                $message
+                $message,
             );
         } finally {
             if ($this->performanceMonitor) {

@@ -120,7 +120,7 @@ class DealRepository extends ServiceEntityRepository
         }
 
         $results = $qb->getQuery()->getResult();
-        
+
         $counts = [
             'in_progress' => 0,
             'won' => 0,
@@ -177,7 +177,7 @@ class DealRepository extends ServiceEntityRepository
         }
 
         $results = $qb->getQuery()->getResult();
-        
+
         $won = 0;
         $total = 0;
 

@@ -12,7 +12,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:cleanup-data',
-    description: 'Clean up old data from the application'
+    description: 'Clean up old data from the application',
 )]
 class DataCleanupCommand extends Command
 {
@@ -41,7 +41,7 @@ class DataCleanupCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $action = $input->getOption('action');
         $dryRun = $input->getOption('dry-run');
-        
+
         $options = [
             'activity_logs_days' => (int)$input->getOption('activity-logs-days'),
             'notifications_days' => (int)$input->getOption('notifications-days'),
@@ -56,9 +56,9 @@ class DataCleanupCommand extends Command
             case 'cleanup':
                 if ($dryRun) {
                     $io->writeln('<comment>Dry run mode - no data will be deleted</comment>');
-                    
+
                     $stats = $this->dataCleanupService->getOldDataStatistics($options);
-                    
+
                     $io->section('Data that would be cleaned:');
                     $io->table(
                         ['Data Type', 'Records to Clean'],
@@ -68,13 +68,13 @@ class DataCleanupCommand extends Command
                             ['Comments (older than ' . $options['comments_days'] . ' days)', $stats['comments_old']],
                             ['Time Tracking (older than ' . $options['time_tracking_days'] . ' days)', $stats['time_tracking_old']],
                             ['Password Reset Requests (older than ' . $options['password_reset_days'] . ' days)', $stats['password_reset_requests_old']],
-                        ]
+                        ],
                     );
                 } else {
                     $io->writeln('Starting data cleanup...');
-                    
+
                     $results = $this->dataCleanupService->performComprehensiveCleanup($options);
-                    
+
                     $io->success('Data cleanup completed!');
                     $io->table(
                         ['Data Type', 'Records Deleted'],
@@ -85,17 +85,18 @@ class DataCleanupCommand extends Command
                             ['Time Tracking', $results['time_tracking_deleted']],
                             ['Password Reset Requests', $results['password_reset_requests_deleted']],
                             ['Total', $results['total_deleted']],
-                        ]
+                        ],
                     );
                     $io->writeln('Duration: ' . $results['duration'] . ' seconds');
                 }
+
                 break;
 
             case 'stats':
                 $io->writeln('Getting old data statistics...');
-                
+
                 $stats = $this->dataCleanupService->getOldDataStatistics($options);
-                
+
                 $io->success('Old data statistics:');
                 $io->table(
                     ['Data Type', 'Old Records Count'],
@@ -105,12 +106,14 @@ class DataCleanupCommand extends Command
                         ['Comments (older than ' . $options['comments_days'] . ' days)', $stats['comments_old']],
                         ['Time Tracking (older than ' . $options['time_tracking_days'] . ' days)', $stats['time_tracking_old']],
                         ['Password Reset Requests (older than ' . $options['password_reset_days'] . ' days)', $stats['password_reset_requests_old']],
-                    ]
+                    ],
                 );
+
                 break;
 
             default:
                 $io->error("Unknown action: {$action}. Use cleanup or stats.");
+
                 return 1;
         }
 

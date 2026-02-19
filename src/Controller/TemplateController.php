@@ -4,17 +4,18 @@ namespace App\Controller;
 
 use App\Service\TaskTemplateLibraryService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/templates')]
 class TemplateController extends AbstractController
 {
     public function __construct(
-        private TaskTemplateLibraryService $templateService
-    ) {}
+        private TaskTemplateLibraryService $templateService,
+    ) {
+    }
 
     #[Route('', name: 'app_templates_index')]
     public function index(): Response
@@ -27,7 +28,7 @@ class TemplateController extends AbstractController
         return $this->render('templates/index.html.twig', [
             'templates' => $templates,
             'categories' => $categories,
-            'custom_templates' => $customTemplates
+            'custom_templates' => $customTemplates,
         ]);
     }
 
@@ -35,6 +36,7 @@ class TemplateController extends AbstractController
     public function apiAll(): JsonResponse
     {
         $templates = $this->templateService->getAllTemplates();
+
         return $this->json($templates);
     }
 
@@ -42,7 +44,7 @@ class TemplateController extends AbstractController
     public function apiGet(string $key): JsonResponse
     {
         $template = $this->templateService->getTemplate($key);
-        
+
         if (!$template) {
             return $this->json(['error' => 'Template not found'], 404);
         }
@@ -58,11 +60,11 @@ class TemplateController extends AbstractController
 
         try {
             $task = $this->templateService->createFromTemplate($key, $user, $overrides);
-            
+
             return $this->json([
                 'success' => true,
                 'task_id' => $task->getId(),
-                'redirect' => $this->generateUrl('app_task_show', ['id' => $task->getId()])
+                'redirect' => $this->generateUrl('app_task_show', ['id' => $task->getId()]),
             ]);
         } catch (\Exception $e) {
             return $this->json(['error' => $e->getMessage()], 400);
@@ -73,6 +75,7 @@ class TemplateController extends AbstractController
     public function byCategory(string $category): JsonResponse
     {
         $templates = $this->templateService->getTemplatesByCategory($category);
+
         return $this->json($templates);
     }
 
@@ -81,7 +84,7 @@ class TemplateController extends AbstractController
     {
         $query = $request->query->get('q', '');
         $templates = $this->templateService->searchTemplates($query);
-        
+
         return $this->json($templates);
     }
 
@@ -101,6 +104,7 @@ class TemplateController extends AbstractController
     public function popular(): JsonResponse
     {
         $templates = $this->templateService->getPopularTemplates(5);
+
         return $this->json($templates);
     }
 }

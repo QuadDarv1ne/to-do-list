@@ -17,8 +17,9 @@ class ExceptionSubscriber implements EventSubscriberInterface
 {
     public function __construct(
         private LoggerInterface $logger,
-        private string $environment
-    ) {}
+        private string $environment,
+    ) {
+    }
 
     public static function getSubscribedEvents(): array
     {
@@ -34,7 +35,7 @@ class ExceptionSubscriber implements EventSubscriberInterface
 
         // Логируем исключение
         $this->logger->error('Exception caught', [
-            'exception' => get_class($exception),
+            'exception' => \get_class($exception),
             'message' => $exception->getMessage(),
             'file' => $exception->getFile(),
             'line' => $exception->getLine(),
@@ -50,13 +51,14 @@ class ExceptionSubscriber implements EventSubscriberInterface
         // Для API запросов возвращаем JSON
         if ($this->isApiRequest($request)) {
             $response = new JsonResponse([
-                'error' => $this->environment === 'prod' 
-                    ? 'Произошла ошибка на сервере' 
+                'error' => $this->environment === 'prod'
+                    ? 'Произошла ошибка на сервере'
                     : $exception->getMessage(),
                 'code' => $statusCode,
             ], $statusCode);
 
             $event->setResponse($response);
+
             return;
         }
 

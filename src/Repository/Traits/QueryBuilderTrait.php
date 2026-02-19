@@ -18,30 +18,30 @@ trait QueryBuilderTrait
             ->andWhere("{$alias}.user = :user")
             ->setParameter('user', $user);
     }
-    
+
     /**
      * Add date range filter
      */
     protected function addDateRangeFilter(
-        QueryBuilder $qb, 
-        ?\DateTimeInterface $from, 
-        ?\DateTimeInterface $to, 
+        QueryBuilder $qb,
+        ?\DateTimeInterface $from,
+        ?\DateTimeInterface $to,
         string $field = 'createdAt',
-        string $alias = 't'
+        string $alias = 't',
     ): QueryBuilder {
         if ($from) {
             $qb->andWhere("{$alias}.{$field} >= :dateFrom")
                ->setParameter('dateFrom', $from);
         }
-        
+
         if ($to) {
             $qb->andWhere("{$alias}.{$field} <= :dateTo")
                ->setParameter('dateTo', $to);
         }
-        
+
         return $qb;
     }
-    
+
     /**
      * Add status filter
      */
@@ -51,10 +51,10 @@ trait QueryBuilderTrait
             $qb->andWhere("{$alias}.status = :status")
                ->setParameter('status', $status);
         }
-        
+
         return $qb;
     }
-    
+
     /**
      * Add active filter
      */
@@ -64,19 +64,19 @@ trait QueryBuilderTrait
             ->andWhere("{$alias}.isActive = :active")
             ->setParameter('active', $active);
     }
-    
+
     /**
      * Add ordering
      */
     protected function addOrdering(
-        QueryBuilder $qb, 
-        string $field = 'createdAt', 
+        QueryBuilder $qb,
+        string $field = 'createdAt',
         string $direction = 'DESC',
-        string $alias = 't'
+        string $alias = 't',
     ): QueryBuilder {
         return $qb->orderBy("{$alias}.{$field}", $direction);
     }
-    
+
     /**
      * Add pagination
      */

@@ -16,47 +16,53 @@ echo "🏥 Health Check for To-Do List Application\n";
 echo "==========================================\n\n";
 
 $checks = [
-    'PHP Version' => function() {
+    'PHP Version' => function () {
         $version = PHP_VERSION;
         $required = '8.5.0';
         $ok = version_compare($version, $required, '>=');
+
         return [$ok, "Current: $version, Required: >= $required"];
     },
-    
-    'Composer Autoload' => function() {
-        return [class_exists('Symfony\Component\HttpKernel\Kernel'), 'Symfony classes loaded'];
+
+    'Composer Autoload' => function () {
+        return [class_exists('Symfony\\Component\\HttpKernel\\Kernel'), 'Symfony classes loaded'];
     },
-    
-    'Environment File' => function() {
+
+    'Environment File' => function () {
         return [file_exists(__DIR__ . '/../.env'), '.env file exists'];
     },
-    
-    'Database URL' => function() {
+
+    'Database URL' => function () {
         $dbUrl = $_ENV['DATABASE_URL'] ?? null;
+
         return [$dbUrl !== null, $dbUrl ? 'Configured' : 'Not configured'];
     },
-    
-    'Var Directory' => function() {
+
+    'Var Directory' => function () {
         $varDir = __DIR__ . '/../var';
         $writable = is_dir($varDir) && is_writable($varDir);
+
         return [$writable, $writable ? 'Writable' : 'Not writable'];
     },
-    
-    'Cache Directory' => function() {
+
+    'Cache Directory' => function () {
         $cacheDir = __DIR__ . '/../var/cache';
         $exists = is_dir($cacheDir);
+
         return [$exists, $exists ? 'Exists' : 'Not found'];
     },
-    
-    'Public Directory' => function() {
+
+    'Public Directory' => function () {
         $publicDir = __DIR__ . '/../public';
         $exists = is_dir($publicDir) && file_exists($publicDir . '/index.php');
+
         return [$exists, $exists ? 'Ready' : 'Missing index.php'];
     },
-    
-    'Vendor Directory' => function() {
+
+    'Vendor Directory' => function () {
         $vendorDir = __DIR__ . '/../vendor';
         $exists = is_dir($vendorDir);
+
         return [$exists, $exists ? 'Dependencies installed' : 'Run composer install'];
     },
 ];
@@ -67,7 +73,7 @@ $failed = 0;
 foreach ($checks as $name => $check) {
     try {
         [$ok, $message] = $check();
-        
+
         if ($ok) {
             echo "✅ $name: $message\n";
             $passed++;

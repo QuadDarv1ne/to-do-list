@@ -26,9 +26,9 @@ enum TaskStatus: string
     public function canTransitionTo(self $newStatus): bool
     {
         return match ($this) {
-            self::PENDING => in_array($newStatus, [self::IN_PROGRESS, self::COMPLETED]),
-            self::IN_PROGRESS => in_array($newStatus, [self::PENDING, self::COMPLETED]),
-            self::COMPLETED => in_array($newStatus, [self::PENDING, self::IN_PROGRESS]),
+            self::PENDING => \in_array($newStatus, [self::IN_PROGRESS, self::COMPLETED]),
+            self::IN_PROGRESS => \in_array($newStatus, [self::PENDING, self::COMPLETED]),
+            self::COMPLETED => \in_array($newStatus, [self::PENDING, self::IN_PROGRESS]),
         };
     }
 

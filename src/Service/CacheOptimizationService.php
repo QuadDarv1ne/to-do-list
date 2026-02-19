@@ -2,16 +2,17 @@
 
 namespace App\Service;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
-use Doctrine\ORM\EntityManagerInterface;
 
 class CacheOptimizationService
 {
     public function __construct(
         private CacheInterface $cache,
-        private EntityManagerInterface $entityManager
-    ) {}
+        private EntityManagerInterface $entityManager,
+    ) {
+    }
 
     /**
      * Кэширование результатов запросов с автоматической инвалидацией
@@ -23,6 +24,7 @@ class CacheOptimizationService
             if (!empty($tags)) {
                 $item->tag($tags);
             }
+
             return $callback();
         });
     }
@@ -34,15 +36,16 @@ class CacheOptimizationService
     {
         return $this->cacheQuery(
             "user_stats_{$userId}",
-            function() use ($userId) {
+            function () use ($userId) {
                 $qb = $this->entityManager->createQueryBuilder();
+
                 return $qb->select([
                     'COUNT(CASE WHEN t.status = :completed THEN 1 END) as completed_tasks',
                     'COUNT(CASE WHEN t.status = :pending THEN 1 END) as pending_tasks',
                     'COUNT(CASE WHEN t.status = :in_progress THEN 1 END) as in_progress_tasks',
-                    'COUNT(t.id) as total_tasks'
+                    'COUNT(t.id) as total_tasks',
                 ])
-                ->from('App\Entity\Task', 't')
+                ->from('App\\Entity\\Task', 't')
                 ->where('t.user = :userId OR t.assignedUser = :userId')
                 ->setParameter('userId', $userId)
                 ->setParameter('completed', 'completed')
@@ -52,7 +55,7 @@ class CacheOptimizationService
                 ->getSingleResult();
             },
             600, // 10 минут
-            ['user_stats', "user_{$userId}"]
+            ['user_stats', "user_{$userId}"],
         );
     }
 
@@ -63,10 +66,11 @@ class CacheOptimizationService
     {
         return $this->cacheQuery(
             'popular_tags',
-            function() use ($limit) {
+            function () use ($limit) {
                 $qb = $this->entityManager->createQueryBuilder();
+
                 return $qb->select('tag.name, COUNT(tt.task) as usage_count')
-                    ->from('App\Entity\Tag', 'tag')
+                    ->from('App\\Entity\\Tag', 'tag')
                     ->leftJoin('tag.tasks', 'tt')
                     ->groupBy('tag.id')
                     ->orderBy('usage_count', 'DESC')
@@ -75,7 +79,7 @@ class CacheOptimizationService
                     ->getResult();
             },
             1800, // 30 минут
-            ['tags', 'popular_tags']
+            ['tags', 'popular_tags'],
         );
     }
 
@@ -86,10 +90,11 @@ class CacheOptimizationService
     {
         return $this->cacheQuery(
             'categories_with_counts',
-            function() {
+            function () {
                 $qb = $this->entityManager->createQueryBuilder();
+
                 return $qb->select('c, COUNT(t.id) as task_count')
-                    ->from('App\Entity\TaskCategory', 'c')
+                    ->from('App\\Entity\\TaskCategory', 'c')
                     ->leftJoin('c.tasks', 't')
                     ->groupBy('c.id')
                     ->orderBy('c.name', 'ASC')
@@ -97,7 +102,7 @@ class CacheOptimizationService
                     ->getResult();
             },
             900, // 15 минут
-            ['categories']
+            ['categories'],
         );
     }
 
@@ -142,10 +147,10 @@ class CacheOptimizationService
     {
         // Загружаем популярные теги
         $this->getPopularTags();
-        
+
         // Загружаем категории
         $this->getCategoriesWithCounts();
-        
+
         // Можно добавить другие часто используемые данные
     }
 

@@ -91,6 +91,7 @@ class Deal
     public function setTitle(string $title): static
     {
         $this->title = $title;
+
         return $this;
     }
 
@@ -102,6 +103,7 @@ class Deal
     public function setClient(?Client $client): static
     {
         $this->client = $client;
+
         return $this;
     }
 
@@ -113,6 +115,7 @@ class Deal
     public function setManager(?User $manager): static
     {
         $this->manager = $manager;
+
         return $this;
     }
 
@@ -124,6 +127,7 @@ class Deal
     public function setAmount(string $amount): static
     {
         $this->amount = $amount;
+
         return $this;
     }
 
@@ -136,12 +140,12 @@ class Deal
     {
         $oldStage = $this->stage;
         $this->stage = $stage;
-        
+
         // Log stage change
         if ($oldStage !== $stage) {
             $this->addHistoryEntry('stage_changed', "Этап изменён с '{$oldStage}' на '{$stage}'");
         }
-        
+
         return $this;
     }
 
@@ -154,17 +158,17 @@ class Deal
     {
         $oldStatus = $this->status;
         $this->status = $status;
-        
+
         // Set actual close date when deal is won or lost
-        if (in_array($status, ['won', 'lost']) && $this->actualCloseDate === null) {
+        if (\in_array($status, ['won', 'lost']) && $this->actualCloseDate === null) {
             $this->actualCloseDate = new \DateTime();
         }
-        
+
         // Log status change
         if ($oldStatus !== $status) {
             $this->addHistoryEntry('status_changed', "Статус изменён с '{$oldStatus}' на '{$status}'");
         }
-        
+
         return $this;
     }
 
@@ -176,6 +180,7 @@ class Deal
     public function setCreatedAt(\DateTimeInterface $createdAt): static
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 
@@ -187,6 +192,7 @@ class Deal
     public function setUpdatedAt(?\DateTimeInterface $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
+
         return $this;
     }
 
@@ -198,6 +204,7 @@ class Deal
     public function setExpectedCloseDate(?\DateTimeInterface $expectedCloseDate): static
     {
         $this->expectedCloseDate = $expectedCloseDate;
+
         return $this;
     }
 
@@ -209,6 +216,7 @@ class Deal
     public function setActualCloseDate(?\DateTimeInterface $actualCloseDate): static
     {
         $this->actualCloseDate = $actualCloseDate;
+
         return $this;
     }
 
@@ -220,6 +228,7 @@ class Deal
     public function setDescription(?string $description): static
     {
         $this->description = $description;
+
         return $this;
     }
 
@@ -231,6 +240,7 @@ class Deal
     public function setLostReason(?string $lostReason): static
     {
         $this->lostReason = $lostReason;
+
         return $this;
     }
 
@@ -248,6 +258,7 @@ class Deal
             $this->history->add($history);
             $history->setDeal($this);
         }
+
         return $this;
     }
 
@@ -258,6 +269,7 @@ class Deal
                 $history->setDeal(null);
             }
         }
+
         return $this;
     }
 
@@ -271,7 +283,7 @@ class Deal
         $history->setAction($action);
         $history->setDescription($description);
         $history->setCreatedAt(new \DateTime());
-        
+
         $this->history->add($history);
     }
 
@@ -312,10 +324,10 @@ class Deal
         if ($this->expectedCloseDate === null) {
             return null;
         }
-        
+
         $now = new \DateTime();
         $diff = $now->diff($this->expectedCloseDate);
-        
+
         return $diff->invert ? -$diff->days : $diff->days;
     }
 
@@ -327,7 +339,7 @@ class Deal
         if ($this->expectedCloseDate === null || $this->status !== 'in_progress') {
             return false;
         }
-        
+
         return new \DateTime() > $this->expectedCloseDate;
     }
 

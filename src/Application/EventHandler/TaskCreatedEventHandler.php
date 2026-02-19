@@ -3,8 +3,8 @@
 namespace App\Application\EventHandler;
 
 use App\Domain\Task\Event\TaskCreated;
-use App\Service\NotificationService;
 use App\Repository\UserRepository;
+use App\Service\NotificationService;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
@@ -14,7 +14,7 @@ final readonly class TaskCreatedEventHandler
     public function __construct(
         private NotificationService $notificationService,
         private UserRepository $userRepository,
-        private LoggerInterface $logger
+        private LoggerInterface $logger,
     ) {
     }
 
@@ -33,12 +33,12 @@ final readonly class TaskCreatedEventHandler
             $this->notificationService->createNotification(
                 $assignedUser,
                 'Новая задача',
-                sprintf(
+                \sprintf(
                     'Вам назначена задача "%s" пользователем %s',
                     $event->getTitle()->toString(),
-                    $createdByUser->getFullName()
+                    $createdByUser->getFullName(),
                 ),
-                null
+                null,
             );
         }
 

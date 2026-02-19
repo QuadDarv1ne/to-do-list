@@ -12,7 +12,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:performance-audit',
-    description: 'Run automatic performance audit of the application'
+    description: 'Run automatic performance audit of the application',
 )]
 class PerformanceAuditCommand extends Command
 {
@@ -50,12 +50,12 @@ class PerformanceAuditCommand extends Command
             $checksToRun = array_intersect($requestedChecks, $availableChecks);
         }
 
-        $io->writeln("Running performance audit...");
-        $io->writeln("Checks to run: " . implode(', ', $checksToRun));
+        $io->writeln('Running performance audit...');
+        $io->writeln('Checks to run: ' . implode(', ', $checksToRun));
 
         // Run the audit
         $auditResults = $this->performanceAuditService->runAudit([
-            'checks' => $checksToRun
+            'checks' => $checksToRun,
         ]);
 
         // Generate summary
@@ -66,11 +66,11 @@ class PerformanceAuditCommand extends Command
             $outputData = [
                 'summary' => $summary,
                 'details' => $auditResults,
-                'timestamp' => date('Y-m-d H:i:s')
+                'timestamp' => date('Y-m-d H:i:s'),
             ];
-            
+
             $jsonData = json_encode($outputData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-            
+
             if ($outputFile) {
                 file_put_contents($outputFile, $jsonData);
                 $io->success("Audit results saved to {$outputFile}");
@@ -80,7 +80,7 @@ class PerformanceAuditCommand extends Command
         } else {
             // Text format output
             $this->displayTextReport($io, $auditResults, $summary);
-            
+
             if ($outputFile) {
                 $textData = $this->getTextReport($auditResults, $summary);
                 file_put_contents($outputFile, $textData);
@@ -106,15 +106,16 @@ class PerformanceAuditCommand extends Command
                 ['Critical Issues', $summary['critical_issues']],
                 ['Warnings', $summary['warnings']],
                 ['Passed Checks', $summary['passed_checks']],
-            ]
+            ],
         );
 
         // Display detailed results
         foreach ($auditResults['checks'] as $checkName => $results) {
             $io->section(ucfirst(str_replace('_', ' ', $checkName)) . ' Check');
-            
+
             if (isset($results['error'])) {
                 $io->error("Error in {$checkName} check: " . $results['error']);
+
                 continue;
             }
 
@@ -128,23 +129,23 @@ class PerformanceAuditCommand extends Command
             if ($key === 'recommendations' && !empty($value)) {
                 $io->writeln('<comment>Recommendations:</comment>');
                 foreach ($value as $rec) {
-                    if (is_array($rec)) {
-                        $io->writeln("  • " . ($rec['reason'] ?? json_encode($rec)));
+                    if (\is_array($rec)) {
+                        $io->writeln('  • ' . ($rec['reason'] ?? json_encode($rec)));
                     } else {
-                        $io->writeln("  • " . $rec);
+                        $io->writeln('  • ' . $rec);
                     }
                 }
             } elseif ($key === 'potential_issues' && !empty($value)) {
                 $io->writeln('<comment>Potential Issues:</comment>');
                 foreach ($value as $issue) {
-                    if (is_array($issue)) {
-                        $io->writeln("  • " . ($issue['type'] ?? 'Unknown') . ": " . ($issue['file'] ?? json_encode($issue)));
+                    if (\is_array($issue)) {
+                        $io->writeln('  • ' . ($issue['type'] ?? 'Unknown') . ': ' . ($issue['file'] ?? json_encode($issue)));
                     } else {
-                        $io->writeln("  • " . $issue);
+                        $io->writeln('  • ' . $issue);
                     }
                 }
             } elseif ($key !== 'recommendations' && $key !== 'potential_issues') {
-                if (is_array($value)) {
+                if (\is_array($value)) {
                     $io->writeln($key . ': ' . json_encode($value));
                 } else {
                     $io->writeln($key . ': ' . $value);
@@ -156,14 +157,14 @@ class PerformanceAuditCommand extends Command
     private function getTextReport(array $auditResults, array $summary): string
     {
         $report = "PERFORMANCE AUDIT REPORT\n";
-        $report .= str_repeat("=", 50) . "\n\n";
+        $report .= str_repeat('=', 50) . "\n\n";
 
         $report .= "Timestamp: {$auditResults['timestamp']}\n";
         $report .= "Duration: {$auditResults['duration_ms']} ms\n";
         $report .= "Environment: {$auditResults['environment']}\n\n";
 
         $report .= "SUMMARY\n";
-        $report .= str_repeat("-", 20) . "\n";
+        $report .= str_repeat('-', 20) . "\n";
         $report .= "Overall Score: {$summary['overall_score']}/100\n";
         $report .= "Status: {$summary['status']}\n";
         $report .= "Critical Issues: {$summary['critical_issues']}\n";
@@ -172,10 +173,11 @@ class PerformanceAuditCommand extends Command
 
         foreach ($auditResults['checks'] as $checkName => $results) {
             $report .= strtoupper(str_replace('_', ' ', $checkName)) . " CHECK\n";
-            $report .= str_repeat("-", 30) . "\n";
+            $report .= str_repeat('-', 30) . "\n";
 
             if (isset($results['error'])) {
                 $report .= "Error: {$results['error']}\n\n";
+
                 continue;
             }
 
@@ -183,18 +185,18 @@ class PerformanceAuditCommand extends Command
                 if ($key === 'recommendations' && !empty($value)) {
                     $report .= "Recommendations:\n";
                     foreach ($value as $rec) {
-                        $report .= "  • " . (is_array($rec) ? ($rec['reason'] ?? json_encode($rec)) : $rec) . "\n";
+                        $report .= '  • ' . (\is_array($rec) ? ($rec['reason'] ?? json_encode($rec)) : $rec) . "\n";
                     }
                     $report .= "\n";
                 } elseif ($key === 'potential_issues' && !empty($value)) {
                     $report .= "Potential Issues:\n";
                     foreach ($value as $issue) {
-                        $report .= "  • " . (is_array($issue) ? ($issue['type'] ?? 'Unknown') . ": " . ($issue['file'] ?? json_encode($issue)) : $issue) . "\n";
+                        $report .= '  • ' . (\is_array($issue) ? ($issue['type'] ?? 'Unknown') . ': ' . ($issue['file'] ?? json_encode($issue)) : $issue) . "\n";
                     }
                     $report .= "\n";
                 } elseif ($key !== 'recommendations' && $key !== 'potential_issues') {
                     $report .= "{$key}: ";
-                    $report .= is_array($value) ? json_encode($value) : $value;
+                    $report .= \is_array($value) ? json_encode($value) : $value;
                     $report .= "\n";
                 }
             }

@@ -12,12 +12,12 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:run-task-automation',
-    description: 'Run task automation rules'
+    description: 'Run task automation rules',
 )]
 class RunTaskAutomationCommand extends Command
 {
     public function __construct(
-        private TaskAutomationService $automationService
+        private TaskAutomationService $automationService,
     ) {
         parent::__construct();
     }
@@ -56,8 +56,8 @@ class RunTaskAutomationCommand extends Command
                     ['Auto-close', $results['auto_closed']],
                     ['Auto-escalate', $results['auto_escalated']],
                     ['Auto-tag', $results['auto_tagged']],
-                    ['Auto-status', $results['auto_status_updated']]
-                ]
+                    ['Auto-status', $results['auto_status_updated']],
+                ],
             );
 
             $total = array_sum($results);

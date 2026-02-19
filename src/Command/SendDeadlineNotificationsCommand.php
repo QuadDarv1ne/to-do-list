@@ -11,7 +11,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:send-deadline-notifications',
-    description: 'Send deadline notifications for upcoming tasks'
+    description: 'Send deadline notifications for upcoming tasks',
 )]
 class SendDeadlineNotificationsCommand extends Command
 {
@@ -27,12 +27,12 @@ class SendDeadlineNotificationsCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
         $io->title('Sending Deadline Notifications');
-        
+
         try {
             $results = $this->deadlineNotificationService->sendUpcomingDeadlineNotifications();
-            
+
             $io->success('Deadline notifications sent successfully!');
-            
+
             $io->table(
                 ['Notification Type', 'Count'],
                 [
@@ -40,10 +40,10 @@ class SendDeadlineNotificationsCommand extends Command
                     ['Push Notifications', $results['push_sent']],
                     ['SMS Notifications', $results['sms_sent']],
                     ['Failed Notifications', $results['failed']],
-                    ['Total Tasks Processed', $results['tasks_processed']]
-                ]
+                    ['Total Tasks Processed', $results['tasks_processed']],
+                ],
             );
-            
+
             // Show statistics
             $stats = $this->deadlineNotificationService->getNotificationStatistics();
             $io->section('Upcoming Deadline Statistics');
@@ -54,13 +54,14 @@ class SendDeadlineNotificationsCommand extends Command
                     ['Urgent Tasks', $stats['urgent_count']],
                     ['High Priority Tasks', $stats['high_count']],
                     ['Medium Priority Tasks', $stats['medium_count']],
-                    ['Low Priority Tasks', $stats['low_count']]
-                ]
+                    ['Low Priority Tasks', $stats['low_count']],
+                ],
             );
-            
+
             return Command::SUCCESS;
         } catch (\Exception $e) {
             $io->error('Failed to send deadline notifications: ' . $e->getMessage());
+
             return Command::FAILURE;
         }
     }

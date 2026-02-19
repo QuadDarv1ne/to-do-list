@@ -126,7 +126,7 @@ class ClientRepository extends ServiceEntityRepository
     public function getClientsWithoutRecentContact(int $days = 30, ?User $manager = null): array
     {
         $date = new \DateTime("-{$days} days");
-        
+
         $qb = $this->createQueryBuilder('c')
             ->where('c.lastContactAt < :date OR c.lastContactAt IS NULL')
             ->setParameter('date', $date)

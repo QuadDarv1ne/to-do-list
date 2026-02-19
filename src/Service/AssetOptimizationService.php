@@ -7,6 +7,7 @@ use Symfony\Component\Filesystem\Filesystem;
 class AssetOptimizationService
 {
     private Filesystem $filesystem;
+
     private string $publicDir;
 
     public function __construct(string $projectDir)
@@ -33,7 +34,7 @@ class AssetOptimizationService
 
             $content = file_get_contents($file);
             $minified = $this->minifyCSSContent($content);
-            
+
             $minFile = str_replace('.css', '.min.css', $file);
             file_put_contents($minFile, $minified);
         }
@@ -45,17 +46,17 @@ class AssetOptimizationService
     private function minifyCSSContent(string $css): string
     {
         // Удаляем комментарии
-        $css = preg_replace('!/\*[^*]*\*+([^/][^*]*\*+)*/!', '', $css);
-        
+        $css = preg_replace('!/\\*[^*]*\\*+([^/][^*]*\\*+)*/!', '', $css);
+
         // Удаляем лишние пробелы и переносы строк
-        $css = preg_replace('/\s+/', ' ', $css);
-        
+        $css = preg_replace('/\\s+/', ' ', $css);
+
         // Удаляем пробелы вокруг специальных символов
-        $css = preg_replace('/\s*([{}:;,>+~])\s*/', '$1', $css);
-        
+        $css = preg_replace('/\\s*([{}:;,>+~])\\s*/', '$1', $css);
+
         // Удаляем последнюю точку с запятой в блоке
-        $css = preg_replace('/;(?=\s*})/', '', $css);
-        
+        $css = preg_replace('/;(?=\\s*})/', '', $css);
+
         // Удаляем пробелы в начале и конце
         return trim($css);
     }
@@ -91,27 +92,27 @@ class AssetOptimizationService
             '.container-fluid' => 'width:100%;padding:0 15px',
             '.row' => 'display:flex;flex-wrap:wrap;margin:0 -15px',
             '.col-md-3, .col-md-4, .col-lg-4, .col-lg-6, .col-lg-8' => 'padding:0 15px;flex:1',
-            
+
             // Карточки
             '.card' => 'background:#fff;border:1px solid #dee2e6;border-radius:0.375rem;margin-bottom:1rem',
             '.card-body' => 'padding:1rem',
             '.card-header' => 'padding:0.75rem 1rem;background:#f8f9fa;border-bottom:1px solid #dee2e6',
-            
+
             // Кнопки
             '.btn' => 'display:inline-block;padding:0.375rem 0.75rem;border:1px solid transparent;border-radius:0.375rem;text-decoration:none;cursor:pointer',
             '.btn-primary' => 'background:#0d6efd;border-color:#0d6efd;color:#fff',
             '.btn-success' => 'background:#198754;border-color:#198754;color:#fff',
-            
+
             // Утилиты
             '.text-center' => 'text-align:center',
             '.mb-3' => 'margin-bottom:1rem',
             '.d-flex' => 'display:flex',
             '.justify-content-between' => 'justify-content:space-between',
             '.align-items-center' => 'align-items:center',
-            
+
             // Скелетон загрузки
             '.skeleton' => 'background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:loading 1.5s infinite',
-            '@keyframes loading' => '0%{background-position:200% 0}100%{background-position:-200% 0}'
+            '@keyframes loading' => '0%{background-position:200% 0}100%{background-position:-200% 0}',
         ];
 
         $criticalCSS = '';
@@ -162,6 +163,7 @@ class AssetOptimizationService
                     imagejpeg($image, $imagePath, $quality);
                     imagedestroy($image);
                 }
+
                 break;
             case 'image/png':
                 $image = imagecreatefrompng($imagePath);
@@ -169,6 +171,7 @@ class AssetOptimizationService
                     imagepng($image, $imagePath, 9); // Максимальное сжатие для PNG
                     imagedestroy($image);
                 }
+
                 break;
         }
     }
@@ -178,7 +181,7 @@ class AssetOptimizationService
      */
     public function createWebPVersions(): void
     {
-        if (!function_exists('imagewebp')) {
+        if (!\function_exists('imagewebp')) {
             return; // WebP не поддерживается
         }
 
@@ -189,8 +192,8 @@ class AssetOptimizationService
 
         $images = glob($uploadsDir . '/*.{jpg,jpeg,png}', GLOB_BRACE);
         foreach ($images as $image) {
-            $webpPath = preg_replace('/\.(jpg|jpeg|png)$/i', '.webp', $image);
-            
+            $webpPath = preg_replace('/\\.(jpg|jpeg|png)$/i', '.webp', $image);
+
             if (file_exists($webpPath)) {
                 continue; // WebP версия уже существует
             }
@@ -269,12 +272,12 @@ JS;
         $this->optimizeImages();
         $this->createWebPVersions();
         $this->generateServiceWorker();
-        
+
         // Объединяем основные CSS файлы
         $this->combineCSS([
             'main.css',
             'components.css',
-            'dashboard-widgets.css'
+            'dashboard-widgets.css',
         ], 'combined.min.css');
     }
 }

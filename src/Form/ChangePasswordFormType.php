@@ -2,12 +2,12 @@
 
 namespace App\Form;
 
+use App\Validator\Constraints\StrongPassword;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use App\Validator\Constraints\StrongPassword;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Regex;
@@ -32,18 +32,18 @@ class ChangePasswordFormType extends AbstractType
                     ],
                     'constraints' => [
                         new NotBlank(
-                            message: 'Пожалуйста, введите пароль'
+                            message: 'Пожалуйста, введите пароль',
                         ),
                         new Length(
                             min: 8,
                             max: 4096,
                             minMessage: 'Пароль должен содержать минимум {{ limit }} символов',
-                            maxMessage: 'Пароль слишком длинный'
+                            maxMessage: 'Пароль слишком длинный',
                         ),
                         new StrongPassword(),
                         new Regex(
-                            pattern: '/^(?=.*[A-Za-z])(?=.*\d).+$/',
-                            message: 'Пароль должен содержать хотя бы одну букву и одну цифру'
+                            pattern: '/^(?=.*[A-Za-z])(?=.*\\d).+$/',
+                            message: 'Пароль должен содержать хотя бы одну букву и одну цифру',
                         ),
                     ],
                     'help' => 'Минимум 8 символов, буквы и цифры',

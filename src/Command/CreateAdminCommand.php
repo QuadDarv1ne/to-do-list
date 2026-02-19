@@ -14,17 +14,17 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 #[AsCommand(
     name: 'app:create-admin',
-    description: 'Создает администратора CRM системы'
+    description: 'Создает администратора CRM системы',
 )]
 class CreateAdminCommand extends Command
 {
-
     private EntityManagerInterface $entityManager;
+
     private UserPasswordHasherInterface $passwordHasher;
 
     public function __construct(
         EntityManagerInterface $entityManager,
-        UserPasswordHasherInterface $passwordHasher
+        UserPasswordHasherInterface $passwordHasher,
     ) {
         parent::__construct();
         $this->entityManager = $entityManager;
@@ -54,7 +54,8 @@ class CreateAdminCommand extends Command
             ->findOneBy(['email' => $email]);
 
         if ($existingUser) {
-            $io->error(sprintf('Пользователь с email "%s" уже существует!', $email));
+            $io->error(\sprintf('Пользователь с email "%s" уже существует!', $email));
+
             return Command::FAILURE;
         }
 
@@ -74,7 +75,7 @@ class CreateAdminCommand extends Command
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
-        $io->success(sprintf('Администратор "%s" успешно создан!', $email));
+        $io->success(\sprintf('Администратор "%s" успешно создан!', $email));
         $io->table(
             ['Поле', 'Значение'],
             [
@@ -82,7 +83,7 @@ class CreateAdminCommand extends Command
                 ['ФИО', $user->getFullName()],
                 ['Роли', implode(', ', $user->getRoles())],
                 ['Создан', $user->getCreatedAt()->format('Y-m-d H:i:s')],
-            ]
+            ],
         );
 
         return Command::SUCCESS;

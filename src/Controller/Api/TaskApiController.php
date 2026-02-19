@@ -15,7 +15,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
  * REST API Controller для задач
- * 
+ *
  * @see docs/API_DOCUMENTATION.md для полной документации
  */
 #[Route('/api/tasks')]
@@ -24,7 +24,7 @@ class TaskApiController extends AbstractController
 {
     public function __construct(
         private EntityManagerInterface $em,
-        private PerformanceOptimizerService $optimizer
+        private PerformanceOptimizerService $optimizer,
     ) {
     }
 
@@ -36,7 +36,7 @@ class TaskApiController extends AbstractController
     public function list(Request $request, TaskRepository $taskRepo): JsonResponse
     {
         $user = $this->getUser();
-        
+
         // Параметры запроса
         $page = (int) $request->query->get('page', 1);
         $limit = (int) $request->query->get('limit', 20);
@@ -44,76 +44,83 @@ class TaskApiController extends AbstractController
         $priority = $request->query->get('priority');
         $search = $request->query->get('search');
         $dueDate = $request->query->get('due_date');
-        
+
         // Кэширование запроса
-        $cacheKey = sprintf(
+        $cacheKey = \sprintf(
             'api_tasks_%d_%d_%s_%s_%s_%s',
             $user->getId(),
             $page,
             $status ?? 'all',
             $priority ?? 'all',
             $search ?? '',
-            $dueDate ?? ''
+            $dueDate ?? '',
         );
-        
-        $result = $this->optimizer->cacheQuery($cacheKey, function() use (
-            $taskRepo, $user, $page, $limit, $status, $priority, $search, $dueDate
+
+        $result = $this->optimizer->cacheQuery($cacheKey, function () use (
+            $taskRepo,
+            $user,
+            $page,
+            $limit,
+            $status,
+            $priority,
+            $search,
+            $dueDate
         ) {
             $query = $taskRepo->createQueryBuilder('t')
                 ->where('t.user = :user')
                 ->setParameter('user', $user)
                 ->orderBy('t.createdAt', 'DESC');
-            
+
             // Фильтры
             if ($status) {
                 $query->andWhere('t.status = :status')
                     ->setParameter('status', $status);
             }
-            
+
             if ($priority) {
                 $query->andWhere('t.priority = :priority')
                     ->setParameter('priority', $priority);
             }
-            
+
             if ($search) {
                 $query->andWhere('t.title LIKE :search OR t.description LIKE :search')
                     ->setParameter('search', '%' . $search . '%');
             }
-            
+
             if ($dueDate) {
                 $query->andWhere('t.dueDate = :dueDate')
                     ->setParameter('dueDate', $dueDate);
             }
-            
+
             // Пагинация
             $offset = ($page - 1) * $limit;
             $query->setFirstResult($offset)
                 ->setMaxResults($limit);
-            
+
             $tasks = $query->getQuery()->getResult();
-            
+
             // Общее количество для пагинации
             $totalQuery = $taskRepo->createQueryBuilder('t')
                 ->select('COUNT(t.id)')
                 ->where('t.user = :user')
                 ->setParameter('user', $user);
-            
+
             if ($status) {
                 $totalQuery->andWhere('t.status = :status')
                     ->setParameter('status', $status);
             }
-            
+
             $total = (int) $totalQuery->getQuery()->getSingleScalarResult();
-            
+
             return [
                 'tasks' => $tasks,
                 'total' => $total,
                 'page' => $page,
                 'limit' => $limit,
-                'pages' => ceil($total / $limit)
+                'pages' => ceil($total / $limit),
             ];
         }, 60); // Кэш на 1 минуту
-        
+
         return $this->json([
             'success' => true,
             'data' => $result['tasks'],
@@ -121,8 +128,8 @@ class TaskApiController extends AbstractController
                 'total' => $result['total'],
                 'page' => $result['page'],
                 'limit' => $result['limit'],
-                'pages' => $result['pages']
-            ]
+                'pages' => $result['pages'],
+            ],
         ]);
     }
 
@@ -134,10 +141,10 @@ class TaskApiController extends AbstractController
     public function get(Task $task): JsonResponse
     {
         $this->denyAccessUnlessGranted('view', $task);
-        
+
         return $this->json([
             'success' => true,
-            'data' => $task
+            'data' => $task,
         ], context: ['groups' => ['task:read']]);
     }
 
@@ -149,35 +156,35 @@ class TaskApiController extends AbstractController
     public function create(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        
+
         if (!$data || empty($data['title'])) {
             return $this->json([
                 'success' => false,
-                'error' => 'Title is required'
+                'error' => 'Title is required',
             ], Response::HTTP_BAD_REQUEST);
         }
-        
+
         $task = new Task();
         $task->setTitle($data['title']);
         $task->setDescription($data['description'] ?? null);
         $task->setPriority($data['priority'] ?? 'medium');
         $task->setStatus($data['status'] ?? 'pending');
         $task->setUser($this->getUser());
-        
+
         if (isset($data['due_date'])) {
             $task->setDueDate(new \DateTimeImmutable($data['due_date']));
         }
-        
+
         $this->em->persist($task);
         $this->em->flush();
-        
+
         // Инвалидация кэша
         $this->optimizer->invalidateByTags(['user_tasks']);
-        
+
         return $this->json([
             'success' => true,
             'data' => $task,
-            'message' => 'Task created successfully'
+            'message' => 'Task created successfully',
         ], Response::HTTP_CREATED, [], ['groups' => ['task:read']]);
     }
 
@@ -189,48 +196,48 @@ class TaskApiController extends AbstractController
     public function update(Request $request, Task $task): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $task);
-        
+
         $data = json_decode($request->getContent(), true);
-        
+
         if (!$data) {
             return $this->json([
                 'success' => false,
-                'error' => 'Invalid JSON'
+                'error' => 'Invalid JSON',
             ], Response::HTTP_BAD_REQUEST);
         }
-        
+
         // Обновление полей
         if (isset($data['title'])) {
             $task->setTitle($data['title']);
         }
-        
+
         if (isset($data['description'])) {
             $task->setDescription($data['description']);
         }
-        
+
         if (isset($data['priority'])) {
             $task->setPriority($data['priority']);
         }
-        
+
         if (isset($data['status'])) {
             $task->setStatus($data['status']);
         }
-        
+
         if (isset($data['due_date'])) {
             $task->setDueDate(new \DateTimeImmutable($data['due_date']));
         }
-        
+
         $task->setUpdatedAt(new \DateTimeImmutable());
-        
+
         $this->em->flush();
-        
+
         // Инвалидация кэша
         $this->optimizer->invalidateByTags(['user_tasks', 'task_' . $task->getId()]);
-        
+
         return $this->json([
             'success' => true,
             'data' => $task,
-            'message' => 'Task updated successfully'
+            'message' => 'Task updated successfully',
         ], context: ['groups' => ['task:read']]);
     }
 
@@ -242,21 +249,21 @@ class TaskApiController extends AbstractController
     public function toggle(Task $task): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $task);
-        
+
         $newStatus = $task->getStatus() === 'completed' ? 'pending' : 'completed';
         $task->setStatus($newStatus);
         $task->setUpdatedAt(new \DateTimeImmutable());
-        
+
         $this->em->flush();
-        
+
         return $this->json([
             'success' => true,
             'data' => [
                 'id' => $task->getId(),
                 'status' => $newStatus,
-                'completed_at' => $newStatus === 'completed' ? $task->getCompletedAt() : null
+                'completed_at' => $newStatus === 'completed' ? $task->getCompletedAt() : null,
             ],
-            'message' => 'Task status toggled'
+            'message' => 'Task status toggled',
         ]);
     }
 
@@ -268,17 +275,17 @@ class TaskApiController extends AbstractController
     public function delete(Task $task): JsonResponse
     {
         $this->denyAccessUnlessGranted('delete', $task);
-        
+
         $taskId = $task->getId();
         $this->em->remove($task);
         $this->em->flush();
-        
+
         // Инвалидация кэша
         $this->optimizer->invalidateByTags(['user_tasks', 'task_' . $taskId]);
-        
+
         return $this->json([
             'success' => true,
-            'message' => 'Task deleted successfully'
+            'message' => 'Task deleted successfully',
         ]);
     }
 
@@ -290,10 +297,10 @@ class TaskApiController extends AbstractController
     public function statistics(TaskRepository $taskRepo): JsonResponse
     {
         $user = $this->getUser();
-        
+
         $cacheKey = 'api_tasks_stats_' . $user->getId();
-        
-        $stats = $this->optimizer->cacheQuery($cacheKey, function() use ($taskRepo, $user) {
+
+        $stats = $this->optimizer->cacheQuery($cacheKey, function () use ($taskRepo, $user) {
             $qb = $taskRepo->createQueryBuilder('t')
                 ->select(
                     'COUNT(t.id) as total',
@@ -301,7 +308,7 @@ class TaskApiController extends AbstractController
                     'SUM(CASE WHEN t.status = :pending THEN 1 ELSE 0 END) as pending',
                     'SUM(CASE WHEN t.status = :in_progress THEN 1 ELSE 0 END) as in_progress',
                     'SUM(CASE WHEN t.priority = :high THEN 1 ELSE 0 END) as high_priority',
-                    'SUM(CASE WHEN t.dueDate < :today AND t.status != :completed THEN 1 ELSE 0 END) as overdue'
+                    'SUM(CASE WHEN t.dueDate < :today AND t.status != :completed THEN 1 ELSE 0 END) as overdue',
                 )
                 ->where('t.user = :user')
                 ->setParameter('user', $user)
@@ -310,10 +317,10 @@ class TaskApiController extends AbstractController
                 ->setParameter('in_progress', 'in_progress')
                 ->setParameter('high', 'high')
                 ->setParameter('today', new \DateTime());
-            
+
             return $qb->getQuery()->getSingleResult();
         }, 300); // 5 минут
-        
+
         return $this->json([
             'success' => true,
             'data' => [
@@ -322,8 +329,8 @@ class TaskApiController extends AbstractController
                 'pending' => (int) ($stats['pending'] ?? 0),
                 'in_progress' => (int) ($stats['in_progress'] ?? 0),
                 'high_priority' => (int) ($stats['high_priority'] ?? 0),
-                'overdue' => (int) ($stats['overdue'] ?? 0)
-            ]
+                'overdue' => (int) ($stats['overdue'] ?? 0),
+            ],
         ]);
     }
 
@@ -335,43 +342,43 @@ class TaskApiController extends AbstractController
     public function bulkUpdate(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        
+
         if (!$data || empty($data['task_ids']) || empty($data['changes'])) {
             return $this->json([
                 'success' => false,
-                'error' => 'task_ids and changes are required'
+                'error' => 'task_ids and changes are required',
             ], Response::HTTP_BAD_REQUEST);
         }
-        
+
         $taskIds = $data['task_ids'];
         $changes = $data['changes'];
-        
+
         $updated = 0;
         $tasks = $this->em->getRepository(Task::class)->findBy(['id' => $taskIds]);
-        
+
         foreach ($tasks as $task) {
             $this->denyAccessUnlessGranted('edit', $task);
-            
+
             if (isset($changes['status'])) {
                 $task->setStatus($changes['status']);
             }
-            
+
             if (isset($changes['priority'])) {
                 $task->setPriority($changes['priority']);
             }
-            
+
             $updated++;
         }
-        
+
         $this->em->flush();
-        
+
         // Инвалидация кэша
         $this->optimizer->invalidateByTags(['user_tasks']);
-        
+
         return $this->json([
             'success' => true,
             'data' => ['updated' => $updated],
-            'message' => "{$updated} tasks updated"
+            'message' => "{$updated} tasks updated",
         ]);
     }
 }

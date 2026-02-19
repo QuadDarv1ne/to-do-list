@@ -19,9 +19,10 @@ class KanbanController extends AbstractController
     public function __construct(
         private TaskRepository $taskRepository,
         private EntityManagerInterface $entityManager,
-        private AuditLogService $auditLog
-    ) {}
-    
+        private AuditLogService $auditLog,
+    ) {
+    }
+
     /**
      * Kanban board view
      */
@@ -31,53 +32,53 @@ class KanbanController extends AbstractController
         $user = $this->getUser();
         $categoryId = $request->query->get('category');
         $assignedUserId = $request->query->get('assigned_user');
-        
+
         // Get tasks grouped by status with optimized JOIN
         $qb = $this->taskRepository->createQueryBuilder('t')
             ->leftJoin('t.user', 'u')->addSelect('u')
             ->leftJoin('t.assignedUser', 'au')->addSelect('au')
             ->leftJoin('t.category', 'c')->addSelect('c')
             ->leftJoin('t.tags', 'tg')->addSelect('tg');
-        
+
         // Access control
-        if (!in_array('ROLE_ADMIN', $user->getRoles())) {
+        if (!\in_array('ROLE_ADMIN', $user->getRoles())) {
             $qb->andWhere('t.user = :user OR t.assignedUser = :user')
                ->setParameter('user', $user);
         }
-        
+
         // Apply filters
         if ($categoryId) {
             $qb->andWhere('t.category = :category')
                ->setParameter('category', $categoryId);
         }
-        
+
         if ($assignedUserId) {
             $qb->andWhere('t.assignedUser = :assignedUser')
                ->setParameter('assignedUser', $assignedUserId);
         }
-        
+
         $qb->orderBy('t.priority', 'DESC')
            ->addOrderBy('t.createdAt', 'DESC');
-        
+
         $allTasks = $qb->getQuery()->getResult();
-        
+
         // Group tasks by status
         $tasksByStatus = [
             'pending' => [],
             'in_progress' => [],
             'completed' => [],
-            'cancelled' => []
+            'cancelled' => [],
         ];
-        
+
         foreach ($allTasks as $task) {
             $status = $task->getStatus();
             if (isset($tasksByStatus[$status])) {
                 $tasksByStatus[$status][] = $task;
             }
         }
-        
+
         // Get categories for filter (оптимизация: только активные категории пользователя)
-        $categories = $this->entityManager->getRepository('App\Entity\TaskCategory')
+        $categories = $this->entityManager->getRepository('App\\Entity\\TaskCategory')
             ->createQueryBuilder('c')
             ->where('c.user = :user')
             ->setParameter('user', $user)
@@ -85,11 +86,11 @@ class KanbanController extends AbstractController
             ->setMaxResults(50)
             ->getQuery()
             ->getResult();
-        
+
         // Get users for filter (if admin or manager)
         $users = [];
-        if (in_array('ROLE_MANAGER', $user->getRoles()) || in_array('ROLE_ADMIN', $user->getRoles())) {
-            $users = $this->entityManager->getRepository('App\Entity\User')
+        if (\in_array('ROLE_MANAGER', $user->getRoles()) || \in_array('ROLE_ADMIN', $user->getRoles())) {
+            $users = $this->entityManager->getRepository('App\\Entity\\User')
                 ->createQueryBuilder('u')
                 ->where('u.isActive = :active')
                 ->setParameter('active', true)
@@ -98,16 +99,16 @@ class KanbanController extends AbstractController
                 ->getQuery()
                 ->getResult();
         }
-        
+
         return $this->render('kanban/board.html.twig', [
             'tasks_by_status' => $tasksByStatus,
             'categories' => $categories,
             'users' => $users,
             'selected_category' => $categoryId,
-            'selected_user' => $assignedUserId
+            'selected_user' => $assignedUserId,
         ]);
     }
-    
+
     /**
      * Update task status (drag and drop)
      */
@@ -122,44 +123,44 @@ class KanbanController extends AbstractController
             ->setParameter('id', $id)
             ->getQuery()
             ->getOneOrNullResult();
-        
+
         if (!$task) {
             return $this->json(['success' => false, 'message' => 'Task not found'], 404);
         }
-        
+
         $this->denyAccessUnlessGranted('edit', $task);
-        
+
         $data = json_decode($request->getContent(), true);
         $newStatus = $data['status'] ?? null;
-        
-        if (!in_array($newStatus, ['pending', 'in_progress', 'completed', 'cancelled'])) {
+
+        if (!\in_array($newStatus, ['pending', 'in_progress', 'completed', 'cancelled'])) {
             return $this->json(['success' => false, 'message' => 'Invalid status'], 400);
         }
-        
+
         $oldStatus = $task->getStatus();
         $task->setStatus($newStatus);
-        
+
         // Update completion date if completed
         if ($newStatus === 'completed' && $oldStatus !== 'completed') {
             $task->setCompletedAt(new \DateTime());
         }
-        
+
         $this->entityManager->flush();
-        
+
         // Log the change
         $this->auditLog->logTaskStatusChanged($this->getUser(), $task, $oldStatus, $newStatus);
-        
+
         return $this->json([
             'success' => true,
             'message' => 'Status updated successfully',
             'task' => [
                 'id' => $task->getId(),
                 'status' => $task->getStatus(),
-                'completed_at' => $task->getCompletedAt()?->format('Y-m-d H:i:s')
-            ]
+                'completed_at' => $task->getCompletedAt()?->format('Y-m-d H:i:s'),
+            ],
         ]);
     }
-    
+
     /**
      * Update task position in column
      */
@@ -168,27 +169,27 @@ class KanbanController extends AbstractController
     {
         // Optimized: minimal query for position update
         $task = $this->taskRepository->find($id);
-        
+
         if (!$task) {
             return $this->json(['success' => false, 'message' => 'Task not found'], 404);
         }
-        
+
         $this->denyAccessUnlessGranted('edit', $task);
-        
+
         $data = json_decode($request->getContent(), true);
         $position = $data['position'] ?? null;
-        
+
         if ($position !== null) {
             $task->setPosition((int)$position);
             $this->entityManager->flush();
         }
-        
+
         return $this->json([
             'success' => true,
-            'message' => 'Position updated successfully'
+            'message' => 'Position updated successfully',
         ]);
     }
-    
+
     /**
      * Get kanban statistics
      */
@@ -196,45 +197,45 @@ class KanbanController extends AbstractController
     public function stats(): JsonResponse
     {
         $user = $this->getUser();
-        
+
         $qb = $this->taskRepository->createQueryBuilder('t');
-        
-        if (!in_array('ROLE_ADMIN', $user->getRoles())) {
+
+        if (!\in_array('ROLE_ADMIN', $user->getRoles())) {
             $qb->andWhere('t.user = :user OR t.assignedUser = :user')
                ->setParameter('user', $user);
         }
-        
+
         $tasks = $qb->getQuery()->getResult();
-        
+
         $stats = [
-            'total' => count($tasks),
+            'total' => \count($tasks),
             'by_status' => [
                 'pending' => 0,
                 'in_progress' => 0,
                 'completed' => 0,
-                'cancelled' => 0
+                'cancelled' => 0,
             ],
             'by_priority' => [
                 'low' => 0,
                 'medium' => 0,
                 'high' => 0,
-                'urgent' => 0
-            ]
+                'urgent' => 0,
+            ],
         ];
-        
+
         foreach ($tasks as $task) {
             $status = $task->getStatus();
             $priority = $task->getPriority();
-            
+
             if (isset($stats['by_status'][$status])) {
                 $stats['by_status'][$status]++;
             }
-            
+
             if (isset($stats['by_priority'][$priority])) {
                 $stats['by_priority'][$priority]++;
             }
         }
-        
+
         return $this->json($stats);
     }
 }

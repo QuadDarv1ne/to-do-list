@@ -3,17 +3,18 @@
 namespace App\Service;
 
 use App\Entity\User;
+use App\Repository\TagRepository;
 use App\Repository\TaskRepository;
 use App\Repository\UserRepository;
-use App\Repository\TagRepository;
 
 class QuickSearchService
 {
     public function __construct(
         private TaskRepository $taskRepository,
         private UserRepository $userRepository,
-        private TagRepository $tagRepository
-    ) {}
+        private TagRepository $tagRepository,
+    ) {
+    }
 
     /**
      * Universal quick search
@@ -24,7 +25,7 @@ class QuickSearchService
             'tasks' => [],
             'users' => [],
             'tags' => [],
-            'commands' => []
+            'commands' => [],
         ];
 
         // Search tasks
@@ -110,6 +111,7 @@ class QuickSearchService
             // Check if query matches name
             if (mb_stripos($command['name'], $query) !== false) {
                 $matched[] = $command;
+
                 continue;
             }
 
@@ -117,6 +119,7 @@ class QuickSearchService
             foreach ($command['keywords'] as $keyword) {
                 if (mb_stripos($keyword, $query) !== false) {
                     $matched[] = $command;
+
                     break;
                 }
             }
@@ -133,14 +136,14 @@ class QuickSearchService
         $suggestions = [];
 
         // Recent searches (TODO: implement)
-        
+
         // Popular searches
         $suggestions[] = 'срочные задачи';
         $suggestions[] = 'мои задачи';
         $suggestions[] = 'просроченные';
         $suggestions[] = 'на этой неделе';
 
-        return array_slice($suggestions, 0, 5);
+        return \array_slice($suggestions, 0, 5);
     }
 
     /**
@@ -151,7 +154,7 @@ class QuickSearchService
         return [
             'total_searches' => 0, // TODO: Track
             'most_searched' => [],
-            'recent_searches' => []
+            'recent_searches' => [],
         ];
     }
 }

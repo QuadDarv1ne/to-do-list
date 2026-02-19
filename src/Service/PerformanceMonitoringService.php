@@ -11,13 +11,16 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 class PerformanceMonitoringService
 {
     private LoggerInterface $logger;
+
     private ParameterBagInterface $parameterBag;
+
     private array $metrics = [];
+
     private array $timers = [];
 
     public function __construct(
         LoggerInterface $logger,
-        ParameterBagInterface $parameterBag
+        ParameterBagInterface $parameterBag,
     ) {
         $this->logger = $logger;
         $this->parameterBag = $parameterBag;
@@ -34,7 +37,7 @@ class PerformanceMonitoringService
         $this->timers[$operation] = [
             'start_time' => $startTime,
             'memory_start' => $memoryStart,
-            'start_peak_memory' => memory_get_peak_usage()
+            'start_peak_memory' => memory_get_peak_usage(),
         ];
 
         $this->logger->debug("Started timing operation: {$operation}");
@@ -47,6 +50,7 @@ class PerformanceMonitoringService
     {
         if (!isset($this->timers[$operation])) {
             $this->logger->warning("No timer found for operation: {$operation}");
+
             return [];
         }
 
@@ -63,7 +67,7 @@ class PerformanceMonitoringService
             'execution_time_ms' => round($executionTime, 2),
             'memory_used_bytes' => $memoryUsed,
             'peak_memory_used_bytes' => $peakMemoryUsed,
-            'timestamp' => microtime(true)
+            'timestamp' => microtime(true),
         ];
 
         // Store metrics for reporting
@@ -73,7 +77,7 @@ class PerformanceMonitoringService
         $this->metrics[$operation][] = $metrics;
 
         // Log performance data
-        $this->logger->info("Operation performance", $metrics);
+        $this->logger->info('Operation performance', $metrics);
 
         // Clean up timer
         unset($this->timers[$operation]);
@@ -90,7 +94,7 @@ class PerformanceMonitoringService
             'name' => $metricName,
             'value' => $value,
             'tags' => $tags,
-            'timestamp' => microtime(true)
+            'timestamp' => microtime(true),
         ];
 
         if (!isset($this->metrics[$metricName])) {
@@ -111,7 +115,7 @@ class PerformanceMonitoringService
             'detailed_metrics' => $this->getDetailedMetrics(),
             'recommendations' => $this->getRecommendations(),
             'timestamp' => date('Y-m-d H:i:s'),
-            'environment' => $this->parameterBag->get('kernel.environment')
+            'environment' => $this->parameterBag->get('kernel.environment'),
         ];
 
         return $report;
@@ -128,16 +132,18 @@ class PerformanceMonitoringService
             'average_execution_time_ms' => 0,
             'slowest_operation_ms' => 0,
             'fastest_operation_ms' => PHP_FLOAT_MAX,
-            'operations_count' => []
+            'operations_count' => [],
         ];
 
         $totalExecutionTime = 0;
         $operationCount = 0;
 
         foreach ($this->metrics as $operation => $operationMetrics) {
-            if (is_numeric($operation)) continue; // Skip non-operation entries
+            if (is_numeric($operation)) {
+                continue;
+            } // Skip non-operation entries
 
-            $count = count($operationMetrics);
+            $count = \count($operationMetrics);
             $summary['operations_count'][$operation] = $count;
             $summary['total_operations_timed'] += $count;
 
@@ -182,11 +188,13 @@ class PerformanceMonitoringService
         $detailedMetrics = [];
 
         foreach ($this->metrics as $operation => $operationMetrics) {
-            if (is_numeric($operation)) continue; // Skip non-operation entries
+            if (is_numeric($operation)) {
+                continue;
+            } // Skip non-operation entries
 
             $executionTimes = array_filter(
                 array_column($operationMetrics, 'execution_time_ms'),
-                fn($time) => $time !== null
+                fn ($time) => $time !== null,
             );
 
             if (empty($executionTimes)) {
@@ -194,12 +202,12 @@ class PerformanceMonitoringService
             }
 
             $detailedMetrics[$operation] = [
-                'count' => count($executionTimes),
-                'avg_execution_time_ms' => round(array_sum($executionTimes) / count($executionTimes), 2),
+                'count' => \count($executionTimes),
+                'avg_execution_time_ms' => round(array_sum($executionTimes) / \count($executionTimes), 2),
                 'min_execution_time_ms' => round(min($executionTimes), 2),
                 'max_execution_time_ms' => round(max($executionTimes), 2),
                 'total_execution_time_ms' => round(array_sum($executionTimes), 2),
-                'last_recorded' => end($operationMetrics)['timestamp'] ?? null
+                'last_recorded' => end($operationMetrics)['timestamp'] ?? null,
             ];
         }
 
@@ -212,27 +220,27 @@ class PerformanceMonitoringService
     public function getSlowQueries(int $thresholdMs = 1000): array
     {
         $slowQueries = [];
-        
+
         foreach ($this->metrics as $operation => $operationMetrics) {
             if (!str_contains($operation, 'SQL:')) {
                 continue;
             }
-            
+
             $executionTimes = array_filter(
                 array_column($operationMetrics, 'execution_time_ms'),
-                fn($time) => $time !== null && $time > $thresholdMs
+                fn ($time) => $time !== null && $time > $thresholdMs,
             );
-            
+
             if (!empty($executionTimes)) {
                 $slowQueries[] = [
                     'query' => $operation,
-                    'count' => count($executionTimes),
+                    'count' => \count($executionTimes),
                     'max_time_ms' => max($executionTimes),
-                    'avg_time_ms' => round(array_sum($executionTimes) / count($executionTimes), 2)
+                    'avg_time_ms' => round(array_sum($executionTimes) / \count($executionTimes), 2),
                 ];
             }
         }
-        
+
         return $slowQueries;
     }
 
@@ -252,7 +260,7 @@ class PerformanceMonitoringService
                     'priority' => 'high',
                     'message' => "Operation '{$operation}' has high average execution time ({$metrics['avg_execution_time_ms']}ms). Consider optimization.",
                     'operation' => $operation,
-                    'current_avg_ms' => $metrics['avg_execution_time_ms']
+                    'current_avg_ms' => $metrics['avg_execution_time_ms'],
                 ];
             }
 
@@ -263,7 +271,7 @@ class PerformanceMonitoringService
                     'priority' => 'medium',
                     'message' => "Operation '{$operation}' has moderate average execution time ({$metrics['avg_execution_time_ms']}ms). Consider review.",
                     'operation' => $operation,
-                    'current_avg_ms' => $metrics['avg_execution_time_ms']
+                    'current_avg_ms' => $metrics['avg_execution_time_ms'],
                 ];
             }
         }
@@ -289,7 +297,7 @@ class PerformanceMonitoringService
             $this->logger->info("Cleared metrics for operation: {$operation}");
         } else {
             $this->metrics = [];
-            $this->logger->info("Cleared all performance metrics");
+            $this->logger->info('Cleared all performance metrics');
         }
     }
 
@@ -301,7 +309,9 @@ class PerformanceMonitoringService
         $slowOperations = [];
 
         foreach ($this->metrics as $operation => $operationMetrics) {
-            if (is_numeric($operation)) continue;
+            if (is_numeric($operation)) {
+                continue;
+            }
 
             foreach ($operationMetrics as $metric) {
                 if (isset($metric['execution_time_ms']) && $metric['execution_time_ms'] > $thresholdMs) {
@@ -327,7 +337,7 @@ class PerformanceMonitoringService
             'current_memory_usage' => memory_get_usage(),
             'peak_memory_usage' => memory_get_peak_usage(),
             'current_formatted' => $this->formatBytes(memory_get_usage()),
-            'peak_formatted' => $this->formatBytes(memory_get_peak_usage())
+            'peak_formatted' => $this->formatBytes(memory_get_peak_usage()),
         ];
     }
 
@@ -339,7 +349,7 @@ class PerformanceMonitoringService
         $units = ['B', 'KB', 'MB', 'GB'];
         $bytes = max($bytes, 0);
         $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-        $pow = min($pow, count($units) - 1);
+        $pow = min($pow, \count($units) - 1);
 
         $bytes /= pow(1024, $pow);
 

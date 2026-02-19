@@ -11,9 +11,10 @@ class RealTimeNotificationService
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private NotificationRepository $notificationRepository
-    ) {}
-    
+        private NotificationRepository $notificationRepository,
+    ) {
+    }
+
     /**
      * Create and send notification
      */
@@ -22,7 +23,7 @@ class RealTimeNotificationService
         string $title,
         string $message,
         string $type = 'info',
-        ?array $metadata = null
+        ?array $metadata = null,
     ): Notification {
         $notification = new Notification();
         $notification->setUser($user);
@@ -31,17 +32,17 @@ class RealTimeNotificationService
         $notification->setType($type);
         $notification->setIsRead(false);
         $notification->setCreatedAt(new \DateTime());
-        
+
         if ($metadata) {
             $notification->setMetadata($metadata);
         }
-        
+
         $this->entityManager->persist($notification);
         $this->entityManager->flush();
-        
+
         return $notification;
     }
-    
+
     /**
      * Get unread notifications count
      */
@@ -49,10 +50,10 @@ class RealTimeNotificationService
     {
         return $this->notificationRepository->count([
             'user' => $user,
-            'isRead' => false
+            'isRead' => false,
         ]);
     }
-    
+
     /**
      * Get recent notifications
      */
@@ -61,10 +62,10 @@ class RealTimeNotificationService
         return $this->notificationRepository->findBy(
             ['user' => $user],
             ['createdAt' => 'DESC'],
-            $limit
+            $limit,
         );
     }
-    
+
     /**
      * Mark notification as read
      */
@@ -73,14 +74,14 @@ class RealTimeNotificationService
         $notification->setIsRead(true);
         $this->entityManager->flush();
     }
-    
+
     /**
      * Mark all notifications as read
      */
     public function markAllAsRead(User $user): int
     {
         $qb = $this->entityManager->createQueryBuilder();
-        
+
         return $qb->update(Notification::class, 'n')
             ->set('n.isRead', ':read')
             ->where('n.user = :user')
@@ -91,7 +92,7 @@ class RealTimeNotificationService
             ->getQuery()
             ->execute();
     }
-    
+
     /**
      * Delete old notifications
      */
@@ -99,9 +100,9 @@ class RealTimeNotificationService
     {
         $date = new \DateTime();
         $date->modify("-{$daysOld} days");
-        
+
         $qb = $this->entityManager->createQueryBuilder();
-        
+
         return $qb->delete(Notification::class, 'n')
             ->where('n.createdAt < :date')
             ->andWhere('n.isRead = :read')
@@ -110,7 +111,7 @@ class RealTimeNotificationService
             ->getQuery()
             ->execute();
     }
-    
+
     /**
      * Send task assignment notification
      */
@@ -119,16 +120,16 @@ class RealTimeNotificationService
         $this->sendNotification(
             $user,
             'Новая задача назначена',
-            sprintf('Вам назначена задача: %s', $task->getTitle()),
+            \sprintf('Вам назначена задача: %s', $task->getTitle()),
             'task_assigned',
             [
                 'task_id' => $task->getId(),
                 'task_title' => $task->getTitle(),
-                'priority' => $task->getPriority()
-            ]
+                'priority' => $task->getPriority(),
+            ],
         );
     }
-    
+
     /**
      * Send deadline reminder notification
      */
@@ -137,16 +138,16 @@ class RealTimeNotificationService
         $this->sendNotification(
             $user,
             'Приближается дедлайн',
-            sprintf('До дедлайна задачи "%s" осталось %d часов', $task->getTitle(), $hoursLeft),
+            \sprintf('До дедлайна задачи "%s" осталось %d часов', $task->getTitle(), $hoursLeft),
             'deadline_warning',
             [
                 'task_id' => $task->getId(),
                 'task_title' => $task->getTitle(),
-                'hours_left' => $hoursLeft
-            ]
+                'hours_left' => $hoursLeft,
+            ],
         );
     }
-    
+
     /**
      * Send task completion notification
      */
@@ -155,15 +156,15 @@ class RealTimeNotificationService
         $this->sendNotification(
             $user,
             'Задача завершена',
-            sprintf('Задача "%s" была завершена', $task->getTitle()),
+            \sprintf('Задача "%s" была завершена', $task->getTitle()),
             'task_completed',
             [
                 'task_id' => $task->getId(),
-                'task_title' => $task->getTitle()
-            ]
+                'task_title' => $task->getTitle(),
+            ],
         );
     }
-    
+
     /**
      * Send task comment notification
      */
@@ -172,13 +173,13 @@ class RealTimeNotificationService
         $this->sendNotification(
             $user,
             'Новый комментарий',
-            sprintf('Новый комментарий к задаче "%s"', $task->getTitle()),
+            \sprintf('Новый комментарий к задаче "%s"', $task->getTitle()),
             'new_comment',
             [
                 'task_id' => $task->getId(),
                 'task_title' => $task->getTitle(),
-                'comment_id' => $comment->getId()
-            ]
+                'comment_id' => $comment->getId(),
+            ],
         );
     }
 }

@@ -4,15 +4,15 @@ namespace App\EventSubscriber;
 
 use App\Repository\ActivityLogRepository;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Http\Event\LoginSuccessEvent;
 use Symfony\Component\Security\Http\Event\LogoutEvent;
-use Symfony\Component\HttpFoundation\RequestStack;
 
 class SecurityEventSubscriber implements EventSubscriberInterface
 {
     public function __construct(
         private ActivityLogRepository $activityLogRepository,
-        private RequestStack $requestStack
+        private RequestStack $requestStack,
     ) {
     }
 
@@ -36,9 +36,9 @@ class SecurityEventSubscriber implements EventSubscriberInterface
     public function onLogout(LogoutEvent $event): void
     {
         $user = $event->getToken()?->getUser();
-        
+
         // Check if user is an actual user object (not anonymous)
-        if ($user && is_object($user) && method_exists($user, 'getId')) {
+        if ($user && \is_object($user) && method_exists($user, 'getId')) {
             $request = $this->requestStack->getCurrentRequest();
             $ipAddress = $request ? $request->getClientIp() : null;
 

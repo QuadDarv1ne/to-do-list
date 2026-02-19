@@ -16,7 +16,7 @@ use Doctrine\Persistence\ManagerRegistry;
 class ActivityLogRepository extends ServiceEntityRepository
 {
     use CachedRepositoryTrait;
-    
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, ActivityLog::class);
@@ -64,7 +64,7 @@ class ActivityLogRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-    
+
     /**
      * Log a user login event
      */
@@ -76,11 +76,11 @@ class ActivityLogRepository extends ServiceEntityRepository
         $log->setEventType('login');
         $log->setDescription('User logged in' . ($ipAddress ? ' from IP: ' . $ipAddress : ''));
         $log->setCreatedAt(new \DateTimeImmutable());
-        
+
         $this->getEntityManager()->persist($log);
         $this->getEntityManager()->flush();
     }
-    
+
     /**
      * Log a user logout event
      */
@@ -92,11 +92,11 @@ class ActivityLogRepository extends ServiceEntityRepository
         $log->setEventType('logout');
         $log->setDescription('User logged out' . ($ipAddress ? ' from IP: ' . $ipAddress : ''));
         $log->setCreatedAt(new \DateTimeImmutable());
-        
+
         $this->getEntityManager()->persist($log);
         $this->getEntityManager()->flush();
     }
-    
+
     /**
      * Get login events for a user
      */
@@ -112,7 +112,7 @@ class ActivityLogRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-    
+
     /**
      * Get recent login events
      */

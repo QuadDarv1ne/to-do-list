@@ -11,12 +11,12 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:process-recurring-tasks',
-    description: 'Process recurring tasks and create new instances'
+    description: 'Process recurring tasks and create new instances',
 )]
 class ProcessRecurringTasksCommand extends Command
 {
     public function __construct(
-        private RecurringTaskService $recurringTaskService
+        private RecurringTaskService $recurringTaskService,
     ) {
         parent::__construct();
     }
@@ -31,13 +31,14 @@ class ProcessRecurringTasksCommand extends Command
 
         if (empty($created)) {
             $io->success('No recurring tasks to process');
+
             return Command::SUCCESS;
         }
 
-        $io->success(sprintf('Created %d recurring tasks', count($created)));
+        $io->success(\sprintf('Created %d recurring tasks', \count($created)));
 
         foreach ($created as $task) {
-            $io->writeln(sprintf('  - Task #%d: %s', $task->getId(), $task->getTitle()));
+            $io->writeln(\sprintf('  - Task #%d: %s', $task->getId(), $task->getTitle()));
         }
 
         return Command::SUCCESS;

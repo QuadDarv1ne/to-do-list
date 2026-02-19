@@ -13,8 +13,8 @@ trait TaskAccessTrait
     private function canAccessTask(Task $task): bool
     {
         $user = $this->getUser();
-        
-        return $task->getAssignedTo() === $user || 
+
+        return $task->getAssignedTo() === $user ||
                $task->getCreatedBy() === $user ||
                $this->isGranted('ROLE_ADMIN');
     }
@@ -27,7 +27,7 @@ trait TaskAccessTrait
         if (!$this->canAccessTask($task)) {
             return new JsonResponse(['error' => 'Access denied'], 403);
         }
-        
+
         return null;
     }
 }

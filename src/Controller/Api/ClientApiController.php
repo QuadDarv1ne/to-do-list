@@ -19,14 +19,14 @@ class ClientApiController extends AbstractController
         $user = $this->getUser();
         $segment = $request->query->get('segment');
         $category = $request->query->get('category');
-        
+
         $manager = $this->isGranted('ROLE_ADMIN') ? null : $user;
-        
+
         // Use optimized repository methods based on filters
         if ($segment && $category) {
             // If both filters, get by segment first then filter by category
             $clients = $clientRepository->findBySegment($segment, $manager);
-            $clients = array_filter($clients, fn($client) => $client->getCategory() === $category);
+            $clients = array_filter($clients, fn ($client) => $client->getCategory() === $category);
         } elseif ($segment) {
             $clients = $clientRepository->findBySegment($segment, $manager);
         } elseif ($category) {
@@ -38,7 +38,7 @@ class ClientApiController extends AbstractController
                 : $clientRepository->findByManager($user);
         }
 
-        $data = array_map(function($client) {
+        $data = array_map(function ($client) {
             return [
                 'id' => $client->getId(),
                 'company_name' => $client->getCompanyName(),
@@ -57,7 +57,7 @@ class ClientApiController extends AbstractController
         return $this->json([
             'success' => true,
             'data' => array_values($data),
-            'count' => count($data),
+            'count' => \count($data),
         ]);
     }
 
@@ -66,8 +66,8 @@ class ClientApiController extends AbstractController
     {
         $query = $request->query->get('q', '');
         $user = $this->getUser();
-        
-        if (strlen($query) < 2) {
+
+        if (\strlen($query) < 2) {
             return $this->json([
                 'success' => false,
                 'error' => 'Query must be at least 2 characters',
@@ -77,7 +77,7 @@ class ClientApiController extends AbstractController
         $manager = $this->isGranted('ROLE_ADMIN') ? null : $user;
         $clients = $clientRepository->searchByName($query, $manager);
 
-        $data = array_map(function($client) {
+        $data = array_map(function ($client) {
             return [
                 'id' => $client->getId(),
                 'company_name' => $client->getCompanyName(),
@@ -90,7 +90,7 @@ class ClientApiController extends AbstractController
         return $this->json([
             'success' => true,
             'data' => $data,
-            'count' => count($data),
+            'count' => \count($data),
         ]);
     }
 
@@ -146,8 +146,8 @@ class ClientApiController extends AbstractController
         $this->denyAccessUnlessGranted('view', $client);
 
         $deals = $client->getDeals();
-        $wonDeals = $deals->filter(fn($deal) => $deal->getStatus() === 'won');
-        $lostDeals = $deals->filter(fn($deal) => $deal->getStatus() === 'lost');
+        $wonDeals = $deals->filter(fn ($deal) => $deal->getStatus() === 'won');
+        $lostDeals = $deals->filter(fn ($deal) => $deal->getStatus() === 'lost');
 
         return $this->json([
             'success' => true,
@@ -158,7 +158,7 @@ class ClientApiController extends AbstractController
                     'total' => $deals->count(),
                     'won' => $wonDeals->count(),
                     'lost' => $lostDeals->count(),
-                    'in_progress' => $deals->filter(fn($deal) => $deal->getStatus() === 'in_progress')->count(),
+                    'in_progress' => $deals->filter(fn ($deal) => $deal->getStatus() === 'in_progress')->count(),
                 ],
             ],
         ]);

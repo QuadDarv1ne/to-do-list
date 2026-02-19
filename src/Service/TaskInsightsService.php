@@ -2,11 +2,10 @@
 
 namespace App\Service;
 
+use App\Entity\User;
 use App\Repository\TaskRepository;
 use App\Repository\UserRepository;
-use App\Entity\User;
 use DateTime;
-use DateInterval;
 
 /**
  * Service for generating task insights and analytics
@@ -14,11 +13,12 @@ use DateInterval;
 class TaskInsightsService
 {
     private TaskRepository $taskRepository;
+
     private UserRepository $userRepository;
 
     public function __construct(
         TaskRepository $taskRepository,
-        UserRepository $userRepository
+        UserRepository $userRepository,
     ) {
         $this->taskRepository = $taskRepository;
         $this->userRepository = $userRepository;
@@ -45,7 +45,7 @@ class TaskInsightsService
             $date = new DateTime($dayData['date']);
             $dayKey = $date->format('Y-m-d');
             $weekKey = $date->format('Y-W');
-            
+
             $dailyCompletions[$dayKey] = $dayData['completed'];
             $weeklyCompletions[$weekKey] = ($weeklyCompletions[$weekKey] ?? 0) + $dayData['completed'];
         }
@@ -69,11 +69,11 @@ class TaskInsightsService
             'average_per_day' => $avgPerDay,
             'most_productive_day' => [
                 'date' => $mostProductiveDay,
-                'completed' => $maxDailyCompletion
+                'completed' => $maxDailyCompletion,
             ],
             'priority_distribution' => $priorityStats,
-            'overdue_tasks_count' => count($overdueTasks),
-            'productivity_score' => $this->calculateProductivityScore($avgPerDay, $priorityStats)
+            'overdue_tasks_count' => \count($overdueTasks),
+            'productivity_score' => $this->calculateProductivityScore($avgPerDay, $priorityStats),
         ];
     }
 
@@ -123,7 +123,7 @@ class TaskInsightsService
             'dates' => $dates,
             'completions' => $completions,
             'totals' => $totals,
-            'trend_analysis' => $this->analyzeTrend($completions)
+            'trend_analysis' => $this->analyzeTrend($completions),
         ];
     }
 
@@ -132,19 +132,19 @@ class TaskInsightsService
      */
     private function analyzeTrend(array $values): string
     {
-        if (count($values) < 2) {
+        if (\count($values) < 2) {
             return 'insufficient_data';
         }
 
-        $recentValues = array_slice($values, -7); // Last 7 values
-        $earlyValues = array_slice($values, -14, 7); // Previous 7 values
+        $recentValues = \array_slice($values, -7); // Last 7 values
+        $earlyValues = \array_slice($values, -14, 7); // Previous 7 values
 
         if (empty($recentValues) || empty($earlyValues)) {
             return 'insufficient_data';
         }
 
-        $recentAvg = array_sum($recentValues) / count($recentValues);
-        $earlyAvg = array_sum($earlyValues) / count($earlyValues);
+        $recentAvg = array_sum($recentValues) / \count($recentValues);
+        $earlyAvg = array_sum($earlyValues) / \count($earlyValues);
 
         $change = $recentAvg - $earlyAvg;
         $percentChange = $earlyAvg > 0 ? ($change / $earlyAvg) * 100 : 0;
@@ -173,7 +173,7 @@ class TaskInsightsService
         foreach ($allTasks as $task) {
             if ($task->getDueDate() && $task->getCompletedAt()) {
                 $totalWithDueDate++;
-                
+
                 if ($task->getCompletedAt() <= $task->getDueDate()) {
                     $onTimeCount++;
                 } else {
@@ -193,7 +193,7 @@ class TaskInsightsService
             'late_completions' => $lateCount,
             'on_time_rate' => round($onTimeRate, 2),
             'average_completion_times' => $avgCompletionTime,
-            'efficiency_rating' => $this->calculateEfficiencyRating($onTimeRate, $avgCompletionTime)
+            'efficiency_rating' => $this->calculateEfficiencyRating($onTimeRate, $avgCompletionTime),
         ];
     }
 
@@ -217,61 +217,60 @@ class TaskInsightsService
      * Get user collaboration insights
      */
     public function getCollaborationInsights(User $user): array
-        {
-            // Оптимизированный запрос с JOIN для избежания N+1 проблемы
-            $assignedToMeQuery = $this->taskRepository->createQueryBuilder('t')
-                ->select('t, u')
-                ->leftJoin('t.user', 'u')
-                ->where('t.assignedUser = :user')
-                ->setParameter('user', $user)
-                ->getQuery();
+    {
+        // Оптимизированный запрос с JOIN для избежания N+1 проблемы
+        $assignedToMeQuery = $this->taskRepository->createQueryBuilder('t')
+            ->select('t, u')
+            ->leftJoin('t.user', 'u')
+            ->where('t.assignedUser = :user')
+            ->setParameter('user', $user)
+            ->getQuery();
 
-            $assignedToMe = $assignedToMeQuery->getResult();
+        $assignedToMe = $assignedToMeQuery->getResult();
 
-            // Оптимизированный запрос для задач, созданных пользователем
-            $assignedByMeQuery = $this->taskRepository->createQueryBuilder('t')
-                ->select('t, au')
-                ->leftJoin('t.assignedUser', 'au')
-                ->where('t.user = :user')
-                ->andWhere('t.assignedUser IS NOT NULL')
-                ->setParameter('user', $user)
-                ->getQuery();
+        // Оптимизированный запрос для задач, созданных пользователем
+        $assignedByMeQuery = $this->taskRepository->createQueryBuilder('t')
+            ->select('t, au')
+            ->leftJoin('t.assignedUser', 'au')
+            ->where('t.user = :user')
+            ->andWhere('t.assignedUser IS NOT NULL')
+            ->setParameter('user', $user)
+            ->getQuery();
 
-            $assignedByMe = $assignedByMeQuery->getResult();
+        $assignedByMe = $assignedByMeQuery->getResult();
 
-            $collaborators = [];
-            foreach ($assignedToMe as $task) {
-                $creator = $task->getUser(); // Уже загружен через JOIN
-                if ($creator && $creator->getId() !== $user->getId()) {
-                    $collaboratorId = $creator->getId();
-                    $collaborators[$collaboratorId] = [
-                        'name' => $creator->getFullName(),
-                        'tasks_received' => ($collaborators[$collaboratorId]['tasks_received'] ?? 0) + 1,
-                        'completed_tasks' => ($collaborators[$collaboratorId]['completed_tasks'] ?? 0) + ($task->isCompleted() ? 1 : 0)
-                    ];
-                }
+        $collaborators = [];
+        foreach ($assignedToMe as $task) {
+            $creator = $task->getUser(); // Уже загружен через JOIN
+            if ($creator && $creator->getId() !== $user->getId()) {
+                $collaboratorId = $creator->getId();
+                $collaborators[$collaboratorId] = [
+                    'name' => $creator->getFullName(),
+                    'tasks_received' => ($collaborators[$collaboratorId]['tasks_received'] ?? 0) + 1,
+                    'completed_tasks' => ($collaborators[$collaboratorId]['completed_tasks'] ?? 0) + ($task->isCompleted() ? 1 : 0),
+                ];
             }
-
-            $assignedToOthers = [];
-            foreach ($assignedByMe as $task) {
-                $assignedUser = $task->getAssignedUser(); // Уже загружен через JOIN
-                if ($assignedUser && $assignedUser->getId() !== $user->getId()) {
-                    $assignedUserId = $assignedUser->getId();
-                    $assignedToOthers[$assignedUserId] = [
-                        'name' => $assignedUser->getFullName(),
-                        'tasks_assigned' => ($assignedToOthers[$assignedUserId]['tasks_assigned'] ?? 0) + 1,
-                        'completed_tasks' => ($assignedToOthers[$assignedUserId]['completed_tasks'] ?? 0) + ($task->isCompleted() ? 1 : 0)
-                    ];
-                }
-            }
-
-            return [
-                'collaborators' => $collaborators,
-                'assigned_to_others' => $assignedToOthers,
-                'total_collaboration_score' => $this->calculateCollaborationScore($collaborators, $assignedToOthers)
-            ];
         }
 
+        $assignedToOthers = [];
+        foreach ($assignedByMe as $task) {
+            $assignedUser = $task->getAssignedUser(); // Уже загружен через JOIN
+            if ($assignedUser && $assignedUser->getId() !== $user->getId()) {
+                $assignedUserId = $assignedUser->getId();
+                $assignedToOthers[$assignedUserId] = [
+                    'name' => $assignedUser->getFullName(),
+                    'tasks_assigned' => ($assignedToOthers[$assignedUserId]['tasks_assigned'] ?? 0) + 1,
+                    'completed_tasks' => ($assignedToOthers[$assignedUserId]['completed_tasks'] ?? 0) + ($task->isCompleted() ? 1 : 0),
+                ];
+            }
+        }
+
+        return [
+            'collaborators' => $collaborators,
+            'assigned_to_others' => $assignedToOthers,
+            'total_collaboration_score' => $this->calculateCollaborationScore($collaborators, $assignedToOthers),
+        ];
+    }
 
     /**
      * Calculate collaboration score
@@ -281,7 +280,7 @@ class TaskInsightsService
         $score = 0;
 
         // Score based on number of collaborators
-        $score += min(count($collaborators) * 10, 30);
+        $score += min(\count($collaborators) * 10, 30);
 
         // Score based on tasks received and completed
         foreach ($collaborators as $collab) {
@@ -311,10 +310,10 @@ class TaskInsightsService
             'summary' => [
                 'overall_productivity_score' => $this->calculateOverallScore(
                     $this->getProductivityInsights($user)['productivity_score'],
-                    $this->getEfficiencyMetrics($user)['on_time_rate']
+                    $this->getEfficiencyMetrics($user)['on_time_rate'],
                 ),
-                'quick_stats' => $this->taskRepository->getQuickStats($user)
-            ]
+                'quick_stats' => $this->taskRepository->getQuickStats($user),
+            ],
         ];
     }
 
@@ -325,6 +324,7 @@ class TaskInsightsService
     {
         // Weighted combination of productivity and efficiency
         $weightedScore = ($productivityScore * 0.6) + ($onTimeRate * 0.4);
+
         return min(100, (int)round($weightedScore));
     }
 }

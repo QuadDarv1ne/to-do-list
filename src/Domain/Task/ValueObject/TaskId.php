@@ -5,7 +5,7 @@ namespace App\Domain\Task\ValueObject;
 final readonly class TaskId
 {
     private function __construct(
-        private int $value
+        private int $value,
     ) {
     }
 
@@ -14,7 +14,7 @@ final readonly class TaskId
         if ($value <= 0) {
             throw new \InvalidArgumentException('Task ID must be positive');
         }
-        
+
         return new self($value);
     }
 

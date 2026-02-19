@@ -14,7 +14,7 @@ use Doctrine\Persistence\ManagerRegistry;
 class TaskRecurrenceRepository extends ServiceEntityRepository
 {
     use CachedRepositoryTrait;
-    
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, TaskRecurrence::class);
@@ -37,7 +37,7 @@ class TaskRecurrenceRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-    
+
     /**
      * Find all recurrences
      */
@@ -47,7 +47,7 @@ class TaskRecurrenceRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-    
+
     /**
      * Find active recurrences that need to be processed (have not reached their end date or have no end date)
      */
@@ -59,7 +59,7 @@ class TaskRecurrenceRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-    
+
     /**
      * Find upcoming recurring tasks for a specific user
      */

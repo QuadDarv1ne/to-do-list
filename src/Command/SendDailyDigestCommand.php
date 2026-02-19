@@ -3,29 +3,24 @@
 namespace App\Command;
 
 use App\Entity\User;
-use App\Entity\Task;
 use App\Repository\TaskRepository;
 use App\Repository\UserRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
-use Twig\Environment;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 #[AsCommand(
     name: 'app:send-daily-digest',
-    description: 'Отправляет ежедневный дайджест задач пользователям'
+    description: 'Отправляет ежедневный дайджест задач пользователям',
 )]
 class SendDailyDigestCommand extends Command
 {
     public function __construct(
         private readonly TaskRepository $taskRepository,
-        private readonly UserRepository $userRepository
+        private readonly UserRepository $userRepository,
     ) {
         parent::__construct();
     }
@@ -39,9 +34,9 @@ class SendDailyDigestCommand extends Command
         foreach ($users as $user) {
             try {
                 $this->sendDailyDigest($user);
-                $io->writeln(sprintf('Дайджест отправлен пользователю: %s (%s)', $user->getFullName(), $user->getEmail()));
+                $io->writeln(\sprintf('Дайджест отправлен пользователю: %s (%s)', $user->getFullName(), $user->getEmail()));
             } catch (\Exception $e) {
-                $io->error(sprintf('Ошибка при отправке дайджеста пользователю %s: %s', $user->getFullName(), $e->getMessage()));
+                $io->error(\sprintf('Ошибка при отправке дайджеста пользователю %s: %s', $user->getFullName(), $e->getMessage()));
             }
         }
 
@@ -61,10 +56,11 @@ class SendDailyDigestCommand extends Command
 
         // Логика отправки email будет реализована позже
         // Для демонстрации просто выводим информацию
-        echo sprintf("Дайджест для %s: %d новых задач, %d завершенных\n", 
-            $user->getFullName(), 
-            count($pendingTasks), 
-            count($completedTasks)
+        echo \sprintf(
+            "Дайджест для %s: %d новых задач, %d завершенных\n",
+            $user->getFullName(),
+            \count($pendingTasks),
+            \count($completedTasks),
         );
     }
 }

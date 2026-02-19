@@ -12,12 +12,12 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:optimize-twig',
-    description: 'Optimize Twig templates'
+    description: 'Optimize Twig templates',
 )]
 class OptimizeTwigCommand extends Command
 {
     public function __construct(
-        private TwigOptimizationService $twigOptimizer
+        private TwigOptimizationService $twigOptimizer,
     ) {
         parent::__construct();
     }
@@ -61,21 +61,21 @@ class OptimizeTwigCommand extends Command
         $result = $this->twigOptimizer->warmupCache();
 
         if (!empty($result['errors'])) {
-            $io->warning(sprintf(
+            $io->warning(\sprintf(
                 'Warmed up %d/%d templates with %d errors',
                 $result['templates_warmed'],
                 $result['total_templates'],
-                count($result['errors'])
+                \count($result['errors']),
             ));
 
             $io->table(
                 ['Template', 'Error'],
-                array_map(fn($e) => [$e['template'], $e['error']], $result['errors'])
+                array_map(fn ($e) => [$e['template'], $e['error']], $result['errors']),
             );
         } else {
-            $io->success(sprintf(
+            $io->success(\sprintf(
                 'Successfully warmed up %d templates',
-                $result['templates_warmed']
+                $result['templates_warmed'],
             ));
         }
 
@@ -93,19 +93,19 @@ class OptimizeTwigCommand extends Command
             [
                 ['Total Templates', $result['total_templates']],
                 ['Used Templates', $result['used_templates']],
-                ['Unused Templates', count($result['unused_templates'])],
-                ['Usage Rate', $result['usage_percent'] . '%']
-            ]
+                ['Unused Templates', \count($result['unused_templates'])],
+                ['Usage Rate', $result['usage_percent'] . '%'],
+            ],
         );
 
         if (!empty($result['unused_templates'])) {
             $io->warning('Potentially unused templates:');
-            $io->listing(array_slice($result['unused_templates'], 0, 20));
-            
-            if (count($result['unused_templates']) > 20) {
-                $io->note(sprintf(
+            $io->listing(\array_slice($result['unused_templates'], 0, 20));
+
+            if (\count($result['unused_templates']) > 20) {
+                $io->note(\sprintf(
                     '... and %d more',
-                    count($result['unused_templates']) - 20
+                    \count($result['unused_templates']) - 20,
                 ));
             }
         }
@@ -119,21 +119,21 @@ class OptimizeTwigCommand extends Command
 
         $result = $this->twigOptimizer->findDuplicateIncludes();
 
-        $io->info(sprintf(
+        $io->info(\sprintf(
             'Found %d reused includes out of %d total',
             $result['reused_includes'],
-            $result['total_includes']
+            $result['total_includes'],
         ));
 
         if (!empty($result['most_used'])) {
             $io->table(
                 ['Template', 'Used Count', 'Used In (sample)'],
-                array_map(fn($item) => [
+                array_map(fn ($item) => [
                     $item['template'],
                     $item['used_count'],
-                    implode(', ', array_slice($item['used_in'], 0, 3)) . 
-                        (count($item['used_in']) > 3 ? '...' : '')
-                ], $result['most_used'])
+                    implode(', ', \array_slice($item['used_in'], 0, 3)) .
+                        (\count($item['used_in']) > 3 ? '...' : ''),
+                ], $result['most_used']),
             );
         }
 

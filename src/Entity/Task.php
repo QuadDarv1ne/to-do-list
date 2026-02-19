@@ -3,12 +3,12 @@
 namespace App\Entity;
 
 use App\Repository\TaskRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\PrePersist;
 use Doctrine\ORM\Mapping\PreUpdate;
-use Doctrine\Common\Collections\Collection;
-use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: TaskRepository::class)]
@@ -33,28 +33,28 @@ class Task
     #[Assert\NotBlank(message: 'Заголовок задачи не может быть пустым')]
     #[Assert\Length(
         max: 255,
-        maxMessage: 'Заголовок задачи не может быть длиннее {{ limit }} символов'
+        maxMessage: 'Заголовок задачи не может быть длиннее {{ limit }} символов',
     )]
     #[ORM\Column(length: 255)]
     private ?string $title = null;
 
     #[Assert\Length(
         max: 10000,
-        maxMessage: 'Описание задачи не может быть длиннее {{ limit }} символов'
+        maxMessage: 'Описание задачи не может быть длиннее {{ limit }} символов',
     )]
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
     #[Assert\Choice(
         choices: ['pending', 'in_progress', 'completed'],
-        message: 'Статус задачи должен быть одним из: pending, in_progress, completed'
+        message: 'Статус задачи должен быть одним из: pending, in_progress, completed',
     )]
     #[ORM\Column(length: 20, options: ['default' => 'pending'])]
     private string $status = 'pending';
 
     #[Assert\Choice(
         choices: ['low', 'medium', 'high', 'urgent'],
-        message: 'Приоритет задачи должен быть одним из: low, medium, high, urgent'
+        message: 'Приоритет задачи должен быть одним из: low, medium, high, urgent',
     )]
     #[ORM\Column(length: 20, options: ['default' => 'medium'])]
     private string $priority = 'medium';
@@ -67,7 +67,7 @@ class Task
 
     #[Assert\GreaterThanOrEqual(
         propertyPath: 'createdAt',
-        message: 'Срок выполнения не может быть раньше даты создания задачи'
+        message: 'Срок выполнения не может быть раньше даты создания задачи',
     )]
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $dueDate = null;
@@ -170,6 +170,7 @@ class Task
     public function setTitle(string $title): static
     {
         $this->title = $title;
+
         return $this;
     }
 
@@ -181,6 +182,7 @@ class Task
     public function setDescription(?string $description): static
     {
         $this->description = $description;
+
         return $this;
     }
 
@@ -199,8 +201,9 @@ class Task
         elseif ($this->status === 'completed' && $status !== 'completed') {
             $this->completedAt = null;
         }
-        
+
         $this->status = $status;
+
         return $this;
     }
 
@@ -218,15 +221,16 @@ class Task
             'low' => 'Низкий',
             'medium' => 'Средний',
             'high' => 'Высокий',
-            'urgent' => 'Критический'
+            'urgent' => 'Критический',
         ];
-        
+
         return $labels[$this->priority] ?? $this->priority;
     }
 
     public function setPriority(string $priority): static
     {
         $this->priority = $priority;
+
         return $this;
     }
 
@@ -238,6 +242,7 @@ class Task
     public function setCreatedAt(\DateTimeInterface $createdAt): static
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 
@@ -249,6 +254,7 @@ class Task
     public function setUpdatedAt(?\DateTimeInterface $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
+
         return $this;
     }
 
@@ -268,6 +274,7 @@ class Task
     public function setDueDate(?\DateTimeInterface $dueDate): static
     {
         $this->dueDate = $dueDate;
+
         return $this;
     }
 
@@ -279,7 +286,6 @@ class Task
         return $this->setDueDate($deadline);
     }
 
-
     public function getCompletedAt(): ?\DateTimeInterface
     {
         return $this->completedAt;
@@ -288,6 +294,7 @@ class Task
     public function setCompletedAt(?\DateTimeInterface $completedAt): static
     {
         $this->completedAt = $completedAt;
+
         return $this;
     }
 
@@ -307,6 +314,7 @@ class Task
     public function setUser(?User $user): static
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -316,6 +324,7 @@ class Task
     public function setCreatedBy(?User $user): static
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -327,6 +336,7 @@ class Task
     public function setAssignedUser(?User $assignedUser): static
     {
         $this->assignedUser = $assignedUser;
+
         return $this;
     }
 
@@ -338,6 +348,7 @@ class Task
     public function setCategory(?TaskCategory $category): static
     {
         $this->category = $category;
+
         return $this;
     }
 
@@ -604,7 +615,7 @@ class Task
                 return false;
             }
         }
-        
+
         return true;
     }
 
@@ -617,6 +628,7 @@ class Task
         foreach ($this->dependencies as $dependency) {
             $tasks[] = $dependency->getDependencyTask();
         }
+
         return $tasks;
     }
 
@@ -629,9 +641,10 @@ class Task
         foreach ($this->dependents as $dependent) {
             $tasks[] = $dependent->getDependentTask();
         }
+
         return $tasks;
     }
-    
+
     /**
      * Calculate the time taken to complete this task (in hours)
      */
@@ -640,13 +653,13 @@ class Task
         if (!$this->isCompleted() || !$this->getCompletedAt()) {
             return null;
         }
-        
+
         $interval = $this->getCreatedAt()->diff($this->getCompletedAt());
         $hours = $interval->days * 24 + $interval->h + ($interval->i / 60.0);
-        
+
         return round($hours, 2);
     }
-    
+
     /**
      * Calculate the number of days between creation and completion
      */
@@ -655,11 +668,12 @@ class Task
         if (!$this->isCompleted() || !$this->getCompletedAt()) {
             return null;
         }
-        
+
         $interval = $this->getCreatedAt()->diff($this->getCompletedAt());
+
         return $interval->days;
     }
-    
+
     /**
      * Check if the task was completed late (after its due date)
      */
@@ -668,10 +682,10 @@ class Task
         if (!$this->isCompleted() || !$this->getCompletedAt() || !$this->getDueDate()) {
             return false;
         }
-        
+
         return $this->getCompletedAt() > $this->getDueDate();
     }
-    
+
     /**
      * Get the number of days the task was overdue (if completed late)
      */
@@ -680,11 +694,12 @@ class Task
         if (!$this->isCompletedLate()) {
             return null;
         }
-        
+
         $interval = $this->getDueDate()->diff($this->getCompletedAt());
+
         return $interval->days;
     }
-    
+
     /**
      * Get the total time spent on this task through time tracking
      * Returns the sum of all tracked time in hours
@@ -698,10 +713,11 @@ class Task
                 $hours = (int)$timeSpent->format('H');
                 $minutes = (int)$timeSpent->format('i');
                 $seconds = (int)$timeSpent->format('s');
-                
+
                 $totalTime += $hours + ($minutes / 60.0) + ($seconds / 3600.0);
             }
         }
+
         return round($totalTime, 2);
     }
 

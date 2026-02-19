@@ -18,7 +18,7 @@ class TwoFactorController extends AbstractController
     public function setup(TwoFactorAuthService $twoFactorAuthService): Response
     {
         $user = $this->getUser();
-        
+
         // Check if 2FA is already enabled
         if ($twoFactorAuthService->isTwoFactorEnabled($user)) {
             return $this->redirectToRoute('app_2fa_status');
@@ -29,14 +29,14 @@ class TwoFactorController extends AbstractController
         return $this->render('2fa/setup.html.twig', [
             'secret' => $setupData['secret'],
             'qr_code_image' => $setupData['qr_code_image'],
-            'qr_code_url' => $setupData['qr_code_url']
+            'qr_code_url' => $setupData['qr_code_url'],
         ]);
     }
 
     #[Route('/verify-setup', name: 'app_2fa_verify_setup', methods: ['POST'])]
     public function verifySetup(
         Request $request,
-        TwoFactorAuthService $twoFactorAuthService
+        TwoFactorAuthService $twoFactorAuthService,
     ): JsonResponse {
         $user = $this->getUser();
         $code = $request->request->get('code');
@@ -50,16 +50,16 @@ class TwoFactorController extends AbstractController
         if ($isValid) {
             // Generate backup codes
             $backupCodes = $twoFactorAuthService->generateBackupCodes($user);
-            
+
             return new JsonResponse([
                 'success' => true,
                 'message' => 'Двухфакторная аутентификация успешно активирована',
-                'backup_codes' => $backupCodes
+                'backup_codes' => $backupCodes,
             ]);
         } else {
             return new JsonResponse([
                 'success' => false,
-                'message' => 'Неверный код. Попробуйте еще раз.'
+                'message' => 'Неверный код. Попробуйте еще раз.',
             ], 400);
         }
     }
@@ -71,17 +71,17 @@ class TwoFactorController extends AbstractController
         $status = $twoFactorAuthService->getTwoFactorStatus($user);
 
         return $this->render('2fa/status.html.twig', [
-            'status' => $status
+            'status' => $status,
         ]);
     }
 
     #[Route('/disable', name: 'app_2fa_disable', methods: ['POST'])]
     public function disable(
         Request $request,
-        TwoFactorAuthService $twoFactorAuthService
+        TwoFactorAuthService $twoFactorAuthService,
     ): JsonResponse {
         $user = $this->getUser();
-        
+
         if (!$twoFactorAuthService->isTwoFactorEnabled($user)) {
             return new JsonResponse(['success' => false, 'message' => '2FA не активирована'], 400);
         }
@@ -90,7 +90,7 @@ class TwoFactorController extends AbstractController
 
         return new JsonResponse([
             'success' => true,
-            'message' => 'Двухфакторная аутентификация отключена'
+            'message' => 'Двухфакторная аутентификация отключена',
         ]);
     }
 
@@ -98,7 +98,7 @@ class TwoFactorController extends AbstractController
     public function showBackupCodes(TwoFactorAuthService $twoFactorAuthService): Response
     {
         $user = $this->getUser();
-        
+
         if (!$twoFactorAuthService->isTwoFactorEnabled($user)) {
             throw $this->createNotFoundException('2FA не активирована');
         }
@@ -108,17 +108,17 @@ class TwoFactorController extends AbstractController
 
         return $this->render('2fa/backups.html.twig', [
             'backup_codes' => $backupCodes,
-            'status' => $status
+            'status' => $status,
         ]);
     }
 
     #[Route('/regenerate-backup-codes', name: 'app_2fa_regenerate_backup_codes', methods: ['POST'])]
     public function regenerateBackupCodes(
         Request $request,
-        TwoFactorAuthService $twoFactorAuthService
+        TwoFactorAuthService $twoFactorAuthService,
     ): JsonResponse {
         $user = $this->getUser();
-        
+
         if (!$twoFactorAuthService->isTwoFactorEnabled($user)) {
             return new JsonResponse(['success' => false, 'message' => '2FA не активирована'], 400);
         }
@@ -128,14 +128,14 @@ class TwoFactorController extends AbstractController
         return new JsonResponse([
             'success' => true,
             'message' => 'Резервные коды обновлены',
-            'backup_codes' => $newCodes
+            'backup_codes' => $newCodes,
         ]);
     }
 
     #[Route('/api/verify', name: 'app_2fa_api_verify', methods: ['POST'])]
     public function apiVerify(
         Request $request,
-        TwoFactorAuthService $twoFactorAuthService
+        TwoFactorAuthService $twoFactorAuthService,
     ): JsonResponse {
         $user = $this->getUser();
         $code = $request->request->get('code');
@@ -158,7 +158,7 @@ class TwoFactorController extends AbstractController
 
         return new JsonResponse([
             'success' => $isValid,
-            'message' => $message
+            'message' => $message,
         ]);
     }
 
@@ -169,7 +169,7 @@ class TwoFactorController extends AbstractController
         $status = $twoFactorAuthService->getTwoFactorStatus($user);
 
         return $this->render('2fa/recovery.html.twig', [
-            'status' => $status
+            'status' => $status,
         ]);
     }
 }

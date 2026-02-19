@@ -18,19 +18,20 @@ class CommentController extends AbstractController
 {
     #[Route('/task/{taskId}', name: 'app_comment_create', methods: ['POST'])]
     public function create(
-        int $taskId, 
-        Request $request, 
-        EntityManagerInterface $entityManager, 
+        int $taskId,
+        Request $request,
+        EntityManagerInterface $entityManager,
         NotificationService $notificationService,
-        ?PerformanceMonitorService $performanceMonitor = null
+        ?PerformanceMonitorService $performanceMonitor = null,
     ): Response {
         $performanceMonitor?->startTiming('comment_controller_create');
-        
+
         try {
             $task = $entityManager->getRepository(Task::class)->find($taskId);
-            
+
             if (!$task) {
                 $this->addFlash('error', 'Задача не найдена.');
+
                 return $this->redirectToRoute('app_task_index');
             }
 
@@ -64,13 +65,13 @@ class CommentController extends AbstractController
 
     #[Route('/{id}/delete', name: 'app_comment_delete', methods: ['POST'])]
     public function delete(
-        Comment $comment, 
-        Request $request, 
+        Comment $comment,
+        Request $request,
         EntityManagerInterface $entityManager,
-        ?PerformanceMonitorService $performanceMonitor = null
+        ?PerformanceMonitorService $performanceMonitor = null,
     ): Response {
         $performanceMonitor?->startTiming('comment_controller_delete');
-        
+
         try {
             // Check if user can delete this comment (must be author or admin)
             if ($comment->getAuthor() !== $this->getUser() && !$this->isGranted('ROLE_ADMIN')) {
@@ -78,7 +79,7 @@ class CommentController extends AbstractController
             }
 
             $taskId = $comment->getTask()->getId();
-            
+
             if ($this->isCsrfTokenValid('delete' . $comment->getId(), $request->request->get('_token'))) {
                 $entityManager->remove($comment);
                 $entityManager->flush();

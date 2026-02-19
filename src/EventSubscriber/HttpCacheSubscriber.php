@@ -26,7 +26,7 @@ class HttpCacheSubscriber implements EventSubscriberInterface
 
         $request = $event->getRequest();
         $response = $event->getResponse();
-        
+
         // Don't cache if already has cache headers
         if ($response->headers->has('Cache-Control')) {
             return;
@@ -39,6 +39,7 @@ class HttpCacheSubscriber implements EventSubscriberInterface
             $response->setPublic();
             $response->setMaxAge(31536000); // 1 year
             $response->headers->addCacheControlDirective('immutable');
+
             return;
         }
 
@@ -47,6 +48,7 @@ class HttpCacheSubscriber implements EventSubscriberInterface
             $response->setPublic();
             $response->setMaxAge(300); // 5 minutes
             $response->setSharedMaxAge(300);
+
             return;
         }
 
@@ -55,6 +57,7 @@ class HttpCacheSubscriber implements EventSubscriberInterface
             $response->setPublic();
             $response->setMaxAge(600); // 10 minutes
             $response->setSharedMaxAge(600);
+
             return;
         }
 
@@ -69,32 +72,32 @@ class HttpCacheSubscriber implements EventSubscriberInterface
 
     private function isStaticAsset(string $path): bool
     {
-        return preg_match('/\.(css|js|jpg|jpeg|png|gif|svg|woff|woff2|ttf|eot|ico|webp)$/i', $path);
+        return preg_match('/\\.(css|js|jpg|jpeg|png|gif|svg|woff|woff2|ttf|eot|ico|webp)$/i', $path);
     }
 
     private function isPublicPage(string $path): bool
     {
         $publicPaths = ['/about', '/login', '/register'];
-        
+
         foreach ($publicPaths as $publicPath) {
             if (str_starts_with($path, $publicPath)) {
                 return true;
             }
         }
-        
+
         return false;
     }
 
     private function isPrivatePage(string $path): bool
     {
         $privatePaths = ['/dashboard', '/tasks', '/profile', '/settings'];
-        
+
         foreach ($privatePaths as $privatePath) {
             if (str_starts_with($path, $privatePath)) {
                 return true;
             }
         }
-        
+
         return false;
     }
 }

@@ -12,7 +12,9 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 class FileAttachmentService
 {
     private const MAX_FILE_SIZE = 10485760; // 10MB
+
     private const ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'jpg', 'jpeg', 'png', 'gif'];
+
     private const ALLOWED_MIME_TYPES = [
         'application/pdf',
         'application/msword',
@@ -22,15 +24,17 @@ class FileAttachmentService
         'text/plain',
         'image/jpeg',
         'image/png',
-        'image/gif'
+        'image/gif',
     ];
+
     private const DANGEROUS_EXTENSIONS = ['php', 'phtml', 'php3', 'php4', 'php5', 'exe', 'bat', 'cmd', 'sh', 'js', 'html', 'htm'];
 
     public function __construct(
         private TaskAttachmentRepository $attachmentRepository,
         private SluggerInterface $slugger,
-        private string $uploadsDirectory
-    ) {}
+        private string $uploadsDirectory,
+    ) {
+    }
 
     /**
      * Upload file and create attachment
@@ -98,19 +102,19 @@ class FileAttachmentService
 
         // Check extension from filename
         $originalExtension = strtolower(pathinfo($file->getClientOriginalName(), PATHINFO_EXTENSION));
-        if (in_array($originalExtension, self::DANGEROUS_EXTENSIONS)) {
+        if (\in_array($originalExtension, self::DANGEROUS_EXTENSIONS)) {
             throw new \Exception('Опасный тип файла запрещен');
         }
 
         // Check guessed extension
         $extension = $file->guessExtension();
-        if (!in_array($extension, self::ALLOWED_EXTENSIONS)) {
+        if (!\in_array($extension, self::ALLOWED_EXTENSIONS)) {
             throw new \Exception('Недопустимый тип файла. Разрешены: ' . implode(', ', self::ALLOWED_EXTENSIONS));
         }
 
         // Check MIME type
         $mimeType = $file->getMimeType();
-        if (!in_array($mimeType, self::ALLOWED_MIME_TYPES)) {
+        if (!\in_array($mimeType, self::ALLOWED_MIME_TYPES)) {
             throw new \Exception('Недопустимый MIME тип файла');
         }
 
@@ -126,7 +130,8 @@ class FileAttachmentService
     public function getTotalSize(Task $task): int
     {
         $attachments = $this->getTaskAttachments($task);
-        return array_sum(array_map(fn($a) => $a->getFileSize(), $attachments));
+
+        return array_sum(array_map(fn ($a) => $a->getFileSize(), $attachments));
     }
 
     /**
@@ -135,7 +140,7 @@ class FileAttachmentService
     public function getStatistics(): array
     {
         $qb = $this->attachmentRepository->createQueryBuilder('a');
-        
+
         $totalCount = $qb->select('COUNT(a.id)')
             ->getQuery()
             ->getSingleScalarResult();
@@ -147,7 +152,7 @@ class FileAttachmentService
         return [
             'total_count' => (int)$totalCount,
             'total_size' => (int)$totalSize,
-            'total_size_formatted' => $this->formatBytes((int)$totalSize)
+            'total_size_formatted' => $this->formatBytes((int)$totalSize),
         ];
     }
 
@@ -157,11 +162,11 @@ class FileAttachmentService
     private function formatBytes(int $bytes): string
     {
         $units = ['B', 'KB', 'MB', 'GB'];
-        
-        for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
+
+        for ($i = 0; $bytes > 1024 && $i < \count($units) - 1; $i++) {
             $bytes /= 1024;
         }
-        
+
         return round($bytes, 2) . ' ' . $units[$i];
     }
 }

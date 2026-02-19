@@ -17,20 +17,21 @@ class EmailDomainValidator extends ConstraintValidator
 
         // custom constraints should ignore null and empty values to allow
         // other constraints (NotBlank, NotNull, etc.) to take care of that
-        if (null === $value || '' === $value) {
+        if ($value === null || $value === '') {
             return;
         }
 
-        if (!is_string($value)) {
+        if (!\is_string($value)) {
             throw new UnexpectedValueException($value, 'string');
         }
 
         // Extract domain from email
         $emailParts = explode('@', $value);
-        if (count($emailParts) !== 2) {
+        if (\count($emailParts) !== 2) {
             $this->context->buildViolation('Invalid email format.')
                 ->setParameter('{{ value }}', $value)
                 ->addViolation();
+
             return;
         }
 
@@ -39,10 +40,11 @@ class EmailDomainValidator extends ConstraintValidator
         // Check blocked domains
         if (!empty($constraint->blockedDomains)) {
             $blockedDomains = array_map('strtolower', $constraint->blockedDomains);
-            if (in_array($domain, $blockedDomains)) {
+            if (\in_array($domain, $blockedDomains)) {
                 $this->context->buildViolation($constraint->message)
                     ->setParameter('{{ value }}', $value)
                     ->addViolation();
+
                 return;
             }
         }
@@ -50,10 +52,11 @@ class EmailDomainValidator extends ConstraintValidator
         // Check allowed domains
         if (!empty($constraint->allowedDomains)) {
             $allowedDomains = array_map('strtolower', $constraint->allowedDomains);
-            if (!in_array($domain, $allowedDomains)) {
+            if (!\in_array($domain, $allowedDomains)) {
                 $this->context->buildViolation($constraint->message)
                     ->setParameter('{{ value }}', $value)
                     ->addViolation();
+
                 return;
             }
         }

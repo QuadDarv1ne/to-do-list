@@ -10,9 +10,10 @@ class DashboardWidgetService
 {
     public function __construct(
         private TaskRepository $taskRepository,
-        private EntityManagerInterface $entityManager
-    ) {}
-    
+        private EntityManagerInterface $entityManager,
+    ) {
+    }
+
     /**
      * Get all available widgets
      */
@@ -23,65 +24,65 @@ class DashboardWidgetService
                 'name' => 'Статистика задач',
                 'description' => 'Общая статистика по задачам',
                 'icon' => 'fa-tasks',
-                'size' => 'col-md-6'
+                'size' => 'col-md-6',
             ],
             'recent_tasks' => [
                 'name' => 'Последние задачи',
                 'description' => 'Недавно созданные задачи',
                 'icon' => 'fa-clock',
-                'size' => 'col-md-6'
+                'size' => 'col-md-6',
             ],
             'overdue_tasks' => [
                 'name' => 'Просроченные задачи',
                 'description' => 'Задачи с истекшим дедлайном',
                 'icon' => 'fa-exclamation-triangle',
-                'size' => 'col-md-6'
+                'size' => 'col-md-6',
             ],
             'upcoming_deadlines' => [
                 'name' => 'Ближайшие дедлайны',
                 'description' => 'Задачи на ближайшую неделю',
                 'icon' => 'fa-calendar-alt',
-                'size' => 'col-md-6'
+                'size' => 'col-md-6',
             ],
             'productivity_chart' => [
                 'name' => 'График продуктивности',
                 'description' => 'Динамика выполнения задач',
                 'icon' => 'fa-chart-line',
-                'size' => 'col-md-12'
+                'size' => 'col-md-12',
             ],
             'priority_distribution' => [
                 'name' => 'Распределение по приоритетам',
                 'description' => 'Задачи по уровням приоритета',
                 'icon' => 'fa-chart-pie',
-                'size' => 'col-md-6'
+                'size' => 'col-md-6',
             ],
             'category_breakdown' => [
                 'name' => 'Задачи по категориям',
                 'description' => 'Распределение по категориям',
                 'icon' => 'fa-folder',
-                'size' => 'col-md-6'
+                'size' => 'col-md-6',
             ],
             'team_activity' => [
                 'name' => 'Активность команды',
                 'description' => 'Последние действия команды',
                 'icon' => 'fa-users',
-                'size' => 'col-md-12'
+                'size' => 'col-md-12',
             ],
             'quick_actions' => [
                 'name' => 'Быстрые действия',
                 'description' => 'Часто используемые действия',
                 'icon' => 'fa-bolt',
-                'size' => 'col-md-6'
+                'size' => 'col-md-6',
             ],
             'notifications_widget' => [
                 'name' => 'Уведомления',
                 'description' => 'Последние уведомления',
                 'icon' => 'fa-bell',
-                'size' => 'col-md-6'
-            ]
+                'size' => 'col-md-6',
+            ],
         ];
     }
-    
+
     /**
      * Get widget data
      */
@@ -101,7 +102,7 @@ class DashboardWidgetService
             default => []
         };
     }
-    
+
     /**
      * Get user's widget configuration
      */
@@ -112,13 +113,13 @@ class DashboardWidgetService
             'task_stats',
             'recent_tasks',
             'upcoming_deadlines',
-            'productivity_chart'
+            'productivity_chart',
         ];
-        
+
         // TODO: Load from user preferences table
         return $defaultWidgets;
     }
-    
+
     /**
      * Save user's widget configuration
      */
@@ -128,18 +129,18 @@ class DashboardWidgetService
         // For now, just validate widgets exist
         $available = array_keys($this->getAvailableWidgets());
         $validWidgets = array_intersect($widgets, $available);
-        
+
         // TODO: Store in database instead of session
         // This is a placeholder implementation
     }
-    
+
     // Widget data methods
-    
+
     private function getTaskStatsData(User $user): array
     {
         return $this->taskRepository->getQuickStats($user);
     }
-    
+
     private function getRecentTasksData(User $user): array
     {
         $tasks = $this->taskRepository->createQueryBuilder('t')
@@ -149,14 +150,14 @@ class DashboardWidgetService
             ->setMaxResults(5)
             ->getQuery()
             ->getResult();
-        
+
         return ['tasks' => $tasks];
     }
-    
+
     private function getOverdueTasksData(User $user): array
     {
         $now = new \DateTime();
-        
+
         $tasks = $this->taskRepository->createQueryBuilder('t')
             ->where('t.user = :user OR t.assignedUser = :user')
             ->andWhere('t.deadline < :now')
@@ -168,18 +169,18 @@ class DashboardWidgetService
             ->setMaxResults(10)
             ->getQuery()
             ->getResult();
-        
+
         return [
             'tasks' => $tasks,
-            'count' => count($tasks)
+            'count' => \count($tasks),
         ];
     }
-    
+
     private function getUpcomingDeadlinesData(User $user): array
     {
         $now = new \DateTime();
         $nextWeek = (clone $now)->modify('+7 days');
-        
+
         $tasks = $this->taskRepository->createQueryBuilder('t')
             ->where('t.user = :user OR t.assignedUser = :user')
             ->andWhere('t.deadline BETWEEN :now AND :nextWeek')
@@ -192,18 +193,18 @@ class DashboardWidgetService
             ->setMaxResults(10)
             ->getQuery()
             ->getResult();
-        
+
         return ['tasks' => $tasks];
     }
-    
+
     private function getProductivityChartData(User $user): array
     {
         $data = [];
-        
+
         for ($i = 6; $i >= 0; $i--) {
             $date = new \DateTime("-{$i} days");
             $nextDay = (clone $date)->modify('+1 day');
-            
+
             $completed = $this->taskRepository->createQueryBuilder('t')
                 ->select('COUNT(t.id)')
                 ->where('t.user = :user OR t.assignedUser = :user')
@@ -215,16 +216,16 @@ class DashboardWidgetService
                 ->setParameter('end', $nextDay)
                 ->getQuery()
                 ->getSingleScalarResult();
-            
+
             $data[] = [
                 'date' => $date->format('d.m'),
-                'completed' => (int)$completed
+                'completed' => (int)$completed,
             ];
         }
-        
+
         return ['data' => $data];
     }
-    
+
     private function getPriorityDistributionData(User $user): array
     {
         $qb = $this->taskRepository->createQueryBuilder('t')
@@ -234,23 +235,23 @@ class DashboardWidgetService
             ->groupBy('t.priority')
             ->setParameter('user', $user)
             ->setParameter('completed', 'completed');
-        
+
         $results = $qb->getQuery()->getResult();
-        
+
         $distribution = [
             'low' => 0,
             'medium' => 0,
             'high' => 0,
-            'urgent' => 0
+            'urgent' => 0,
         ];
-        
+
         foreach ($results as $result) {
             $distribution[$result['priority']] = (int)$result['count'];
         }
-        
+
         return $distribution;
     }
-    
+
     private function getCategoryBreakdownData(User $user): array
     {
         $qb = $this->taskRepository->createQueryBuilder('t')
@@ -263,28 +264,28 @@ class DashboardWidgetService
             ->setMaxResults(5)
             ->setParameter('user', $user)
             ->setParameter('completed', 'completed');
-        
+
         return ['categories' => $qb->getQuery()->getResult()];
     }
-    
+
     private function getTeamActivityData(User $user): array
     {
         // Get recent activity logs if entity exists
         try {
-            $activityRepo = $this->entityManager->getRepository('App\Entity\ActivityLog');
+            $activityRepo = $this->entityManager->getRepository('App\\Entity\\ActivityLog');
             $activities = $activityRepo->createQueryBuilder('a')
                 ->orderBy('a.createdAt', 'DESC')
                 ->setMaxResults(10)
                 ->getQuery()
                 ->getResult();
-            
+
             return ['activities' => $activities];
         } catch (\Exception $e) {
             // ActivityLog entity might not exist yet
             return ['activities' => []];
         }
     }
-    
+
     private function getQuickActionsData(User $user): array
     {
         return [
@@ -293,20 +294,20 @@ class DashboardWidgetService
                 ['icon' => 'fa-calendar', 'label' => 'Календарь', 'url' => '/calendar'],
                 ['icon' => 'fa-chart-bar', 'label' => 'Отчеты', 'url' => '/reports'],
                 ['icon' => 'fa-file-import', 'label' => 'Импорт', 'url' => '/import'],
-            ]
+            ],
         ];
     }
-    
+
     private function getNotificationsData(User $user): array
     {
         try {
-            $notificationRepo = $this->entityManager->getRepository('App\Entity\Notification');
+            $notificationRepo = $this->entityManager->getRepository('App\\Entity\\Notification');
             $notifications = $notificationRepo->findBy(
                 ['user' => $user],
                 ['createdAt' => 'DESC'],
-                5
+                5,
             );
-            
+
             return ['notifications' => $notifications];
         } catch (\Exception $e) {
             return ['notifications' => []];

@@ -18,10 +18,15 @@ use Symfony\Component\Notifier\Recipient\Recipient;
 class DeadlineNotificationService
 {
     private EntityManagerInterface $entityManager;
+
     private TaskRepository $taskRepository;
+
     private MailerInterface $mailer;
+
     private NotifierInterface $notifier;
+
     private LoggerInterface $logger;
+
     private string $fromEmail;
 
     public function __construct(
@@ -30,7 +35,7 @@ class DeadlineNotificationService
         MailerInterface $mailer,
         NotifierInterface $notifier,
         LoggerInterface $logger,
-        string $fromEmail = 'noreply@todo-app.com'
+        string $fromEmail = 'noreply@todo-app.com',
     ) {
         $this->entityManager = $entityManager;
         $this->taskRepository = $taskRepository;
@@ -46,18 +51,18 @@ class DeadlineNotificationService
     public function sendUpcomingDeadlineNotifications(): array
     {
         $this->logger->info('Starting deadline notification process');
-        
+
         $results = [
             'email_sent' => 0,
             'push_sent' => 0,
             'sms_sent' => 0,
             'failed' => 0,
-            'tasks_processed' => 0
+            'tasks_processed' => 0,
         ];
 
         // Get tasks with deadlines in the next 24 hours
         $upcomingTasks = $this->taskRepository->findTasksWithUpcomingDeadlines();
-        
+
         foreach ($upcomingTasks as $task) {
             $user = $task->getUser();
             if (!$user || !$user->isActive()) {
@@ -65,17 +70,17 @@ class DeadlineNotificationService
             }
 
             $results['tasks_processed']++;
-            
+
             // Send email notification
             if ($this->sendEmailNotification($task, $user)) {
                 $results['email_sent']++;
             }
-            
+
             // Send push notification if available
             if ($this->sendPushNotification($task, $user)) {
                 $results['push_sent']++;
             }
-            
+
             // Send SMS for critical deadlines (urgent priority)
             if ($task->getPriority() === 'urgent' && $this->sendSmsNotification($task, $user)) {
                 $results['sms_sent']++;
@@ -83,6 +88,7 @@ class DeadlineNotificationService
         }
 
         $this->logger->info('Deadline notifications completed', $results);
+
         return $results;
     }
 
@@ -100,9 +106,11 @@ class DeadlineNotificationService
 
             $this->mailer->send($email);
             $this->logger->info("Email notification sent for task {$task->getId()}");
+
             return true;
         } catch (\Exception $e) {
-            $this->logger->error("Failed to send email notification: " . $e->getMessage());
+            $this->logger->error('Failed to send email notification: ' . $e->getMessage());
+
             return false;
         }
     }
@@ -119,19 +127,21 @@ class DeadlineNotificationService
             }
 
             $recipient = new Recipient($user->getEmail(), $user->getFullName());
-            
+
             $notification = new \Symfony\Component\Notifier\Notification\Notification(
                 'Напоминание о дедлайне',
-                ['email']
+                ['email'],
             );
             $notification->content("Задача '{$task->getTitle()}' истекает завтра");
-            
+
             $this->notifier->send($notification, $recipient);
 
             $this->logger->info("Push notification sent for task {$task->getId()}");
+
             return true;
         } catch (\Exception $e) {
-            $this->logger->error("Failed to send push notification: " . $e->getMessage());
+            $this->logger->error('Failed to send push notification: ' . $e->getMessage());
+
             return false;
         }
     }
@@ -148,7 +158,7 @@ class DeadlineNotificationService
             }
 
             $recipient = new Recipient($user->getEmail(), $user->getFullName());
-            
+
             // SMS notification using mailer as fallback
             $smsEmail = (new Email())
                 ->from($this->fromEmail)
@@ -159,9 +169,11 @@ class DeadlineNotificationService
             $this->mailer->send($smsEmail);
 
             $this->logger->info("SMS notification sent for task {$task->getId()}");
+
             return true;
         } catch (\Exception $e) {
-            $this->logger->error("Failed to send SMS notification: " . $e->getMessage());
+            $this->logger->error('Failed to send SMS notification: ' . $e->getMessage());
+
             return false;
         }
     }
@@ -175,14 +187,14 @@ class DeadlineNotificationService
         $timeLeft = $dueDate ? $dueDate->diff(new \DateTime())->format('%d дней %h часов') : 'не указан';
         $taskUser = $task->getUser();
         $userName = $taskUser ? $taskUser->getFullName() : 'Пользователь';
-        
+
         return "
         <html>
         <body style='font-family: Arial, sans-serif; margin: 20px;'>
             <h2 style='color: #d32f2f;'>Напоминание о дедлайне</h2>
             <p>Здравствуйте, {$userName}!</p>
             <p>Срок выполнения задачи <strong>{$task->getTitle()}</strong> истекает завтра.</p>
-            
+
             <div style='background-color: #f5f5f5; padding: 15px; border-left: 4px solid #d32f2f; margin: 20px 0;'>
                 <h3>Детали задачи:</h3>
                 <ul>
@@ -192,14 +204,14 @@ class DeadlineNotificationService
                     <li><strong>Осталось времени:</strong> {$timeLeft}</li>
                 </ul>
             </div>
-            
+
             <p>
-                <a href='{$_ENV['APP_URL']}/tasks/{$task->getId()}' 
+                <a href='{$_ENV['APP_URL']}/tasks/{$task->getId()}'
                    style='background-color: #1976d2; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;'>
                     Перейти к задаче
                 </a>
             </p>
-            
+
             <p style='color: #666; font-size: 12px; margin-top: 30px;'>
                 Это автоматическое уведомление. Пожалуйста, не отвечайте на это письмо.
             </p>
@@ -235,9 +247,9 @@ class DeadlineNotificationService
     {
         $today = new \DateTime();
         $tomorrow = (clone $today)->modify('+1 day');
-        
+
         $qb = $this->entityManager->createQueryBuilder();
-        
+
         $stats = $qb->select('
                 COUNT(t.id) as total_upcoming,
                 SUM(CASE WHEN t.priority = :urgent THEN 1 ELSE 0 END) as urgent_count,
@@ -265,7 +277,7 @@ class DeadlineNotificationService
             'high_count' => (int) $stats['high_count'],
             'medium_count' => (int) $stats['medium_count'],
             'low_count' => (int) $stats['low_count'],
-            'timestamp' => new \DateTime()
+            'timestamp' => new \DateTime(),
         ];
     }
 }

@@ -3,19 +3,18 @@
 namespace App\Controller;
 
 use App\Entity\KnowledgeBaseArticle;
-use App\Entity\KnowledgeBaseCategory;
 use App\Entity\User;
 use App\Repository\KnowledgeBaseArticleRepository;
 use App\Repository\KnowledgeBaseCategoryRepository;
 use App\Service\KnowledgeBaseService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
-use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/knowledge-base')]
 class KnowledgeBaseController extends AbstractController
@@ -24,7 +23,7 @@ class KnowledgeBaseController extends AbstractController
         private KnowledgeBaseService $knowledgeBaseService,
         private KnowledgeBaseArticleRepository $articleRepository,
         private KnowledgeBaseCategoryRepository $categoryRepository,
-        private EntityManagerInterface $entityManager
+        private EntityManagerInterface $entityManager,
     ) {
     }
 
@@ -35,12 +34,12 @@ class KnowledgeBaseController extends AbstractController
         $page = $request->query->getInt('page', 1);
         $limit = $request->query->getInt('limit', 10);
         $offset = ($page - 1) * $limit;
-        
+
         $articles = $this->knowledgeBaseService->getPublishedArticles($limit, $offset);
         $total = $this->knowledgeBaseService->getPublishedArticlesCount();
-        
+
         $categories = $this->knowledgeBaseService->getCategories();
-        
+
         return $this->render('knowledge_base/index.html.twig', [
             'articles' => $articles,
             'categories' => $categories,
@@ -57,10 +56,10 @@ class KnowledgeBaseController extends AbstractController
         $page = $request->query->getInt('page', 1);
         $limit = $request->query->getInt('limit', 20);
         $offset = ($page - 1) * $limit;
-        
+
         $articles = $this->knowledgeBaseService->getPublishedArticles($limit, $offset);
-        
-        $formattedArticles = array_map(function($article) {
+
+        $formattedArticles = array_map(function ($article) {
             return [
                 'id' => $article->getId(),
                 'title' => $article->getTitle(),
@@ -68,19 +67,19 @@ class KnowledgeBaseController extends AbstractController
                 'category' => $article->getCategories()->first() ? $article->getCategories()->first()->getName() : 'Uncategorized',
                 'author' => $article->getAuthor()->getFullName() ?? $article->getAuthor()->getEmail(),
                 'date' => $article->getCreatedAt()->format('Y-m-d'),
-                'tags' => array_map(fn($tag) => $tag->getName(), $article->getTags()->toArray()),
+                'tags' => array_map(fn ($tag) => $tag->getName(), $article->getTags()->toArray()),
                 'views' => $article->getViewCount(),
-                'status' => $article->getStatus()
+                'status' => $article->getStatus(),
             ];
         }, $articles);
-        
+
         return $this->json([
             'articles' => $formattedArticles,
             'pagination' => [
                 'page' => $page,
                 'limit' => $limit,
-                'total' => $this->knowledgeBaseService->getPublishedArticlesCount()
-            ]
+                'total' => $this->knowledgeBaseService->getPublishedArticlesCount(),
+            ],
         ]);
     }
 
@@ -90,7 +89,7 @@ class KnowledgeBaseController extends AbstractController
     {
         if ($request->isMethod('POST')) {
             $data = json_decode($request->getContent(), true);
-            
+
             $article = $this->knowledgeBaseService->createArticle([
                 'title' => $data['title'],
                 'content' => $data['content'],
@@ -98,52 +97,52 @@ class KnowledgeBaseController extends AbstractController
                 'status' => $data['status'] ?? 'draft',
                 'meta_description' => $data['meta_description'] ?? '',
                 'category_ids' => $data['category_ids'] ?? [],
-                'tag_names' => $data['tag_names'] ?? []
+                'tag_names' => $data['tag_names'] ?? [],
             ], $user);
-            
+
             return $this->redirectToRoute('app_knowledge_base_article_view', ['id' => $article->getId()]);
         }
 
         $categories = $this->knowledgeBaseService->getCategories();
 
         return $this->render('knowledge_base/article_create.html.twig', [
-            'categories' => $categories
+            'categories' => $categories,
         ]);
     }
 
-    #[Route('/article/{id}', name: 'app_knowledge_base_article_view', methods: ['GET'], requirements: ['id' => '\d+'])]
+    #[Route('/article/{id}', name: 'app_knowledge_base_article_view', methods: ['GET'], requirements: ['id' => '\\d+'])]
     #[IsGranted('ROLE_USER')]
     public function viewArticle(int $id, #[CurrentUser] User $user): Response
     {
         $article = $this->articleRepository->find($id);
-        
+
         if (!$article || $article->getStatus() !== 'published') {
             throw $this->createNotFoundException('Article not found');
         }
-        
+
         // Increment view count
         $this->knowledgeBaseService->incrementViewCount($article);
-        
+
         $relatedArticles = $this->knowledgeBaseService->getRelatedArticles($article);
-        
+
         return $this->render('knowledge_base/article_view.html.twig', [
             'article' => $article,
-            'related_articles' => $relatedArticles
+            'related_articles' => $relatedArticles,
         ]);
     }
 
-    #[Route('/article/{id}/edit', name: 'app_knowledge_base_article_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
+    #[Route('/article/{id}/edit', name: 'app_knowledge_base_article_edit', methods: ['GET', 'POST'], requirements: ['id' => '\\d+'])]
     #[IsGranted('ROLE_USER')]
     public function editArticle(Request $request, KnowledgeBaseArticle $article, #[CurrentUser] User $user): Response
     {
         // Check if user has permission to edit this article
-        if ($article->getAuthor()->getId() !== $user->getId() && !in_array('ROLE_ADMIN', $user->getRoles())) {
+        if ($article->getAuthor()->getId() !== $user->getId() && !\in_array('ROLE_ADMIN', $user->getRoles())) {
             throw $this->createAccessDeniedException();
         }
-        
+
         if ($request->isMethod('POST')) {
             $data = json_decode($request->getContent(), true);
-            
+
             $this->knowledgeBaseService->updateArticle($article, [
                 'title' => $data['title'] ?? $article->getTitle(),
                 'content' => $data['content'] ?? $article->getContent(),
@@ -151,29 +150,29 @@ class KnowledgeBaseController extends AbstractController
                 'status' => $data['status'] ?? $article->getStatus(),
                 'meta_description' => $data['meta_description'] ?? $article->getMetaDescription(),
                 'category_ids' => $data['category_ids'] ?? [],
-                'tag_names' => $data['tag_names'] ?? []
+                'tag_names' => $data['tag_names'] ?? [],
             ]);
-            
+
             return $this->redirectToRoute('app_knowledge_base_article_view', ['id' => $article->getId()]);
         }
 
         $categories = $this->knowledgeBaseService->getCategories();
-        
+
         return $this->render('knowledge_base/article_edit.html.twig', [
             'article' => $article,
-            'categories' => $categories
+            'categories' => $categories,
         ]);
     }
 
-    #[Route('/article/{id}/delete', name: 'app_knowledge_base_article_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
+    #[Route('/article/{id}/delete', name: 'app_knowledge_base_article_delete', methods: ['POST'], requirements: ['id' => '\\d+'])]
     #[IsGranted('ROLE_USER')]
     public function deleteArticle(Request $request, KnowledgeBaseArticle $article, #[CurrentUser] User $user): Response
     {
         // Check if user has permission to delete this article
-        if ($article->getAuthor()->getId() !== $user->getId() && !in_array('ROLE_ADMIN', $user->getRoles())) {
+        if ($article->getAuthor()->getId() !== $user->getId() && !\in_array('ROLE_ADMIN', $user->getRoles())) {
             throw $this->createAccessDeniedException();
         }
-        
+
         if ($this->isCsrfTokenValid('delete'.$article->getId(), $request->request->get('_token'))) {
             $this->knowledgeBaseService->deleteArticle($article);
         }
@@ -186,13 +185,13 @@ class KnowledgeBaseController extends AbstractController
     public function getCategories(): JsonResponse
     {
         $categories = $this->knowledgeBaseService->getCategories();
-        
-        $formattedCategories = array_map(function($category) {
+
+        $formattedCategories = array_map(function ($category) {
             return [
                 'id' => $category->getId(),
                 'name' => $category->getName(),
                 'description' => $category->getDescription(),
-                'article_count' => count($category->getArticles())
+                'article_count' => \count($category->getArticles()),
             ];
         }, $categories);
 
@@ -213,16 +212,16 @@ class KnowledgeBaseController extends AbstractController
         }
 
         $articles = $this->knowledgeBaseService->searchArticles($query, $limit, $offset);
-        $total = count($this->knowledgeBaseService->searchArticles($query)); // Simplified count
+        $total = \count($this->knowledgeBaseService->searchArticles($query)); // Simplified count
 
-        $formattedResults = array_map(function($article) {
+        $formattedResults = array_map(function ($article) {
             return [
                 'id' => $article->getId(),
                 'title' => $article->getTitle(),
                 'summary' => $article->getSummary(),
                 'author' => $article->getAuthor()->getFullName() ?? $article->getAuthor()->getEmail(),
                 'date' => $article->getCreatedAt()->format('Y-m-d'),
-                'views' => $article->getViewCount()
+                'views' => $article->getViewCount(),
             ];
         }, $articles);
 
@@ -232,8 +231,8 @@ class KnowledgeBaseController extends AbstractController
             'total_results' => $total,
             'pagination' => [
                 'page' => $page,
-                'limit' => $limit
-            ]
+                'limit' => $limit,
+            ],
         ]);
     }
 
@@ -252,10 +251,10 @@ class KnowledgeBaseController extends AbstractController
                     ['id' => 2, 'title' => 'Task Creation and Assignment'],
                     ['id' => 3, 'title' => 'Resource Management'],
                     ['id' => 4, 'title' => 'Budget Planning'],
-                    ['id' => 5, 'title' => 'Reporting and Analytics']
+                    ['id' => 5, 'title' => 'Reporting and Analytics'],
                 ],
                 'estimated_duration' => '2 weeks',
-                'difficulty' => 'Beginner'
+                'difficulty' => 'Beginner',
             ],
             [
                 'id' => 2,
@@ -265,11 +264,11 @@ class KnowledgeBaseController extends AbstractController
                     ['id' => 6, 'title' => 'Understanding Capacity Planning'],
                     ['id' => 7, 'title' => 'Load Balancing Techniques'],
                     ['id' => 8, 'title' => 'Forecasting Demand'],
-                    ['id' => 9, 'title' => 'Performance Monitoring']
+                    ['id' => 9, 'title' => 'Performance Monitoring'],
                 ],
                 'estimated_duration' => '1 week',
-                'difficulty' => 'Intermediate'
-            ]
+                'difficulty' => 'Intermediate',
+            ],
         ];
 
         return $this->json($paths);
@@ -281,13 +280,13 @@ class KnowledgeBaseController extends AbstractController
     {
         $articles = $this->knowledgeBaseService->getTrendingArticles(10);
 
-        $formattedArticles = array_map(function($article) {
+        $formattedArticles = array_map(function ($article) {
             return [
                 'id' => $article->getId(),
                 'title' => $article->getTitle(),
                 'summary' => $article->getSummary(),
                 'views' => $article->getViewCount(),
-                'date' => $article->getCreatedAt()->format('Y-m-d')
+                'date' => $article->getCreatedAt()->format('Y-m-d'),
             ];
         }, $articles);
 
@@ -300,38 +299,38 @@ class KnowledgeBaseController extends AbstractController
     {
         $articles = $this->knowledgeBaseService->getRecentArticles(10);
 
-        $formattedUpdates = array_map(function($article) {
+        $formattedUpdates = array_map(function ($article) {
             return [
                 'id' => $article->getId(),
                 'title' => $article->getTitle(),
                 'summary' => $article->getSummary(),
                 'date' => $article->getCreatedAt()->format('Y-m-d'),
-                'type' => 'article'
+                'type' => 'article',
             ];
         }, $articles);
 
         return $this->json($formattedUpdates);
     }
 
-    #[Route('/category/{id}/articles', name: 'app_knowledge_base_category_articles', methods: ['GET'], requirements: ['id' => '\d+'])]
+    #[Route('/category/{id}/articles', name: 'app_knowledge_base_category_articles', methods: ['GET'], requirements: ['id' => '\\d+'])]
     #[IsGranted('ROLE_USER')]
     public function getArticlesByCategory(int $id, Request $request): JsonResponse
     {
         $page = $request->query->getInt('page', 1);
         $limit = $request->query->getInt('limit', 20);
         $offset = ($page - 1) * $limit;
-        
+
         $articles = $this->knowledgeBaseService->getArticlesByCategory($id, $limit, $offset);
-        $total = count($this->articleRepository->findByCategory($id));
-        
-        $formattedArticles = array_map(function($article) {
+        $total = \count($this->articleRepository->findByCategory($id));
+
+        $formattedArticles = array_map(function ($article) {
             return [
                 'id' => $article->getId(),
                 'title' => $article->getTitle(),
                 'summary' => $article->getSummary(),
                 'author' => $article->getAuthor()->getFullName() ?? $article->getAuthor()->getEmail(),
                 'date' => $article->getCreatedAt()->format('Y-m-d'),
-                'views' => $article->getViewCount()
+                'views' => $article->getViewCount(),
             ];
         }, $articles);
 
@@ -340,32 +339,32 @@ class KnowledgeBaseController extends AbstractController
             'pagination' => [
                 'page' => $page,
                 'limit' => $limit,
-                'total' => $total
-            ]
+                'total' => $total,
+            ],
         ]);
     }
 
-    #[Route('/article/{id}/like', name: 'app_knowledge_base_article_like', methods: ['POST'], requirements: ['id' => '\d+'])]
+    #[Route('/article/{id}/like', name: 'app_knowledge_base_article_like', methods: ['POST'], requirements: ['id' => '\\d+'])]
     #[IsGranted('ROLE_USER')]
     public function likeArticle(KnowledgeBaseArticle $article): JsonResponse
     {
         $this->knowledgeBaseService->likeArticle($article);
-        
+
         return $this->json([
             'success' => true,
-            'likes' => $article->getLikeCount()
+            'likes' => $article->getLikeCount(),
         ]);
     }
 
-    #[Route('/article/{id}/dislike', name: 'app_knowledge_base_article_dislike', methods: ['POST'], requirements: ['id' => '\d+'])]
+    #[Route('/article/{id}/dislike', name: 'app_knowledge_base_article_dislike', methods: ['POST'], requirements: ['id' => '\\d+'])]
     #[IsGranted('ROLE_USER')]
     public function dislikeArticle(KnowledgeBaseArticle $article): JsonResponse
     {
         $this->knowledgeBaseService->dislikeArticle($article);
-        
+
         return $this->json([
             'success' => true,
-            'dislikes' => $article->getDislikeCount()
+            'dislikes' => $article->getDislikeCount(),
         ]);
     }
 
@@ -374,7 +373,7 @@ class KnowledgeBaseController extends AbstractController
     public function getStatistics(): JsonResponse
     {
         $stats = $this->knowledgeBaseService->getStatistics();
-        
+
         return $this->json($stats);
     }
 }

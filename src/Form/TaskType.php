@@ -10,24 +10,24 @@ use App\Repository\TaskCategoryRepository;
 use App\Repository\UserRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
-use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
 
 class TaskType extends AbstractType
 {
     public function __construct(
         private UserRepository $userRepository,
         private TaskCategoryRepository $categoryRepository,
-        private TagRepository $tagRepository
-    ) {}
+        private TagRepository $tagRepository,
+    ) {
+    }
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
@@ -38,13 +38,13 @@ class TaskType extends AbstractType
                     'class' => 'form-control',
                     'placeholder' => 'Введите название задачи',
                     'autofocus' => true,
-                    'maxlength' => 100
+                    'maxlength' => 100,
                 ],
                 'constraints' => [
                     new NotBlank(),
                     new Length(
                         max: 100,
-                        maxMessage: 'Название не должно превышать {{ limit }} символов'
+                        maxMessage: 'Название не должно превышать {{ limit }} символов',
                     ),
                 ],
             ])
@@ -54,7 +54,7 @@ class TaskType extends AbstractType
                 'attr' => [
                     'class' => 'form-control',
                     'rows' => 4,
-                    'placeholder' => 'Опишите задачу подробнее...'
+                    'placeholder' => 'Опишите задачу подробнее...',
                 ],
             ])
             ->add('status', ChoiceType::class, [
@@ -71,8 +71,8 @@ class TaskType extends AbstractType
                 'expanded' => false,
                 'multiple' => false,
                 'constraints' => [
-                    new NotBlank()
-                ]
+                    new NotBlank(),
+                ],
             ])
             ->add('priority', ChoiceType::class, [
                 'label' => 'Приоритет',
@@ -89,8 +89,8 @@ class TaskType extends AbstractType
                 'expanded' => false,
                 'multiple' => false,
                 'constraints' => [
-                    new NotBlank()
-                ]
+                    new NotBlank(),
+                ],
             ])
             ->add('dueDate', DateTimeType::class, [
                 'label' => 'Срок выполнения',
@@ -102,9 +102,9 @@ class TaskType extends AbstractType
                 'constraints' => [
                     new GreaterThanOrEqual(
                         value: 'today',
-                        message: 'Срок не может быть в прошлом'
-                    )
-                ]
+                        message: 'Срок не может быть в прошлом',
+                    ),
+                ],
             ])
             ->add('category', EntityType::class, [
                 'label' => 'Категория',
@@ -115,12 +115,12 @@ class TaskType extends AbstractType
                     'class' => 'form-select',
                 ],
                 'placeholder' => 'Выберите категорию',
-                'query_builder' => function(TaskCategoryRepository $er) use ($options) {
+                'query_builder' => function (TaskCategoryRepository $er) use ($options) {
                     return $er->createQueryBuilder('c')
                         ->where('c.user = :user')
                         ->setParameter('user', $options['user'])
                         ->orderBy('c.name', 'ASC');
-                }
+                },
             ])
             ->add('assignedUser', EntityType::class, [
                 'label' => 'Назначить пользователю',
@@ -129,7 +129,7 @@ class TaskType extends AbstractType
                 'required' => false,
                 'attr' => [
                     'class' => 'form-select',
-                    'data-controller' => 'user-select'
+                    'data-controller' => 'user-select',
                 ],
                 'placeholder' => 'Выберите исполнителя',
             ])
@@ -142,19 +142,19 @@ class TaskType extends AbstractType
                 'expanded' => false,
                 'attr' => [
                     'class' => 'form-select',
-                    'data-placeholder' => 'Выберите теги...'
+                    'data-placeholder' => 'Выберите теги...',
                 ],
-                'query_builder' => function(\Doctrine\ORM\EntityRepository $er) use ($options) {
+                'query_builder' => function (\Doctrine\ORM\EntityRepository $er) use ($options) {
                     $qb = $er->createQueryBuilder('t')
                         ->orderBy('t.name', 'ASC');
-                    
+
                     if (isset($options['user']) && $options['user']) {
                         $qb->andWhere('t.user = :user')
                            ->setParameter('user', $options['user']);
                     }
-                    
+
                     return $qb;
-                }
+                },
             ])
         ;
     }

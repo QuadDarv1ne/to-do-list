@@ -12,7 +12,7 @@ final readonly class TaskStatusChanged implements DomainEventInterface
         private TaskStatus $oldStatus,
         private TaskStatus $newStatus,
         private int $changedByUserId,
-        private \DateTimeImmutable $occurredAt
+        private \DateTimeImmutable $occurredAt,
     ) {
     }
 
@@ -20,14 +20,14 @@ final readonly class TaskStatusChanged implements DomainEventInterface
         TaskId $taskId,
         TaskStatus $oldStatus,
         TaskStatus $newStatus,
-        int $changedByUserId
+        int $changedByUserId,
     ): self {
         return new self(
             $taskId,
             $oldStatus,
             $newStatus,
             $changedByUserId,
-            new \DateTimeImmutable()
+            new \DateTimeImmutable(),
         );
     }
 

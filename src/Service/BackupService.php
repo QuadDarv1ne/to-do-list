@@ -12,7 +12,7 @@ class BackupService
     public function __construct(
         private Connection $connection,
         private Filesystem $filesystem,
-        string $projectDir
+        string $projectDir,
     ) {
         $this->backupDir = $projectDir . '/var/backups';
 
@@ -65,23 +65,23 @@ class BackupService
         try {
             $tables = $this->getAllTables();
             $sql = $this->generateBackupSQL($tables);
-            
+
             file_put_contents($filepath, $sql);
-            
+
             // Сжать файл
             $this->compressBackup($filepath);
-            
+
             return [
                 'success' => true,
                 'filename' => $filename . '.gz',
                 'size' => filesize($filepath . '.gz'),
-                'tables' => count($tables),
-                'created_at' => $timestamp
+                'tables' => \count($tables),
+                'created_at' => $timestamp,
             ];
         } catch (\Exception $e) {
             return [
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ];
         }
     }
@@ -98,21 +98,21 @@ class BackupService
         try {
             $tables = ['task', 'task_history', 'comment', 'notification'];
             $sql = $this->generateIncrementalSQL($tables, $since);
-            
+
             file_put_contents($filepath, $sql);
             $this->compressBackup($filepath);
-            
+
             return [
                 'success' => true,
                 'filename' => $filename . '.gz',
                 'size' => filesize($filepath . '.gz'),
                 'since' => $since->format('Y-m-d H:i:s'),
-                'created_at' => $timestamp
+                'created_at' => $timestamp,
             ];
         } catch (\Exception $e) {
             return [
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ];
         }
     }
@@ -130,11 +130,11 @@ class BackupService
                 'filename' => basename($file),
                 'size' => filesize($file),
                 'created_at' => date('Y-m-d H:i:s', filemtime($file)),
-                'type' => str_contains($file, 'incremental') ? 'incremental' : 'full'
+                'type' => str_contains($file, 'incremental') ? 'incremental' : 'full',
             ];
         }
 
-        usort($backups, fn($a, $b) => $b['created_at'] <=> $a['created_at']);
+        usort($backups, fn ($a, $b) => $b['created_at'] <=> $a['created_at']);
 
         return $backups;
     }
@@ -193,6 +193,7 @@ class BackupService
     private function getAllTables(): array
     {
         $schemaManager = $this->connection->createSchemaManager();
+
         return $schemaManager->listTableNames();
     }
 
@@ -201,35 +202,35 @@ class BackupService
      */
     private function generateBackupSQL(array $tables): string
     {
-        $sql = "-- Backup created at " . date('Y-m-d H:i:s') . "\n\n";
+        $sql = '-- Backup created at ' . date('Y-m-d H:i:s') . "\n\n";
         $sql .= "SET FOREIGN_KEY_CHECKS=0;\n\n";
 
         foreach ($tables as $table) {
             $sql .= "-- Table: {$table}\n";
             $sql .= "DROP TABLE IF EXISTS `{$table}`;\n";
-            
+
             // Структура таблицы
             $createTable = $this->connection->fetchAssociative(
-                "SHOW CREATE TABLE `{$table}`"
+                "SHOW CREATE TABLE `{$table}`",
             );
             $sql .= $createTable['Create Table'] . ";\n\n";
 
             // Данные таблицы
             $rows = $this->connection->fetchAllAssociative("SELECT * FROM `{$table}`");
-            
+
             if (!empty($rows)) {
                 $columns = array_keys($rows[0]);
                 $sql .= "INSERT INTO `{$table}` (`" . implode('`, `', $columns) . "`) VALUES\n";
-                
+
                 $values = [];
                 foreach ($rows as $row) {
                     $escapedValues = array_map(
-                        fn($v) => $v === null ? 'NULL' : $this->connection->quote($v),
-                        array_values($row)
+                        fn ($v) => $v === null ? 'NULL' : $this->connection->quote($v),
+                        array_values($row),
                     );
                     $values[] = '(' . implode(', ', $escapedValues) . ')';
                 }
-                
+
                 $sql .= implode(",\n", $values) . ";\n\n";
             }
         }
@@ -244,18 +245,19 @@ class BackupService
      */
     private function generateIncrementalSQL(array $tables, \DateTime $since): string
     {
-        $sql = "-- Incremental backup from " . $since->format('Y-m-d H:i:s') . "\n\n";
+        $sql = '-- Incremental backup from ' . $since->format('Y-m-d H:i:s') . "\n\n";
 
         foreach ($tables as $table) {
             // Проверяем наличие поля updated_at или created_at
             $columns = $this->connection->fetchAllAssociative(
-                "SHOW COLUMNS FROM `{$table}`"
+                "SHOW COLUMNS FROM `{$table}`",
             );
-            
+
             $dateColumn = null;
             foreach ($columns as $column) {
-                if (in_array($column['Field'], ['updated_at', 'created_at'])) {
+                if (\in_array($column['Field'], ['updated_at', 'created_at'])) {
                     $dateColumn = $column['Field'];
+
                     break;
                 }
             }
@@ -263,23 +265,23 @@ class BackupService
             if ($dateColumn) {
                 $rows = $this->connection->fetchAllAssociative(
                     "SELECT * FROM `{$table}` WHERE `{$dateColumn}` >= ?",
-                    [$since->format('Y-m-d H:i:s')]
+                    [$since->format('Y-m-d H:i:s')],
                 );
 
                 if (!empty($rows)) {
                     $sql .= "-- Table: {$table} (modified records)\n";
                     $columns = array_keys($rows[0]);
-                    
+
                     foreach ($rows as $row) {
                         $escapedValues = array_map(
-                            fn($v) => $v === null ? 'NULL' : $this->connection->quote($v),
-                            array_values($row)
+                            fn ($v) => $v === null ? 'NULL' : $this->connection->quote($v),
+                            array_values($row),
                         );
-                        
-                        $sql .= "REPLACE INTO `{$table}` (`" . implode('`, `', $columns) . "`) ";
-                        $sql .= "VALUES (" . implode(', ', $escapedValues) . ");\n";
+
+                        $sql .= "REPLACE INTO `{$table}` (`" . implode('`, `', $columns) . '`) ';
+                        $sql .= 'VALUES (' . implode(', ', $escapedValues) . ");\n";
                     }
-                    
+
                     $sql .= "\n";
                 }
             }
@@ -297,7 +299,7 @@ class BackupService
         $fp = gzopen($gzFile, 'w9');
         gzwrite($fp, file_get_contents($filepath));
         gzclose($fp);
-        
+
         // Удалить несжатый файл
         $this->filesystem->remove($filepath);
     }
@@ -310,11 +312,11 @@ class BackupService
         $sqlFile = str_replace('.gz', '', $filepath);
         $fp = gzopen($filepath, 'r');
         $content = '';
-        
+
         while (!gzeof($fp)) {
             $content .= gzread($fp, 4096);
         }
-        
+
         gzclose($fp);
         file_put_contents($sqlFile, $content);
     }
@@ -342,20 +344,20 @@ class BackupService
         $data = [
             'user' => $this->connection->fetchAssociative(
                 'SELECT * FROM user WHERE id = ?',
-                [$userId]
+                [$userId],
             ),
             'tasks' => $this->connection->fetchAllAssociative(
                 'SELECT * FROM task WHERE assigned_user_id = ?',
-                [$userId]
+                [$userId],
             ),
             'comments' => $this->connection->fetchAllAssociative(
                 'SELECT c.* FROM comment c JOIN task t ON c.task_id = t.id WHERE c.user_id = ?',
-                [$userId]
+                [$userId],
             ),
             'notifications' => $this->connection->fetchAllAssociative(
                 'SELECT * FROM notification WHERE user_id = ?',
-                [$userId]
-            )
+                [$userId],
+            ),
         ];
 
         return json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);

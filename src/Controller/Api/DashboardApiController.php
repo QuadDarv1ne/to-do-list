@@ -2,8 +2,8 @@
 
 namespace App\Controller\Api;
 
-use App\Repository\TaskRepository;
 use App\Repository\ActivityLogRepository;
+use App\Repository\TaskRepository;
 use App\Service\QueryCacheService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,18 +18,19 @@ class DashboardApiController extends AbstractController
     public function __construct(
         private TaskRepository $taskRepository,
         private ActivityLogRepository $activityLogRepository,
-        private QueryCacheService $cacheService
-    ) {}
+        private QueryCacheService $cacheService,
+    ) {
+    }
 
     #[Route('/recent-tasks', name: 'api_dashboard_recent_tasks', methods: ['GET'])]
     public function getRecentTasks(Request $request): JsonResponse
     {
         $user = $this->getUser();
         $limit = min(10, max(1, $request->query->getInt('limit', 5)));
-        
+
         // Cache for 1 minute
         $cacheKey = "dashboard_recent_tasks_{$user->getId()}_{$limit}";
-        $tasks = $this->cacheService->cacheQuery($cacheKey, function() use ($user, $limit) {
+        $tasks = $this->cacheService->cacheQuery($cacheKey, function () use ($user, $limit) {
             return $this->taskRepository->createQueryBuilder('t')
                 ->leftJoin('t.category', 'c')
                 ->addSelect('c')
@@ -41,7 +42,7 @@ class DashboardApiController extends AbstractController
                 ->getResult();
         }, 60);
 
-        $data = array_map(function($task) {
+        $data = array_map(function ($task) {
             return [
                 'id' => $task->getId(),
                 'title' => $task->getTitle(),
@@ -61,10 +62,10 @@ class DashboardApiController extends AbstractController
     public function getStatistics(): JsonResponse
     {
         $user = $this->getUser();
-        
+
         // Cache for 2 minutes
         $cacheKey = "dashboard_statistics_{$user->getId()}";
-        $stats = $this->cacheService->cacheQuery($cacheKey, function() use ($user) {
+        $stats = $this->cacheService->cacheQuery($cacheKey, function () use ($user) {
             return $this->taskRepository->getQuickStats($user);
         }, 120);
 
@@ -76,10 +77,10 @@ class DashboardApiController extends AbstractController
     {
         $user = $this->getUser();
         $limit = min(20, max(1, $request->query->getInt('limit', 10)));
-        
+
         // Cache for 30 seconds
         $cacheKey = "dashboard_activity_{$user->getId()}_{$limit}";
-        $activities = $this->cacheService->cacheQuery($cacheKey, function() use ($user, $limit) {
+        $activities = $this->cacheService->cacheQuery($cacheKey, function () use ($user, $limit) {
             return $this->activityLogRepository->createQueryBuilder('a')
                 ->where('a.user = :user')
                 ->setParameter('user', $user)
@@ -89,7 +90,7 @@ class DashboardApiController extends AbstractController
                 ->getResult();
         }, 30);
 
-        $data = array_map(function($activity) {
+        $data = array_map(function ($activity) {
             return [
                 'type' => $activity->getAction(),
                 'text' => $activity->getDescription(),
@@ -105,10 +106,10 @@ class DashboardApiController extends AbstractController
     {
         $user = $this->getUser();
         $limit = min(10, max(1, $request->query->getInt('limit', 5)));
-        
+
         // Cache for 1 minute
         $cacheKey = "dashboard_recent_activity_{$user->getId()}_{$limit}";
-        $activities = $this->cacheService->cacheQuery($cacheKey, function() use ($user, $limit) {
+        $activities = $this->cacheService->cacheQuery($cacheKey, function () use ($user, $limit) {
             return $this->activityLogRepository->createQueryBuilder('a')
                 ->where('a.user = :user')
                 ->setParameter('user', $user)
@@ -118,7 +119,7 @@ class DashboardApiController extends AbstractController
                 ->getResult();
         }, 60);
 
-        $data = array_map(function($activity) {
+        $data = array_map(function ($activity) {
             return [
                 'id' => $activity->getId(),
                 'type' => $activity->getAction(),
@@ -134,13 +135,13 @@ class DashboardApiController extends AbstractController
     public function getWeeklyStats(): JsonResponse
     {
         $user = $this->getUser();
-        
+
         // Cache for 5 minutes
         $cacheKey = "dashboard_weekly_stats_{$user->getId()}";
-        $stats = $this->cacheService->cacheQuery($cacheKey, function() use ($user) {
+        $stats = $this->cacheService->cacheQuery($cacheKey, function () use ($user) {
             $startOfWeek = new \DateTime('monday this week');
             $endOfWeek = new \DateTime('sunday this week');
-            
+
             $tasks = $this->taskRepository->createQueryBuilder('t')
                 ->where('t.user = :user OR t.assignedUser = :user')
                 ->andWhere('t.createdAt BETWEEN :start AND :end')
@@ -150,9 +151,9 @@ class DashboardApiController extends AbstractController
                 ->getQuery()
                 ->getResult();
 
-            $completed = array_filter($tasks, fn($t) => $t->getStatus() === 'completed');
-            $total = count($tasks);
-            $completedCount = count($completed);
+            $completed = array_filter($tasks, fn ($t) => $t->getStatus() === 'completed');
+            $total = \count($tasks);
+            $completedCount = \count($completed);
 
             return [
                 'total' => $total,
@@ -170,10 +171,10 @@ class DashboardApiController extends AbstractController
     {
         $user = $this->getUser();
         $period = $request->query->get('period', 'week');
-        
+
         // Cache for 5 minutes
         $cacheKey = "dashboard_chart_data_{$user->getId()}_{$period}";
-        $data = $this->cacheService->cacheQuery($cacheKey, function() use ($user, $period) {
+        $data = $this->cacheService->cacheQuery($cacheKey, function () use ($user, $period) {
             $days = $period === 'month' ? 30 : 7;
             $labels = [];
             $taskData = [];
@@ -182,9 +183,9 @@ class DashboardApiController extends AbstractController
             for ($i = $days - 1; $i >= 0; $i--) {
                 $date = new \DateTime("-{$i} days");
                 $nextDate = (clone $date)->modify('+1 day');
-                
+
                 $labels[] = $date->format('d.m');
-                
+
                 $tasks = $this->taskRepository->createQueryBuilder('t')
                     ->where('t.user = :user OR t.assignedUser = :user')
                     ->andWhere('t.createdAt BETWEEN :start AND :end')
@@ -194,10 +195,10 @@ class DashboardApiController extends AbstractController
                     ->getQuery()
                     ->getResult();
 
-                $completed = array_filter($tasks, fn($t) => $t->getStatus() === 'completed');
-                
-                $taskData[] = count($tasks);
-                $completedData[] = count($completed);
+                $completed = array_filter($tasks, fn ($t) => $t->getStatus() === 'completed');
+
+                $taskData[] = \count($tasks);
+                $completedData[] = \count($completed);
             }
 
             return [
@@ -232,12 +233,12 @@ class DashboardApiController extends AbstractController
         $streak = 0;
         $currentDate = new \DateTime();
         $currentDate->setTime(0, 0, 0); // Начало дня
-        
+
         // Проверяем последовательные дни назад от сегодня
         for ($i = 0; $i < 365; $i++) {
             $startOfDay = (clone $currentDate)->modify("-{$i} days");
             $endOfDay = (clone $startOfDay)->setTime(23, 59, 59);
-            
+
             $tasksCompleted = $this->taskRepository->createQueryBuilder('t')
                 ->select('COUNT(t.id)')
                 ->where('t.user = :user OR t.assignedUser = :user')
@@ -257,7 +258,7 @@ class DashboardApiController extends AbstractController
                 break;
             }
         }
-        
+
         return $streak;
     }
 }

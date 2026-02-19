@@ -12,13 +12,13 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:analyze-performance',
-    description: 'Анализ производительности приложения'
+    description: 'Анализ производительности приложения',
 )]
 class AnalyzePerformanceCommand extends Command
 {
     public function __construct(
         private DatabaseOptimizationService $dbOptimizer,
-        private QueryPerformanceMonitor $queryMonitor
+        private QueryPerformanceMonitor $queryMonitor,
     ) {
         parent::__construct();
     }
@@ -30,22 +30,23 @@ class AnalyzePerformanceCommand extends Command
 
         // Анализ БД
         $io->section('Анализ базы данных');
+
         try {
             $dbAnalysis = $this->dbOptimizer->analyzeQueryPerformance();
-            
+
             if (isset($dbAnalysis['connection_stats'])) {
                 $stats = $dbAnalysis['connection_stats'];
-                $io->text(sprintf(
+                $io->text(\sprintf(
                     'Подключения: %d всего, %d активных',
                     $stats['total_connections'] ?? 0,
-                    $stats['active_connections'] ?? 0
+                    $stats['active_connections'] ?? 0,
                 ));
             }
 
-            if (isset($dbAnalysis['recommendations']) && is_array($dbAnalysis['recommendations'])) {
-                if (count($dbAnalysis['recommendations']) > 0) {
-                    $io->warning('Найдено рекомендаций: ' . count($dbAnalysis['recommendations']));
-                    foreach (array_slice($dbAnalysis['recommendations'], 0, 5) as $rec) {
+            if (isset($dbAnalysis['recommendations']) && \is_array($dbAnalysis['recommendations'])) {
+                if (\count($dbAnalysis['recommendations']) > 0) {
+                    $io->warning('Найдено рекомендаций: ' . \count($dbAnalysis['recommendations']));
+                    foreach (\array_slice($dbAnalysis['recommendations'], 0, 5) as $rec) {
                         $io->text('• ' . $rec['message']);
                     }
                 } else {
@@ -59,24 +60,25 @@ class AnalyzePerformanceCommand extends Command
         // Статистика запросов
         $io->section('Статистика запросов');
         $queryStats = $this->queryMonitor->getStatistics();
-        $io->text(sprintf(
+        $io->text(\sprintf(
             'Всего запросов: %d, Медленных: %d',
             $queryStats['total_queries'],
-            $queryStats['slow_queries']
+            $queryStats['slow_queries'],
         ));
 
         // N+1 проблемы
         $nPlusOne = $this->queryMonitor->detectNPlusOne();
-        if (count($nPlusOne) > 0) {
-            $io->warning('Обнаружены потенциальные N+1 проблемы: ' . count($nPlusOne));
-            foreach (array_slice($nPlusOne, 0, 3) as $problem) {
-                $io->text(sprintf('• Запрос выполнен %d раз', $problem['count']));
+        if (\count($nPlusOne) > 0) {
+            $io->warning('Обнаружены потенциальные N+1 проблемы: ' . \count($nPlusOne));
+            foreach (\array_slice($nPlusOne, 0, 3) as $problem) {
+                $io->text(\sprintf('• Запрос выполнен %d раз', $problem['count']));
             }
         } else {
             $io->success('N+1 проблемы не обнаружены');
         }
 
         $io->success('Анализ завершен');
+
         return Command::SUCCESS;
     }
 }

@@ -16,11 +16,17 @@ use Twig\Environment;
 class HealthCheckService
 {
     private Connection $connection;
+
     private LoggerInterface $logger;
+
     private ContainerInterface $container;
+
     private KernelInterface $kernel;
+
     private RequestStack $requestStack;
+
     private AuthorizationCheckerInterface $authorizationChecker;
+
     private Environment $twig;
 
     public function __construct(
@@ -30,7 +36,7 @@ class HealthCheckService
         KernelInterface $kernel,
         RequestStack $requestStack,
         AuthorizationCheckerInterface $authorizationChecker,
-        Environment $twig
+        Environment $twig,
     ) {
         $this->connection = $connection;
         $this->logger = $logger;
@@ -60,7 +66,7 @@ class HealthCheckService
         ];
 
         $overallStatus = $this->calculateOverallStatus($checks);
-        
+
         $result = [
             'timestamp' => date('Y-m-d H:i:s'),
             'duration_ms' => round((microtime(true) - $startTime) * 1000, 2),
@@ -71,7 +77,7 @@ class HealthCheckService
 
         $this->logger->info('System health check completed', [
             'overall_status' => $overallStatus,
-            'duration_ms' => $result['duration_ms']
+            'duration_ms' => $result['duration_ms'],
         ]);
 
         return $result;
@@ -90,12 +96,12 @@ class HealthCheckService
             } catch (\Exception $e) {
                 $connected = false;
             }
-            
+
             if (!$connected) {
                 return [
                     'status' => 'critical',
                     'message' => 'Cannot connect to database',
-                    'details' => []
+                    'details' => [],
                 ];
             }
 
@@ -119,16 +125,16 @@ class HealthCheckService
                     'platform' => $platform,
                     'database' => $databaseName,
                     'query_time_ms' => round($queryTime, 2),
-                    'connected' => true
-                ]
+                    'connected' => true,
+                ],
             ];
         } catch (\Exception $e) {
             $this->logger->error('Database health check failed', ['error' => $e->getMessage()]);
-            
+
             return [
                 'status' => 'critical',
                 'message' => 'Database connection failed: ' . $e->getMessage(),
-                'details' => []
+                'details' => [],
             ];
         }
     }
@@ -143,18 +149,18 @@ class HealthCheckService
             $drivePath = substr($projectDir, 0, 3); // Get drive letter (e.g., "C:\")
             $freeSpace = disk_free_space($drivePath);
             $totalSpace = disk_total_space($drivePath);
-            
+
             if ($freeSpace === false || $totalSpace === false) {
                 return [
                     'status' => 'warning',
                     'message' => 'Unable to determine disk space',
-                    'details' => []
+                    'details' => [],
                 ];
             }
-            
+
             $usedSpace = $totalSpace - $freeSpace;
             $usagePercent = ($usedSpace / $totalSpace) * 100;
-            
+
             // Determine status based on usage percentage
             if ($usagePercent > 95) {
                 $status = 'critical';
@@ -166,7 +172,7 @@ class HealthCheckService
                 $status = 'ok';
                 $message = 'Sufficient disk space available';
             }
-            
+
             return [
                 'status' => $status,
                 'message' => $message,
@@ -174,16 +180,16 @@ class HealthCheckService
                     'free_space' => $this->formatBytes($freeSpace),
                     'total_space' => $this->formatBytes($totalSpace),
                     'used_space' => $this->formatBytes($usedSpace),
-                    'usage_percent' => round($usagePercent, 2)
-                ]
+                    'usage_percent' => round($usagePercent, 2),
+                ],
             ];
         } catch (\Exception $e) {
             $this->logger->error('Disk space check failed', ['error' => $e->getMessage()]);
-            
+
             return [
                 'status' => 'critical',
                 'message' => 'Disk space check failed: ' . $e->getMessage(),
-                'details' => []
+                'details' => [],
             ];
         }
     }
@@ -194,16 +200,16 @@ class HealthCheckService
     private function checkMemory(): array
     {
         try {
-            $memoryLimit = ini_get('memory_limit');
+            $memoryLimit = \ini_get('memory_limit');
             $memoryUsage = memory_get_usage(true);
             $peakMemoryUsage = memory_get_peak_usage(true);
-            
+
             // Parse memory limit
             $limitInBytes = $this->parseMemoryLimit($memoryLimit);
-            
+
             if ($limitInBytes > 0) {
                 $usagePercent = ($memoryUsage / $limitInBytes) * 100;
-                
+
                 if ($usagePercent > 80) {
                     $status = 'warning';
                     $message = 'Memory usage is high';
@@ -217,7 +223,7 @@ class HealthCheckService
                 $message = 'Memory usage - unlimited limit';
                 $usagePercent = 0;
             }
-            
+
             return [
                 'status' => $status,
                 'message' => $message,
@@ -225,16 +231,16 @@ class HealthCheckService
                     'memory_limit' => $memoryLimit,
                     'current_usage' => $this->formatBytes($memoryUsage),
                     'peak_usage' => $this->formatBytes($peakMemoryUsage),
-                    'usage_percent' => round($usagePercent, 2)
-                ]
+                    'usage_percent' => round($usagePercent, 2),
+                ],
             ];
         } catch (\Exception $e) {
             $this->logger->error('Memory check failed', ['error' => $e->getMessage()]);
-            
+
             return [
                 'status' => 'critical',
                 'message' => 'Memory check failed: ' . $e->getMessage(),
-                'details' => []
+                'details' => [],
             ];
         }
     }
@@ -246,22 +252,22 @@ class HealthCheckService
     {
         try {
             $cacheAvailable = $this->container->has('cache.app');
-            
+
             if (!$cacheAvailable) {
                 return [
                     'status' => 'warning',
                     'message' => 'Cache is not available',
                     'details' => [
-                        'cache_available' => false
-                    ]
+                        'cache_available' => false,
+                    ],
                 ];
             }
-            
+
             // Test cache read/write using simple approach
             $cache = $this->container->get('cache.app');
             $testKey = 'health_check_test_' . uniqid();
             $testValue = 'test_value_' . time();
-            
+
             // Test if cache is available
             try {
                 $cacheAvailable = true;
@@ -270,15 +276,15 @@ class HealthCheckService
                 $cacheAvailable = false;
                 $cacheWorking = false;
             }
-            
+
             if ($cacheWorking) {
                 return [
                     'status' => 'ok',
                     'message' => 'Cache is working properly',
                     'details' => [
                         'cache_available' => true,
-                        'read_write_working' => true
-                    ]
+                        'read_write_working' => true,
+                    ],
                 ];
             } else {
                 return [
@@ -286,17 +292,17 @@ class HealthCheckService
                     'message' => 'Cache read/write test failed',
                     'details' => [
                         'cache_available' => true,
-                        'read_write_working' => false
-                    ]
+                        'read_write_working' => false,
+                    ],
                 ];
             }
         } catch (\Exception $e) {
             $this->logger->error('Cache check failed', ['error' => $e->getMessage()]);
-            
+
             return [
                 'status' => 'critical',
                 'message' => 'Cache check failed: ' . $e->getMessage(),
-                'details' => []
+                'details' => [],
             ];
         }
     }
@@ -309,27 +315,27 @@ class HealthCheckService
         try {
             $debugMode = $this->container->getParameter('kernel.debug');
             $environment = $this->kernel->getEnvironment();
-            
+
             $issues = [];
-            
+
             // Check for production with debug enabled
             if ($environment === 'prod' && $debugMode) {
                 $issues[] = 'Debug mode enabled in production environment';
             }
-            
+
             // Check for common security misconfigurations
             if ($environment === 'prod' && $this->container->has('profiler')) {
                 $issues[] = 'Profiler enabled in production environment';
             }
-            
+
             if (empty($issues)) {
                 return [
                     'status' => 'ok',
                     'message' => 'Configuration appears healthy',
                     'details' => [
                         'environment' => $environment,
-                        'debug_mode' => $debugMode
-                    ]
+                        'debug_mode' => $debugMode,
+                    ],
                 ];
             } else {
                 return [
@@ -338,17 +344,17 @@ class HealthCheckService
                     'details' => [
                         'environment' => $environment,
                         'debug_mode' => $debugMode,
-                        'issues' => $issues
-                    ]
+                        'issues' => $issues,
+                    ],
                 ];
             }
         } catch (\Exception $e) {
             $this->logger->error('Configuration check failed', ['error' => $e->getMessage()]);
-            
+
             return [
                 'status' => 'critical',
                 'message' => 'Configuration check failed: ' . $e->getMessage(),
-                'details' => []
+                'details' => [],
             ];
         }
     }
@@ -361,7 +367,7 @@ class HealthCheckService
         try {
             // Check if required services are properly injected
             $missingServices = [];
-            
+
             // These should always be available since they're injected
             // But we can check if they're actually working
             try {
@@ -371,22 +377,22 @@ class HealthCheckService
             } catch (\Exception $e) {
                 $missingServices[] = 'twig';
             }
-            
+
             try {
                 // Test security by checking if we can access the authorization checker
                 $this->authorizationChecker->isGranted('ROLE_USER');
             } catch (\Exception $e) {
                 $missingServices[] = 'security.authorization_checker';
             }
-            
+
             if (empty($missingServices)) {
                 return [
                     'status' => 'ok',
                     'message' => 'All required dependencies are available',
                     'details' => [
                         'checked_services' => ['twig', 'security.authorization_checker'],
-                        'missing_services' => []
-                    ]
+                        'missing_services' => [],
+                    ],
                 ];
             } else {
                 return [
@@ -394,17 +400,17 @@ class HealthCheckService
                     'message' => 'Missing required dependencies',
                     'details' => [
                         'checked_services' => ['twig', 'security.authorization_checker'],
-                        'missing_services' => $missingServices
-                    ]
+                        'missing_services' => $missingServices,
+                    ],
                 ];
             }
         } catch (\Exception $e) {
             $this->logger->error('Dependencies check failed', ['error' => $e->getMessage()]);
-            
+
             return [
                 'status' => 'critical',
                 'message' => 'Dependencies check failed: ' . $e->getMessage(),
-                'details' => []
+                'details' => [],
             ];
         }
     }
@@ -416,50 +422,51 @@ class HealthCheckService
     {
         try {
             $issues = [];
-            
+
             // Check if security is properly configured
             if (!$this->container->hasParameter('security.firewalls')) {
                 $issues[] = 'Security firewalls not configured';
             }
-            
+
             // Check if CSRF protection is configured (check form CSRF configuration)
             $csrfConfigured = false;
+
             try {
                 // Check if form CSRF is enabled
                 $csrfConfigured = $this->container->getParameter('form.type_extension.csrf.enabled');
             } catch (\Exception $e) {
                 // Configuration check failed
             }
-            
+
             if (!$csrfConfigured) {
                 $issues[] = 'CSRF protection not configured';
             }
-            
+
             if (empty($issues)) {
                 return [
                     'status' => 'ok',
                     'message' => 'Security configuration appears healthy',
                     'details' => [
-                        'issues_found' => 0
-                    ]
+                        'issues_found' => 0,
+                    ],
                 ];
             } else {
                 return [
                     'status' => 'warning',
                     'message' => 'Security configuration issues detected',
                     'details' => [
-                        'issues_found' => count($issues),
-                        'issues' => $issues
-                    ]
+                        'issues_found' => \count($issues),
+                        'issues' => $issues,
+                    ],
                 ];
             }
         } catch (\Exception $e) {
             $this->logger->error('Security check failed', ['error' => $e->getMessage()]);
-            
+
             return [
                 'status' => 'critical',
                 'message' => 'Security check failed: ' . $e->getMessage(),
-                'details' => []
+                'details' => [],
             ];
         }
     }
@@ -470,17 +477,17 @@ class HealthCheckService
     private function calculateOverallStatus(array $checks): string
     {
         $statuses = array_column($checks, 'status');
-        
+
         // If any check is critical, overall status is critical
-        if (in_array('critical', $statuses)) {
+        if (\in_array('critical', $statuses)) {
             return 'critical';
         }
-        
+
         // If any check is warning, overall status is warning
-        if (in_array('warning', $statuses)) {
+        if (\in_array('warning', $statuses)) {
             return 'warning';
         }
-        
+
         // Otherwise, all checks are ok
         return 'ok';
     }
@@ -493,7 +500,7 @@ class HealthCheckService
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
         $bytes = max($bytes, 0);
         $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-        $pow = min($pow, count($units) - 1);
+        $pow = min($pow, \count($units) - 1);
 
         $bytes /= pow(1024, $pow);
 
@@ -508,7 +515,7 @@ class HealthCheckService
         if ($limit === '-1') {
             return 0; // Unlimited
         }
-        
+
         $unit = strtolower(substr($limit, -1));
         $value = (int) $limit;
 

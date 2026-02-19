@@ -18,7 +18,7 @@ class CleanupOldTasksCommand extends Command
 {
     public function __construct(
         private TaskRepository $taskRepository,
-        private EntityManagerInterface $entityManager
+        private EntityManagerInterface $entityManager,
     ) {
         parent::__construct();
     }
@@ -31,10 +31,11 @@ class CleanupOldTasksCommand extends Command
         $oneYearAgo = new \DateTime('-1 year');
         $oldCompletedTasks = $this->taskRepository->findCompletedTasksOlderThan($oneYearAgo);
 
-        $count = count($oldCompletedTasks);
+        $count = \count($oldCompletedTasks);
 
         if ($count === 0) {
             $io->success('No old completed tasks found for cleanup.');
+
             return Command::SUCCESS;
         }
 
@@ -45,7 +46,7 @@ class CleanupOldTasksCommand extends Command
 
         $this->entityManager->flush();
 
-        $io->success(sprintf('Removed %d old completed tasks.', $count));
+        $io->success(\sprintf('Removed %d old completed tasks.', $count));
 
         return Command::SUCCESS;
     }

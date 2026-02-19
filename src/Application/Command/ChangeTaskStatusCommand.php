@@ -7,7 +7,7 @@ final readonly class ChangeTaskStatusCommand
     public function __construct(
         private int $taskId,
         private string $newStatus,
-        private int $changedByUserId
+        private int $changedByUserId,
     ) {
     }
 

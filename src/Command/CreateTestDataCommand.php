@@ -2,9 +2,9 @@
 
 namespace App\Command;
 
-use App\Entity\User;
 use App\Entity\Task;
 use App\Entity\TaskCategory;
+use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -21,7 +21,7 @@ class CreateTestDataCommand extends Command
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private UserPasswordHasherInterface $passwordHasher
+        private UserPasswordHasherInterface $passwordHasher,
     ) {
         parent::__construct();
     }
@@ -34,10 +34,10 @@ class CreateTestDataCommand extends Command
 
         // Create users with proper roles
         $users = $this->createUsers($io);
-        
+
         // Create categories
         $categories = $this->createCategories($io, $users);
-        
+
         // Create tasks with deadlines
         $this->createTasks($io, $users, $categories);
 
@@ -50,7 +50,7 @@ class CreateTestDataCommand extends Command
                 ['Менеджер', 'manager@example.com', 'manager123', 'Управление задачами, отчеты, бюджет'],
                 ['Аналитик', 'analyst@example.com', 'analyst123', 'Просмотр отчетов и аналитики'],
                 ['Пользователь', 'user@example.com', 'user123', 'Работа со своими задачами'],
-            ]
+            ],
         );
 
         return Command::SUCCESS;
@@ -69,7 +69,7 @@ class CreateTestDataCommand extends Command
                 'firstName' => 'Иван',
                 'lastName' => 'Администратов',
                 'position' => 'Системный администратор',
-                'department' => 'IT'
+                'department' => 'IT',
             ],
             [
                 'username' => 'manager',
@@ -79,7 +79,7 @@ class CreateTestDataCommand extends Command
                 'firstName' => 'Петр',
                 'lastName' => 'Менеджеров',
                 'position' => 'Менеджер проектов',
-                'department' => 'Управление'
+                'department' => 'Управление',
             ],
             [
                 'username' => 'analyst',
@@ -89,7 +89,7 @@ class CreateTestDataCommand extends Command
                 'firstName' => 'Мария',
                 'lastName' => 'Аналитикова',
                 'position' => 'Бизнес-аналитик',
-                'department' => 'Аналитика'
+                'department' => 'Аналитика',
             ],
             [
                 'username' => 'user',
@@ -99,7 +99,7 @@ class CreateTestDataCommand extends Command
                 'firstName' => 'Алексей',
                 'lastName' => 'Пользователев',
                 'position' => 'Разработчик',
-                'department' => 'Разработка'
+                'department' => 'Разработка',
             ],
         ];
 
@@ -191,70 +191,70 @@ class CreateTestDataCommand extends Command
                 'description' => 'Пользователи не могут войти в систему. Требуется срочное исправление.',
                 'priority' => 'urgent',
                 'status' => 'in_progress',
-                'deadline' => '+1 day'
+                'deadline' => '+1 day',
             ],
             [
                 'title' => 'Разработать новый модуль отчетности',
                 'description' => 'Создать модуль для генерации отчетов по продажам.',
                 'priority' => 'high',
                 'status' => 'in_progress',
-                'deadline' => '+5 days'
+                'deadline' => '+5 days',
             ],
             [
                 'title' => 'Обновить документацию API',
                 'description' => 'Добавить описание новых эндпоинтов.',
                 'priority' => 'medium',
                 'status' => 'pending',
-                'deadline' => '+7 days'
+                'deadline' => '+7 days',
             ],
             [
                 'title' => 'Провести код-ревью PR #123',
                 'description' => 'Проверить изменения в модуле аутентификации.',
                 'priority' => 'high',
                 'status' => 'pending',
-                'deadline' => '+2 days'
+                'deadline' => '+2 days',
             ],
             [
                 'title' => 'Оптимизировать запросы к базе данных',
                 'description' => 'Улучшить производительность медленных запросов.',
                 'priority' => 'medium',
                 'status' => 'pending',
-                'deadline' => '+10 days'
+                'deadline' => '+10 days',
             ],
             [
                 'title' => 'Настроить CI/CD pipeline',
                 'description' => 'Автоматизировать процесс деплоя.',
                 'priority' => 'high',
                 'status' => 'in_progress',
-                'deadline' => '+3 days'
+                'deadline' => '+3 days',
             ],
             [
                 'title' => 'Провести тестирование нового функционала',
                 'description' => 'Протестировать модуль календаря.',
                 'priority' => 'high',
                 'status' => 'pending',
-                'deadline' => '+4 days'
+                'deadline' => '+4 days',
             ],
             [
                 'title' => 'Подготовить презентацию для клиента',
                 'description' => 'Создать презентацию с демонстрацией новых возможностей.',
                 'priority' => 'medium',
                 'status' => 'pending',
-                'deadline' => '+6 days'
+                'deadline' => '+6 days',
             ],
             [
                 'title' => 'Обновить зависимости проекта',
                 'description' => 'Обновить все npm и composer пакеты.',
                 'priority' => 'low',
                 'status' => 'pending',
-                'deadline' => '+14 days'
+                'deadline' => '+14 days',
             ],
             [
                 'title' => 'Провести встречу с командой',
                 'description' => 'Обсудить планы на следующий спринт.',
                 'priority' => 'medium',
                 'status' => 'pending',
-                'deadline' => 'today'
+                'deadline' => 'today',
             ],
         ];
 
@@ -267,7 +267,7 @@ class CreateTestDataCommand extends Command
             $task->setDescription($taskData['description']);
             $task->setPriority($taskData['priority']);
             $task->setStatus($taskData['status']);
-            
+
             // Set deadline
             $deadline = new \DateTime($taskData['deadline']);
             $task->setDeadline($deadline);
@@ -291,11 +291,11 @@ class CreateTestDataCommand extends Command
         // Create more tasks for calendar
         for ($i = 0; $i < 20; $i++) {
             $task = new Task();
-            $task->setTitle("Задача #" . ($taskCount + $i + 1));
-            $task->setDescription("Описание задачи #" . ($taskCount + $i + 1));
+            $task->setTitle('Задача #' . ($taskCount + $i + 1));
+            $task->setDescription('Описание задачи #' . ($taskCount + $i + 1));
             $task->setPriority($priorities[array_rand($priorities)]);
             $task->setStatus($statuses[array_rand($statuses)]);
-            
+
             // Random deadline in next 30 days
             $daysOffset = rand(0, 30);
             $deadline = (new \DateTime())->modify("+{$daysOffset} days");

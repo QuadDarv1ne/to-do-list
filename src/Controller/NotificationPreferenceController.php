@@ -15,8 +15,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class NotificationPreferenceController extends AbstractController
 {
     public function __construct(
-        private NotificationPreferenceService $preferenceService
-    ) {}
+        private NotificationPreferenceService $preferenceService,
+    ) {
+    }
 
     /**
      * Notification preferences page
@@ -34,7 +35,7 @@ class NotificationPreferenceController extends AbstractController
             'preferences' => $preferences,
             'channels' => $channels,
             'types' => $types,
-            'stats' => $stats
+            'stats' => $stats,
         ]);
     }
 
@@ -51,7 +52,7 @@ class NotificationPreferenceController extends AbstractController
 
         return $this->json([
             'success' => $success,
-            'message' => $success ? 'Настройки сохранены' : 'Ошибка сохранения'
+            'message' => $success ? 'Настройки сохранены' : 'Ошибка сохранения',
         ]);
     }
 
@@ -66,7 +67,7 @@ class NotificationPreferenceController extends AbstractController
 
         return $this->json([
             'success' => $success,
-            'message' => $success ? 'Тестовое уведомление отправлено' : 'Ошибка отправки'
+            'message' => $success ? 'Тестовое уведомление отправлено' : 'Ошибка отправки',
         ]);
     }
 }

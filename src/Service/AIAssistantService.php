@@ -3,14 +3,14 @@
 namespace App\Service;
 
 use App\Entity\Task;
-use App\Entity\User;
 use App\Repository\TaskRepository;
 
 class AIAssistantService
 {
     public function __construct(
-        private TaskRepository $taskRepository
-    ) {}
+        private TaskRepository $taskRepository,
+    ) {
+    }
 
     /**
      * Suggest task title based on description
@@ -18,14 +18,14 @@ class AIAssistantService
     public function suggestTitle(string $description): array
     {
         $keywords = $this->extractKeywords($description);
-        
+
         return [
             'suggestions' => [
                 $this->generateTitle($keywords, 'action'),
                 $this->generateTitle($keywords, 'feature'),
-                $this->generateTitle($keywords, 'fix')
+                $this->generateTitle($keywords, 'fix'),
             ],
-            'confidence' => 0.85
+            'confidence' => 0.85,
         ];
     }
 
@@ -35,19 +35,19 @@ class AIAssistantService
     public function autoCompleteDescription(string $partial): array
     {
         $suggestions = [];
-        
+
         // Common patterns
         if (str_contains(strtolower($partial), 'исправить')) {
             $suggestions[] = "**Описание проблемы:**\n\n**Шаги воспроизведения:**\n1. \n2. \n\n**Ожидаемое поведение:**\n\n**Фактическое поведение:**";
         }
-        
+
         if (str_contains(strtolower($partial), 'добавить')) {
             $suggestions[] = "**Описание функции:**\n\n**Зачем это нужно:**\n\n**Критерии приемки:**\n- [ ] \n- [ ] ";
         }
 
         return [
             'suggestions' => $suggestions,
-            'type' => 'description'
+            'type' => 'description',
         ];
     }
 
@@ -59,7 +59,7 @@ class AIAssistantService
         $score = 0;
         $title = strtolower($task->getTitle() ?? '');
         $description = strtolower($task->getDescription() ?? '');
-        
+
         // Urgent keywords
         $urgentKeywords = ['срочно', 'критично', 'баг', 'ошибка', 'не работает', 'сломано', 'production'];
         foreach ($urgentKeywords as $keyword) {
@@ -67,7 +67,7 @@ class AIAssistantService
                 $score += 30;
             }
         }
-        
+
         // High priority keywords
         $highKeywords = ['важно', 'приоритет', 'клиент', 'deadline'];
         foreach ($highKeywords as $keyword) {
@@ -75,13 +75,17 @@ class AIAssistantService
                 $score += 20;
             }
         }
-        
+
         // Check deadline
         if ($task->getDeadline()) {
             $daysUntil = (new \DateTime())->diff($task->getDeadline())->days;
-            if ($daysUntil <= 1) $score += 25;
-            elseif ($daysUntil <= 3) $score += 15;
-            elseif ($daysUntil <= 7) $score += 10;
+            if ($daysUntil <= 1) {
+                $score += 25;
+            } elseif ($daysUntil <= 3) {
+                $score += 15;
+            } elseif ($daysUntil <= 7) {
+                $score += 10;
+            }
         }
 
         return match(true) {
@@ -99,12 +103,12 @@ class AIAssistantService
     {
         // Get all users who have completed similar tasks
         $keywords = $this->extractKeywords($task->getTitle() . ' ' . $task->getDescription());
-        
+
         if (empty($keywords)) {
             return [
                 'user_id' => null,
                 'confidence' => 0.0,
-                'reason' => 'Недостаточно данных для анализа'
+                'reason' => 'Недостаточно данных для анализа',
             ];
         }
 
@@ -124,14 +128,14 @@ class AIAssistantService
             return [
                 'user_id' => $result['user_id'],
                 'confidence' => 0.75,
-                'reason' => 'Пользователь имеет опыт выполнения похожих задач'
+                'reason' => 'Пользователь имеет опыт выполнения похожих задач',
             ];
         }
 
         return [
             'user_id' => null,
             'confidence' => 0.0,
-            'reason' => 'Нет данных о выполненных задачах'
+            'reason' => 'Нет данных о выполненных задачах',
         ];
     }
 
@@ -141,7 +145,7 @@ class AIAssistantService
     public function suggestDeadline(Task $task): \DateTime
     {
         $complexity = $this->estimateComplexity($task);
-        
+
         $days = match($complexity) {
             'simple' => 1,
             'medium' => 3,
@@ -160,7 +164,7 @@ class AIAssistantService
     {
         $description = $task->getDescription() ?? '';
         $wordCount = str_word_count($description);
-        
+
         // Simple heuristic based on description length
         return match(true) {
             $wordCount < 20 => 'simple',
@@ -176,14 +180,14 @@ class AIAssistantService
     public function suggestRelatedTasks(Task $task, int $limit = 5): array
     {
         $keywords = $this->extractKeywords($task->getTitle() . ' ' . $task->getDescription());
-        
+
         if (empty($keywords)) {
             return [];
         }
 
         // Build search pattern from keywords
-        $searchPattern = '%' . implode('%', array_slice($keywords, 0, 3)) . '%';
-        
+        $searchPattern = '%' . implode('%', \array_slice($keywords, 0, 3)) . '%';
+
         $qb = $this->taskRepository->createQueryBuilder('t')
             ->where('t.id != :currentId')
             ->setParameter('currentId', $task->getId())
@@ -210,13 +214,14 @@ class AIAssistantService
             'documentation' => ['документация', 'readme', 'docs'],
             'testing' => ['тест', 'testing', 'qa'],
             'security' => ['безопасность', 'security', 'уязвимость'],
-            'performance' => ['производительность', 'медленно', 'оптимизация']
+            'performance' => ['производительность', 'медленно', 'оптимизация'],
         ];
 
         foreach ($tagPatterns as $tag => $keywords) {
             foreach ($keywords as $keyword) {
                 if (str_contains($content, $keyword)) {
                     $suggestedTags[] = $tag;
+
                     break;
                 }
             }
@@ -231,7 +236,7 @@ class AIAssistantService
     public function generateChecklist(Task $task): array
     {
         $type = $this->detectTaskType($task);
-        
+
         return match($type) {
             'bug' => [
                 'Воспроизвести ошибку',
@@ -239,7 +244,7 @@ class AIAssistantService
                 'Написать тест',
                 'Исправить код',
                 'Проверить исправление',
-                'Обновить документацию'
+                'Обновить документацию',
             ],
             'feature' => [
                 'Проанализировать требования',
@@ -247,7 +252,7 @@ class AIAssistantService
                 'Написать код',
                 'Написать тесты',
                 'Code review',
-                'Обновить документацию'
+                'Обновить документацию',
             ],
             'deployment' => [
                 'Проверить тесты',
@@ -256,13 +261,13 @@ class AIAssistantService
                 'Деплой на staging',
                 'Тестирование на staging',
                 'Деплой на production',
-                'Мониторинг'
+                'Мониторинг',
             ],
             default => [
                 'Начать работу',
                 'Выполнить задачу',
                 'Проверить результат',
-                'Завершить'
+                'Завершить',
             ]
         };
     }
@@ -273,12 +278,20 @@ class AIAssistantService
     private function detectTaskType(Task $task): string
     {
         $content = strtolower($task->getTitle() . ' ' . $task->getDescription());
-        
-        if (preg_match('/баг|ошибка|bug|fix/i', $content)) return 'bug';
-        if (preg_match('/функция|feature|добавить/i', $content)) return 'feature';
-        if (preg_match('/деплой|deploy|релиз/i', $content)) return 'deployment';
-        if (preg_match('/тест|test|qa/i', $content)) return 'testing';
-        
+
+        if (preg_match('/баг|ошибка|bug|fix/i', $content)) {
+            return 'bug';
+        }
+        if (preg_match('/функция|feature|добавить/i', $content)) {
+            return 'feature';
+        }
+        if (preg_match('/деплой|deploy|релиз/i', $content)) {
+            return 'deployment';
+        }
+        if (preg_match('/тест|test|qa/i', $content)) {
+            return 'testing';
+        }
+
         return 'general';
     }
 
@@ -288,13 +301,13 @@ class AIAssistantService
     private function extractKeywords(string $text): array
     {
         $text = strtolower($text);
-        $words = preg_split('/\s+/', $text);
-        
+        $words = preg_split('/\\s+/', $text);
+
         // Remove common words
         $stopWords = ['и', 'в', 'на', 'с', 'для', 'по', 'из', 'к', 'о', 'от', 'the', 'a', 'an', 'in', 'on', 'at'];
         $keywords = array_diff($words, $stopWords);
-        
-        return array_slice(array_values($keywords), 0, 5);
+
+        return \array_slice(array_values($keywords), 0, 5);
     }
 
     /**
@@ -309,7 +322,7 @@ class AIAssistantService
             default => 'Задача'
         };
 
-        return $prefix . ': ' . implode(' ', array_slice($keywords, 0, 3));
+        return $prefix . ': ' . implode(' ', \array_slice($keywords, 0, 3));
     }
 
     /**
@@ -318,17 +331,17 @@ class AIAssistantService
     public function analyzeSentiment(Task $task): array
     {
         $content = strtolower($task->getTitle() . ' ' . $task->getDescription());
-        
+
         $positiveWords = ['отлично', 'хорошо', 'успешно', 'готово'];
         $negativeWords = ['проблема', 'ошибка', 'не работает', 'срочно', 'критично'];
-        
+
         $positiveCount = 0;
         $negativeCount = 0;
-        
+
         foreach ($positiveWords as $word) {
             $positiveCount += substr_count($content, $word);
         }
-        
+
         foreach ($negativeWords as $word) {
             $negativeCount += substr_count($content, $word);
         }
@@ -342,7 +355,7 @@ class AIAssistantService
         return [
             'sentiment' => $sentiment,
             'score' => $positiveCount - $negativeCount,
-            'confidence' => 0.7
+            'confidence' => 0.7,
         ];
     }
 
@@ -352,7 +365,7 @@ class AIAssistantService
     public function predictCompletionTime(Task $task): array
     {
         $complexity = $this->estimateComplexity($task);
-        
+
         $hours = match($complexity) {
             'simple' => 2,
             'medium' => 8,
@@ -364,7 +377,7 @@ class AIAssistantService
         return [
             'estimated_hours' => $hours,
             'estimated_days' => ceil($hours / 8),
-            'confidence' => 0.6
+            'confidence' => 0.6,
         ];
     }
 }

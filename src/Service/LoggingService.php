@@ -2,11 +2,11 @@
 
 namespace App\Service;
 
+use App\Entity\User;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use App\Entity\User;
 
 /**
  * Comprehensive logging service for application events
@@ -14,7 +14,9 @@ use App\Entity\User;
 class LoggingService
 {
     private LoggerInterface $logger;
+
     private RequestStack $requestStack;
+
     private ?TokenStorageInterface $tokenStorage;
 
     public function __construct(LoggerInterface $logger, RequestStack $requestStack, ?TokenStorageInterface $tokenStorage = null)
@@ -76,16 +78,19 @@ class LoggingService
     {
         $context['event_type'] = 'security';
         $context['security_event'] = $event;
-        
+
         switch ($level) {
             case 'warning':
                 $this->logWarning("Security event: {$event}", $context);
+
                 break;
             case 'error':
                 $this->logError("Security event: {$event}", $context);
+
                 break;
             case 'critical':
                 $this->logCritical("Security event: {$event}", $context);
+
                 break;
             default:
                 $this->logInfo("Security event: {$event}", $context);
@@ -99,7 +104,7 @@ class LoggingService
     {
         $context['event_type'] = 'user_activity';
         $context['action'] = $action;
-        
+
         // Add user information if available
         if ($this->tokenStorage && $token = $this->tokenStorage->getToken()) {
             $user = $token->getUser();
@@ -111,7 +116,7 @@ class LoggingService
                 }
             }
         }
-        
+
         $this->logInfo("User activity: {$action}", $context);
     }
 
@@ -123,7 +128,7 @@ class LoggingService
         $context['event_type'] = 'performance';
         $context['operation'] = $operation;
         $context['execution_time_ms'] = round($executionTime * 1000, 2);
-        
+
         $this->logInfo("Performance: {$operation} took {$context['execution_time_ms']}ms", $context);
     }
 
@@ -136,8 +141,8 @@ class LoggingService
         $context['sql'] = $sql;
         $context['execution_time_ms'] = round($executionTime * 1000, 2);
         $context['parameters'] = $params;
-        
-        $this->logDebug("Database query executed", $context);
+
+        $this->logDebug('Database query executed', $context);
     }
 
     /**
@@ -152,7 +157,7 @@ class LoggingService
             $context['client_ip'] = $request->getClientIp();
             $context['user_agent'] = $request->headers->get('User-Agent');
         }
-        
+
         // Add user information if available
         if ($this->tokenStorage && $token = $this->tokenStorage->getToken()) {
             $user = $token->getUser();
@@ -164,10 +169,10 @@ class LoggingService
                 }
             }
         }
-        
+
         // Add timestamp
         $context['logged_at'] = date('Y-m-d H:i:s');
-        
+
         return $context;
     }
 }

@@ -13,8 +13,9 @@ use Symfony\Component\HttpFoundation\Request;
 class TaskFilterService
 {
     public function __construct(
-        private TaskRepository $taskRepository
-    ) {}
+        private TaskRepository $taskRepository,
+    ) {
+    }
 
     /**
      * Создать QueryBuilder с базовыми фильтрами
@@ -78,7 +79,7 @@ class TaskFilterService
         $allowedSorts = ['createdAt', 'priority', 'dueDate', 'title', 'tag_count'];
         $allowedDirections = ['ASC', 'DESC'];
 
-        if (!in_array($direction, $allowedDirections)) {
+        if (!\in_array($direction, $allowedDirections)) {
             $direction = 'DESC';
         }
 
@@ -87,7 +88,7 @@ class TaskFilterService
                ->groupBy('t.id, au.id, c.id')
                ->orderBy('tag_count', $direction)
                ->addOrderBy('t.createdAt', 'DESC');
-        } elseif (in_array($sort, $allowedSorts)) {
+        } elseif (\in_array($sort, $allowedSorts)) {
             $qb->orderBy('t.' . $sort, $direction);
         } else {
             $qb->orderBy('t.createdAt', 'DESC');
@@ -102,6 +103,7 @@ class TaskFilterService
     public function getTotalCount(QueryBuilder $qb): int
     {
         $countQb = clone $qb;
+
         return (int) $countQb->select('COUNT(DISTINCT t.id)')
             ->setFirstResult(0)
             ->setMaxResults(null)
@@ -115,7 +117,7 @@ class TaskFilterService
     public function applyPagination(QueryBuilder $qb, int $page = 1, int $limit = 10): QueryBuilder
     {
         $offset = ($page - 1) * $limit;
-        
+
         return $qb->setFirstResult($offset)
                   ->setMaxResults($limit);
     }

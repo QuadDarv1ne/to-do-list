@@ -13,8 +13,9 @@ class QuickActionsService
 
     public function __construct(
         private TaskRepository $taskRepository,
-        private EntityManagerInterface $entityManager
-    ) {}
+        private EntityManagerInterface $entityManager,
+    ) {
+    }
 
     /**
      * Get task by ID with caching
@@ -24,6 +25,7 @@ class QuickActionsService
         if (!isset($this->taskCache[$taskId])) {
             $this->taskCache[$taskId] = $this->taskRepository->find($taskId);
         }
+
         return $this->taskCache[$taskId];
     }
 
@@ -34,7 +36,7 @@ class QuickActionsService
     {
         $results = [];
         $taskIds = array_unique(array_column($operations, 'taskId'));
-        
+
         // Предзагружаем все задачи одним запросом
         $tasks = $this->taskRepository->findBy(['id' => $taskIds]);
         foreach ($tasks as $task) {
@@ -63,6 +65,7 @@ class QuickActionsService
 
         // Один flush для всех операций
         $this->entityManager->flush();
+
         return $results;
     }
 
@@ -212,6 +215,7 @@ class QuickActionsService
         }
 
         $task->setDeadline(new \DateTime('today 23:59:59'));
+
         return true;
     }
 
@@ -226,6 +230,7 @@ class QuickActionsService
         }
 
         $task->setDeadline(new \DateTime('tomorrow 23:59:59'));
+
         return true;
     }
 
@@ -240,6 +245,7 @@ class QuickActionsService
         }
 
         $task->setDeadline(new \DateTime('+1 week'));
+
         return true;
     }
 
@@ -249,9 +255,9 @@ class QuickActionsService
     public function executeQuickAction(int $taskId, string $action, array $params = []): bool
     {
         $result = $this->bulkQuickActions([
-            ['taskId' => $taskId, 'action' => $action, 'params' => $params]
+            ['taskId' => $taskId, 'action' => $action, 'params' => $params],
         ]);
-        
+
         return $result[$taskId] ?? false;
     }
 
@@ -265,38 +271,38 @@ class QuickActionsService
                 'name' => 'Завершить',
                 'icon' => 'fa-check',
                 'color' => 'success',
-                'shortcut' => 'C'
+                'shortcut' => 'C',
             ],
             'delete' => [
                 'name' => 'Удалить',
                 'icon' => 'fa-trash',
                 'color' => 'danger',
-                'shortcut' => 'D'
+                'shortcut' => 'D',
             ],
             'duplicate' => [
                 'name' => 'Дублировать',
                 'icon' => 'fa-copy',
                 'color' => 'info',
-                'shortcut' => 'Ctrl+D'
+                'shortcut' => 'Ctrl+D',
             ],
             'move_today' => [
                 'name' => 'На сегодня',
                 'icon' => 'fa-calendar-day',
                 'color' => 'primary',
-                'shortcut' => '1'
+                'shortcut' => '1',
             ],
             'move_tomorrow' => [
                 'name' => 'На завтра',
                 'icon' => 'fa-calendar-plus',
                 'color' => 'primary',
-                'shortcut' => '2'
+                'shortcut' => '2',
             ],
             'move_next_week' => [
                 'name' => 'На след. неделю',
                 'icon' => 'fa-calendar-week',
                 'color' => 'primary',
-                'shortcut' => '3'
-            ]
+                'shortcut' => '3',
+            ],
         ];
     }
 }

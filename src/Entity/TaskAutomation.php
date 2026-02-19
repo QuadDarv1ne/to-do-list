@@ -64,6 +64,7 @@ class TaskAutomation
     public function setName(string $name): static
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -75,6 +76,7 @@ class TaskAutomation
     public function setDescription(?string $description): static
     {
         $this->description = $description;
+
         return $this;
     }
 
@@ -86,6 +88,7 @@ class TaskAutomation
     public function setTrigger(string $trigger): static
     {
         $this->trigger = $trigger;
+
         return $this;
     }
 
@@ -97,6 +100,7 @@ class TaskAutomation
     public function setConditions(array $conditions): static
     {
         $this->conditions = $conditions;
+
         return $this;
     }
 
@@ -108,6 +112,7 @@ class TaskAutomation
     public function setActions(array $actions): static
     {
         $this->actions = $actions;
+
         return $this;
     }
 
@@ -119,6 +124,7 @@ class TaskAutomation
     public function setIsActive(bool $isActive): static
     {
         $this->isActive = $isActive;
+
         return $this;
     }
 
@@ -130,6 +136,7 @@ class TaskAutomation
     public function setCreatedBy(?User $createdBy): static
     {
         $this->createdBy = $createdBy;
+
         return $this;
     }
 
@@ -141,6 +148,7 @@ class TaskAutomation
     public function setCreatedAt(\DateTimeInterface $createdAt): static
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 
@@ -152,6 +160,7 @@ class TaskAutomation
     public function setLastExecutedAt(?\DateTimeInterface $lastExecutedAt): static
     {
         $this->lastExecutedAt = $lastExecutedAt;
+
         return $this;
     }
 
@@ -163,6 +172,7 @@ class TaskAutomation
     public function setExecutionCount(int $executionCount): static
     {
         $this->executionCount = $executionCount;
+
         return $this;
     }
 
@@ -170,6 +180,7 @@ class TaskAutomation
     {
         $this->executionCount++;
         $this->lastExecutedAt = new \DateTime();
+
         return $this;
     }
 }

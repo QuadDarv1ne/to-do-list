@@ -6,7 +6,7 @@ final readonly class CompleteTaskCommand
 {
     public function __construct(
         private int $taskId,
-        private int $completedByUserId
+        private int $completedByUserId,
     ) {
     }
 

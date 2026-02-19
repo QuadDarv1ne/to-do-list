@@ -2,9 +2,9 @@
 
 namespace App\EventListener;
 
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
  * Автоматическое добавление заголовков кэширования
@@ -52,10 +52,10 @@ class CacheHeadersListener implements EventSubscriberInterface
 
         if (isset($this->cacheableExtensions[$extension])) {
             $maxAge = $this->cacheableExtensions[$extension];
-            
+
             $response->headers->set('Cache-Control', "public, max-age={$maxAge}, immutable");
             $response->headers->set('Expires', gmdate('D, d M Y H:i:s', time() + $maxAge) . ' GMT');
-            
+
             // ETag для валидации кэша
             if (!$response->headers->has('ETag')) {
                 $etag = md5($response->getContent());
@@ -112,7 +112,7 @@ class CacheHeadersListener implements EventSubscriberInterface
             'application/json',
             'application/xml',
             'text/xml',
-            'image/svg+xml'
+            'image/svg+xml',
         ];
 
         foreach ($compressibleTypes as $type) {

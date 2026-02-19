@@ -15,8 +15,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class SearchController extends AbstractController
 {
     public function __construct(
-        private SmartSearchService $searchService
-    ) {}
+        private SmartSearchService $searchService,
+    ) {
+    }
 
     /**
      * Search page
@@ -34,7 +35,7 @@ class SearchController extends AbstractController
 
         return $this->render('search/index.html.twig', [
             'query' => $query,
-            'results' => $results
+            'results' => $results,
         ]);
     }
 
@@ -47,7 +48,7 @@ class SearchController extends AbstractController
         $query = $request->query->get('q', '');
         $user = $this->getUser();
 
-        if (strlen($query) < 2) {
+        if (\strlen($query) < 2) {
             return $this->json([]);
         }
 
@@ -85,7 +86,7 @@ class SearchController extends AbstractController
         }
 
         return $this->render('search/advanced.html.twig', [
-            'results' => $results
+            'results' => $results,
         ]);
     }
 
@@ -101,12 +102,12 @@ class SearchController extends AbstractController
         $saved = $this->searchService->saveSearch(
             $data['name'],
             $data['filters'],
-            $user
+            $user,
         );
 
         return $this->json([
             'success' => true,
-            'search' => $saved
+            'search' => $saved,
         ]);
     }
 
@@ -120,7 +121,7 @@ class SearchController extends AbstractController
         $searches = $this->searchService->getSavedSearches($user);
 
         return $this->render('search/saved.html.twig', [
-            'searches' => $searches
+            'searches' => $searches,
         ]);
     }
 }

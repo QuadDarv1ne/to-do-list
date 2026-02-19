@@ -1,4 +1,5 @@
 <?php
+
 // src/Security/LoginAuthenticator.php
 
 namespace App\Security;
@@ -13,7 +14,6 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
-use Symfony\Component\Security\Http\SecurityRequestAttributes;
 use Symfony\Component\Security\Http\Authenticator\AbstractAuthenticator;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\CsrfTokenBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\RememberMeBadge;
@@ -21,6 +21,7 @@ use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Credentials\PasswordCredentials;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface;
+use Symfony\Component\Security\Http\SecurityRequestAttributes;
 use Symfony\Component\Security\Http\Util\TargetPathTrait;
 
 class LoginAuthenticator extends AbstractAuthenticator implements AuthenticationEntryPointInterface
@@ -32,7 +33,7 @@ class LoginAuthenticator extends AbstractAuthenticator implements Authentication
     public function __construct(
         private UrlGeneratorInterface $urlGenerator,
         private EntityManagerInterface $entityManager,
-        private UserLastLoginService $userLastLoginService
+        private UserLastLoginService $userLastLoginService,
     ) {
     }
 
@@ -44,7 +45,7 @@ class LoginAuthenticator extends AbstractAuthenticator implements Authentication
 
     public function supports(Request $request): ?bool
     {
-        return self::LOGIN_ROUTE === $request->attributes->get('_route')
+        return $request->attributes->get('_route') === self::LOGIN_ROUTE
             && $request->isMethod('POST');
     }
 
@@ -68,7 +69,7 @@ class LoginAuthenticator extends AbstractAuthenticator implements Authentication
                 if (!$user->isActive()) {
                     throw new CustomUserMessageAuthenticationException('Аккаунт деактивирован.');
                 }
-                
+
                 if ($user->isAccountLocked()) {
                     throw new CustomUserMessageAuthenticationException('Аккаунт заблокирован. Повторите попытку позже.');
                 }
@@ -83,7 +84,7 @@ class LoginAuthenticator extends AbstractAuthenticator implements Authentication
             [
                 new CsrfTokenBadge('authenticate', $csrfToken),
                 new RememberMeBadge(),
-            ]
+            ],
         );
     }
 
@@ -91,17 +92,19 @@ class LoginAuthenticator extends AbstractAuthenticator implements Authentication
     {
         // Log successful authentication
         error_log('Authentication successful for user: ' . $token->getUser()->getUserIdentifier());
-        
+
         // Перенаправляем на предыдущую страницу или на дашборд
         $targetPath = $this->getTargetPath($request->getSession(), $firewallName);
         if ($targetPath) {
             error_log('Redirecting to target path: ' . $targetPath);
+
             return new RedirectResponse($targetPath);
         }
 
         // Явно указываем маршрут дашборда
         $dashboardUrl = $this->urlGenerator->generate('app_dashboard');
         error_log('Redirecting to dashboard: ' . $dashboardUrl);
+
         return new RedirectResponse($dashboardUrl);
     }
 
@@ -109,7 +112,7 @@ class LoginAuthenticator extends AbstractAuthenticator implements Authentication
     {
         error_log('Authentication failed: ' . $exception->getMessage());
         $request->getSession()->set(SecurityRequestAttributes::AUTHENTICATION_ERROR, $exception);
-        
+
         // Handle failed login attempts and account locking
         $email = $request->request->get('email', '');
         if ($email) {
@@ -117,20 +120,20 @@ class LoginAuthenticator extends AbstractAuthenticator implements Authentication
             if ($user) {
                 $failedAttempts = $user->getFailedLoginAttempts() + 1;
                 $user->setFailedLoginAttempts($failedAttempts);
-                
+
                 // Lock account after 5 failed attempts
                 if ($failedAttempts >= 5) {
                     $lockedUntil = new \DateTime();
                     $lockedUntil->modify('+15 minutes'); // Lock for 15 minutes
                     $user->lockAccount($lockedUntil);
-                    
+
                     error_log('Account locked for user: ' . $user->getEmail() . ' until ' . $lockedUntil->format('Y-m-d H:i:s'));
                 }
-                
+
                 $this->entityManager->flush();
             }
         }
-        
+
         return new RedirectResponse($this->urlGenerator->generate(self::LOGIN_ROUTE));
     }
 }

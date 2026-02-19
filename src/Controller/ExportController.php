@@ -20,7 +20,7 @@ class ExportController extends AbstractController
 {
     public function __construct(
         private ExportService $exportService,
-        private PerformanceOptimizerService $optimizer
+        private PerformanceOptimizerService $optimizer,
     ) {
     }
 
@@ -31,26 +31,26 @@ class ExportController extends AbstractController
     public function exportTasksCsv(TaskRepository $taskRepo): StreamedResponse
     {
         $user = $this->getUser();
-        
+
         // Получаем задачи с кэшированием
         $cacheKey = 'export_tasks_csv_' . $user->getId();
-        
-        $tasks = $this->optimizer->cacheQuery($cacheKey, function() use ($taskRepo, $user) {
+
+        $tasks = $this->optimizer->cacheQuery($cacheKey, function () use ($taskRepo, $user) {
             return $taskRepo->findBy(
                 ['user' => $user],
                 ['createdAt' => 'DESC'],
-                1000 // Лимит 1000 задач
+                1000, // Лимит 1000 задач
             );
         }, 60);
 
         $filename = 'tasks_' . date('Y-m-d') . '.csv';
 
-        return new StreamedResponse(function() use ($tasks) {
+        return new StreamedResponse(function () use ($tasks) {
             $output = fopen('php://output', 'w');
-            
+
             // BOM для UTF-8
-            fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
-            
+            fprintf($output, \chr(0xEF).\chr(0xBB).\chr(0xBF));
+
             // Заголовки
             fputcsv($output, [
                 'ID',
@@ -60,7 +60,7 @@ class ExportController extends AbstractController
                 'Приоритет',
                 'Срок выполнения',
                 'Дата создания',
-                'Дата обновления'
+                'Дата обновления',
             ]);
 
             // Данные
@@ -73,7 +73,7 @@ class ExportController extends AbstractController
                     $task->getPriority(),
                     $task->getDueDate()?->format('Y-m-d') ?? '',
                     $task->getCreatedAt()->format('Y-m-d H:i:s'),
-                    $task->getUpdatedAt()->format('Y-m-d H:i:s')
+                    $task->getUpdatedAt()->format('Y-m-d H:i:s'),
                 ]);
             }
 
@@ -91,21 +91,21 @@ class ExportController extends AbstractController
     public function exportTasksExcel(TaskRepository $taskRepo): Response
     {
         $user = $this->getUser();
-        
+
         $cacheKey = 'export_tasks_excel_' . $user->getId();
-        
-        $tasks = $this->optimizer->cacheQuery($cacheKey, function() use ($taskRepo, $user) {
+
+        $tasks = $this->optimizer->cacheQuery($cacheKey, function () use ($taskRepo, $user) {
             return $taskRepo->findBy(
                 ['user' => $user],
                 ['createdAt' => 'DESC'],
-                1000
+                1000,
             );
         }, 60);
 
         try {
             $filepath = $this->exportService->tasksToExcel($tasks);
             $filename = basename($filepath);
-            
+
             return $this->file($filepath, $filename);
         } catch (\RuntimeException $e) {
             return $this->redirectToRoute('app_task_index', [], 302);
@@ -119,21 +119,21 @@ class ExportController extends AbstractController
     public function exportTasksPdf(TaskRepository $taskRepo): Response
     {
         $user = $this->getUser();
-        
+
         $cacheKey = 'export_tasks_pdf_' . $user->getId();
-        
-        $tasks = $this->optimizer->cacheQuery($cacheKey, function() use ($taskRepo, $user) {
+
+        $tasks = $this->optimizer->cacheQuery($cacheKey, function () use ($taskRepo, $user) {
             return $taskRepo->findBy(
                 ['user' => $user],
                 ['createdAt' => 'DESC'],
-                100
+                100,
             );
         }, 60);
 
         try {
             $filepath = $this->exportService->tasksToPdf($tasks);
             $filename = basename($filepath);
-            
+
             return $this->file($filepath, $filename);
         } catch (\RuntimeException $e) {
             return $this->redirectToRoute('app_task_index', [], 302);
@@ -147,7 +147,7 @@ class ExportController extends AbstractController
     public function index(): Response
     {
         return $this->render('export/index.html.twig', [
-            'exports' => $this->exportService->getAvailableExports()
+            'exports' => $this->exportService->getAvailableExports(),
         ]);
     }
 
@@ -157,13 +157,13 @@ class ExportController extends AbstractController
     #[Route('/download/{filename}', name: 'app_export_download', methods: ['GET'])]
     public function download(string $filename): Response
     {
-        $exportDir = dirname(__DIR__) . '/../var/exports';
+        $exportDir = \dirname(__DIR__) . '/../var/exports';
         $filepath = $exportDir . '/' . $filename;
-        
+
         if (!file_exists($filepath)) {
             throw $this->createNotFoundException('Файл не найден');
         }
-        
+
         return $this->file($filepath, $filename);
     }
 
@@ -174,9 +174,9 @@ class ExportController extends AbstractController
     public function cleanup(): Response
     {
         $deleted = $this->exportService->cleanupOldExports(7);
-        
+
         $this->addFlash('success', "Удалено {$deleted} старых экспортов");
-        
+
         return $this->redirectToRoute('app_export_index', [], 302);
     }
 }

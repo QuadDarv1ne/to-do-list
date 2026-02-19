@@ -8,8 +8,9 @@ use App\Repository\TaskRepository;
 class TaskDependencyService
 {
     public function __construct(
-        private TaskRepository $taskRepository
-    ) {}
+        private TaskRepository $taskRepository,
+    ) {
+    }
 
     /**
      * Add dependency (task depends on another task)
@@ -17,14 +18,14 @@ class TaskDependencyService
     public function addDependency(Task $task, Task $dependsOn): bool
     {
         // Check for circular dependencies
-        if ($this->wouldCreateCircularDependency($task, $dependsOn)) {
-            return false;
-        }
+        return !($this->wouldCreateCircularDependency($task, $dependsOn))
+
+
 
         // TODO: Save to database
         // For now, store in task metadata
-        
-        return true;
+
+        ;
     }
 
     /**
@@ -86,6 +87,7 @@ class TaskDependencyService
     {
         // Check if dependsOn already depends on task (directly or indirectly)
         $visited = [];
+
         return $this->hasPath($dependsOn, $task, $visited);
     }
 
@@ -98,7 +100,7 @@ class TaskDependencyService
             return true;
         }
 
-        if (in_array($source->getId(), $visited)) {
+        if (\in_array($source->getId(), $visited)) {
             return false;
         }
 
@@ -121,6 +123,7 @@ class TaskDependencyService
     {
         $chain = [];
         $this->buildChain($task, $chain, 0);
+
         return $chain;
     }
 
@@ -131,7 +134,7 @@ class TaskDependencyService
     {
         $chain[] = [
             'task' => $task,
-            'level' => $level
+            'level' => $level,
         ];
 
         $dependencies = $this->getDependencies($task);
@@ -153,8 +156,8 @@ class TaskDependencyService
         $maxLength = 0;
 
         foreach ($allPaths as $path) {
-            if (count($path) > $maxLength) {
-                $maxLength = count($path);
+            if (\count($path) > $maxLength) {
+                $maxLength = \count($path);
                 $criticalPath = $path;
             }
         }
@@ -184,13 +187,13 @@ class TaskDependencyService
      */
     public function autoUpdateStatus(Task $task): bool
     {
-        if ($this->canStart($task) && $task->getStatus() === 'pending') {
+        return (bool) ($this->canStart($task) && $task->getStatus() === 'pending')
             // All dependencies completed, task can be started
             // TODO: Send notification
-            return true;
-        }
 
-        return false;
+
+
+        ;
     }
 
     /**
@@ -200,9 +203,9 @@ class TaskDependencyService
     {
         return [
             'total_dependencies' => 0, // TODO: Count from database
-            'blocked_tasks' => count($this->getBlockedTasks()),
+            'blocked_tasks' => \count($this->getBlockedTasks()),
             'circular_dependencies' => 0, // TODO: Detect
-            'average_chain_length' => 0 // TODO: Calculate
+            'average_chain_length' => 0, // TODO: Calculate
         ];
     }
 }

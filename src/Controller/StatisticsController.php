@@ -15,8 +15,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class StatisticsController extends AbstractController
 {
     public function __construct(
-        private TaskStatisticsService $statisticsService
-    ) {}
+        private TaskStatisticsService $statisticsService,
+    ) {
+    }
 
     /**
      * Statistics dashboard
@@ -25,7 +26,7 @@ class StatisticsController extends AbstractController
     public function index(Request $request): Response
     {
         $user = $this->getUser();
-        
+
         $from = new \DateTime($request->query->get('from', '-30 days'));
         $to = new \DateTime($request->query->get('to', 'now'));
 
@@ -34,7 +35,7 @@ class StatisticsController extends AbstractController
         return $this->render('statistics/index.html.twig', [
             'stats' => $stats,
             'from' => $from,
-            'to' => $to
+            'to' => $to,
         ]);
     }
 
@@ -45,7 +46,7 @@ class StatisticsController extends AbstractController
     public function apiData(Request $request): JsonResponse
     {
         $user = $this->getUser();
-        
+
         $from = new \DateTime($request->query->get('from', '-30 days'));
         $to = new \DateTime($request->query->get('to', 'now'));
 
@@ -72,11 +73,11 @@ class StatisticsController extends AbstractController
             $period1Start,
             $period1End,
             $period2Start,
-            $period2End
+            $period2End,
         );
 
         return $this->render('statistics/compare.html.twig', [
-            'comparison' => $comparison
+            'comparison' => $comparison,
         ]);
     }
 
@@ -87,7 +88,7 @@ class StatisticsController extends AbstractController
     public function export(Request $request): Response
     {
         $user = $this->getUser();
-        
+
         $from = new \DateTime($request->query->get('from', '-30 days'));
         $to = new \DateTime($request->query->get('to', 'now'));
 

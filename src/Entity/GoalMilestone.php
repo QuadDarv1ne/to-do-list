@@ -55,6 +55,7 @@ class GoalMilestone
     public function setGoal(?Goal $goal): static
     {
         $this->goal = $goal;
+
         return $this;
     }
 
@@ -66,6 +67,7 @@ class GoalMilestone
     public function setTitle(string $title): static
     {
         $this->title = $title;
+
         return $this;
     }
 
@@ -77,6 +79,7 @@ class GoalMilestone
     public function setDescription(?string $description): static
     {
         $this->description = $description;
+
         return $this;
     }
 
@@ -88,6 +91,7 @@ class GoalMilestone
     public function setDueDate(\DateTimeInterface $dueDate): static
     {
         $this->dueDate = $dueDate;
+
         return $this;
     }
 
@@ -102,6 +106,7 @@ class GoalMilestone
         if ($completed && !$this->completedAt) {
             $this->completedAt = new \DateTime();
         }
+
         return $this;
     }
 
@@ -113,6 +118,7 @@ class GoalMilestone
     public function setCompletedAt(?\DateTimeInterface $completedAt): static
     {
         $this->completedAt = $completedAt;
+
         return $this;
     }
 
@@ -124,6 +130,7 @@ class GoalMilestone
     public function setCreatedAt(\DateTimeInterface $createdAt): static
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 }

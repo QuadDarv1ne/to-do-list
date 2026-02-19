@@ -11,7 +11,7 @@ final readonly class TaskAssigned implements DomainEventInterface
         private ?int $previousAssigneeId,
         private int $newAssigneeId,
         private int $assignedByUserId,
-        private \DateTimeImmutable $occurredAt
+        private \DateTimeImmutable $occurredAt,
     ) {
     }
 
@@ -19,14 +19,14 @@ final readonly class TaskAssigned implements DomainEventInterface
         TaskId $taskId,
         ?int $previousAssigneeId,
         int $newAssigneeId,
-        int $assignedByUserId
+        int $assignedByUserId,
     ): self {
         return new self(
             $taskId,
             $previousAssigneeId,
             $newAssigneeId,
             $assignedByUserId,
-            new \DateTimeImmutable()
+            new \DateTimeImmutable(),
         );
     }
 

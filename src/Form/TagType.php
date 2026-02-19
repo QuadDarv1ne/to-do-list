@@ -18,22 +18,22 @@ class TagType extends AbstractType
             ->add('name', TextType::class, [
                 'label' => 'Название',
                 'attr' => [
-                    'placeholder' => 'Введите название тега'
-                ]
+                    'placeholder' => 'Введите название тега',
+                ],
             ])
             ->add('description', TextareaType::class, [
                 'label' => 'Описание',
                 'required' => false,
                 'attr' => [
                     'placeholder' => 'Введите описание тега',
-                    'rows' => 3
-                ]
+                    'rows' => 3,
+                ],
             ])
             ->add('color', ColorType::class, [
                 'label' => 'Цвет',
                 'attr' => [
-                    'placeholder' => '#007bff'
-                ]
+                    'placeholder' => '#007bff',
+                ],
             ])
         ;
     }

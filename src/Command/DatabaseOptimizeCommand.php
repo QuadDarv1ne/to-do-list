@@ -12,7 +12,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 /**
  * Команда для оптимизации базы данных
- * 
+ *
  * Использование:
  *   php bin/console db:optimize                    # Полная оптимизация
  *   php bin/console db:optimize --table=tasks      # Оптимизация таблицы
@@ -21,12 +21,12 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  */
 #[AsCommand(
     name: 'db:optimize',
-    description: 'Оптимизация базы данных: индексы, анализ, очистка'
+    description: 'Оптимизация базы данных: индексы, анализ, очистка',
 )]
 class DatabaseOptimizeCommand extends Command
 {
     public function __construct(
-        private DatabaseOptimizerService $optimizer
+        private DatabaseOptimizerService $optimizer,
     ) {
         parent::__construct();
     }
@@ -56,27 +56,28 @@ class DatabaseOptimizeCommand extends Command
             // Анализ таблицы
             if ($tableName || $runAll || !$analyzeOnly) {
                 $tables = $tableName ? [$tableName] : $this->getImportantTables();
-                
+
                 foreach ($tables as $table) {
                     $io->section("📊 Анализ таблицы: {$table}");
-                    
+
                     $result = $this->optimizer->analyzeTable($table);
-                    
+
                     if (isset($result['error'])) {
                         $io->error("Ошибка анализа: {$result['error']}");
+
                         continue;
                     }
-                    
+
                     // Вывод статистики
                     $io->table(
                         ['Метрика', 'Значение'],
                         [
                             ['Записей', number_format($result['stats']['row_count'] ?? 0)],
-                            ['Индексов', count($result['indexes'] ?? [])],
-                            ['Рекомендации', count($result['recommendations'] ?? [])]
-                        ]
+                            ['Индексов', \count($result['indexes'] ?? [])],
+                            ['Рекомендации', \count($result['recommendations'] ?? [])],
+                        ],
                     );
-                    
+
                     // Вывод рекомендаций
                     if (!empty($result['recommendations'])) {
                         $io->writeln('💡 Рекомендации:');
@@ -92,46 +93,46 @@ class DatabaseOptimizeCommand extends Command
             // Создание индексов
             if (($createIndexes || $runAll) && !$analyzeOnly) {
                 $io->section('📑 Создание индексов');
-                
+
                 $results = $this->optimizer->createRecommendedIndexes();
-                
-                $successCount = count(array_filter($results, fn($r) => $r['success']));
-                $io->success("Создано индексов: {$successCount} / " . count($results));
-                
+
+                $successCount = \count(array_filter($results, fn ($r) => $r['success']));
+                $io->success("Создано индексов: {$successCount} / " . \count($results));
+
                 $io->table(
                     ['Таблица', 'Индекс', 'Статус'],
-                    array_map(fn($r) => [
+                    array_map(fn ($r) => [
                         $r['table'],
                         $r['index'],
-                        $r['success'] ? '✅' : '❌'
-                    ], $results)
+                        $r['success'] ? '✅' : '❌',
+                    ], $results),
                 );
             }
 
             // Очистка старых данных
             if ($cleanupDays) {
                 $io->section('🧹 Очистка старых данных');
-                
+
                 $tablesToCleanup = [
                     'activity_logs' => 'created_at',
                     'task_history' => 'created_at',
-                    'notifications' => 'created_at'
+                    'notifications' => 'created_at',
                 ];
-                
+
                 foreach ($tablesToCleanup as $table => $dateColumn) {
                     $deleted = $this->optimizer->cleanupOldData($table, $dateColumn, (int)$cleanupDays);
                     $io->writeln("  • {$table}: удалено {$deleted} записей");
                 }
-                
+
                 $io->success("Очистка завершена (данные старше {$cleanupDays} дней)");
             }
 
             // Оптимизация хранилища
             if (!$analyzeOnly && ($runAll || $tableName)) {
                 $io->section('💾 Оптимизация хранилища');
-                
+
                 $tables = $tableName ? [$tableName] : $this->getImportantTables();
-                
+
                 foreach ($tables as $table) {
                     $success = $this->optimizer->optimizeTableStorage($table);
                     $io->writeln("  • {$table}: " . ($success ? '✅' : '❌'));
@@ -141,24 +142,25 @@ class DatabaseOptimizeCommand extends Command
             // Статистика запросов
             $io->section('📈 Статистика запросов');
             $stats = $this->optimizer->getQueryStats();
-            
+
             $io->table(
                 ['Метрика', 'Значение'],
                 [
                     ['Всего запросов', $stats['total_queries'] ?? 0],
                     ['Среднее время', ($stats['avg_time'] ?? 0) . 's'],
                     ['Макс. время', ($stats['max_time'] ?? 0) . 's'],
-                    ['Медленные запросы', $stats['slow_queries'] ?? 0]
-                ]
+                    ['Медленные запросы', $stats['slow_queries'] ?? 0],
+                ],
             );
 
             $io->newLine();
             $io->success('✅ Оптимизация завершена!');
-            
+
             return Command::SUCCESS;
-            
+
         } catch (\Exception $e) {
             $io->error('Ошибка оптимизации: ' . $e->getMessage());
+
             return Command::FAILURE;
         }
     }
@@ -171,7 +173,7 @@ class DatabaseOptimizeCommand extends Command
             'comments',
             'activity_logs',
             'task_history',
-            'notifications'
+            'notifications',
         ];
     }
 }

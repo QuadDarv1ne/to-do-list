@@ -12,15 +12,18 @@ use Psr\Log\LoggerInterface;
 class CacheWarmerService
 {
     private QueryCacheService $queryCacheService;
+
     private TaskRepository $taskRepository;
+
     private UserRepository $userRepository;
+
     private LoggerInterface $logger;
 
     public function __construct(
         QueryCacheService $queryCacheService,
         TaskRepository $taskRepository,
         UserRepository $userRepository,
-        LoggerInterface $logger
+        LoggerInterface $logger,
     ) {
         $this->queryCacheService = $queryCacheService;
         $this->taskRepository = $taskRepository;
@@ -38,13 +41,13 @@ class CacheWarmerService
         try {
             // Warm up user statistics
             $this->warmUserStatistics();
-            
+
             // Warm up common task queries
             $this->warmTaskStatistics();
-            
+
             // Warm up active users list
             $this->warmActiveUsers();
-            
+
             $this->logger->info('Cache warming process completed successfully');
         } catch (\Exception $e) {
             $this->logger->error('Cache warming process failed: ' . $e->getMessage());
@@ -55,12 +58,12 @@ class CacheWarmerService
     {
         $this->queryCacheService->cacheQuery(
             'user_statistics_global',
-            function() {
+            function () {
                 return $this->userRepository->getStatistics();
             },
-            1800 // 30 minutes
+            1800, // 30 minutes
         );
-        
+
         $this->logger->info('User statistics warmed up');
     }
 
@@ -69,12 +72,12 @@ class CacheWarmerService
         // Warm up completion stats by priority
         $this->queryCacheService->cacheQuery(
             'task_completion_stats_by_priority',
-            function() {
+            function () {
                 return $this->taskRepository->getCompletionStatsByPriority();
             },
-            1800 // 30 minutes
+            1800, // 30 minutes
         );
-        
+
         $this->logger->info('Task statistics warmed up');
     }
 
@@ -82,12 +85,12 @@ class CacheWarmerService
     {
         $this->queryCacheService->cacheQuery(
             'active_users_list',
-            function() {
+            function () {
                 return $this->userRepository->findActiveUsers();
             },
-            900 // 15 minutes
+            900, // 15 minutes
         );
-        
+
         $this->logger->info('Active users list warmed up');
     }
 }

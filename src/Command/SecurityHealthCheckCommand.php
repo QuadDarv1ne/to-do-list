@@ -13,13 +13,13 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:security-health-check',
-    description: 'Perform a comprehensive security health check on the application'
+    description: 'Perform a comprehensive security health check on the application',
 )]
 class SecurityHealthCheckCommand extends Command
 {
     public function __construct(
         private InputValidationService $inputValidationService,
-        private SecurityAuditService $securityAuditService
+        private SecurityAuditService $securityAuditService,
     ) {
         parent::__construct();
     }
@@ -36,43 +36,43 @@ class SecurityHealthCheckCommand extends Command
         // Test input validation
         $progressBar->setMessage('Testing input validation...');
         $progressBar->advance();
-        
+
         $testInputs = [
             '<script>alert("xss")</script>',
             "'; DROP TABLE users; --",
             'javascript:alert(1)',
             'normal input',
-            '12345'
+            '12345',
         ];
-        
+
         $validationResults = [];
         foreach ($testInputs as $testInput) {
             $result = $this->inputValidationService->validateString($testInput);
             $validationResults[] = [
                 'input' => $testInput,
                 'output' => $result,
-                'safe' => $testInput === $result || $result === null
+                'safe' => $testInput === $result || $result === null,
             ];
         }
 
         $progressBar->setMessage('Testing search query validation...');
         $progressBar->advance();
-        
+
         // Test search query validation
         $searchTests = [
             "test'; DROP TABLE users--",
             '<script>alert(1)</script>',
             'normal search term',
-            "'; DELETE FROM tasks; --"
+            "'; DELETE FROM tasks; --",
         ];
-        
+
         $searchResults = [];
         foreach ($searchTests as $searchTest) {
             $result = $this->inputValidationService->validateSearchQuery($searchTest);
             $searchResults[] = [
                 'input' => $searchTest,
                 'output' => $result,
-                'safe' => $searchTest === $result || $result === null
+                'safe' => $searchTest === $result || $result === null,
             ];
         }
 
@@ -116,17 +116,17 @@ class SecurityHealthCheckCommand extends Command
 
         // Summary
         $io->section('Security Health Summary');
-        
-        $safeInputs = array_filter($validationResults, fn($r) => $r['safe']);
-        $safeSearches = array_filter($searchResults, fn($r) => $r['safe']);
-        
+
+        $safeInputs = array_filter($validationResults, fn ($r) => $r['safe']);
+        $safeSearches = array_filter($searchResults, fn ($r) => $r['safe']);
+
         $io->text([
-            "Input validation effectiveness: " . round((count($safeInputs) / count($validationResults)) * 100, 2) . "%",
-            "Search validation effectiveness: " . round((count($safeSearches) / count($searchResults)) * 100, 2) . "%",
-            "Security configurations active: " . round((array_sum($securityConfig) / count($securityConfig)) * 100, 2) . "%"
+            'Input validation effectiveness: ' . round((\count($safeInputs) / \count($validationResults)) * 100, 2) . '%',
+            'Search validation effectiveness: ' . round((\count($safeSearches) / \count($searchResults)) * 100, 2) . '%',
+            'Security configurations active: ' . round((array_sum($securityConfig) / \count($securityConfig)) * 100, 2) . '%',
         ]);
 
-        if (count($safeInputs) === count($validationResults) && count($safeSearches) === count($searchResults)) {
+        if (\count($safeInputs) === \count($validationResults) && \count($safeSearches) === \count($searchResults)) {
             $io->success('Security health check passed! All validations are working correctly.');
         } else {
             $io->warning('Security health check detected potential vulnerabilities. Review the results above.');

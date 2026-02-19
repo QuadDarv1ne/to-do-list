@@ -2,8 +2,8 @@
 
 namespace App\Service;
 
-use Psr\Log\LoggerInterface;
 use Psr\Cache\CacheItemPoolInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * Performance Metrics Collector - сбор метрик производительности (Spotify-style)
@@ -11,12 +11,14 @@ use Psr\Cache\CacheItemPoolInterface;
 class PerformanceMetricsCollector
 {
     private array $metrics = [];
+
     private array $timers = [];
+
     private float $requestStartTime;
 
     public function __construct(
         private LoggerInterface $logger,
-        private CacheItemPoolInterface $cache
+        private CacheItemPoolInterface $cache,
     ) {
         $this->requestStartTime = microtime(true);
     }
@@ -28,7 +30,7 @@ class PerformanceMetricsCollector
     {
         $this->timers[$name] = [
             'start' => microtime(true),
-            'memory_start' => memory_get_usage(true)
+            'memory_start' => memory_get_usage(true),
         ];
     }
 
@@ -47,7 +49,7 @@ class PerformanceMetricsCollector
         $this->recordMetric($name, [
             'duration' => $duration,
             'memory_used' => $memoryUsed,
-            'timestamp' => time()
+            'timestamp' => time(),
         ]);
 
         unset($this->timers[$name]);
@@ -89,7 +91,7 @@ class PerformanceMetricsCollector
             'memory_peak' => memory_get_peak_usage(true),
             'memory_current' => memory_get_usage(true),
             'custom_metrics' => $this->metrics,
-            'timestamp' => time()
+            'timestamp' => time(),
         ];
     }
 
@@ -103,13 +105,13 @@ class PerformanceMetricsCollector
         }
 
         $values = array_column($this->metrics[$name], 'duration');
-        
+
         if (empty($values)) {
             return null;
         }
 
         sort($values);
-        $count = count($values);
+        $count = \count($values);
 
         return [
             'count' => $count,
@@ -118,7 +120,7 @@ class PerformanceMetricsCollector
             'avg' => array_sum($values) / $count,
             'median' => $values[(int)($count / 2)],
             'p95' => $values[(int)($count * 0.95)],
-            'p99' => $values[(int)($count * 0.99)]
+            'p99' => $values[(int)($count * 0.99)],
         ];
     }
 
@@ -128,20 +130,20 @@ class PerformanceMetricsCollector
     public function storeMetrics(string $endpoint): void
     {
         $metrics = $this->getMetrics();
-        
+
         // Store in cache for last 1 hour
         $cacheKey = 'metrics_' . md5($endpoint) . '_' . date('YmdH');
-        
+
         try {
             $item = $this->cache->getItem($cacheKey);
             $existing = $item->isHit() ? $item->get() : [];
             $existing[] = $metrics;
-            
+
             // Keep only last 1000 entries
-            if (count($existing) > 1000) {
-                $existing = array_slice($existing, -1000);
+            if (\count($existing) > 1000) {
+                $existing = \array_slice($existing, -1000);
             }
-            
+
             // PSR-6 compatible cache save
             $item = $this->cache->getItem($cacheKey);
             $item->set($existing);
@@ -150,7 +152,7 @@ class PerformanceMetricsCollector
         } catch (\Exception $e) {
             $this->logger->error('Failed to store metrics', [
                 'error' => $e->getMessage(),
-                'endpoint' => $endpoint
+                'endpoint' => $endpoint,
             ]);
         }
     }
@@ -165,7 +167,7 @@ class PerformanceMetricsCollector
             'avg_duration' => 0,
             'max_duration' => 0,
             'avg_memory' => 0,
-            'max_memory' => 0
+            'max_memory' => 0,
         ];
 
         $durations = [];
@@ -179,7 +181,7 @@ class PerformanceMetricsCollector
                 $item = $this->cache->getItem($cacheKey);
                 if ($item->isHit()) {
                     $metrics = $item->get();
-                    
+
                     foreach ($metrics as $metric) {
                         $aggregated['total_requests']++;
                         $durations[] = $metric['request_duration'];
@@ -192,13 +194,13 @@ class PerformanceMetricsCollector
         }
 
         if (!empty($durations)) {
-            $aggregated['avg_duration'] = array_sum($durations) / count($durations);
+            $aggregated['avg_duration'] = array_sum($durations) / \count($durations);
             $aggregated['max_duration'] = max($durations);
             $aggregated['min_duration'] = min($durations);
         }
 
         if (!empty($memories)) {
-            $aggregated['avg_memory'] = array_sum($memories) / count($memories);
+            $aggregated['avg_memory'] = array_sum($memories) / \count($memories);
             $aggregated['max_memory'] = max($memories);
         }
 
@@ -215,7 +217,7 @@ class PerformanceMetricsCollector
                 'operation' => $operation,
                 'duration' => $duration,
                 'threshold' => $threshold,
-                'memory' => memory_get_usage(true)
+                'memory' => memory_get_usage(true),
             ]);
         }
     }
@@ -226,13 +228,13 @@ class PerformanceMetricsCollector
     public function getPerformanceSummary(): array
     {
         $metrics = $this->getMetrics();
-        
+
         return [
             'request_time' => round($metrics['request_duration'] * 1000, 2) . 'ms',
             'memory_used' => $this->formatBytes($metrics['memory_current']),
             'memory_peak' => $this->formatBytes($metrics['memory_peak']),
-            'metrics_count' => count($this->metrics),
-            'status' => $this->getPerformanceStatus($metrics['request_duration'])
+            'metrics_count' => \count($this->metrics),
+            'status' => $this->getPerformanceStatus($metrics['request_duration']),
         ];
     }
 
@@ -240,12 +242,12 @@ class PerformanceMetricsCollector
     {
         $units = ['B', 'KB', 'MB', 'GB'];
         $i = 0;
-        
-        while ($bytes >= 1024 && $i < count($units) - 1) {
+
+        while ($bytes >= 1024 && $i < \count($units) - 1) {
             $bytes /= 1024;
             $i++;
         }
-        
+
         return round($bytes, 2) . ' ' . $units[$i];
     }
 

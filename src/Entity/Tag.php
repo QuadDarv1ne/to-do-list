@@ -21,7 +21,7 @@ class Tag
     #[Assert\NotBlank(message: 'Название тега не может быть пустым')]
     #[Assert\Length(
         max: 50,
-        maxMessage: 'Название тега не может быть длиннее {{ limit }} символов'
+        maxMessage: 'Название тега не может быть длиннее {{ limit }} символов',
     )]
     #[ORM\Column(length: 50)]
     private ?string $name = null;
@@ -32,7 +32,7 @@ class Tag
 
     #[Assert\Length(
         max: 255,
-        maxMessage: 'Описание тега не может быть длиннее {{ limit }} символов'
+        maxMessage: 'Описание тега не может быть длиннее {{ limit }} символов',
     )]
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;

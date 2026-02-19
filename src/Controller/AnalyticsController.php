@@ -17,19 +17,19 @@ class AnalyticsController extends AbstractController
 {
     #[Route('/', name: 'app_analytics_dashboard')]
     public function dashboard(
-        AnalyticsService $analyticsService, 
-        ?PerformanceMonitorService $performanceMonitor = null
+        AnalyticsService $analyticsService,
+        ?PerformanceMonitorService $performanceMonitor = null,
     ): Response {
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('analytics_controller_dashboard');
         }
-        
+
         $user = $this->getUser();
         $analytics = $analyticsService->getUserTaskAnalytics($user);
 
         try {
             return $this->render('analytics/dashboard.html.twig', [
-                'analytics' => $analytics
+                'analytics' => $analytics,
             ]);
         } finally {
             if ($performanceMonitor) {
@@ -40,13 +40,13 @@ class AnalyticsController extends AbstractController
 
     #[Route('/api/data', name: 'app_analytics_data', methods: ['GET'])]
     public function getAnalyticsData(
-        AnalyticsService $analyticsService, 
-        ?PerformanceMonitorService $performanceMonitor = null
+        AnalyticsService $analyticsService,
+        ?PerformanceMonitorService $performanceMonitor = null,
     ): JsonResponse {
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('analytics_controller_get_data');
         }
-        
+
         $user = $this->getUser();
         $analytics = $analyticsService->getUserTaskAnalytics($user);
 
@@ -61,13 +61,13 @@ class AnalyticsController extends AbstractController
 
     #[Route('/export/csv', name: 'app_analytics_export_csv', methods: ['GET'])]
     public function exportCsv(
-        AnalyticsService $analyticsService, 
-        ?PerformanceMonitorService $performanceMonitor = null
+        AnalyticsService $analyticsService,
+        ?PerformanceMonitorService $performanceMonitor = null,
     ): Response {
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('analytics_controller_export_csv');
         }
-        
+
         $user = $this->getUser();
         $csvData = $analyticsService->exportAnalyticsToCsv($user);
 
@@ -86,13 +86,13 @@ class AnalyticsController extends AbstractController
 
     #[Route('/api/completion-trend', name: 'app_analytics_completion_trend', methods: ['GET'])]
     public function getCompletionTrend(
-        AnalyticsService $analyticsService, 
-        ?PerformanceMonitorService $performanceMonitor = null
+        AnalyticsService $analyticsService,
+        ?PerformanceMonitorService $performanceMonitor = null,
     ): JsonResponse {
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('analytics_controller_completion_trend');
         }
-        
+
         $user = $this->getUser();
         $analytics = $analyticsService->getUserTaskAnalytics($user);
 
@@ -100,7 +100,7 @@ class AnalyticsController extends AbstractController
             return $this->json([
                 'daily_completion' => $analytics['productivity_trends']['daily_completion'],
                 'weekly_completion' => $analytics['productivity_trends']['weekly_completion'],
-                'trend' => $analytics['productivity_trends']['trend_analysis']
+                'trend' => $analytics['productivity_trends']['trend_analysis'],
             ]);
         } finally {
             if ($performanceMonitor) {
@@ -111,13 +111,13 @@ class AnalyticsController extends AbstractController
 
     #[Route('/api/category-breakdown', name: 'app_analytics_category_breakdown', methods: ['GET'])]
     public function getCategoryBreakdown(
-        AnalyticsService $analyticsService, 
-        ?PerformanceMonitorService $performanceMonitor = null
+        AnalyticsService $analyticsService,
+        ?PerformanceMonitorService $performanceMonitor = null,
     ): JsonResponse {
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('analytics_controller_category_breakdown');
         }
-        
+
         $user = $this->getUser();
         $analytics = $analyticsService->getUserTaskAnalytics($user);
 
@@ -132,13 +132,13 @@ class AnalyticsController extends AbstractController
 
     #[Route('/api/priority-analysis', name: 'app_analytics_priority_analysis', methods: ['GET'])]
     public function getPriorityAnalysis(
-        AnalyticsService $analyticsService, 
-        ?PerformanceMonitorService $performanceMonitor = null
+        AnalyticsService $analyticsService,
+        ?PerformanceMonitorService $performanceMonitor = null,
     ): JsonResponse {
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('analytics_controller_priority_analysis');
         }
-        
+
         $user = $this->getUser();
         $analytics = $analyticsService->getUserTaskAnalytics($user);
 
@@ -155,12 +155,12 @@ class AnalyticsController extends AbstractController
     public function comparePeriods(
         Request $request,
         AnalyticsService $analyticsService,
-        ?PerformanceMonitorService $performanceMonitor = null
+        ?PerformanceMonitorService $performanceMonitor = null,
     ): JsonResponse {
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('analytics_controller_compare_periods');
         }
-        
+
         $user = $this->getUser();
         $period1 = $request->query->get('period1', 'this_month');
         $period2 = $request->query->get('period2', 'last_month');

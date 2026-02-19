@@ -4,8 +4,8 @@ namespace App\Service;
 
 use App\Entity\User;
 use App\Repository\ActivityLogRepository;
-use App\Repository\TaskRepository;
 use App\Repository\CommentRepository;
+use App\Repository\TaskRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
 class ActivityFeedService
@@ -14,8 +14,9 @@ class ActivityFeedService
         private ActivityLogRepository $activityLogRepository,
         private TaskRepository $taskRepository,
         private CommentRepository $commentRepository,
-        private EntityManagerInterface $entityManager
-    ) {}
+        private EntityManagerInterface $entityManager,
+    ) {
+    }
 
     /**
      * Get activity feed for user
@@ -45,14 +46,14 @@ class ActivityFeedService
                 'metadata' => $activity->getMetadata(),
                 'created_at' => $activity->getCreatedAt(),
                 'icon' => $this->getActivityIcon($activity->getAction()),
-                'color' => $this->getActivityColor($activity->getAction())
+                'color' => $this->getActivityColor($activity->getAction()),
             ];
         }
 
         // Sort by date
-        usort($activities, fn($a, $b) => $b['created_at'] <=> $a['created_at']);
+        usort($activities, fn ($a, $b) => $b['created_at'] <=> $a['created_at']);
 
-        return array_slice($activities, 0, $limit);
+        return \array_slice($activities, 0, $limit);
     }
 
     /**
@@ -78,7 +79,7 @@ class ActivityFeedService
                 'created_at' => $activity->getCreatedAt(),
                 'icon' => $this->getActivityIcon($activity->getAction()),
                 'color' => $this->getActivityColor($activity->getAction()),
-                'description' => $this->getActivityDescription($activity)
+                'description' => $this->getActivityDescription($activity),
             ];
         }
 
@@ -112,7 +113,7 @@ class ActivityFeedService
         $current = clone $from;
         while ($current <= $to) {
             $nextDay = (clone $current)->modify('+1 day');
-            
+
             $count = $this->activityLogRepository->createQueryBuilder('a')
                 ->select('COUNT(a.id)')
                 ->where('a.user = :user')
@@ -125,7 +126,7 @@ class ActivityFeedService
 
             $byDay[] = [
                 'date' => $current->format('Y-m-d'),
-                'count' => (int)$count
+                'count' => (int)$count,
             ];
 
             $current = $nextDay;
@@ -135,7 +136,7 @@ class ActivityFeedService
             'total' => $totalActivities,
             'by_action' => $byAction,
             'by_day' => $byDay,
-            'average_per_day' => $totalActivities / max(1, $from->diff($to)->days)
+            'average_per_day' => $totalActivities / max(1, $from->diff($to)->days),
         ];
     }
 
@@ -163,7 +164,7 @@ class ActivityFeedService
         foreach ($results as $result) {
             $users[] = [
                 'user' => $result[0], // Пользователь уже загружен через JOIN
-                'activity_count' => (int)$result['activity_count']
+                'activity_count' => (int)$result['activity_count'],
             ];
         }
 

@@ -18,9 +18,10 @@ class AdvancedAnalyticsController extends AbstractController
     public function __construct(
         private AdvancedAnalyticsService $analyticsService,
         private TagManagementService $tagService,
-        private EntityManagerInterface $entityManager
-    ) {}
-    
+        private EntityManagerInterface $entityManager,
+    ) {
+    }
+
     /**
      * Advanced analytics dashboard
      */
@@ -28,7 +29,7 @@ class AdvancedAnalyticsController extends AbstractController
     public function index(): Response
     {
         $user = $this->getUser();
-        
+
         // Get all analytics data
         $predictions = $this->analyticsService->predictCompletionTime($user);
         $trends = $this->analyticsService->analyzeProductivityTrends($user, 12);
@@ -36,17 +37,17 @@ class AdvancedAnalyticsController extends AbstractController
         $patterns = $this->analyticsService->analyzeTaskPatterns($user);
         $insights = $this->analyticsService->getPerformanceInsights($user);
         $tagCloud = $this->tagService->getTagCloud();
-        
+
         return $this->render('analytics/advanced.html.twig', [
             'predictions' => $predictions,
             'trends' => $trends,
             'burnout' => $burnout,
             'patterns' => $patterns,
             'insights' => $insights,
-            'tag_cloud' => $tagCloud
+            'tag_cloud' => $tagCloud,
         ]);
     }
-    
+
     /**
      * Get completion time prediction
      */
@@ -55,13 +56,13 @@ class AdvancedAnalyticsController extends AbstractController
     {
         $user = $this->getUser();
         $prediction = $this->analyticsService->predictCompletionTime($user, $priority);
-        
+
         return $this->json([
             'success' => true,
-            'data' => $prediction
+            'data' => $prediction,
         ]);
     }
-    
+
     /**
      * Get productivity trends
      */
@@ -70,13 +71,13 @@ class AdvancedAnalyticsController extends AbstractController
     {
         $user = $this->getUser();
         $trends = $this->analyticsService->analyzeProductivityTrends($user, 12);
-        
+
         return $this->json([
             'success' => true,
-            'data' => $trends
+            'data' => $trends,
         ]);
     }
-    
+
     /**
      * Get burnout risk assessment
      */
@@ -85,13 +86,13 @@ class AdvancedAnalyticsController extends AbstractController
     {
         $user = $this->getUser();
         $burnout = $this->analyticsService->calculateBurnoutRisk($user);
-        
+
         return $this->json([
             'success' => true,
-            'data' => $burnout
+            'data' => $burnout,
         ]);
     }
-    
+
     /**
      * Get task patterns
      */
@@ -100,13 +101,13 @@ class AdvancedAnalyticsController extends AbstractController
     {
         $user = $this->getUser();
         $patterns = $this->analyticsService->analyzeTaskPatterns($user);
-        
+
         return $this->json([
             'success' => true,
-            'data' => $patterns
+            'data' => $patterns,
         ]);
     }
-    
+
     /**
      * Get performance insights
      */
@@ -115,13 +116,13 @@ class AdvancedAnalyticsController extends AbstractController
     {
         $user = $this->getUser();
         $insights = $this->analyticsService->getPerformanceInsights($user);
-        
+
         return $this->json([
             'success' => true,
-            'data' => $insights
+            'data' => $insights,
         ]);
     }
-    
+
     /**
      * Get tag cloud
      */
@@ -129,13 +130,13 @@ class AdvancedAnalyticsController extends AbstractController
     public function tagCloud(): JsonResponse
     {
         $tagCloud = $this->tagService->getTagCloud();
-        
+
         return $this->json([
             'success' => true,
-            'data' => $tagCloud
+            'data' => $tagCloud,
         ]);
     }
-    
+
     /**
      * Get tag statistics
      */
@@ -143,28 +144,28 @@ class AdvancedAnalyticsController extends AbstractController
     public function tagStats(int $id): JsonResponse
     {
         $tag = $this->entityManager->getRepository(\App\Entity\Tag::class)->find($id);
-        
+
         if (!$tag) {
             return $this->json([
                 'success' => false,
-                'message' => 'Tag not found'
+                'message' => 'Tag not found',
             ], 404);
         }
-        
+
         $stats = $this->tagService->getTagStatistics($tag);
         $related = $this->tagService->getRelatedTags($tag);
-        
+
         return $this->json([
             'success' => true,
             'data' => [
                 'tag' => [
                     'id' => $tag->getId(),
                     'name' => $tag->getName(),
-                    'color' => $tag->getColor()
+                    'color' => $tag->getColor(),
                 ],
                 'statistics' => $stats,
-                'related_tags' => $related
-            ]
+                'related_tags' => $related,
+            ],
         ]);
     }
 }

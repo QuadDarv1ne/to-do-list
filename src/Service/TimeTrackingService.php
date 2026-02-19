@@ -9,8 +9,9 @@ use Doctrine\ORM\EntityManagerInterface;
 class TimeTrackingService
 {
     public function __construct(
-        private EntityManagerInterface $entityManager
-    ) {}
+        private EntityManagerInterface $entityManager,
+    ) {
+    }
 
     /**
      * Start time tracking for task
@@ -21,7 +22,7 @@ class TimeTrackingService
             'task_id' => $task->getId(),
             'user_id' => $user->getId(),
             'started_at' => new \DateTime(),
-            'status' => 'active'
+            'status' => 'active',
         ];
 
         // TODO: Store in database instead of session
@@ -77,7 +78,7 @@ class TimeTrackingService
             'tasks_tracked' => 0,
             'average_per_task' => 0,
             'by_day' => [],
-            'by_category' => []
+            'by_category' => [],
         ];
     }
 
@@ -92,7 +93,7 @@ class TimeTrackingService
         $secs = $seconds % 60;
 
         $parts = [];
-        
+
         if ($days > 0) {
             $parts[] = "{$days}д";
         }
@@ -142,7 +143,7 @@ class TimeTrackingService
             'period' => [
                 'from' => $from,
                 'to' => $to,
-                'days' => $from->diff($to)->days
+                'days' => $from->diff($to)->days,
             ],
             'summary' => [
                 'total_time' => $stats['total_time'],
@@ -151,11 +152,10 @@ class TimeTrackingService
                 'average_per_task' => $stats['average_per_task'],
                 'average_per_task_formatted' => $this->formatDuration($stats['average_per_task']),
                 'average_per_day' => $stats['total_time'] / max(1, $from->diff($to)->days),
-                'productivity_score' => $this->getProductivityScore($user, $from->diff($to)->days)
+                'productivity_score' => $this->getProductivityScore($user, $from->diff($to)->days),
             ],
             'by_day' => $stats['by_day'],
-            'by_category' => $stats['by_category']
+            'by_category' => $stats['by_category'],
         ];
     }
 }
-

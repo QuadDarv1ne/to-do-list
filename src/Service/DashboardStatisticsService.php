@@ -2,8 +2,8 @@
 
 namespace App\Service;
 
-use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\TaskRepository;
+use Doctrine\ORM\EntityManagerInterface;
 
 /**
  * Dashboard Statistics Service
@@ -13,7 +13,7 @@ class DashboardStatisticsService
 {
     public function __construct(
         private EntityManagerInterface $em,
-        private TaskRepository $taskRepository
+        private TaskRepository $taskRepository,
     ) {
     }
 
@@ -29,7 +29,7 @@ class DashboardStatisticsService
             'completedTasksTrend' => $this->getCompletedTasksTrend($user),
             'productivityStats' => $this->getProductivityStats($user),
             'upcomingDeadlines' => $this->getUpcomingDeadlines($user),
-            'recentActivity' => $this->getRecentActivity($user)
+            'recentActivity' => $this->getRecentActivity($user),
         ];
     }
 
@@ -39,22 +39,22 @@ class DashboardStatisticsService
     private function getSummaryStats(\App\Entity\User $user): array
     {
         $conn = $this->em->getConnection();
-        
-        $sql = "SELECT 
+
+        $sql = "SELECT
             COUNT(*) as total,
             SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
             SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
             SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END) as in_progress,
             SUM(CASE WHEN due_date < DATE('now') AND status != 'completed' THEN 1 ELSE 0 END) as overdue,
             SUM(CASE WHEN priority = 'high' AND status != 'completed' THEN 1 ELSE 0 END) as high_priority
-            FROM tasks 
+            FROM tasks
             WHERE user_id = :user_id";
-        
+
         $result = $conn->fetchAssociative($sql, ['user_id' => $user->getId()]);
-        
+
         $total = (int)($result['total'] ?? 0);
         $completed = (int)($result['completed'] ?? 0);
-        
+
         return [
             'total' => $total,
             'completed' => $completed,
@@ -62,7 +62,7 @@ class DashboardStatisticsService
             'in_progress' => (int)($result['in_progress'] ?? 0),
             'overdue' => (int)($result['overdue'] ?? 0),
             'high_priority' => (int)($result['high_priority'] ?? 0),
-            'completion_rate' => $total > 0 ? round(($completed / $total) * 100) : 0
+            'completion_rate' => $total > 0 ? round(($completed / $total) * 100) : 0,
         ];
     }
 
@@ -72,19 +72,19 @@ class DashboardStatisticsService
     private function getTasksByStatus(\App\Entity\User $user): array
     {
         $conn = $this->em->getConnection();
-        
-        $sql = "SELECT status, COUNT(*) as count 
-                FROM tasks 
-                WHERE user_id = :user_id 
-                GROUP BY status";
-        
+
+        $sql = 'SELECT status, COUNT(*) as count
+                FROM tasks
+                WHERE user_id = :user_id
+                GROUP BY status';
+
         $results = $conn->fetchAllAssociative($sql, ['user_id' => $user->getId()]);
-        
+
         $data = [];
         foreach ($results as $row) {
             $data[$row['status']] = (int)$row['count'];
         }
-        
+
         return $data;
     }
 
@@ -94,19 +94,19 @@ class DashboardStatisticsService
     private function getTasksByPriority(\App\Entity\User $user): array
     {
         $conn = $this->em->getConnection();
-        
-        $sql = "SELECT priority, COUNT(*) as count 
-                FROM tasks 
-                WHERE user_id = :user_id 
-                GROUP BY priority";
-        
+
+        $sql = 'SELECT priority, COUNT(*) as count
+                FROM tasks
+                WHERE user_id = :user_id
+                GROUP BY priority';
+
         $results = $conn->fetchAllAssociative($sql, ['user_id' => $user->getId()]);
-        
+
         $data = [];
         foreach ($results as $row) {
             $data[$row['priority']] = (int)$row['count'];
         }
-        
+
         return $data;
     }
 
@@ -116,43 +116,44 @@ class DashboardStatisticsService
     private function getCompletedTasksTrend(\App\Entity\User $user): array
     {
         $conn = $this->em->getConnection();
-        
-        $sql = "SELECT 
+
+        $sql = "SELECT
                 DATE(completed_at) as date,
                 COUNT(*) as count
-                FROM tasks 
-                WHERE user_id = :user_id 
+                FROM tasks
+                WHERE user_id = :user_id
                 AND status = 'completed'
                 AND completed_at >= DATE('now', '-7 days')
                 GROUP BY DATE(completed_at)
                 ORDER BY date ASC";
-        
+
         $results = $conn->fetchAllAssociative($sql, ['user_id' => $user->getId()]);
-        
+
         // Заполняем все дни за последнюю неделю
         $trend = [];
         $now = new \DateTime();
-        
+
         for ($i = 6; $i >= 0; $i--) {
             $date = clone $now;
             $date->modify("-{$i} days");
             $dateStr = $date->format('Y-m-d');
-            
+
             $count = 0;
             foreach ($results as $row) {
                 if ($row['date'] === $dateStr) {
                     $count = (int)$row['count'];
+
                     break;
                 }
             }
-            
+
             $trend[] = [
                 'date' => $dateStr,
                 'label' => $date->format('d.m'),
-                'count' => $count
+                'count' => $count,
             ];
         }
-        
+
         return $trend;
     }
 
@@ -162,38 +163,38 @@ class DashboardStatisticsService
     private function getProductivityStats(\App\Entity\User $user): array
     {
         $conn = $this->em->getConnection();
-        
+
         // Среднее время выполнения задачи
-        $sql = "SELECT 
+        $sql = "SELECT
                 AVG(JULIANDAY(completed_at) - JULIANDAY(created_at)) as avg_completion_days
-                FROM tasks 
-                WHERE user_id = :user_id 
+                FROM tasks
+                WHERE user_id = :user_id
                 AND status = 'completed'
                 AND completed_at IS NOT NULL";
-        
+
         $avgDays = $conn->fetchOne($sql, ['user_id' => $user->getId()]);
-        
+
         // Задачи, выполненные сегодня
-        $sql = "SELECT COUNT(*) FROM tasks 
-                WHERE user_id = :user_id 
-                AND status = 'completed' 
+        $sql = "SELECT COUNT(*) FROM tasks
+                WHERE user_id = :user_id
+                AND status = 'completed'
                 AND DATE(completed_at) = DATE('now')";
-        
+
         $completedToday = (int)$conn->fetchOne($sql, ['user_id' => $user->getId()]);
-        
+
         // Задачи, выполненные на этой неделе
-        $sql = "SELECT COUNT(*) FROM tasks 
-                WHERE user_id = :user_id 
-                AND status = 'completed' 
+        $sql = "SELECT COUNT(*) FROM tasks
+                WHERE user_id = :user_id
+                AND status = 'completed'
                 AND DATE(completed_at) >= DATE('now', 'weekday 0')";
-        
+
         $completedThisWeek = (int)$conn->fetchOne($sql, ['user_id' => $user->getId()]);
-        
+
         return [
             'avg_completion_days' => $avgDays ? round((float)$avgDays, 1) : 0,
             'completed_today' => $completedToday,
             'completed_this_week' => $completedThisWeek,
-            'streak_days' => $this->calculateStreak($user)
+            'streak_days' => $this->calculateStreak($user),
         ];
     }
 
@@ -203,27 +204,27 @@ class DashboardStatisticsService
     private function calculateStreak(\App\Entity\User $user): int
     {
         $conn = $this->em->getConnection();
-        
+
         $sql = "SELECT DATE(completed_at) as date
-                FROM tasks 
-                WHERE user_id = :user_id 
+                FROM tasks
+                WHERE user_id = :user_id
                 AND status = 'completed'
                 GROUP BY DATE(completed_at)
                 ORDER BY date DESC
                 LIMIT 30";
-        
+
         $dates = $conn->fetchFirstColumn($sql, ['user_id' => $user->getId()]);
-        
+
         if (empty($dates)) {
             return 0;
         }
-        
+
         $streak = 0;
         $expectedDate = new \DateTime();
-        
+
         foreach ($dates as $dateStr) {
             $expectedDateStr = $expectedDate->format('Y-m-d');
-            
+
             if ($dateStr === $expectedDateStr) {
                 $streak++;
                 $expectedDate->modify('-1 day');
@@ -231,7 +232,7 @@ class DashboardStatisticsService
                 break;
             }
         }
-        
+
         return $streak;
     }
 
@@ -248,17 +249,17 @@ class DashboardStatisticsService
             ->setParameter('completed', 'completed')
             ->orderBy('t.dueDate', 'ASC')
             ->setMaxResults(5);
-        
+
         $tasks = $qb->getQuery()->getResult();
-        
+
         $deadlines = [];
         $now = new \DateTime();
-        
+
         foreach ($tasks as $task) {
             $dueDate = $task->getDueDate();
             $diff = $now->diff($dueDate);
             $days = $diff->days;
-            
+
             $urgency = 'normal';
             if ($days === 0 && $diff->invert === 0) {
                 $urgency = 'today';
@@ -269,15 +270,15 @@ class DashboardStatisticsService
             } elseif ($diff->invert === 1) {
                 $urgency = 'overdue';
             }
-            
+
             $deadlines[] = [
                 'task' => $task,
                 'due_date' => $dueDate,
                 'days_left' => $diff->invert ? -$days : $days,
-                'urgency' => $urgency
+                'urgency' => $urgency,
             ];
         }
-        
+
         return $deadlines;
     }
 
@@ -290,7 +291,7 @@ class DashboardStatisticsService
             ->where('t.user = :user')
             ->orderBy('t.updatedAt', 'DESC')
             ->setMaxResults(10);
-        
+
         return $qb->getQuery()->getResult();
     }
 
@@ -301,7 +302,7 @@ class DashboardStatisticsService
     {
         return [
             'by_status' => $this->getTasksByStatus($user),
-            'by_priority' => $this->getTasksByPriority($user)
+            'by_priority' => $this->getTasksByPriority($user),
         ];
     }
 
@@ -313,7 +314,7 @@ class DashboardStatisticsService
         return [
             'trend' => $this->getCompletedTasksTrend($user),
             'labels' => array_column($this->getCompletedTasksTrend($user), 'label'),
-            'data' => array_column($this->getCompletedTasksTrend($user), 'count')
+            'data' => array_column($this->getCompletedTasksTrend($user), 'count'),
         ];
     }
 }

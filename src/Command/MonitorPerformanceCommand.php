@@ -13,13 +13,13 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:monitor-performance',
-    description: 'Мониторинг производительности в реальном времени'
+    description: 'Мониторинг производительности в реальном времени',
 )]
 class MonitorPerformanceCommand extends Command
 {
     public function __construct(
         private QueryPerformanceMonitor $queryMonitor,
-        private RuntimePerformanceMonitor $runtimeMonitor
+        private RuntimePerformanceMonitor $runtimeMonitor,
     ) {
         parent::__construct();
     }
@@ -47,7 +47,7 @@ class MonitorPerformanceCommand extends Command
                 "  Всего: {$queryStats['total_queries']}",
                 "  Медленных: {$queryStats['slow_queries']}",
                 "  Общее время: {$queryStats['total_duration']}",
-                "  Среднее время: {$queryStats['avg_duration']}"
+                "  Среднее время: {$queryStats['avg_duration']}",
             ]);
 
             // Статистика памяти
@@ -57,7 +57,7 @@ class MonitorPerformanceCommand extends Command
                 'Использование памяти:',
                 "  Текущая: {$runtimeStats['current_memory']}",
                 "  Пиковая: {$runtimeStats['peak_memory']}",
-                "  Использовано: {$runtimeStats['memory_used']}"
+                "  Использовано: {$runtimeStats['memory_used']}",
             ]);
 
             // Предупреждения
@@ -70,7 +70,7 @@ class MonitorPerformanceCommand extends Command
             }
 
             sleep($interval);
-            
+
             if ($output->isVerbose()) {
                 $io->newLine();
             } else {

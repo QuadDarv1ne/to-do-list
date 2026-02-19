@@ -8,8 +8,9 @@ use App\Repository\TaskRepository;
 class AdvancedFilterViewService
 {
     public function __construct(
-        private TaskRepository $taskRepository
-    ) {}
+        private TaskRepository $taskRepository,
+    ) {
+    }
 
     /**
      * Create custom view
@@ -24,7 +25,7 @@ class AdvancedFilterViewService
             'columns' => $columns,
             'user_id' => $user->getId(),
             'is_default' => false,
-            'created_at' => new \DateTime()
+            'created_at' => new \DateTime(),
         ];
     }
 
@@ -48,46 +49,46 @@ class AdvancedFilterViewService
                 'icon' => 'fa-list',
                 'filters' => [],
                 'columns' => ['title', 'status', 'priority', 'deadline', 'assigned_user'],
-                'sort' => ['createdAt' => 'DESC']
+                'sort' => ['createdAt' => 'DESC'],
             ],
             'my_active' => [
                 'name' => 'Мои активные',
                 'icon' => 'fa-tasks',
                 'filters' => [
                     'assigned_to_me' => true,
-                    'status' => ['pending', 'in_progress']
+                    'status' => ['pending', 'in_progress'],
                 ],
                 'columns' => ['title', 'priority', 'deadline', 'category'],
-                'sort' => ['priority' => 'DESC', 'deadline' => 'ASC']
+                'sort' => ['priority' => 'DESC', 'deadline' => 'ASC'],
             ],
             'urgent_today' => [
                 'name' => 'Срочные сегодня',
                 'icon' => 'fa-fire',
                 'filters' => [
                     'priority' => ['urgent', 'high'],
-                    'deadline' => 'today'
+                    'deadline' => 'today',
                 ],
                 'columns' => ['title', 'status', 'assigned_user', 'deadline'],
-                'sort' => ['priority' => 'DESC']
+                'sort' => ['priority' => 'DESC'],
             ],
             'overdue' => [
                 'name' => 'Просроченные',
                 'icon' => 'fa-exclamation-triangle',
                 'filters' => [
-                    'is_overdue' => true
+                    'is_overdue' => true,
                 ],
                 'columns' => ['title', 'priority', 'deadline', 'assigned_user', 'days_overdue'],
-                'sort' => ['deadline' => 'ASC']
+                'sort' => ['deadline' => 'ASC'],
             ],
             'completed_this_week' => [
                 'name' => 'Завершено за неделю',
                 'icon' => 'fa-check-circle',
                 'filters' => [
                     'status' => 'completed',
-                    'completed_at' => 'this_week'
+                    'completed_at' => 'this_week',
                 ],
                 'columns' => ['title', 'completed_at', 'assigned_user', 'category'],
-                'sort' => ['completedAt' => 'DESC']
+                'sort' => ['completedAt' => 'DESC'],
             ],
             'by_category' => [
                 'name' => 'По категориям',
@@ -95,7 +96,7 @@ class AdvancedFilterViewService
                 'filters' => [],
                 'columns' => ['category', 'title', 'status', 'priority'],
                 'sort' => ['category' => 'ASC', 'priority' => 'DESC'],
-                'group_by' => 'category'
+                'group_by' => 'category',
             ],
             'by_priority' => [
                 'name' => 'По приоритету',
@@ -103,17 +104,17 @@ class AdvancedFilterViewService
                 'filters' => [],
                 'columns' => ['priority', 'title', 'status', 'deadline'],
                 'sort' => ['priority' => 'DESC', 'deadline' => 'ASC'],
-                'group_by' => 'priority'
+                'group_by' => 'priority',
             ],
             'unassigned' => [
                 'name' => 'Не назначенные',
                 'icon' => 'fa-user-slash',
                 'filters' => [
-                    'is_unassigned' => true
+                    'is_unassigned' => true,
                 ],
                 'columns' => ['title', 'priority', 'status', 'created_at'],
-                'sort' => ['priority' => 'DESC']
-            ]
+                'sort' => ['priority' => 'DESC'],
+            ],
         ];
     }
 
@@ -123,12 +124,13 @@ class AdvancedFilterViewService
     public function applyView(string $viewKey, User $user): array
     {
         $views = $this->getUserViews($user);
-        
+
         if (!isset($views[$viewKey])) {
             return [];
         }
 
         $view = $views[$viewKey];
+
         return $this->executeView($view, $user);
     }
 
@@ -172,12 +174,12 @@ class AdvancedFilterViewService
                     ->setParameter('user', $user),
                 'created_by_me' => $qb->andWhere('t.user = :user')
                     ->setParameter('user', $user),
-                'status' => is_array($value) 
+                'status' => \is_array($value)
                     ? $qb->andWhere('t.status IN (:statuses)')
                         ->setParameter('statuses', $value)
                     : $qb->andWhere('t.status = :status')
                         ->setParameter('status', $value),
-                'priority' => is_array($value)
+                'priority' => \is_array($value)
                     ? $qb->andWhere('t.priority IN (:priorities)')
                         ->setParameter('priorities', $value)
                     : $qb->andWhere('t.priority = :priority')
@@ -236,7 +238,7 @@ class AdvancedFilterViewService
     private function groupTasks(array $tasks, string $groupBy): array
     {
         $grouped = [];
-        
+
         foreach ($tasks as $task) {
             $key = match($groupBy) {
                 'category' => $task->getCategory()?->getName() ?? 'Без категории',
@@ -320,7 +322,7 @@ class AdvancedFilterViewService
     public function exportView(string $viewKey, User $user, string $format = 'csv'): string
     {
         $tasks = $this->applyView($viewKey, $user);
-        
+
         return match($format) {
             'csv' => $this->exportToCSV($tasks),
             'json' => $this->exportToJSON($tasks),
@@ -335,20 +337,20 @@ class AdvancedFilterViewService
     private function exportToCSV(array $tasks): string
     {
         $csv = "ID,Название,Статус,Приоритет,Дедлайн\n";
-        
+
         foreach ($tasks as $task) {
-            if (is_array($task)) {
+            if (\is_array($task)) {
                 // Grouped tasks
                 continue;
             }
-            
-            $csv .= sprintf(
+
+            $csv .= \sprintf(
                 "%d,%s,%s,%s,%s\n",
                 $task->getId(),
                 $task->getTitle(),
                 $task->getStatus(),
                 $task->getPriority(),
-                $task->getDeadline()?->format('Y-m-d') ?? ''
+                $task->getDeadline()?->format('Y-m-d') ?? '',
             );
         }
 

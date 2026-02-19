@@ -14,7 +14,7 @@ class TaskAutomationService
     public function __construct(
         private EntityManagerInterface $entityManager,
         private TaskAutomationRepository $automationRepository,
-        private LoggerInterface $logger
+        private LoggerInterface $logger,
     ) {
     }
 
@@ -33,9 +33,9 @@ class TaskAutomationService
     {
         $context = [
             'old_status' => $oldStatus,
-            'new_status' => $newStatus
+            'new_status' => $newStatus,
         ];
-        
+
         $this->executeTrigger('status_changed', $task, $context);
     }
 
@@ -46,9 +46,9 @@ class TaskAutomationService
     {
         $context = [
             'old_priority' => $oldPriority,
-            'new_priority' => $newPriority
+            'new_priority' => $newPriority,
         ];
-        
+
         $this->executeTrigger('priority_changed', $task, $context);
     }
 
@@ -86,7 +86,7 @@ class TaskAutomationService
                 $this->logger->error('Automation execution failed', [
                     'automation_id' => $automation->getId(),
                     'task_id' => $task->getId(),
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ]);
             }
         }
@@ -129,8 +129,8 @@ class TaskAutomationService
             'contains' => str_contains((string)$taskValue, (string)$value),
             'greater_than' => $taskValue > $value,
             'less_than' => $taskValue < $value,
-            'in' => in_array($taskValue, (array)$value),
-            'not_in' => !in_array($taskValue, (array)$value),
+            'in' => \in_array($taskValue, (array)$value),
+            'not_in' => !\in_array($taskValue, (array)$value),
             default => false
         };
     }
@@ -231,7 +231,7 @@ class TaskAutomationService
             // Создать комментарий от системы
             $this->logger->info('Auto-comment added', [
                 'task_id' => $task->getId(),
-                'text' => $text
+                'text' => $text,
             ]);
         }
     }
@@ -247,7 +247,7 @@ class TaskAutomationService
         $this->logger->info('Auto-notification sent', [
             'task_id' => $task->getId(),
             'message' => $message,
-            'recipients' => $recipients
+            'recipients' => $recipients,
         ]);
     }
 
@@ -259,7 +259,7 @@ class TaskAutomationService
         if ($tagName) {
             $this->logger->info('Auto-tag added', [
                 'task_id' => $task->getId(),
-                'tag' => $tagName
+                'tag' => $tagName,
             ]);
         }
     }
@@ -276,7 +276,7 @@ class TaskAutomationService
             } catch (\Exception $e) {
                 $this->logger->error('Invalid date format', [
                     'date_string' => $dateString,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ]);
             }
         }
@@ -291,7 +291,7 @@ class TaskAutomationService
         array $conditions,
         array $actions,
         User $user,
-        ?string $description = null
+        ?string $description = null,
     ): TaskAutomation {
         $automation = new TaskAutomation();
         $automation->setName($name);
@@ -318,7 +318,7 @@ class TaskAutomationService
             'deadline_approaching' => 'Приближается дедлайн',
             'task_overdue' => 'Задача просрочена',
             'task_completed' => 'Задача завершена',
-            'task_assigned' => 'Задача назначена'
+            'task_assigned' => 'Задача назначена',
         ];
     }
 
@@ -379,7 +379,7 @@ class TaskAutomationService
             'add_comment' => 'Добавить комментарий',
             'send_notification' => 'Отправить уведомление',
             'add_tag' => 'Добавить тег',
-            'set_due_date' => 'Установить срок'
+            'set_due_date' => 'Установить срок',
         ];
     }
 }

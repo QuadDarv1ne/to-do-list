@@ -7,17 +7,17 @@ use App\Entity\User;
 use App\Repository\DocumentRepository;
 use App\Repository\TaskRepository;
 use App\Service\DocumentService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/document')]
 class DocumentController extends AbstractController
@@ -26,7 +26,7 @@ class DocumentController extends AbstractController
         private DocumentService $documentService,
         private DocumentRepository $documentRepository,
         private TaskRepository $taskRepository,
-        private EntityManagerInterface $entityManager
+        private EntityManagerInterface $entityManager,
     ) {
     }
 
@@ -37,10 +37,10 @@ class DocumentController extends AbstractController
         $page = $request->query->getInt('page', 1);
         $limit = $request->query->getInt('limit', 20);
         $offset = ($page - 1) * $limit;
-        
+
         $documents = $this->documentService->getDocumentsByUser($user, $limit, $offset);
         $total = $this->documentRepository->count(['createdBy' => $user->getId()]);
-        
+
         return $this->render('document/index.html.twig', [
             'documents' => $documents,
             'total' => $total,
@@ -55,7 +55,7 @@ class DocumentController extends AbstractController
     {
         if ($request->isMethod('POST')) {
             $data = json_decode($request->getContent(), true);
-            
+
             $document = $this->documentService->createDocument([
                 'title' => $data['title'],
                 'content' => $data['content'] ?? '',
@@ -63,41 +63,41 @@ class DocumentController extends AbstractController
                 'status' => $data['status'] ?? 'draft',
                 'content_type' => $data['content_type'] ?? 'text/markdown',
                 'parent_id' => $data['parent_id'] ?? null,
-                'tags' => $data['tags'] ?? []
+                'tags' => $data['tags'] ?? [],
             ], $user);
-            
+
             return $this->redirectToRoute('app_document_show', ['id' => $document->getId()]);
         }
 
         return $this->render('document/create.html.twig');
     }
 
-    #[Route('/{id}', name: 'app_document_show', methods: ['GET'], requirements: ['id' => '\d+'])]
+    #[Route('/{id}', name: 'app_document_show', methods: ['GET'], requirements: ['id' => '\\d+'])]
     #[IsGranted('ROLE_USER')]
     public function show(Document $document, #[CurrentUser] User $user): Response
     {
         // Check if user has access to this document
-        if ($document->getCreatedBy() !== $user->getId() && !in_array('ROLE_ADMIN', $user->getRoles())) {
+        if ($document->getCreatedBy() !== $user->getId() && !\in_array('ROLE_ADMIN', $user->getRoles())) {
             throw $this->createAccessDeniedException();
         }
-        
+
         return $this->render('document/show.html.twig', [
             'document' => $document,
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'app_document_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
+    #[Route('/{id}/edit', name: 'app_document_edit', methods: ['GET', 'POST'], requirements: ['id' => '\\d+'])]
     #[IsGranted('ROLE_USER')]
     public function edit(Request $request, Document $document, #[CurrentUser] User $user): Response
     {
         // Check if user has access to edit this document
-        if ($document->getCreatedBy() !== $user->getId() && !in_array('ROLE_ADMIN', $user->getRoles())) {
+        if ($document->getCreatedBy() !== $user->getId() && !\in_array('ROLE_ADMIN', $user->getRoles())) {
             throw $this->createAccessDeniedException();
         }
-        
+
         if ($request->isMethod('POST')) {
             $data = json_decode($request->getContent(), true);
-            
+
             $this->documentService->updateDocument($document, [
                 'title' => $data['title'] ?? $document->getTitle(),
                 'content' => $data['content'] ?? $document->getContent(),
@@ -105,9 +105,9 @@ class DocumentController extends AbstractController
                 'status' => $data['status'] ?? $document->getStatus(),
                 'content_type' => $data['content_type'] ?? $document->getContentType(),
                 'parent_id' => $data['parent_id'] ?? $document->getParentId(),
-                'tags' => $data['tags'] ?? []
+                'tags' => $data['tags'] ?? [],
             ]);
-            
+
             return $this->redirectToRoute('app_document_show', ['id' => $document->getId()]);
         }
 
@@ -116,15 +116,15 @@ class DocumentController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/delete', name: 'app_document_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
+    #[Route('/{id}/delete', name: 'app_document_delete', methods: ['POST'], requirements: ['id' => '\\d+'])]
     #[IsGranted('ROLE_USER')]
     public function delete(Request $request, Document $document, #[CurrentUser] User $user): Response
     {
         // Check if user has access to delete this document
-        if ($document->getCreatedBy() !== $user->getId() && !in_array('ROLE_ADMIN', $user->getRoles())) {
+        if ($document->getCreatedBy() !== $user->getId() && !\in_array('ROLE_ADMIN', $user->getRoles())) {
             throw $this->createAccessDeniedException();
         }
-        
+
         if ($this->isCsrfTokenValid('delete'.$document->getId(), $request->request->get('_token'))) {
             $this->documentService->deleteDocument($document);
         }
@@ -139,22 +139,24 @@ class DocumentController extends AbstractController
         if ($request->isMethod('POST')) {
             /** @var UploadedFile|null $uploadedFile */
             $uploadedFile = $request->files->get('file');
-            
+
             if (!$uploadedFile) {
                 $this->addFlash('error', 'No file uploaded');
+
                 return $this->redirectToRoute('app_document_upload');
             }
-            
+
             try {
                 $document = $this->documentService->uploadDocument($uploadedFile, $user, [
                     'title' => $request->request->get('title', $uploadedFile->getClientOriginalName()),
                     'description' => $request->request->get('description', ''),
                     'status' => $request->request->get('status', 'published'),
                     'parent_id' => $request->request->getInt('parent_id', 0) ?: null,
-                    'tags' => explode(',', $request->request->get('tags', ''))
+                    'tags' => explode(',', $request->request->get('tags', '')),
                 ]);
-                
+
                 $this->addFlash('success', 'Document uploaded successfully');
+
                 return $this->redirectToRoute('app_document_show', ['id' => $document->getId()]);
             } catch (\Exception $e) {
                 $this->addFlash('error', 'Upload failed: ' . $e->getMessage());
@@ -164,29 +166,29 @@ class DocumentController extends AbstractController
         return $this->render('document/upload.html.twig');
     }
 
-    #[Route('/download/{id}', name: 'app_document_download', methods: ['GET'], requirements: ['id' => '\d+'])]
+    #[Route('/download/{id}', name: 'app_document_download', methods: ['GET'], requirements: ['id' => '\\d+'])]
     #[IsGranted('ROLE_USER')]
     public function download(Document $document, #[CurrentUser] User $user): BinaryFileResponse
     {
         // Check if user has access to this document
-        if ($document->getCreatedBy() !== $user->getId() && !in_array('ROLE_ADMIN', $user->getRoles())) {
+        if ($document->getCreatedBy() !== $user->getId() && !\in_array('ROLE_ADMIN', $user->getRoles())) {
             throw $this->createAccessDeniedException();
         }
-        
+
         if ($document->getFileName()) {
             // Serve uploaded file
             $filePath = $this->documentService->getFilePath($document);
-            
+
             if (!file_exists($filePath)) {
                 throw $this->createNotFoundException('Document file not found');
             }
-            
+
             $response = new BinaryFileResponse($filePath);
             $response->setContentDisposition(
                 ResponseHeaderBag::DISPOSITION_ATTACHMENT,
-                $document->getFileName()
+                $document->getFileName(),
             );
-            
+
             return $response;
         } else {
             // Serve content as file
@@ -194,7 +196,7 @@ class DocumentController extends AbstractController
             $response = new Response($content);
             $response->headers->set('Content-Type', $document->getContentType() ?: 'text/plain');
             $response->headers->set('Content-Disposition', 'attachment; filename="' . $document->getTitle() . '.txt"');
-            
+
             return $response;
         }
     }
@@ -206,26 +208,26 @@ class DocumentController extends AbstractController
         $query = $request->query->get('q', '');
         $limit = $request->query->getInt('limit', 10);
         $offset = $request->query->getInt('offset', 0);
-        
+
         if (empty($query)) {
             return $this->json(['documents' => [], 'total' => 0]);
         }
-        
+
         $documents = $this->documentService->searchDocuments($query, $user, $limit, $offset);
-        $total = count($this->documentService->searchDocuments($query, $user)); // This is a simplified count
-        
+        $total = \count($this->documentService->searchDocuments($query, $user)); // This is a simplified count
+
         return $this->json([
-            'documents' => array_map(function($doc) {
+            'documents' => array_map(function ($doc) {
                 return [
                     'id' => $doc->getId(),
                     'title' => $doc->getTitle(),
                     'description' => $doc->getDescription(),
                     'status' => $doc->getStatus(),
                     'created_at' => $doc->getCreatedAt()->format('Y-m-d H:i:s'),
-                    'preview' => $this->documentService->generatePreview($doc, 150)
+                    'preview' => $this->documentService->generatePreview($doc, 150),
                 ];
             }, $documents),
-            'total' => $total
+            'total' => $total,
         ]);
     }
 
@@ -234,7 +236,7 @@ class DocumentController extends AbstractController
     public function statistics(#[CurrentUser] User $user): JsonResponse
     {
         $stats = $this->documentService->getDocumentStatistics($user);
-        
+
         return $this->json($stats);
     }
 
@@ -243,66 +245,66 @@ class DocumentController extends AbstractController
     public function recent(#[CurrentUser] User $user): JsonResponse
     {
         $documents = $this->documentService->getRecentDocuments(10, $user);
-        
-        return $this->json(array_map(function($doc) {
+
+        return $this->json(array_map(function ($doc) {
             return [
                 'id' => $doc->getId(),
                 'title' => $doc->getTitle(),
                 'status' => $doc->getStatus(),
-                'created_at' => $doc->getCreatedAt()->format('Y-m-d H:i:s')
+                'created_at' => $doc->getCreatedAt()->format('Y-m-d H:i:s'),
             ];
         }, $documents));
     }
 
-    #[Route('/duplicate/{id}', name: 'app_document_duplicate', methods: ['POST'], requirements: ['id' => '\d+'])]
+    #[Route('/duplicate/{id}', name: 'app_document_duplicate', methods: ['POST'], requirements: ['id' => '\\d+'])]
     #[IsGranted('ROLE_USER')]
     public function duplicate(Request $request, Document $document, #[CurrentUser] User $user): Response
     {
         // Check if user has access to this document
-        if ($document->getCreatedBy() !== $user->getId() && !in_array('ROLE_ADMIN', $user->getRoles())) {
+        if ($document->getCreatedBy() !== $user->getId() && !\in_array('ROLE_ADMIN', $user->getRoles())) {
             throw $this->createAccessDeniedException();
         }
-        
+
         $newTitle = $request->request->get('title', $document->getTitle() . ' (Copy)');
-        
+
         $newDocument = $this->documentService->duplicateDocument($document, $user, $newTitle);
-        
+
         return $this->redirectToRoute('app_document_show', ['id' => $newDocument->getId()]);
     }
 
-    #[Route('/publish/{id}', name: 'app_document_publish', methods: ['POST'], requirements: ['id' => '\d+'])]
+    #[Route('/publish/{id}', name: 'app_document_publish', methods: ['POST'], requirements: ['id' => '\\d+'])]
     #[IsGranted('ROLE_USER')]
     public function publish(Document $document, #[CurrentUser] User $user): JsonResponse
     {
         // Check if user has access to this document
-        if ($document->getCreatedBy() !== $user->getId() && !in_array('ROLE_ADMIN', $user->getRoles())) {
+        if ($document->getCreatedBy() !== $user->getId() && !\in_array('ROLE_ADMIN', $user->getRoles())) {
             throw $this->createAccessDeniedException();
         }
-        
+
         $document = $this->documentService->publishDocument($document);
-        
+
         return $this->json([
             'success' => true,
             'message' => 'Document published successfully',
-            'status' => $document->getStatus()
+            'status' => $document->getStatus(),
         ]);
     }
 
-    #[Route('/unpublish/{id}', name: 'app_document_unpublish', methods: ['POST'], requirements: ['id' => '\d+'])]
+    #[Route('/unpublish/{id}', name: 'app_document_unpublish', methods: ['POST'], requirements: ['id' => '\\d+'])]
     #[IsGranted('ROLE_USER')]
     public function unpublish(Document $document, #[CurrentUser] User $user): JsonResponse
     {
         // Check if user has access to this document
-        if ($document->getCreatedBy() !== $user->getId() && !in_array('ROLE_ADMIN', $user->getRoles())) {
+        if ($document->getCreatedBy() !== $user->getId() && !\in_array('ROLE_ADMIN', $user->getRoles())) {
             throw $this->createAccessDeniedException();
         }
-        
+
         $document = $this->documentService->unpublishDocument($document);
-        
+
         return $this->json([
             'success' => true,
             'message' => 'Document unpublished successfully',
-            'status' => $document->getStatus()
+            'status' => $document->getStatus(),
         ]);
     }
 
@@ -316,22 +318,22 @@ class DocumentController extends AbstractController
                 'name' => 'Project Report Template',
                 'description' => 'Standard template for project reports',
                 'type' => 'report',
-                'category' => 'project_management'
+                'category' => 'project_management',
             ],
             [
                 'id' => 2,
                 'name' => 'Task Summary Template',
                 'description' => 'Template for task summaries',
                 'type' => 'summary',
-                'category' => 'task_management'
+                'category' => 'task_management',
             ],
             [
                 'id' => 3,
                 'name' => 'Meeting Minutes Template',
                 'description' => 'Template for meeting minutes',
                 'type' => 'minutes',
-                'category' => 'meetings'
-            ]
+                'category' => 'meetings',
+            ],
         ];
 
         return $this->json($templates);
@@ -342,10 +344,10 @@ class DocumentController extends AbstractController
     public function generateDocument(Request $request, #[CurrentUser] User $user): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        
+
         $templateType = $data['template_type'] ?? '';
         $taskId = $data['task_id'] ?? null;
-        
+
         if (!$templateType) {
             return $this->json(['error' => 'Template type is required'], 400);
         }
@@ -370,7 +372,7 @@ class DocumentController extends AbstractController
 
         // Generate document content based on template type
         $documentContent = $this->generateDocumentContent($templateType, $taskData);
-        
+
         // Optionally save as a new document
         if ($data['save_as_document'] ?? false) {
             $document = $this->documentService->createDocument([
@@ -378,23 +380,23 @@ class DocumentController extends AbstractController
                 'content' => $documentContent,
                 'description' => $data['description'] ?? 'Auto-generated document',
                 'status' => 'draft',
-                'content_type' => 'text/plain'
+                'content_type' => 'text/plain',
             ], $user);
-            
+
             return $this->json([
                 'success' => true,
                 'content' => $documentContent,
                 'document_id' => $document->getId(),
                 'filename' => $this->generateFilename($templateType),
-                'mimeType' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                'mimeType' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             ]);
         }
-        
+
         return $this->json([
             'success' => true,
             'content' => $documentContent,
             'filename' => $this->generateFilename($templateType),
-            'mimeType' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            'mimeType' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         ]);
     }
 
@@ -403,12 +405,12 @@ class DocumentController extends AbstractController
     public function generateReport(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        
+
         $reportType = $data['report_type'] ?? 'summary';
         $startDate = $data['start_date'] ?? null;
         $endDate = $data['end_date'] ?? null;
         $userId = $data['user_id'] ?? null;
-        
+
         // Get tasks based on criteria
         $criteria = [];
         if ($startDate && $endDate) {
@@ -417,18 +419,18 @@ class DocumentController extends AbstractController
         if ($userId) {
             $criteria['user_id'] = $userId;
         }
-        
+
         $tasks = $this->taskRepository->findWithCriteria($criteria);
-        
+
         $reportData = [
             'report_type' => $reportType,
             'period_start' => $startDate,
             'period_end' => $endDate,
-            'total_tasks' => count($tasks),
-            'completed_tasks' => count(array_filter($tasks, fn($task) => $task->isCompleted())),
-            'pending_tasks' => count(array_filter($tasks, fn($task) => $task->isPending())),
-            'in_progress_tasks' => count(array_filter($tasks, fn($task) => $task->isInProgress())),
-            'tasks' => array_map(function($task) {
+            'total_tasks' => \count($tasks),
+            'completed_tasks' => \count(array_filter($tasks, fn ($task) => $task->isCompleted())),
+            'pending_tasks' => \count(array_filter($tasks, fn ($task) => $task->isPending())),
+            'in_progress_tasks' => \count(array_filter($tasks, fn ($task) => $task->isInProgress())),
+            'tasks' => array_map(function ($task) {
                 return [
                     'id' => $task->getId(),
                     'title' => $task->getTitle(),
@@ -437,9 +439,9 @@ class DocumentController extends AbstractController
                     'dueDate' => $task->getDueDate()?->format('Y-m-d') ?? null,
                     'assignedUser' => $task->getAssignedUser()?->getFullName() ?? null,
                 ];
-            }, $tasks)
+            }, $tasks),
         ];
-        
+
         return $this->json($reportData);
     }
 
@@ -448,25 +450,25 @@ class DocumentController extends AbstractController
     public function convertDocument(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        
+
         $documentContent = $data['content'] ?? '';
         $targetFormat = $data['format'] ?? 'pdf';
-        
+
         if (!$documentContent) {
             return $this->json(['error' => 'Document content is required'], 400);
         }
 
-        if (!in_array($targetFormat, ['pdf', 'docx', 'txt', 'html'])) {
+        if (!\in_array($targetFormat, ['pdf', 'docx', 'txt', 'html'])) {
             return $this->json(['error' => 'Invalid target format'], 400);
         }
 
         // Convert document based on target format
         $convertedContent = $this->convertDocumentContent($documentContent, $targetFormat);
-        
+
         return $this->json([
             'success' => true,
             'content' => $convertedContent,
-            'format' => $targetFormat
+            'format' => $targetFormat,
         ]);
     }
 
@@ -475,37 +477,39 @@ class DocumentController extends AbstractController
         switch ($templateType) {
             case 'report':
                 $content = "Project Report\n\n";
-                $content .= "Generated on: " . date('Y-m-d H:i:s') . "\n\n";
-                
+                $content .= 'Generated on: ' . date('Y-m-d H:i:s') . "\n\n";
+
                 if ($taskData) {
                     $content .= "Task Details:\n";
-                    $content .= "- Title: " . $taskData['title'] . "\n";
-                    $content .= "- Status: " . $taskData['status'] . "\n";
-                    $content .= "- Priority: " . $taskData['priority'] . "\n";
-                    $content .= "- Due Date: " . $taskData['dueDate'] . "\n";
-                    $content .= "- Assigned to: " . $taskData['assignedUser'] . "\n\n";
+                    $content .= '- Title: ' . $taskData['title'] . "\n";
+                    $content .= '- Status: ' . $taskData['status'] . "\n";
+                    $content .= '- Priority: ' . $taskData['priority'] . "\n";
+                    $content .= '- Due Date: ' . $taskData['dueDate'] . "\n";
+                    $content .= '- Assigned to: ' . $taskData['assignedUser'] . "\n\n";
                 }
-                
+
                 $content .= "Summary: This report provides an overview of the project status.\n";
                 $content .= "Recommendations: Continue with current approach.\n";
+
                 break;
-                
+
             case 'summary':
                 $content = "Task Summary\n\n";
-                $content .= "Date: " . date('Y-m-d') . "\n\n";
-                
+                $content .= 'Date: ' . date('Y-m-d') . "\n\n";
+
                 if ($taskData) {
-                    $content .= "Task: " . $taskData['title'] . "\n";
-                    $content .= "Status: " . $taskData['status'] . "\n";
-                    $content .= "Description: " . $taskData['description'] . "\n\n";
+                    $content .= 'Task: ' . $taskData['title'] . "\n";
+                    $content .= 'Status: ' . $taskData['status'] . "\n";
+                    $content .= 'Description: ' . $taskData['description'] . "\n\n";
                 }
-                
+
                 $content .= "Next Steps: Follow up on pending items.\n";
+
                 break;
-                
+
             case 'minutes':
                 $content = "Meeting Minutes\n\n";
-                $content .= "Date: " . date('Y-m-d') . "\n";
+                $content .= 'Date: ' . date('Y-m-d') . "\n";
                 $content .= "Attendees: [List attendees]\n\n";
                 $content .= "Agenda Items:\n";
                 $content .= "1. [Item 1]\n";
@@ -514,14 +518,16 @@ class DocumentController extends AbstractController
                 $content .= "Action Items:\n";
                 $content .= "- [Action 1]\n";
                 $content .= "- [Action 2]\n";
+
                 break;
-                
+
             default:
                 $content = "Generated Document\n\n";
-                $content .= "Content generated on: " . date('Y-m-d H:i:s') . "\n";
+                $content .= 'Content generated on: ' . date('Y-m-d H:i:s') . "\n";
+
                 break;
         }
-        
+
         return $content;
     }
 
@@ -529,13 +535,13 @@ class DocumentController extends AbstractController
     {
         switch ($templateType) {
             case 'report':
-                return "Project Report";
+                return 'Project Report';
             case 'summary':
-                return "Task Summary";
+                return 'Task Summary';
             case 'minutes':
-                return "Meeting Minutes";
+                return 'Meeting Minutes';
             default:
-                return "Generated Document";
+                return 'Generated Document';
         }
     }
 
@@ -543,7 +549,7 @@ class DocumentController extends AbstractController
     {
         $timestamp = date('Y-m-d_H-i-s');
         $extension = '.docx';
-        
+
         switch ($templateType) {
             case 'report':
                 return "Project_Report_{$timestamp}{$extension}";
@@ -560,22 +566,22 @@ class DocumentController extends AbstractController
     {
         // In a real implementation, this would convert the content to the target format
         // For now, we'll just return the content with basic formatting
-        
+
         switch ($format) {
             case 'pdf':
                 // In a real implementation, we'd use a PDF library like TCPDF or DomPDF
                 return "[PDF Conversion of: {$content}]";
-                
+
             case 'docx':
                 // In a real implementation, we'd use a library like PHPWord
                 return "[DOCX Conversion of: {$content}]";
-                
+
             case 'txt':
                 return strip_tags($content);
-                
+
             case 'html':
                 return nl2br(htmlspecialchars($content));
-                
+
             default:
                 return $content;
         }

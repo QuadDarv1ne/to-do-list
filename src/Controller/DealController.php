@@ -3,8 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\Deal;
-use App\Repository\DealRepository;
 use App\Repository\ClientRepository;
+use App\Repository\DealRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,9 +20,9 @@ class DealController extends AbstractController
     public function index(DealRepository $dealRepository): Response
     {
         $user = $this->getUser();
-        
+
         // Менеджеры видят только свои сделки, админы - все (с оптимизированными запросами)
-        $deals = $this->isGranted('ROLE_ADMIN') 
+        $deals = $this->isGranted('ROLE_ADMIN')
             ? $dealRepository->findAllWithRelations()
             : $dealRepository->findByManager($user);
 
@@ -35,7 +35,7 @@ class DealController extends AbstractController
     public function funnel(DealRepository $dealRepository): Response
     {
         $user = $this->getUser();
-        
+
         $funnelData = $this->isGranted('ROLE_ADMIN')
             ? $dealRepository->getDealsByStage()
             : $dealRepository->getDealsByStage($user);
@@ -54,9 +54,10 @@ class DealController extends AbstractController
         if ($request->isMethod('POST')) {
             $clientId = $request->request->get('client_id');
             $client = $clientRepository->find($clientId);
-            
+
             if (!$client) {
                 $this->addFlash('error', 'Клиент не найден');
+
                 return $this->redirectToRoute('app_deals_new');
             }
 
@@ -65,7 +66,7 @@ class DealController extends AbstractController
             $deal->setAmount($request->request->get('amount'));
             $deal->setStage($request->request->get('stage', 'lead'));
             $deal->setDescription($request->request->get('description'));
-            
+
             $expectedDate = $request->request->get('expected_close_date');
             if ($expectedDate) {
                 $deal->setExpectedCloseDate(new \DateTime($expectedDate));
@@ -75,6 +76,7 @@ class DealController extends AbstractController
             $em->flush();
 
             $this->addFlash('success', 'Сделка успешно создана');
+
             return $this->redirectToRoute('app_deals_index');
         }
 
@@ -109,7 +111,7 @@ class DealController extends AbstractController
             $deal->setStage($request->request->get('stage'));
             $deal->setStatus($request->request->get('status'));
             $deal->setDescription($request->request->get('description'));
-            
+
             $expectedDate = $request->request->get('expected_close_date');
             if ($expectedDate) {
                 $deal->setExpectedCloseDate(new \DateTime($expectedDate));
@@ -124,6 +126,7 @@ class DealController extends AbstractController
             $em->flush();
 
             $this->addFlash('success', 'Сделка успешно обновлена');
+
             return $this->redirectToRoute('app_deals_show', ['id' => $deal->getId()]);
         }
 
@@ -141,6 +144,7 @@ class DealController extends AbstractController
         $em->flush();
 
         $this->addFlash('success', 'Сделка успешно удалена');
+
         return $this->redirectToRoute('app_deals_index');
     }
 }

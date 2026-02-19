@@ -15,8 +15,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class CalendarController extends AbstractController
 {
     public function __construct(
-        private CalendarService $calendarService
-    ) {}
+        private CalendarService $calendarService,
+    ) {
+    }
 
     /**
      * Calendar page
@@ -34,7 +35,7 @@ class CalendarController extends AbstractController
     public function events(Request $request): JsonResponse
     {
         $user = $this->getUser();
-        
+
         $start = new \DateTime($request->query->get('start', 'now'));
         $end = new \DateTime($request->query->get('end', '+1 month'));
 
@@ -89,12 +90,12 @@ class CalendarController extends AbstractController
     {
         $user = $this->getUser();
         $days = (int)$request->query->get('days', 7);
-        
+
         $tasks = $this->calendarService->getUpcomingDeadlines($user, $days);
 
         return $this->render('calendar/upcoming.html.twig', [
             'tasks' => $tasks,
-            'days' => $days
+            'days' => $days,
         ]);
     }
 
@@ -106,22 +107,22 @@ class CalendarController extends AbstractController
     {
         $taskId = $request->request->get('taskId');
         $newDate = $request->request->get('newDate');
-        
+
         if (!$taskId || !$newDate) {
             return $this->json(['success' => false, 'message' => 'Недостаточно данных'], 400);
         }
-        
+
         try {
             $task = $this->calendarService->updateTaskDate($taskId, new \DateTime($newDate));
-            
+
             return $this->json([
                 'success' => true,
                 'message' => 'Дата задачи обновлена',
                 'task' => [
                     'id' => $task->getId(),
                     'title' => $task->getTitle(),
-                    'newDate' => $task->getDeadline()->format('Y-m-d')
-                ]
+                    'newDate' => $task->getDeadline()->format('Y-m-d'),
+                ],
             ]);
         } catch (\Exception $e) {
             return $this->json(['success' => false, 'message' => $e->getMessage()], 400);
@@ -135,7 +136,7 @@ class CalendarController extends AbstractController
     public function export(Request $request): Response
     {
         $user = $this->getUser();
-        
+
         $start = new \DateTime($request->query->get('start', 'now'));
         $end = new \DateTime($request->query->get('end', '+3 months'));
 

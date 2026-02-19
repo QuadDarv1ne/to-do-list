@@ -10,23 +10,26 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 class TagVoter extends Voter
 {
     public const VIEW = 'view';
+
     public const EDIT = 'edit';
+
     public const DELETE = 'delete';
+
     public const CREATE = 'create';
 
     protected function supports(string $attribute, mixed $subject): bool
     {
         // if the attribute isn't one we support, return false
-        if (!in_array($attribute, [self::VIEW, self::EDIT, self::DELETE, self::CREATE])) {
+        if (!\in_array($attribute, [self::VIEW, self::EDIT, self::DELETE, self::CREATE])) {
             return false;
         }
 
         // only vote on Tag objects inside this voter
-        if (!$subject instanceof Tag) {
-            return false;
-        }
+        return !(!$subject instanceof Tag)
 
-        return true;
+
+
+        ;
     }
 
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token, ?\Symfony\Component\Security\Core\Authorization\Voter\Vote $vote = null): bool

@@ -7,8 +7,8 @@ use App\Domain\Task\Event\TaskCompleted;
 use App\Domain\Task\ValueObject\TaskId;
 use App\Repository\TaskRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 #[AsMessageHandler]
 final readonly class CompleteTaskCommandHandler
@@ -16,7 +16,7 @@ final readonly class CompleteTaskCommandHandler
     public function __construct(
         private EntityManagerInterface $entityManager,
         private TaskRepository $taskRepository,
-        private MessageBusInterface $eventBus
+        private MessageBusInterface $eventBus,
     ) {
     }
 
@@ -38,7 +38,7 @@ final readonly class CompleteTaskCommandHandler
         $event = TaskCompleted::create(
             $taskId,
             $command->getCompletedByUserId(),
-            new \DateTimeImmutable()
+            new \DateTimeImmutable(),
         );
 
         $this->eventBus->dispatch($event);

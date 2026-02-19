@@ -1,4 +1,5 @@
 <?php
+
 // src/Service/UserLastLoginService.php
 
 namespace App\Service;
@@ -10,11 +11,12 @@ use Psr\Log\LoggerInterface;
 class UserLastLoginService
 {
     private EntityManagerInterface $entityManager;
+
     private LoggerInterface $logger;
 
     public function __construct(
         EntityManagerInterface $entityManager,
-        LoggerInterface $logger
+        LoggerInterface $logger,
     ) {
         $this->entityManager = $entityManager;
         $this->logger = $logger;
@@ -32,7 +34,7 @@ class UserLastLoginService
             // В целях производительности, обновляем только конкретного пользователя
             // без полной фиксации изменений в базе данных
             $this->entityManager->persist($user);
-            
+
             // Выполняем flush только для конкретного объекта
             $this->entityManager->getUnitOfWork()->computeChangeSets();
             $this->entityManager->flush([$user]);

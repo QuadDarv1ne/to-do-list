@@ -32,15 +32,15 @@ class BudgetRepository extends ServiceEntityRepository
 
         $results = $qb->getQuery()->getResult();
 
-        return array_map(function($row) {
+        return array_map(function ($row) {
             return [
                 'user_id' => $row['user_id'],
                 'total_spent' => (float) $row['total_spent'],
                 'total_budget' => (float) $row['total_budget'],
                 'budget_count' => (int) $row['budget_count'],
-                'utilization_rate' => $row['total_budget'] > 0 
-                    ? round(($row['total_spent'] / $row['total_budget']) * 100, 2) 
-                    : 0
+                'utilization_rate' => $row['total_budget'] > 0
+                    ? round(($row['total_spent'] / $row['total_budget']) * 100, 2)
+                    : 0,
             ];
         }, $results);
     }
@@ -82,7 +82,7 @@ class BudgetRepository extends ServiceEntityRepository
     public function findNearExpirationBudgetsByUser(int $userId): array
     {
         $sevenDaysFromNow = new \DateTime('+7 days');
-        
+
         return $this->createQueryBuilder('b')
             ->andWhere('b.userId = :userId')
             ->andWhere('b.endDate BETWEEN :now AND :sevenDaysFromNow')

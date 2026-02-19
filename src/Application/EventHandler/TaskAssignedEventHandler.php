@@ -3,9 +3,9 @@
 namespace App\Application\EventHandler;
 
 use App\Domain\Task\Event\TaskAssigned;
-use App\Service\NotificationService;
 use App\Repository\TaskRepository;
 use App\Repository\UserRepository;
+use App\Service\NotificationService;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
@@ -16,7 +16,7 @@ final readonly class TaskAssignedEventHandler
         private NotificationService $notificationService,
         private TaskRepository $taskRepository,
         private UserRepository $userRepository,
-        private LoggerInterface $logger
+        private LoggerInterface $logger,
     ) {
     }
 
@@ -28,7 +28,7 @@ final readonly class TaskAssignedEventHandler
         ]);
 
         $task = $this->taskRepository->find($event->getTaskId()->toInt());
-        
+
         if (!$task) {
             return;
         }
@@ -40,12 +40,12 @@ final readonly class TaskAssignedEventHandler
             $this->notificationService->createNotification(
                 $newAssignee,
                 'Задача назначена',
-                sprintf(
+                \sprintf(
                     'Вам назначена задача "%s" пользователем %s',
                     $task->getTitle(),
-                    $assignedBy->getFullName()
+                    $assignedBy->getFullName(),
                 ),
-                $task
+                $task,
             );
         }
     }

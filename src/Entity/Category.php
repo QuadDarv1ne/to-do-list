@@ -32,6 +32,7 @@ class Category
     public function setName(string $name): self
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -43,6 +44,7 @@ class Category
     public function setColor(?string $color): self
     {
         $this->color = $color;
+
         return $this;
     }
 }

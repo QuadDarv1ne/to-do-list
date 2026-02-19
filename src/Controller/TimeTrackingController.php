@@ -16,8 +16,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class TimeTrackingController extends AbstractController
 {
     public function __construct(
-        private TimeTrackingService $timeTrackingService
-    ) {}
+        private TimeTrackingService $timeTrackingService,
+    ) {
+    }
 
     /**
      * Time tracking dashboard
@@ -27,14 +28,14 @@ class TimeTrackingController extends AbstractController
     {
         $user = $this->getUser();
         $activeSession = $this->timeTrackingService->getActiveSession();
-        
+
         $from = new \DateTime('-7 days');
         $to = new \DateTime();
         $stats = $this->timeTrackingService->getStatistics($user, $from, $to);
 
         return $this->render('time_tracking/index.html.twig', [
             'active_session' => $activeSession,
-            'stats' => $stats
+            'stats' => $stats,
         ]);
     }
 
@@ -50,7 +51,7 @@ class TimeTrackingController extends AbstractController
         return $this->json([
             'success' => true,
             'session' => $session,
-            'message' => 'Отслеживание времени начато'
+            'message' => 'Отслеживание времени начато',
         ]);
     }
 
@@ -65,7 +66,7 @@ class TimeTrackingController extends AbstractController
         if (!$session) {
             return $this->json([
                 'success' => false,
-                'message' => 'Нет активной сессии'
+                'message' => 'Нет активной сессии',
             ], 400);
         }
 
@@ -73,7 +74,7 @@ class TimeTrackingController extends AbstractController
             'success' => true,
             'session' => $session,
             'duration_formatted' => $this->timeTrackingService->formatDuration($session['duration']),
-            'message' => 'Отслеживание времени остановлено'
+            'message' => 'Отслеживание времени остановлено',
         ]);
     }
 
@@ -87,7 +88,7 @@ class TimeTrackingController extends AbstractController
 
         return $this->json([
             'active' => $session !== null,
-            'session' => $session
+            'session' => $session,
         ]);
     }
 
@@ -98,14 +99,14 @@ class TimeTrackingController extends AbstractController
     public function report(Request $request): Response
     {
         $user = $this->getUser();
-        
+
         $from = new \DateTime($request->query->get('from', '-30 days'));
         $to = new \DateTime($request->query->get('to', 'now'));
 
         $report = $this->timeTrackingService->getReport($user, $from, $to);
 
         return $this->render('time_tracking/report.html.twig', [
-            'report' => $report
+            'report' => $report,
         ]);
     }
 }

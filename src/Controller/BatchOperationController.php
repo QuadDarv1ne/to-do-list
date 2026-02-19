@@ -2,8 +2,8 @@
 
 namespace App\Controller;
 
-use App\Service\TaskBatchOperationService;
 use App\Repository\UserRepository;
+use App\Service\TaskBatchOperationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,8 +18,9 @@ class BatchOperationController extends AbstractController
     public function __construct(
         private TaskBatchOperationService $batchService,
         private UserRepository $userRepository,
-        private EntityManagerInterface $entityManager
-    ) {}
+        private EntityManagerInterface $entityManager,
+    ) {
+    }
 
     /**
      * Batch update status
@@ -36,7 +37,7 @@ class BatchOperationController extends AbstractController
         return $this->json([
             'success' => true,
             'count' => $count,
-            'message' => sprintf('Обновлено %d задач', $count)
+            'message' => \sprintf('Обновлено %d задач', $count),
         ]);
     }
 
@@ -55,7 +56,7 @@ class BatchOperationController extends AbstractController
         return $this->json([
             'success' => true,
             'count' => $count,
-            'message' => sprintf('Обновлено %d задач', $count)
+            'message' => \sprintf('Обновлено %d задач', $count),
         ]);
     }
 
@@ -79,7 +80,7 @@ class BatchOperationController extends AbstractController
         return $this->json([
             'success' => true,
             'count' => $count,
-            'message' => sprintf('Назначено %d задач', $count)
+            'message' => \sprintf('Назначено %d задач', $count),
         ]);
     }
 
@@ -97,7 +98,7 @@ class BatchOperationController extends AbstractController
         return $this->json([
             'success' => true,
             'count' => $count,
-            'message' => sprintf('Удалено %d задач', $count)
+            'message' => \sprintf('Удалено %d задач', $count),
         ]);
     }
 
@@ -115,7 +116,7 @@ class BatchOperationController extends AbstractController
         return $this->json([
             'success' => true,
             'count' => $count,
-            'message' => sprintf('Завершено %d задач', $count)
+            'message' => \sprintf('Завершено %d задач', $count),
         ]);
     }
 
@@ -129,7 +130,7 @@ class BatchOperationController extends AbstractController
         $taskIds = $data['task_ids'] ?? [];
         $categoryId = $data['category_id'] ?? null;
 
-        $category = $this->entityManager->getRepository('App\Entity\Category')->find($categoryId);
+        $category = $this->entityManager->getRepository('App\\Entity\\Category')->find($categoryId);
         if (!$category) {
             return $this->json(['success' => false, 'message' => 'Категория не найдена'], 404);
         }
@@ -139,7 +140,7 @@ class BatchOperationController extends AbstractController
         return $this->json([
             'success' => true,
             'count' => $count,
-            'message' => sprintf('Перемещено %d задач', $count)
+            'message' => \sprintf('Перемещено %d задач', $count),
         ]);
     }
 
@@ -158,7 +159,7 @@ class BatchOperationController extends AbstractController
         return $this->json([
             'success' => true,
             'count' => $count,
-            'message' => sprintf('Обновлено %d задач', $count)
+            'message' => \sprintf('Обновлено %d задач', $count),
         ]);
     }
 }

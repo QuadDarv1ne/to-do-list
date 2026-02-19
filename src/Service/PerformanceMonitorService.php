@@ -4,6 +4,7 @@ namespace App\Service;
 
 /**
  * Alias for PerformanceMonitoringService for backward compatibility
+ *
  * @deprecated Use PerformanceMonitoringService instead
  */
 class PerformanceMonitorService extends PerformanceMonitoringService

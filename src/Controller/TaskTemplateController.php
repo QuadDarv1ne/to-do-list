@@ -21,7 +21,7 @@ class TaskTemplateController extends AbstractController
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('task_template_controller_index');
         }
-        
+
         // Predefined task templates
         $templates = [
             [
@@ -30,8 +30,8 @@ class TaskTemplateController extends AbstractController
                 'tasks' => [
                     ['title' => 'Проверить почту', 'priority' => 'medium'],
                     ['title' => 'Обновить статус проектов', 'priority' => 'high'],
-                    ['title' => 'План на день', 'priority' => 'medium']
-                ]
+                    ['title' => 'План на день', 'priority' => 'medium'],
+                ],
             ],
             [
                 'name' => 'Планирование недели',
@@ -39,8 +39,8 @@ class TaskTemplateController extends AbstractController
                 'tasks' => [
                     ['title' => 'Обзор целей на неделю', 'priority' => 'high'],
                     ['title' => 'Планирование встреч', 'priority' => 'medium'],
-                    ['title' => 'Подготовка отчетов', 'priority' => 'medium']
-                ]
+                    ['title' => 'Подготовка отчетов', 'priority' => 'medium'],
+                ],
             ],
             [
                 'name' => 'Проектный запуск',
@@ -49,8 +49,8 @@ class TaskTemplateController extends AbstractController
                     ['title' => 'Определить цели проекта', 'priority' => 'high'],
                     ['title' => 'Собрать команду', 'priority' => 'high'],
                     ['title' => 'Создать план реализации', 'priority' => 'high'],
-                    ['title' => 'Назначить сроки', 'priority' => 'medium']
-                ]
+                    ['title' => 'Назначить сроки', 'priority' => 'medium'],
+                ],
             ],
             [
                 'name' => 'Обучение и развитие',
@@ -58,14 +58,14 @@ class TaskTemplateController extends AbstractController
                 'tasks' => [
                     ['title' => 'Изучить новую технологию', 'priority' => 'medium'],
                     ['title' => 'Пройти онлайн-курс', 'priority' => 'medium'],
-                    ['title' => 'Практические упражнения', 'priority' => 'low']
-                ]
-            ]
+                    ['title' => 'Практические упражнения', 'priority' => 'low'],
+                ],
+            ],
         ];
 
         try {
             return $this->render('task_template/index.html.twig', [
-                'templates' => $templates
+                'templates' => $templates,
             ]);
         } finally {
             if ($performanceMonitor) {
@@ -80,7 +80,7 @@ class TaskTemplateController extends AbstractController
         int $templateIndex,
         Request $request,
         EntityManagerInterface $entityManager,
-        ?PerformanceMonitorService $performanceMonitor = null
+        ?PerformanceMonitorService $performanceMonitor = null,
     ): Response {
 
         if ($performanceMonitor) {
@@ -94,16 +94,16 @@ class TaskTemplateController extends AbstractController
                 'tasks' => [
                     ['title' => 'Проверить почту', 'priority' => 'medium', 'description' => 'Проверить рабочую и личную почту на наличие новых сообщений'],
                     ['title' => 'Обновить статус проектов', 'priority' => 'high', 'description' => 'Обновить прогресс по текущим проектам в системе управления задачами'],
-                    ['title' => 'План на день', 'priority' => 'medium', 'description' => 'Составить список приоритетных задач на текущий день']
-                ]
+                    ['title' => 'План на день', 'priority' => 'medium', 'description' => 'Составить список приоритетных задач на текущий день'],
+                ],
             ],
             [
                 'name' => 'Планирование недели',
                 'tasks' => [
                     ['title' => 'Обзор целей на неделю', 'priority' => 'high', 'description' => 'Определить ключевые цели и результаты на предстоящую неделю'],
                     ['title' => 'Планирование встреч', 'priority' => 'medium', 'description' => 'Запланировать необходимые встречи и совещания'],
-                    ['title' => 'Подготовка отчетов', 'priority' => 'medium', 'description' => 'Подготовить недельные отчеты по проектам и активностям']
-                ]
+                    ['title' => 'Подготовка отчетов', 'priority' => 'medium', 'description' => 'Подготовить недельные отчеты по проектам и активностям'],
+                ],
             ],
             [
                 'name' => 'Проектный запуск',
@@ -111,22 +111,22 @@ class TaskTemplateController extends AbstractController
                     ['title' => 'Определить цели проекта', 'priority' => 'high', 'description' => 'Четко сформулировать цели, ожидаемые результаты и критерии успеха проекта'],
                     ['title' => 'Собрать команду', 'priority' => 'high', 'description' => 'Определить состав команды и распределить роли и ответственность'],
                     ['title' => 'Создать план реализации', 'priority' => 'high', 'description' => 'Разработать детальный план выполнения проекта с этапами и сроками'],
-                    ['title' => 'Назначить сроки', 'priority' => 'medium', 'description' => 'Установить реалистичные сроки выполнения каждого этапа проекта']
-                ]
+                    ['title' => 'Назначить сроки', 'priority' => 'medium', 'description' => 'Установить реалистичные сроки выполнения каждого этапа проекта'],
+                ],
             ],
             [
                 'name' => 'Обучение и развитие',
                 'tasks' => [
                     ['title' => 'Изучить новую технологию', 'priority' => 'medium', 'description' => 'Погрузиться в изучение новой технологии или инструмента'],
                     ['title' => 'Пройти онлайн-курс', 'priority' => 'medium', 'description' => 'Зарегистрироваться и пройти соответствующий онлайн-курс'],
-                    ['title' => 'Практические упражнения', 'priority' => 'low', 'description' => 'Выполнить практические задания для закрепления полученных знаний']
-                ]
-            ]
+                    ['title' => 'Практические упражнения', 'priority' => 'low', 'description' => 'Выполнить практические задания для закрепления полученных знаний'],
+                ],
+            ],
         ];
 
         if (!isset($templates[$templateIndex])) {
             $this->addFlash('error', 'Шаблон не найден');
-            
+
             try {
                 return $this->redirectToRoute('app_task_template_index');
             } finally {
@@ -149,14 +149,14 @@ class TaskTemplateController extends AbstractController
             $task->setStatus('pending');
             $task->setCreatedBy($user);
             $task->setAssignedUser($user);
-            
+
             $entityManager->persist($task);
             $createdTasks[] = $task;
         }
 
         $entityManager->flush();
 
-        $this->addFlash('success', sprintf('Создано %d задач из шаблона "%s"', count($createdTasks), $template['name']));
+        $this->addFlash('success', \sprintf('Создано %d задач из шаблона "%s"', \count($createdTasks), $template['name']));
 
         try {
             return $this->redirectToRoute('app_task_index');
@@ -172,7 +172,7 @@ class TaskTemplateController extends AbstractController
     public function customTemplate(
         Request $request,
         EntityManagerInterface $entityManager,
-        ?PerformanceMonitorService $performanceMonitor = null
+        ?PerformanceMonitorService $performanceMonitor = null,
     ): Response {
 
         if ($performanceMonitor) {
@@ -187,7 +187,7 @@ class TaskTemplateController extends AbstractController
 
             if (!$templateName || empty(array_filter($taskTitles))) {
                 $this->addFlash('error', 'Пожалуйста, заполните название шаблона и хотя бы одну задачу');
-                
+
                 try {
                     return $this->render('task_template/custom.html.twig');
                 } finally {
@@ -210,7 +210,7 @@ class TaskTemplateController extends AbstractController
                     $task->setStatus('pending');
                     $task->setCreatedBy($user);
                     $task->setAssignedUser($user);
-                    
+
                     $entityManager->persist($task);
                     $createdTasks[] = $task;
                 }
@@ -218,8 +218,8 @@ class TaskTemplateController extends AbstractController
 
             if (!empty($createdTasks)) {
                 $entityManager->flush();
-                $this->addFlash('success', sprintf('Создано %d задач из пользовательского шаблона "%s"', count($createdTasks), $templateName));
-                
+                $this->addFlash('success', \sprintf('Создано %d задач из пользовательского шаблона "%s"', \count($createdTasks), $templateName));
+
                 try {
                     return $this->redirectToRoute('app_task_index');
                 } finally {

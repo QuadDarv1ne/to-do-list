@@ -16,9 +16,7 @@ use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Csrf\TokenGenerator\TokenGeneratorInterface;
-use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 #[Route('/reset-password')]
 class ResetPasswordController extends AbstractController
@@ -28,7 +26,7 @@ class ResetPasswordController extends AbstractController
         private EntityManagerInterface $entityManager,
         private MailerInterface $mailer,
         private string $fromEmail = 'noreply@todolist.local',
-        private string $fromName = 'Система управления задачами'
+        private string $fromName = 'Система управления задачами',
     ) {
     }
 
@@ -36,7 +34,7 @@ class ResetPasswordController extends AbstractController
     public function request(Request $request, ?PerformanceMonitorService $performanceMonitor = null): Response
     {
         $performanceMonitor?->startTiming('reset_password_controller_request');
-        
+
         try {
             $form = $this->createForm(ResetPasswordRequestFormType::class);
             $form->handleRequest($request);
@@ -44,7 +42,7 @@ class ResetPasswordController extends AbstractController
             if ($form->isSubmitted() && $form->isValid()) {
                 return $this->processSendingPasswordResetEmail(
                     $form->get('email')->getData(),
-                    $performanceMonitor
+                    $performanceMonitor,
                 );
             }
 
@@ -60,7 +58,7 @@ class ResetPasswordController extends AbstractController
     public function checkEmail(?PerformanceMonitorService $performanceMonitor = null): Response
     {
         $performanceMonitor?->startTiming('reset_password_controller_check_email');
-        
+
         try {
             return $this->render('reset_password/check_email.html.twig');
         } finally {
@@ -72,7 +70,7 @@ class ResetPasswordController extends AbstractController
     public function reset(Request $request, UserPasswordHasherInterface $passwordHasher, ?string $token = null, ?PerformanceMonitorService $performanceMonitor = null): Response
     {
         $performanceMonitor?->startTiming('reset_password_controller_reset');
-        
+
         try {
             if ($token === null) {
                 return $this->redirectToRoute('app_forgot_password_request');
@@ -95,7 +93,7 @@ class ResetPasswordController extends AbstractController
                 // Encode the plain password, and set it.
                 $encodedPassword = $passwordHasher->hashPassword(
                     $user,
-                    $form->get('plainPassword')->getData()
+                    $form->get('plainPassword')->getData(),
                 );
 
                 $user->setPassword($encodedPassword);
@@ -115,7 +113,7 @@ class ResetPasswordController extends AbstractController
     private function processSendingPasswordResetEmail(string $emailFormData, ?PerformanceMonitorService $performanceMonitor = null): RedirectResponse
     {
         $performanceMonitor?->startTiming('reset_password_controller_process_sending_email');
-        
+
         try {
             $user = $this->entityManager->getRepository(User::class)->findOneBy([
                 'email' => $emailFormData,

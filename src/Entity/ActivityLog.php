@@ -6,8 +6,6 @@ use App\Repository\ActivityLogRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\{PrePersist};
-use App\Entity\User;
-use App\Entity\Task;
 
 #[ORM\Entity(repositoryClass: ActivityLogRepository::class)]
 #[ORM\Table(name: 'activity_logs')]
@@ -79,6 +77,7 @@ class ActivityLog
     public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 

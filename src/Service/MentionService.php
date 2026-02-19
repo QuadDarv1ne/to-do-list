@@ -9,8 +9,9 @@ class MentionService
 {
     public function __construct(
         private UserRepository $userRepository,
-        private NotificationService $notificationService
-    ) {}
+        private NotificationService $notificationService,
+    ) {
+    }
 
     /**
      * Parse mentions from text (@username)
@@ -18,10 +19,10 @@ class MentionService
     public function parseMentions(string $text): array
     {
         $mentions = [];
-        
+
         // Find all @mentions
-        preg_match_all('/@(\w+)/', $text, $matches);
-        
+        preg_match_all('/@(\\w+)/', $text, $matches);
+
         if (!empty($matches[1])) {
             foreach ($matches[1] as $username) {
                 $user = $this->userRepository->findOneBy(['username' => $username]);
@@ -39,18 +40,18 @@ class MentionService
      */
     public function convertMentionsToLinks(string $text): string
     {
-        return preg_replace_callback('/@(\w+)/', function($matches) {
+        return preg_replace_callback('/@(\\w+)/', function ($matches) {
             $username = $matches[1];
             $user = $this->userRepository->findOneBy(['username' => $username]);
-            
+
             if ($user) {
-                return sprintf(
+                return \sprintf(
                     '<a href="/users/%d" class="mention">@%s</a>',
                     $user->getId(),
-                    $username
+                    $username,
                 );
             }
-            
+
             return $matches[0];
         }, $text);
     }

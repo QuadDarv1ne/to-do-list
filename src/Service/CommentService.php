@@ -13,9 +13,10 @@ class CommentService
     public function __construct(
         private EntityManagerInterface $entityManager,
         private CommentRepository $commentRepository,
-        private RealTimeNotificationService $notificationService
-    ) {}
-    
+        private RealTimeNotificationService $notificationService,
+    ) {
+    }
+
     /**
      * Add comment to task
      */
@@ -25,16 +26,16 @@ class CommentService
         $comment->setTask($task);
         $comment->setAuthor($author);
         $comment->setContent($content);
-        
+
         $this->entityManager->persist($comment);
         $this->entityManager->flush();
-        
+
         // Notify task owner and assigned user
         $this->notifyRelevantUsers($task, $author, $comment);
-        
+
         return $comment;
     }
-    
+
     /**
      * Update comment
      */
@@ -42,10 +43,10 @@ class CommentService
     {
         $comment->setContent($content);
         $this->entityManager->flush();
-        
+
         return $comment;
     }
-    
+
     /**
      * Delete comment
      */
@@ -54,7 +55,7 @@ class CommentService
         $this->entityManager->remove($comment);
         $this->entityManager->flush();
     }
-    
+
     /**
      * Get comments for task
      */
@@ -64,10 +65,10 @@ class CommentService
             ['task' => $task],
             ['createdAt' => 'DESC'],
             $limit,
-            $offset
+            $offset,
         );
     }
-    
+
     /**
      * Get comment count for task
      */
@@ -75,7 +76,7 @@ class CommentService
     {
         return $this->commentRepository->count(['task' => $task]);
     }
-    
+
     /**
      * Get recent comments by user
      */
@@ -84,10 +85,10 @@ class CommentService
         return $this->commentRepository->findBy(
             ['author' => $user],
             ['createdAt' => 'DESC'],
-            $limit
+            $limit,
         );
     }
-    
+
     /**
      * Search comments
      */
@@ -98,29 +99,29 @@ class CommentService
             ->setParameter('query', '%' . $query . '%')
             ->orderBy('c.createdAt', 'DESC')
             ->setMaxResults(50);
-        
+
         if ($user) {
             $qb->andWhere('c.author = :user')
                ->setParameter('user', $user);
         }
-        
+
         return $qb->getQuery()->getResult();
     }
-    
+
     /**
      * Get comment statistics
      */
     public function getCommentStatistics(User $user): array
     {
         $qb = $this->commentRepository->createQueryBuilder('c');
-        
+
         // Total comments by user
         $totalComments = $qb->select('COUNT(c.id)')
             ->where('c.author = :user')
             ->setParameter('user', $user)
             ->getQuery()
             ->getSingleScalarResult();
-        
+
         // Comments this week
         $weekAgo = new \DateTime('-7 days');
         $commentsThisWeek = $this->commentRepository->createQueryBuilder('c')
@@ -131,7 +132,7 @@ class CommentService
             ->setParameter('weekAgo', $weekAgo)
             ->getQuery()
             ->getSingleScalarResult();
-        
+
         // Average comments per task
         $tasksWithComments = $this->commentRepository->createQueryBuilder('c')
             ->select('COUNT(DISTINCT c.task)')
@@ -139,42 +140,42 @@ class CommentService
             ->setParameter('user', $user)
             ->getQuery()
             ->getSingleScalarResult();
-        
-        $avgCommentsPerTask = $tasksWithComments > 0 
-            ? round($totalComments / $tasksWithComments, 2) 
+
+        $avgCommentsPerTask = $tasksWithComments > 0
+            ? round($totalComments / $tasksWithComments, 2)
             : 0;
-        
+
         return [
             'total_comments' => (int)$totalComments,
             'comments_this_week' => (int)$commentsThisWeek,
             'tasks_with_comments' => (int)$tasksWithComments,
-            'avg_comments_per_task' => $avgCommentsPerTask
+            'avg_comments_per_task' => $avgCommentsPerTask,
         ];
     }
-    
+
     /**
      * Notify relevant users about new comment
      */
     private function notifyRelevantUsers(Task $task, User $author, Comment $comment): void
     {
         $usersToNotify = [];
-        
+
         // Notify task owner if not the author
         if ($task->getUser() && $task->getUser()->getId() !== $author->getId()) {
             $usersToNotify[] = $task->getUser();
         }
-        
+
         // Notify assigned user if not the author
         if ($task->getAssignedUser() && $task->getAssignedUser()->getId() !== $author->getId()) {
             $usersToNotify[] = $task->getAssignedUser();
         }
-        
+
         // Send notifications
         foreach ($usersToNotify as $user) {
             $this->notificationService->notifyNewComment($user, $task, $comment);
         }
     }
-    
+
     /**
      * Get tasks with most comments
      */
@@ -189,7 +190,7 @@ class CommentService
             ->getQuery()
             ->getResult();
     }
-    
+
     /**
      * Get most active commenters
      */

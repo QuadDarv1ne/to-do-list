@@ -11,7 +11,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:ui-design-improvement-report',
-    description: 'Generate a report on UI/UX design improvements made to the application'
+    description: 'Generate a report on UI/UX design improvements made to the application',
 )]
 class UIDesignImprovementReportCommand extends Command
 {
@@ -37,7 +37,7 @@ class UIDesignImprovementReportCommand extends Command
             '✓ Added loading skeletons and animations',
             '✓ Enhanced modal dialogs with modern styling',
             '✓ Improved scrollbar styling',
-            '✓ Added dark mode support for new components'
+            '✓ Added dark mode support for new components',
         ]);
 
         // Show template improvements
@@ -50,12 +50,12 @@ class UIDesignImprovementReportCommand extends Command
             '✓ Added smooth animations and transitions',
             '✓ Enhanced dropdown menus with modern styling',
             '✓ Improved tag display with modern styling',
-            '✓ Added visual feedback for interactive elements'
+            '✓ Added visual feedback for interactive elements',
         ]);
 
         // Show CSS features
         $io->section('CSS Features Implemented');
-        
+
         $table = new Table($output);
         $table->setHeaders(['Feature', 'Implementation', 'Benefits']);
         $table->setRows([
@@ -82,7 +82,7 @@ class UIDesignImprovementReportCommand extends Command
             '• Visual feedback for interactive elements',
             '• Professional appearance that builds user trust',
             '• Better task prioritization through visual cues',
-            '• Enhanced scannability of task lists'
+            '• Enhanced scannability of task lists',
         ]);
 
         $io->success('UI/UX design improvement report generated successfully!');

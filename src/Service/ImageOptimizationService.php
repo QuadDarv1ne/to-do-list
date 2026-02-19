@@ -10,11 +10,12 @@ use Psr\Log\LoggerInterface;
 class ImageOptimizationService
 {
     private string $uploadsDir;
+
     private array $supportedFormats = ['jpg', 'jpeg', 'png', 'gif'];
 
     public function __construct(
         string $projectDir,
-        private LoggerInterface $logger
+        private LoggerInterface $logger,
     ) {
         $this->uploadsDir = $projectDir . '/public/uploads';
     }
@@ -28,11 +29,12 @@ class ImageOptimizationService
             'processed' => 0,
             'optimized' => 0,
             'errors' => 0,
-            'saved_bytes' => 0
+            'saved_bytes' => 0,
         ];
 
         if (!is_dir($this->uploadsDir)) {
             mkdir($this->uploadsDir, 0755, true);
+
             return $results;
         }
 
@@ -41,15 +43,15 @@ class ImageOptimizationService
 
         foreach ($images as $imagePath) {
             $results['processed']++;
-            
+
             try {
                 $originalSize = filesize($imagePath);
                 $optimized = $this->optimizeImage($imagePath);
-                
+
                 if ($optimized) {
                     $newSize = filesize($imagePath);
                     $saved = $originalSize - $newSize;
-                    
+
                     if ($saved > 0) {
                         $results['optimized']++;
                         $results['saved_bytes'] += $saved;
@@ -59,7 +61,7 @@ class ImageOptimizationService
                 $results['errors']++;
                 $this->logger->error('Image optimization failed', [
                     'file' => basename($imagePath),
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ]);
             }
         }
@@ -82,7 +84,7 @@ class ImageOptimizationService
         }
 
         $mime = $info['mime'];
-        
+
         try {
             switch ($mime) {
                 case 'image/jpeg':
@@ -97,8 +99,9 @@ class ImageOptimizationService
         } catch (\Exception $e) {
             $this->logger->error('Image optimization error', [
                 'file' => basename($imagePath),
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -190,7 +193,7 @@ class ImageOptimizationService
 
         // Создаем миниатюру
         $thumbnail = imagecreatetruecolor($newWidth, $newHeight);
-        
+
         // Для PNG сохраняем прозрачность
         if ($mime === 'image/png') {
             imagealphablending($thumbnail, false);
@@ -223,11 +226,12 @@ class ImageOptimizationService
         $results = [
             'processed' => 0,
             'created' => 0,
-            'errors' => 0
+            'errors' => 0,
         ];
 
-        if (!function_exists('imagewebp')) {
+        if (!\function_exists('imagewebp')) {
             $this->logger->warning('WebP support not available');
+
             return $results;
         }
 
@@ -240,9 +244,9 @@ class ImageOptimizationService
 
         foreach ($images as $imagePath) {
             $results['processed']++;
-            
-            $webpPath = preg_replace('/\.(jpg|jpeg|png)$/i', '.webp', $imagePath);
-            
+
+            $webpPath = preg_replace('/\\.(jpg|jpeg|png)$/i', '.webp', $imagePath);
+
             if (file_exists($webpPath)) {
                 continue;
             }
@@ -255,7 +259,7 @@ class ImageOptimizationService
                 $results['errors']++;
                 $this->logger->error('WebP conversion failed', [
                     'file' => basename($imagePath),
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ]);
             }
         }
@@ -298,14 +302,14 @@ class ImageOptimizationService
             return [
                 'total_images' => 0,
                 'total_size' => 0,
-                'by_format' => []
+                'by_format' => [],
             ];
         }
 
         $stats = [
             'total_images' => 0,
             'total_size' => 0,
-            'by_format' => []
+            'by_format' => [],
         ];
 
         $pattern = $this->uploadsDir . '/*.{' . implode(',', $this->supportedFormats) . ',webp}';
@@ -320,10 +324,10 @@ class ImageOptimizationService
             if (!isset($stats['by_format'][$ext])) {
                 $stats['by_format'][$ext] = [
                     'count' => 0,
-                    'size' => 0
+                    'size' => 0,
                 ];
             }
-            
+
             $stats['by_format'][$ext]['count']++;
             $stats['by_format'][$ext]['size'] += $size;
         }

@@ -4,17 +4,18 @@ namespace App\Controller;
 
 use App\Service\AdvancedFilterViewService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/views')]
 class ViewsController extends AbstractController
 {
     public function __construct(
-        private AdvancedFilterViewService $viewService
-    ) {}
+        private AdvancedFilterViewService $viewService,
+    ) {
+    }
 
     #[Route('', name: 'app_views_index')]
     public function index(): Response
@@ -25,7 +26,7 @@ class ViewsController extends AbstractController
 
         return $this->render('views/index.html.twig', [
             'views' => $views,
-            'default_view' => $defaultView
+            'default_view' => $defaultView,
         ]);
     }
 
@@ -34,7 +35,7 @@ class ViewsController extends AbstractController
     {
         $user = $this->getUser();
         $views = $this->viewService->getUserViews($user);
-        
+
         return $this->json($views);
     }
 
@@ -43,7 +44,7 @@ class ViewsController extends AbstractController
     {
         $user = $this->getUser();
         $tasks = $this->viewService->applyView($key, $user);
-        
+
         return $this->json($tasks);
     }
 
@@ -84,7 +85,7 @@ class ViewsController extends AbstractController
 
         return new Response($data, 200, [
             'Content-Type' => $contentType,
-            'Content-Disposition' => "attachment; filename=\"view.$extension\""
+            'Content-Disposition' => "attachment; filename=\"view.$extension\"",
         ]);
     }
 

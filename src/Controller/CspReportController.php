@@ -2,10 +2,10 @@
 
 namespace App\Controller;
 
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Psr\Log\LoggerInterface;
 
 /**
  * Контроллер для обработки отчётов о нарушениях Content Security Policy
@@ -13,13 +13,13 @@ use Psr\Log\LoggerInterface;
 class CspReportController extends AbstractController
 {
     public function __construct(
-        private LoggerInterface $logger
+        private LoggerInterface $logger,
     ) {
     }
 
     /**
      * Обработка отчётов о нарушениях CSP
-     * 
+     *
      * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
      */
     public function report(Request $request): Response
@@ -29,7 +29,7 @@ class CspReportController extends AbstractController
 
         if ($data && isset($data['csp-report'])) {
             $report = $data['csp-report'];
-            
+
             // Логируем нарушение
             $this->logger->warning('CSP Violation', [
                 'blocked_uri' => $report['blocked-uri'] ?? null,

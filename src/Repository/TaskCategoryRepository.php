@@ -18,7 +18,7 @@ use Doctrine\Persistence\ManagerRegistry;
 class TaskCategoryRepository extends ServiceEntityRepository
 {
     use CachedRepositoryTrait;
-    
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, TaskCategory::class);
@@ -27,21 +27,21 @@ class TaskCategoryRepository extends ServiceEntityRepository
     public function findByUser($user)
     {
         $cacheKey = 'task_categories_for_user_' . $user->getId();
-        
+
         if ($this->cacheService) {
             return $this->cachedQuery(
                 $cacheKey,
-                function() use ($user) {
+                function () use ($user) {
                     return $this->performFindByUser($user);
                 },
                 ['user_id' => $user->getId()],
-                300 // 5 minutes cache
+                300, // 5 minutes cache
             );
         }
-        
+
         return $this->performFindByUser($user);
     }
-    
+
     /**
      * Internal method to find categories by user
      */
@@ -58,21 +58,21 @@ class TaskCategoryRepository extends ServiceEntityRepository
     public function findOneByUser($category_id, $user)
     {
         $cacheKey = 'task_category_' . $category_id . '_for_user_' . $user->getId();
-        
+
         if ($this->cacheService) {
             return $this->cachedQuery(
                 $cacheKey,
-                function() use ($category_id, $user) {
+                function () use ($category_id, $user) {
                     return $this->performFindOneByUser($category_id, $user);
                 },
                 ['category_id' => $category_id, 'user_id' => $user->getId()],
-                600 // 10 minutes cache
+                600, // 10 minutes cache
             );
         }
-        
+
         return $this->performFindOneByUser($category_id, $user);
     }
-    
+
     /**
      * Internal method to find one category by user
      */

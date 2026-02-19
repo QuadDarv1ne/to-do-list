@@ -12,20 +12,21 @@ class SecurityAuditService
 {
     private array $suspiciousPatterns = [
         // SQL Injection patterns
-        '/(\bUNION\b|\bSELECT\b|\bINSERT\b|\bUPDATE\b|\bDELETE\b|\bDROP\b)/i',
+        '/(\\bUNION\\b|\\bSELECT\\b|\\bINSERT\\b|\\bUPDATE\\b|\\bDELETE\\b|\\bDROP\\b)/i',
         // XSS patterns
-        '/<script[^>]*>.*?<\/script>/is',
+        '/<script[^>]*>.*?<\\/script>/is',
         '/javascript:/i',
-        '/on\w+\s*=/i',
+        '/on\\w+\\s*=/i',
         // Path traversal
-        '/\.\.[\/\\\\]/',
+        '/\\.\\.[\\/\\\\]/',
         // Command injection
         '/[;&|`$()]/i',
     ];
 
     public function __construct(
-        private LoggerInterface $logger
-    ) {}
+        private LoggerInterface $logger,
+    ) {
+    }
 
     /**
      * Audit incoming request for security threats
@@ -41,7 +42,7 @@ class SecurityAuditService
                     'type' => 'suspicious_query_param',
                     'param' => $key,
                     'value' => substr($value, 0, 100),
-                    'severity' => 'high'
+                    'severity' => 'high',
                 ];
             }
         }
@@ -52,7 +53,7 @@ class SecurityAuditService
             if ($this->containsSuspiciousPattern($content)) {
                 $threats[] = [
                     'type' => 'suspicious_post_data',
-                    'severity' => 'high'
+                    'severity' => 'high',
                 ];
             }
         }
@@ -65,7 +66,7 @@ class SecurityAuditService
                 $threats[] = [
                     'type' => 'suspicious_header',
                     'header' => $header,
-                    'severity' => 'medium'
+                    'severity' => 'medium',
                 ];
             }
         }
@@ -76,7 +77,7 @@ class SecurityAuditService
                 'ip' => $request->getClientIp(),
                 'uri' => $request->getRequestUri(),
                 'method' => $request->getMethod(),
-                'threats' => $threats
+                'threats' => $threats,
             ]);
         }
 
@@ -93,6 +94,7 @@ class SecurityAuditService
                 return true;
             }
         }
+
         return false;
     }
 
@@ -106,8 +108,8 @@ class SecurityAuditService
         // Check file extension
         $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx'];
         $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-        
-        if (!in_array($extension, $allowedExtensions)) {
+
+        if (!\in_array($extension, $allowedExtensions)) {
             $errors[] = 'File extension not allowed';
         }
 
@@ -118,10 +120,10 @@ class SecurityAuditService
             'application/msword',
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             'application/vnd.ms-excel',
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ];
-        
-        if (!in_array($mimeType, $allowedMimeTypes)) {
+
+        if (!\in_array($mimeType, $allowedMimeTypes)) {
             $errors[] = 'MIME type not allowed';
         }
 
@@ -165,7 +167,7 @@ class SecurityAuditService
                 'security_headers' => true,
             ],
             'owasp_compliance' => '2025',
-            'status' => 'secure'
+            'status' => 'secure',
         ];
     }
 
@@ -175,14 +177,14 @@ class SecurityAuditService
     public function sanitizeInput(string $input): string
     {
         // Remove null bytes
-        $input = str_replace(chr(0), '', $input);
-        
+        $input = str_replace(\chr(0), '', $input);
+
         // Remove control characters
-        $input = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $input);
-        
+        $input = preg_replace('/[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F\\x7F]/', '', $input);
+
         // Trim whitespace
         $input = trim($input);
-        
+
         return $input;
     }
 
@@ -193,7 +195,7 @@ class SecurityAuditService
     {
         $errors = [];
 
-        if (strlen($password) < 12) {
+        if (\strlen($password) < 12) {
             $errors[] = 'Password must be at least 12 characters';
         }
 
@@ -215,7 +217,7 @@ class SecurityAuditService
 
         // Check against common passwords
         $commonPasswords = ['password', '123456', 'qwerty', 'admin'];
-        if (in_array(strtolower($password), $commonPasswords)) {
+        if (\in_array(strtolower($password), $commonPasswords)) {
             $errors[] = 'Password is too common';
         }
 

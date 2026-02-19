@@ -14,15 +14,18 @@ use Psr\Log\LoggerInterface;
 class BulkTaskOperationService
 {
     private EntityManagerInterface $entityManager;
+
     private TaskRepository $taskRepository;
+
     private NotificationService $notificationService;
+
     private LoggerInterface $logger;
 
     public function __construct(
         EntityManagerInterface $entityManager,
         TaskRepository $taskRepository,
         NotificationService $notificationService,
-        LoggerInterface $logger
+        LoggerInterface $logger,
     ) {
         $this->entityManager = $entityManager;
         $this->taskRepository = $taskRepository;
@@ -48,6 +51,7 @@ class BulkTaskOperationService
         $failedTasks = [];
 
         $this->entityManager->beginTransaction();
+
         try {
             foreach ($tasks as $task) {
                 // Check if user has permission to edit this task
@@ -55,8 +59,9 @@ class BulkTaskOperationService
                     $failedTasks[] = [
                         'id' => $task->getId(),
                         'title' => $task->getTitle(),
-                        'reason' => 'Insufficient permissions'
+                        'reason' => 'Insufficient permissions',
                     ];
+
                     continue;
                 }
 
@@ -76,7 +81,7 @@ class BulkTaskOperationService
             if ($updatedCount > 0) {
                 $this->entityManager->flush();
             }
-            
+
             $this->entityManager->commit();
 
             // Send notifications for completed tasks (after commit)
@@ -89,12 +94,12 @@ class BulkTaskOperationService
                                 $taskUser,
                                 $currentUser,
                                 $task->getId(),
-                                $task->getTitle()
+                                $task->getTitle(),
                             );
                         } catch (\Exception $e) {
-                            $this->logger->warning("Failed to send notification", [
+                            $this->logger->warning('Failed to send notification', [
                                 'task_id' => $task->getId(),
-                                'error' => $e->getMessage()
+                                'error' => $e->getMessage(),
                             ]);
                         }
                     }
@@ -102,24 +107,25 @@ class BulkTaskOperationService
             }
         } catch (\Exception $e) {
             $this->entityManager->rollback();
-            $this->logger->error("Bulk status update failed", [
+            $this->logger->error('Bulk status update failed', [
                 'user_id' => $currentUser->getId(),
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             throw $e;
         }
 
-        $this->logger->info("Bulk status update completed", [
+        $this->logger->info('Bulk status update completed', [
             'user_id' => $currentUser->getId(),
             'updated_count' => $updatedCount,
-            'failed_count' => count($failedTasks),
-            'new_status' => $newStatus
+            'failed_count' => \count($failedTasks),
+            'new_status' => $newStatus,
         ]);
 
         return [
             'success' => true,
             'updated_count' => $updatedCount,
-            'failed_tasks' => $failedTasks
+            'failed_tasks' => $failedTasks,
         ];
     }
 
@@ -146,8 +152,9 @@ class BulkTaskOperationService
                 $failedTasks[] = [
                     'id' => $task->getId(),
                     'title' => $task->getTitle(),
-                    'reason' => 'Insufficient permissions'
+                    'reason' => 'Insufficient permissions',
                 ];
+
                 continue;
             }
 
@@ -159,17 +166,17 @@ class BulkTaskOperationService
             $this->entityManager->flush();
         }
 
-        $this->logger->info("Bulk priority update completed", [
+        $this->logger->info('Bulk priority update completed', [
             'user_id' => $currentUser->getId(),
             'updated_count' => $updatedCount,
-            'failed_count' => count($failedTasks),
-            'new_priority' => $newPriority
+            'failed_count' => \count($failedTasks),
+            'new_priority' => $newPriority,
         ]);
 
         return [
             'success' => true,
             'updated_count' => $updatedCount,
-            'failed_tasks' => $failedTasks
+            'failed_tasks' => $failedTasks,
         ];
     }
 
@@ -196,8 +203,9 @@ class BulkTaskOperationService
                 $failedTasks[] = [
                     'id' => $task->getId(),
                     'title' => $task->getTitle(),
-                    'reason' => 'Insufficient permissions'
+                    'reason' => 'Insufficient permissions',
                 ];
+
                 continue;
             }
 
@@ -207,14 +215,14 @@ class BulkTaskOperationService
             $updatedCount++;
 
             // Send notification if assignment changed to a different user
-            if ($assignedUser->getId() !== $originalAssignedUser?->getId() && 
+            if ($assignedUser->getId() !== $originalAssignedUser?->getId() &&
                 $assignedUser->getId() !== $currentUser->getId()) {
                 $this->notificationService->sendTaskAssignmentNotification(
                     $assignedUser,
                     $currentUser,
                     $task->getId(),
                     $task->getTitle(),
-                    $task->getPriority()
+                    $task->getPriority(),
                 );
             }
         }
@@ -223,17 +231,17 @@ class BulkTaskOperationService
             $this->entityManager->flush();
         }
 
-        $this->logger->info("Bulk task assignment completed", [
+        $this->logger->info('Bulk task assignment completed', [
             'user_id' => $currentUser->getId(),
             'assigned_to_user_id' => $assignedUser->getId(),
             'updated_count' => $updatedCount,
-            'failed_count' => count($failedTasks)
+            'failed_count' => \count($failedTasks),
         ]);
 
         return [
             'success' => true,
             'updated_count' => $updatedCount,
-            'failed_tasks' => $failedTasks
+            'failed_tasks' => $failedTasks,
         ];
     }
 
@@ -255,6 +263,7 @@ class BulkTaskOperationService
         $failedTasks = [];
 
         $this->entityManager->beginTransaction();
+
         try {
             foreach ($tasks as $task) {
                 // Check if user has permission to delete this task
@@ -262,8 +271,9 @@ class BulkTaskOperationService
                     $failedTasks[] = [
                         'id' => $task->getId(),
                         'title' => $task->getTitle(),
-                        'reason' => 'Insufficient permissions'
+                        'reason' => 'Insufficient permissions',
                     ];
+
                     continue;
                 }
 
@@ -274,27 +284,28 @@ class BulkTaskOperationService
             if ($deletedCount > 0) {
                 $this->entityManager->flush();
             }
-            
+
             $this->entityManager->commit();
         } catch (\Exception $e) {
             $this->entityManager->rollback();
-            $this->logger->error("Bulk task deletion failed", [
+            $this->logger->error('Bulk task deletion failed', [
                 'user_id' => $currentUser->getId(),
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             throw $e;
         }
 
-        $this->logger->info("Bulk task deletion completed", [
+        $this->logger->info('Bulk task deletion completed', [
             'user_id' => $currentUser->getId(),
             'deleted_count' => $deletedCount,
-            'failed_count' => count($failedTasks)
+            'failed_count' => \count($failedTasks),
         ]);
 
         return [
             'success' => true,
             'deleted_count' => $deletedCount,
-            'failed_tasks' => $failedTasks
+            'failed_tasks' => $failedTasks,
         ];
     }
 
@@ -312,9 +323,9 @@ class BulkTaskOperationService
             ->setParameter('taskIds', $taskIds)
             ->getQuery()
             ->getResult();
-        
+
         $tags = $this->entityManager->getRepository(\App\Entity\Tag::class)->findBy(['id' => $tagIds]);
-        
+
         $updatedCount = 0;
         $failedTasks = [];
 
@@ -324,8 +335,9 @@ class BulkTaskOperationService
                 $failedTasks[] = [
                     'id' => $task->getId(),
                     'title' => $task->getTitle(),
-                    'reason' => 'Insufficient permissions'
+                    'reason' => 'Insufficient permissions',
                 ];
+
                 continue;
             }
 
@@ -342,17 +354,17 @@ class BulkTaskOperationService
             $this->entityManager->flush();
         }
 
-        $this->logger->info("Bulk tag addition completed", [
+        $this->logger->info('Bulk tag addition completed', [
             'user_id' => $currentUser->getId(),
             'updated_count' => $updatedCount,
-            'added_tags_count' => count($tagIds),
-            'failed_count' => count($failedTasks)
+            'added_tags_count' => \count($tagIds),
+            'failed_count' => \count($failedTasks),
         ]);
 
         return [
             'success' => true,
             'updated_count' => $updatedCount,
-            'failed_tasks' => $failedTasks
+            'failed_tasks' => $failedTasks,
         ];
     }
 
@@ -362,7 +374,7 @@ class BulkTaskOperationService
     private function hasEditPermission(Task $task, User $user): bool
     {
         // User can edit if they are the creator or assigned user, or if they are admin
-        $isAdmin = in_array('ROLE_ADMIN', $user->getRoles());
+        $isAdmin = \in_array('ROLE_ADMIN', $user->getRoles());
         $taskUser = $task->getUser();
         $isOwner = $taskUser && $taskUser->getId() === $user->getId();
         $isAssigned = $task->getAssignedUser() && $task->getAssignedUser()->getId() === $user->getId();
@@ -376,7 +388,7 @@ class BulkTaskOperationService
     private function hasDeletePermission(Task $task, User $user): bool
     {
         // User can delete if they are the creator or if they are admin
-        $isAdmin = in_array('ROLE_ADMIN', $user->getRoles());
+        $isAdmin = \in_array('ROLE_ADMIN', $user->getRoles());
         $taskUser = $task->getUser();
         $isOwner = $taskUser && $taskUser->getId() === $user->getId();
 

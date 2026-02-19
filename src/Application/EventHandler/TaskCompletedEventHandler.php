@@ -3,9 +3,9 @@
 namespace App\Application\EventHandler;
 
 use App\Domain\Task\Event\TaskCompleted;
-use App\Service\NotificationService;
 use App\Repository\TaskRepository;
 use App\Repository\UserRepository;
+use App\Service\NotificationService;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
@@ -16,7 +16,7 @@ final readonly class TaskCompletedEventHandler
         private NotificationService $notificationService,
         private TaskRepository $taskRepository,
         private UserRepository $userRepository,
-        private LoggerInterface $logger
+        private LoggerInterface $logger,
     ) {
     }
 
@@ -28,11 +28,12 @@ final readonly class TaskCompletedEventHandler
 
         // Find task to get creator
         $task = $this->taskRepository->find($event->getTaskId()->toInt());
-        
+
         if (!$task) {
             $this->logger->warning('Task not found for completed event', [
                 'task_id' => $event->getTaskId()->toInt(),
             ]);
+
             return;
         }
 
@@ -44,12 +45,12 @@ final readonly class TaskCompletedEventHandler
             $this->notificationService->createNotification(
                 $taskCreator,
                 'Задача выполнена',
-                sprintf(
+                \sprintf(
                     'Задача "%s" выполнена пользователем %s',
                     $task->getTitle(),
-                    $completedByUser->getFullName()
+                    $completedByUser->getFullName(),
                 ),
-                $task
+                $task,
             );
         }
 

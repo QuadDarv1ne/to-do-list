@@ -18,7 +18,7 @@ class DealApiController extends AbstractController
     {
         $user = $this->getUser();
         $status = $request->query->get('status');
-        
+
         // Use optimized repository method with joins
         $deals = $this->isGranted('ROLE_ADMIN')
             ? $dealRepository->findAllWithRelations()
@@ -26,10 +26,10 @@ class DealApiController extends AbstractController
 
         // Filter by status if provided (already loaded with joins, no N+1)
         if ($status) {
-            $deals = array_filter($deals, fn($deal) => $deal->getStatus() === $status);
+            $deals = array_filter($deals, fn ($deal) => $deal->getStatus() === $status);
         }
 
-        $data = array_map(function($deal) {
+        $data = array_map(function ($deal) {
             return [
                 'id' => $deal->getId(),
                 'title' => $deal->getTitle(),
@@ -49,7 +49,7 @@ class DealApiController extends AbstractController
         return $this->json([
             'success' => true,
             'data' => array_values($data),
-            'count' => count($data),
+            'count' => \count($data),
         ]);
     }
 

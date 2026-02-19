@@ -15,30 +15,31 @@ class SecurityValidationMiddleware implements HttpKernelInterface, TerminableInt
 {
     public function __construct(
         private HttpKernelInterface $httpKernel,
-        private InputValidationService $inputValidationService
-    ) {}
+        private InputValidationService $inputValidationService,
+    ) {
+    }
 
     public function handle(Request $request, int $type = HttpKernelInterface::MAIN_REQUEST, bool $catch = true): Response
     {
         // Validate and sanitize request parameters
         $this->validateRequestParameters($request);
-        
+
         // Continue with the request processing
         $response = $this->httpKernel->handle($request, $type, $catch);
-        
+
         // Add security headers to the response
         $this->addSecurityHeaders($response);
-        
+
         return $response;
     }
-    
+
     public function terminate(Request $request, Response $response): void
     {
         if ($this->httpKernel instanceof TerminableInterface) {
             $this->httpKernel->terminate($request, $response);
         }
     }
-    
+
     /**
      * Validate and sanitize request parameters
      */
@@ -47,35 +48,35 @@ class SecurityValidationMiddleware implements HttpKernelInterface, TerminableInt
         // Validate query parameters
         $queryParameters = $request->query->all();
         foreach ($queryParameters as $key => $value) {
-            if (is_string($value)) {
+            if (\is_string($value)) {
                 $sanitizedValue = $this->inputValidationService->validateString($value, 1000, true);
                 if ($sanitizedValue !== $value) {
                     $request->query->set($key, $sanitizedValue);
                 }
             }
         }
-        
+
         // Validate request body parameters
         $requestContent = $request->request->all();
         foreach ($requestContent as $key => $value) {
-            if (is_string($value)) {
+            if (\is_string($value)) {
                 $sanitizedValue = $this->inputValidationService->validateString($value, 10000, true);
                 if ($sanitizedValue !== $value) {
                     $request->request->set($key, $sanitizedValue);
                 }
             }
         }
-        
+
         // Validate content from JSON requests
         if ($request->headers->get('Content-Type') === 'application/json') {
             $content = $request->getContent();
             if (!empty($content)) {
                 $decodedContent = json_decode($content, true);
-                if (json_last_error() === JSON_ERROR_NONE && is_array($decodedContent)) {
+                if (json_last_error() === JSON_ERROR_NONE && \is_array($decodedContent)) {
                     $sanitizedContent = $this->sanitizeArray($decodedContent);
                     // We can't easily modify the raw content, but we can set sanitized values in request
                     foreach ($sanitizedContent as $key => $value) {
-                        if (is_string($value)) {
+                        if (\is_string($value)) {
                             $request->request->set($key, $value);
                         }
                     }
@@ -83,27 +84,27 @@ class SecurityValidationMiddleware implements HttpKernelInterface, TerminableInt
             }
         }
     }
-    
+
     /**
      * Recursively sanitize an array
      */
     private function sanitizeArray(array $data): array
     {
         $sanitized = [];
-        
+
         foreach ($data as $key => $value) {
-            if (is_array($value)) {
+            if (\is_array($value)) {
                 $sanitized[$key] = $this->sanitizeArray($value);
-            } elseif (is_string($value)) {
+            } elseif (\is_string($value)) {
                 $sanitized[$key] = $this->inputValidationService->validateString($value, 10000, true);
             } else {
                 $sanitized[$key] = $value;
             }
         }
-        
+
         return $sanitized;
     }
-    
+
     /**
      * Add security headers to response
      * CSP теперь обрабатывается через NelmioSecurityBundle

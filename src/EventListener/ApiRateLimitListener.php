@@ -11,34 +11,35 @@ use Symfony\Component\RateLimiter\RateLimiterFactory;
 class ApiRateLimitListener
 {
     public function __construct(
-        private RateLimiterFactory $apiRequestLimiter
-    ) {}
+        private RateLimiterFactory $apiRequestLimiter,
+    ) {
+    }
 
     public function __invoke(RequestEvent $event): void
     {
         $request = $event->getRequest();
-        
+
         // Применяем rate limiting только к API запросам
         if (!str_starts_with($request->getPathInfo(), '/api/')) {
             return;
         }
-        
+
         // Получаем идентификатор клиента (IP или user ID)
         $identifier = $request->getClientIp();
-        
+
         // Создаем лимитер для этого клиента
         $limiter = $this->apiRequestLimiter->create($identifier);
-        
+
         // Проверяем лимит
         $limit = $limiter->consume(1);
-        
+
         if (!$limit->isAccepted()) {
             throw new TooManyRequestsHttpException(
                 $limit->getRetryAfter()->getTimestamp() - time(),
-                'Слишком много запросов. Попробуйте позже.'
+                'Слишком много запросов. Попробуйте позже.',
             );
         }
-        
+
         // Добавляем заголовки с информацией о лимитах
         $response = $event->getResponse();
         if ($response) {

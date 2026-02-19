@@ -4,8 +4,8 @@ namespace App\Command;
 
 use App\Service\AssetOptimizationService;
 use App\Service\CacheOptimizationService;
-use App\Service\ThemeOptimizationService;
 use App\Service\DatabaseOptimizationService;
+use App\Service\ThemeOptimizationService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -14,7 +14,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:optimize-performance',
-    description: 'Оптимизирует производительность приложения'
+    description: 'Оптимизирует производительность приложения',
 )]
 class OptimizePerformanceCommand extends Command
 {
@@ -22,7 +22,7 @@ class OptimizePerformanceCommand extends Command
         private AssetOptimizationService $assetOptimizer,
         private CacheOptimizationService $cacheOptimizer,
         private ThemeOptimizationService $themeOptimizer,
-        private DatabaseOptimizationService $dbOptimizer
+        private DatabaseOptimizationService $dbOptimizer,
     ) {
         parent::__construct();
     }
@@ -35,6 +35,7 @@ class OptimizePerformanceCommand extends Command
 
         // Оптимизация ресурсов
         $io->section('Оптимизация CSS и изображений');
+
         try {
             $this->assetOptimizer->optimizeAll();
             $io->success('Ресурсы оптимизированы');
@@ -44,6 +45,7 @@ class OptimizePerformanceCommand extends Command
 
         // Прогрев кэша
         $io->section('Прогрев кэша');
+
         try {
             $this->cacheOptimizer->warmupCache();
             $io->success('Кэш прогрет');
@@ -53,6 +55,7 @@ class OptimizePerformanceCommand extends Command
 
         // Оптимизация тем
         $io->section('Оптимизация системы тем');
+
         try {
             $this->themeOptimizer->optimizeAll();
             $io->success('Темы оптимизированы');
@@ -62,13 +65,14 @@ class OptimizePerformanceCommand extends Command
 
         // Быстрая оптимизация БД (только таблицы и индексы)
         $io->section('Оптимизация базы данных');
+
         try {
             $tableResults = $this->dbOptimizer->optimizeTables();
             $indexResults = $this->dbOptimizer->createOptimalIndexes();
-            
-            $optimizedTables = count(array_filter($tableResults, fn($r) => $r === 'optimized'));
-            $createdIndexes = count(array_filter($indexResults, fn($r) => $r === 'created'));
-            
+
+            $optimizedTables = \count(array_filter($tableResults, fn ($r) => $r === 'optimized'));
+            $createdIndexes = \count(array_filter($indexResults, fn ($r) => $r === 'created'));
+
             $io->success("БД оптимизирована: {$optimizedTables} таблиц, {$createdIndexes} индексов");
         } catch (\Exception $e) {
             $io->error('Ошибка оптимизации БД: ' . $e->getMessage());

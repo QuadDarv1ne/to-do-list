@@ -25,7 +25,7 @@ class RegistrationFormType extends AbstractType
                 'label' => 'Имя',
                 'attr' => [
                     'class' => 'form-control',
-                    'placeholder' => 'Введите имя'
+                    'placeholder' => 'Введите имя',
                 ],
                 'constraints' => [
                     new NotBlank(),
@@ -36,8 +36,8 @@ class RegistrationFormType extends AbstractType
                         maxMessage: 'Имя должно содержать максимум {{ limit }} символов',
                     ),
                     new Regex(
-                        pattern: '/^[a-zA-Zа-яА-ЯёЁ\s\-]+$/u',
-                        message: 'Имя может содержать только буквы, пробелы и дефисы'
+                        pattern: '/^[a-zA-Zа-яА-ЯёЁ\\s\\-]+$/u',
+                        message: 'Имя может содержать только буквы, пробелы и дефисы',
                     ),
                 ],
             ])
@@ -45,7 +45,7 @@ class RegistrationFormType extends AbstractType
                 'label' => 'Фамилия',
                 'attr' => [
                     'class' => 'form-control',
-                    'placeholder' => 'Введите фамилию'
+                    'placeholder' => 'Введите фамилию',
                 ],
                 'constraints' => [
                     new NotBlank(),
@@ -56,8 +56,8 @@ class RegistrationFormType extends AbstractType
                         maxMessage: 'Фамилия должна содержать максимум {{ limit }} символов',
                     ),
                     new Regex(
-                        pattern: '/^[a-zA-Zа-яА-ЯёЁ\s\-]+$/u',
-                        message: 'Фамилия может содержать только буквы, пробелы и дефисы'
+                        pattern: '/^[a-zA-Zа-яА-ЯёЁ\\s\\-]+$/u',
+                        message: 'Фамилия может содержать только буквы, пробелы и дефисы',
                     ),
                 ],
             ])
@@ -65,7 +65,7 @@ class RegistrationFormType extends AbstractType
                 'label' => 'Логин',
                 'attr' => [
                     'class' => 'form-control',
-                    'placeholder' => 'Введите логин'
+                    'placeholder' => 'Введите логин',
                 ],
                 'constraints' => [
                     new NotBlank(),
@@ -76,8 +76,8 @@ class RegistrationFormType extends AbstractType
                         maxMessage: 'Логин должен содержать максимум {{ limit }} символов',
                     ),
                     new Regex(
-                        pattern: '/^[a-zA-Z0-9_\-\.]+$/',
-                        message: 'Логин может содержать только латинские буквы, цифры, точки, дефисы и подчеркивания'
+                        pattern: '/^[a-zA-Z0-9_\\-\\.]+$/',
+                        message: 'Логин может содержать только латинские буквы, цифры, точки, дефисы и подчеркивания',
                     ),
                 ],
             ])
@@ -85,12 +85,12 @@ class RegistrationFormType extends AbstractType
                 'label' => 'Email',
                 'attr' => [
                     'class' => 'form-control',
-                    'placeholder' => 'user@example.com'
+                    'placeholder' => 'user@example.com',
                 ],
                 'constraints' => [
                     new NotBlank(),
                     new Email(
-                        message: 'Пожалуйста, введите корректный email'
+                        message: 'Пожалуйста, введите корректный email',
                     ),
                     new Length(
                         max: 180,
@@ -119,8 +119,8 @@ class RegistrationFormType extends AbstractType
                         ),
                         new StrongPassword(),
                         new Regex(
-                            pattern: '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/',
-                            message: 'Пароль должен содержать хотя бы одну заглавную букву, одну строчную букву и одну цифру'
+                            pattern: '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$/',
+                            message: 'Пароль должен содержать хотя бы одну заглавную букву, одну строчную букву и одну цифру',
                         ),
                     ],
                 ],
@@ -136,12 +136,12 @@ class RegistrationFormType extends AbstractType
                 'required' => false,
                 'attr' => [
                     'class' => 'form-control',
-                    'placeholder' => '+7 (999) 999-99-99'
+                    'placeholder' => '+7 (999) 999-99-99',
                 ],
                 'constraints' => [
                     new Regex(
-                        pattern: '/^(\+7|8)[\s\-]?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}$/',
-                        message: 'Введите корректный российский номер телефона'
+                        pattern: '/^(\\+7|8)[\\s\\-]?\\(?\\d{3}\\)?[\\s\\-]?\\d{3}[\\s\\-]?\\d{2}[\\s\\-]?\\d{2}$/',
+                        message: 'Введите корректный российский номер телефона',
                     ),
                     new Length(
                         max: 20,
@@ -154,7 +154,7 @@ class RegistrationFormType extends AbstractType
                 'required' => false,
                 'attr' => [
                     'class' => 'form-control',
-                    'placeholder' => 'Введите должность'
+                    'placeholder' => 'Введите должность',
                 ],
                 'constraints' => [
                     new Length(
@@ -168,7 +168,7 @@ class RegistrationFormType extends AbstractType
                 'required' => false,
                 'attr' => [
                     'class' => 'form-control',
-                    'placeholder' => 'Введите отдел'
+                    'placeholder' => 'Введите отдел',
                 ],
                 'constraints' => [
                     new Length(

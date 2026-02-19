@@ -1,28 +1,64 @@
 <!DOCTYPE html>
-<html lang="ru" data-theme="dark">
+<html lang="ru" class="no-js">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="{% block meta_description %}CRM система для управления задачами и продажами{% endblock %}">
+    <meta name="robots" content="index, follow">
     <meta name="theme-color" content="#6366f1">
+    
     <title>{% block title %}CRM система: Управление задачами{% endblock %}</title>
 
     <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
 
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="{{ asset('manifest.json') }}">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="CRM Tasks">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="{{ csrf_token('authenticate') }}">
+
+    <!-- DNS Prefetch -->
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+
+    <!-- Critical CSS Inline -->
+    <style>
+        :root{--sidebar-width:70px;--topbar-height:60px;--primary:#6366f1;--bg-dark:#0f172a;--bg-card:#1e293b;--text-light:#f1f5f9;--transition:200ms cubic-bezier(0.4,0,0.2,1)}
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        html{font-size:16px;scroll-behavior:smooth}
+        body{font-family:'Inter',system-ui,-apple-system,sans-serif;line-height:1.6;background:var(--bg-dark);color:var(--text-light);opacity:0;transition:opacity 0.4s ease}
+        body.loaded{opacity:1}
+        .page-loader{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,var(--primary) 0%,#8b5cf6 100%);display:flex;justify-content:center;align-items:center;z-index:9999;transition:opacity 0.5s ease,visibility 0.5s ease}
+        .page-loader.hidden{opacity:0;visibility:hidden;pointer-events:none}
+        .spinner{width:50px;height:50px;border:4px solid rgba(255,255,255,0.2);border-top-color:#fff;border-radius:50%;animation:spin 1s linear infinite}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .sidebar{position:fixed;left:0;top:0;width:var(--sidebar-width);height:100vh;background:var(--bg-card);display:flex;flex-direction:column;align-items:center;padding:1rem 0;z-index:1000;box-shadow:2px 0 10px rgba(0,0,0,0.1)}
+        .main-content{margin-left:var(--sidebar-width);min-height:100vh;padding:calc(var(--topbar-height) + 1rem) 1.5rem 1.5rem}
+        .top-bar{position:fixed;top:0;left:var(--sidebar-width);right:0;height:var(--topbar-height);background:var(--bg-card);display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;z-index:999;box-shadow:0 2px 10px rgba(0,0,0,0.1)}
+        @media(max-width:768px){.sidebar{width:100%;height:auto;bottom:0;top:auto;flex-direction:row;justify-content:space-around;padding:0.5rem}.main-content{margin-left:0;padding-bottom:calc(var(--sidebar-width) + 1rem)}.top-bar{left:0}}
+    </style>
+
     <!-- Bootstrap & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Modern Base Layout -->
+    <link rel="stylesheet" href="{{ asset('css/base-modern.min.css') }}">
+    
     <!-- Design System & Themes -->
     <link rel="stylesheet" href="{{ asset('css/design-system.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/theme-system.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/themes-bundle.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components-bundle.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/base-layout.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/navbar-enhanced.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/animations-enhanced.min.css') }}">
 
-    <!-- Page-specific styles -->
+    <!-- Page-specific styles (lazy loaded) -->
     {% if app.request.attributes.get('_route') starts with 'app_dashboard' %}
         <link rel="stylesheet" href="{{ asset('css/dashboard-enhanced.min.css') }}">
     {% endif %}
@@ -39,116 +75,209 @@
     {% block stylesheets %}{% endblock %}
 </head>
 <body>
+    <!-- Page Loader -->
+    <div class="page-loader" id="pageLoader">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Skip Link for Accessibility -->
+    <a href="#main-content" class="visually-hidden visually-hidden-focusable">
+        Перейти к основному контенту
+    </a>
+
     <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="sidebar-logo">CRM</div>
+    <aside class="sidebar" role="navigation" aria-label="Основная навигация">
+        <div class="sidebar-logo" aria-label="CRM Logo">
+            <a href="{{ path('app_dashboard') }}" class="text-decoration-none text-white">
+                <i class="fas fa-chart-line"></i>
+            </a>
+        </div>
         
         <nav class="sidebar-nav">
-            <a href="{{ path('app_dashboard') }}" class="{% if app.request.attributes.get('_route') == 'app_dashboard' %}active{% endif %}" title="Панель">
+            <a href="{{ path('app_dashboard') }}" 
+               class="sidebar-nav-item {% if app.request.attributes.get('_route') == 'app_dashboard' %}active{% endif %}" 
+               title="Панель управления"
+               aria-label="Панель управления"
+               aria-current="{% if app.request.attributes.get('_route') == 'app_dashboard' %}page{% endif %}">
                 <i class="fas fa-home"></i>
+                <span class="sidebar-nav-label">Панель</span>
             </a>
-            <a href="{{ path('app_task_index') }}" class="{% if app.request.attributes.get('_route') starts with 'app_task' %}active{% endif %}" title="Задачи">
-                <i class="fas fa-shopping-bag"></i>
+            <a href="{{ path('app_task_index') }}" 
+               class="sidebar-nav-item {% if app.request.attributes.get('_route') starts with 'app_task' %}active{% endif %}" 
+               title="Задачи"
+               aria-label="Задачи"
+               aria-current="{% if app.request.attributes.get('_route') starts with 'app_task' %}page{% endif %}">
+                <i class="fas fa-tasks"></i>
+                <span class="sidebar-nav-label">Задачи</span>
             </a>
-            <a href="{{ path('app_task_category_index') }}" title="Категории">
-                <i class="fas fa-history"></i>
+            <a href="{{ path('app_kanban_board') }}" 
+               class="sidebar-nav-item {% if app.request.attributes.get('_route') == 'app_kanban_board' %}active{% endif %}" 
+               title="Канбан доска"
+               aria-label="Канбан доска">
+                <i class="fas fa-columns"></i>
+                <span class="sidebar-nav-label">Канбан</span>
             </a>
-            <a href="#" title="Клиенты">
-                <i class="fas fa-users"></i>
+            <a href="{{ path('app_calendar') }}" 
+               class="sidebar-nav-item {% if app.request.attributes.get('_route') == 'app_calendar' %}active{% endif %}" 
+               title="Календарь"
+               aria-label="Календарь">
+                <i class="fas fa-calendar"></i>
+                <span class="sidebar-nav-label">Календарь</span>
+            </a>
+            <a href="{{ path('app_task_category_index') }}" 
+               class="sidebar-nav-item" 
+               title="Категории"
+               aria-label="Категории">
+                <i class="fas fa-folder"></i>
+                <span class="sidebar-nav-label">Категории</span>
             </a>
             {% if is_granted('ROLE_ADMIN') %}
-            <a href="{{ path('app_user_index') }}" title="Пользователи">
+            <a href="{{ path('app_user_index') }}" 
+               class="sidebar-nav-item" 
+               title="Пользователи"
+               aria-label="Пользователи">
                 <i class="fas fa-user-cog"></i>
+                <span class="sidebar-nav-label">Пользователи</span>
             </a>
             {% endif %}
         </nav>
         
-        <div style="margin-top: auto;">
-            <a href="#" title="Настройки">
+        <div class="sidebar-footer">
+            <a href="{{ path('app_settings') }}" 
+               class="sidebar-nav-item" 
+               title="Настройки"
+               aria-label="Настройки">
                 <i class="fas fa-cog"></i>
+                <span class="sidebar-nav-label">Настройки</span>
             </a>
-            <a href="{{ path('app_logout') }}" title="Выход" style="margin-top: 20px;">
+            <a href="#" 
+               class="sidebar-nav-item" 
+               title="Выход"
+               aria-label="Выход"
+               data-bs-toggle="modal" 
+               data-bs-target="#logoutModal">
                 <i class="fas fa-sign-out-alt"></i>
+                <span class="sidebar-nav-label">Выход</span>
             </a>
         </div>
     </aside>
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Top Bar -->
-        <div class="top-bar">
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" placeholder="Поиск">
+    <!-- Top Bar -->
+    <header class="top-bar" role="banner">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="search" 
+                   placeholder="Поиск задач, клиентов..." 
+                   aria-label="Поиск"
+                   id="globalSearch">
+        </div>
+        
+        <div class="user-menu">
+            <!-- Quick Actions -->
+            <a href="{{ path('app_task_new') }}" 
+               class="quick-action-btn" 
+               title="Новая задача"
+               aria-label="Создать новую задачу">
+                <i class="fas fa-plus"></i>
+            </a>
+
+            <!-- Theme Toggle -->
+            {% include 'components/theme_switcher.html.twig' %}
+            
+            <!-- Notifications -->
+            <div class="dropdown">
+                <button class="notification-icon" 
+                        data-bs-toggle="dropdown" 
+                        aria-expanded="false"
+                        aria-label="Уведомления">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge" id="notificationCount">
+                        {{ app.user.unreadNotifications|default(0) }}
+                    </span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" style="min-width: 320px;">
+                    <li><h6 class="dropdown-header">Уведомления</h6></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item" href="{{ path('app_notification_index') }}">
+                            <i class="fas fa-bell text-primary me-2"></i>
+                            <div>
+                                <div class="fw-semibold">Просмотреть все</div>
+                                <small class="text-muted">{{ app.user.unreadNotifications|default(0) }} непрочитанных</small>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
             </div>
             
-            <div class="user-menu">
-                <button class="theme-toggle" id="themeToggle" title="Переключить тему">
-                    <i class="fas fa-moon"></i>
+            <!-- User Menu -->
+            <div class="dropdown">
+                <button class="user-avatar" 
+                        data-bs-toggle="dropdown" 
+                        aria-expanded="false"
+                        aria-label="Меню пользователя"
+                        title="{{ app.user.fullName }}">
+                    {{ app.user.firstName|first }}{{ app.user.lastName|first }}
                 </button>
-                
-                <div class="notification-icon">
-                    <i class="fas fa-bell"></i>
-                    <span class="notification-badge">3</span>
-                </div>
-                
-                <div class="dropdown">
-                    <div class="user-avatar" 
-                         data-bs-toggle="dropdown" 
-                         aria-expanded="false"
-                         role="button"
-                         style="cursor: pointer;"
-                         title="{{ app.user.fullName }}">
-                        {{ app.user.firstName|first }}
-                    </div>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li>
-                            <div class="dropdown-header">
-                                <strong>{{ app.user.fullName }}</strong>
-                                <div class="small text-muted">{{ app.user.email }}</div>
-                            </div>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item" href="{{ path('app_profile_show') }}">
-                                <i class="fas fa-user me-2"></i>Мой профиль
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="{{ path('app_settings') }}">
-                                <i class="fas fa-cog me-2"></i>Настройки
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="{{ path('app_2fa_setup') }}">
-                                <i class="fas fa-shield-alt me-2"></i>Безопасность
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
-                                <i class="fas fa-sign-out-alt me-2"></i>Выход
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                        <div class="dropdown-header">
+                            <strong>{{ app.user.fullName }}</strong>
+                            <div class="small text-muted">{{ app.user.email }}</div>
+                        </div>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item" href="{{ path('app_profile_show') }}">
+                            <i class="fas fa-user me-2"></i>Мой профиль
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="{{ path('app_settings') }}">
+                            <i class="fas fa-cog me-2"></i>Настройки
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="{{ path('app_2fa_setup') }}">
+                            <i class="fas fa-shield-alt me-2"></i>Безопасность
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                            <i class="fas fa-sign-out-alt me-2"></i>Выход
+                        </a>
+                    </li>
+                </ul>
             </div>
         </div>
+    </header>
 
+    <!-- Main Content -->
+    <main class="main-content page-transition" id="main-content" role="main">
         <!-- Flash Messages -->
-        {% for flash_message in app.session.flashbag.get('success') %}
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                {{ flash_message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        {% endfor %}
-        
-        {% for flash_message in app.session.flashbag.get('error') %}
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                {{ flash_message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        {% endfor %}
+        <div id="flash-messages" aria-live="polite" aria-atomic="true">
+            {% for flash_message in app.session.flashbag.get('success') %}
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>{{ flash_message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
+                </div>
+            {% endfor %}
+            
+            {% for flash_message in app.session.flashbag.get('error') %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>{{ flash_message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
+                </div>
+            {% endfor %}
+
+            {% for flash_message in app.session.flashbag.get('warning') %}
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>{{ flash_message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
+                </div>
+            {% endfor %}
+        </div>
 
         {% block body %}{% endblock %}
     </main>
@@ -187,42 +316,77 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
 
+    {% block importmap %}{{ importmap('app') }}{% endblock %}
+
+    <!-- Environment flag -->
+    <meta name="environment" content="{{ app.environment }}" data-environment="{{ app.environment }}">
+
+    <!-- CSP Nonce -->
+    {% set nonce = app.environment == 'prod' ? csp_nonce('script') : '' %}
+    {% set nonce_attr = nonce ? 'nonce="' ~ nonce ~ '"' : '' %}
+
     <!-- Critical functions -->
-    <script src="{{ asset('js/critical-functions.min.js') }}"></script>
+    <script {{ nonce_attr }} src="{{ asset('js/critical-functions.min.js') }}"></script>
 
     <!-- Core bundles -->
-    <script src="{{ asset('js/design-system-utils.min.js') }}" defer></script>
-    <script src="{{ asset('js/core-bundle.min.js') }}" defer></script>
-    <script src="{{ asset('js/navbar-enhanced.min.js') }}" defer></script>
-    <script src="{{ asset('js/theme-switcher.min.js') }}" defer></script>
-    <script src="{{ asset('js/console-wrapper.min.js') }}" defer></script>
-    <script src="{{ asset('js/logger.min.js') }}" defer></script>
-    <script src="{{ asset('js/event-manager.min.js') }}" defer></script>
+    <script {{ nonce_attr }} src="{{ asset('js/design-system-utils.min.js') }}" defer></script>
+    <script {{ nonce_attr }} src="{{ asset('js/core-bundle.min.js') }}" defer></script>
+    <script {{ nonce_attr }} src="{{ asset('js/navbar-enhanced.min.js') }}" defer></script>
+    <script {{ nonce_attr }} src="{{ asset('js/theme-switcher.min.js') }}" defer></script>
+    <script {{ nonce_attr }} src="{{ asset('js/logger.min.js') }}" defer></script>
+    <script {{ nonce_attr }} src="{{ asset('js/event-manager.min.js') }}" defer></script>
+    <script {{ nonce_attr }} src="{{ asset('js/ui-components.min.js') }}" defer></script>
+    <script {{ nonce_attr }} src="{{ asset('js/mobile-interactions.min.js') }}" defer></script>
+    <script {{ nonce_attr }} src="{{ asset('js/performance-optimizer-v2.min.js') }}" defer></script>
 
     {% if app.user %}
-        <script src="{{ asset('js/common-bundle.min.js') }}" defer></script>
-        <script src="{{ asset('js/notifications-realtime.min.js') }}" defer></script>
+        <script {{ nonce_attr }} src="{{ asset('js/common-bundle.min.js') }}" defer></script>
+        <script {{ nonce_attr }} src="{{ asset('js/notifications-realtime.min.js') }}" defer></script>
     {% endif %}
 
-    <!-- Page-specific scripts -->
+    <!-- Page-specific scripts (lazy loaded) -->
     {% if app.request.attributes.get('_route') starts with 'app_task' %}
-        <script src="{{ asset('js/table-enhancements.min.js') }}" defer></script>
+        <script {{ nonce_attr }} src="{{ asset('js/table-enhancements.min.js') }}" defer></script>
     {% endif %}
     {% if app.request.attributes.get('_route') == 'app_kanban_board' %}
-        <script src="{{ asset('js/kanban-enhanced.min.js') }}" defer></script>
+        <script {{ nonce_attr }} src="{{ asset('js/kanban-enhanced.min.js') }}" defer></script>
     {% endif %}
     {% if app.request.attributes.get('_route') == 'app_calendar' %}
-        <script src="{{ asset('js/calendar-enhanced.min.js') }}" defer></script>
+        <script {{ nonce_attr }} src="{{ asset('js/calendar-enhanced.min.js') }}" defer></script>
     {% endif %}
     {% if app.request.attributes.get('_route') starts with 'app_dashboard' or app.request.attributes.get('_route') starts with 'app_analytics' %}
-        <script src="{{ asset('js/dashboard-widgets.min.js') }}" defer></script>
+        <script {{ nonce_attr }} src="{{ asset('js/dashboard-widgets.min.js') }}" defer></script>
     {% endif %}
     {% if app.request.attributes.get('_route') starts with 'app_settings' %}
-        <script src="{{ asset('js/settings-enhanced.min.js') }}" defer></script>
+        <script {{ nonce_attr }} src="{{ asset('js/settings-enhanced.min.js') }}" defer></script>
     {% endif %}
 
-    <script src="{{ asset('js/notifications.min.js') }}"></script>
+    <!-- Flash messages handler -->
+    <script {{ nonce_attr }}>
+        window.addEventListener('DOMContentLoaded', function() {
+            // Hide page loader
+            const loader = document.getElementById('pageLoader');
+            if (loader) {
+                setTimeout(() => {
+                    loader.classList.add('hidden');
+                    document.body.classList.add('loaded');
+                }, 300);
+            }
+
+            // Show flash messages as toasts
+            {% for flash_message in app.session.flashbag.get('success') %}
+            setTimeout(() => showToast('{{ flash_message|e('js') }}', 'success'), 100);
+            {% endfor %}
+            {% for flash_message in app.session.flashbag.get('error') %}
+            setTimeout(() => showToast('{{ flash_message|e('js') }}', 'error'), 100);
+            {% endfor %}
+            {% for flash_message in app.session.flashbag.get('warning') %}
+            setTimeout(() => showToast('{{ flash_message|e('js') }}', 'warning'), 100);
+            {% endfor %}
+        });
+    </script>
 
     {% block javascripts %}{% endblock %}
+    {% block additional_javascripts %}{% endblock %}
 </body>
 </html>

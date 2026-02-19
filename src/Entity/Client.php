@@ -27,11 +27,11 @@ class Client
     private ?string $companyName = null;
 
     #[ORM\Column(length: 12, nullable: true)]
-    #[Assert\Regex(pattern: '/^\d{10}$|^\d{12}$/', message: 'ИНН должен содержать 10 или 12 цифр')]
+    #[Assert\Regex(pattern: '/^\\d{10}$|^\\d{12}$/', message: 'ИНН должен содержать 10 или 12 цифр')]
     private ?string $inn = null;
 
     #[ORM\Column(length: 9, nullable: true)]
-    #[Assert\Regex(pattern: '/^\d{9}$/', message: 'КПП должен содержать 9 цифр')]
+    #[Assert\Regex(pattern: '/^\\d{9}$/', message: 'КПП должен содержать 9 цифр')]
     private ?string $kpp = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -39,7 +39,7 @@ class Client
     private ?string $contactPerson = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Assert\Regex(pattern: '/^\+7\d{10}$/', message: 'Телефон должен быть в формате +79993332211')]
+    #[Assert\Regex(pattern: '/^\\+7\\d{10}$/', message: 'Телефон должен быть в формате +79993332211')]
     private ?string $phone = null;
 
     #[ORM\Column(length: 180, nullable: true)]
@@ -99,6 +99,7 @@ class Client
     public function setCompanyName(string $companyName): static
     {
         $this->companyName = $companyName;
+
         return $this;
     }
 
@@ -110,6 +111,7 @@ class Client
     public function setInn(?string $inn): static
     {
         $this->inn = $inn;
+
         return $this;
     }
 
@@ -121,6 +123,7 @@ class Client
     public function setKpp(?string $kpp): static
     {
         $this->kpp = $kpp;
+
         return $this;
     }
 
@@ -132,6 +135,7 @@ class Client
     public function setContactPerson(?string $contactPerson): static
     {
         $this->contactPerson = $contactPerson;
+
         return $this;
     }
 
@@ -143,6 +147,7 @@ class Client
     public function setPhone(?string $phone): static
     {
         $this->phone = $phone;
+
         return $this;
     }
 
@@ -154,6 +159,7 @@ class Client
     public function setEmail(?string $email): static
     {
         $this->email = $email;
+
         return $this;
     }
 
@@ -165,6 +171,7 @@ class Client
     public function setAddress(?string $address): static
     {
         $this->address = $address;
+
         return $this;
     }
 
@@ -176,6 +183,7 @@ class Client
     public function setSegment(string $segment): static
     {
         $this->segment = $segment;
+
         return $this;
     }
 
@@ -187,6 +195,7 @@ class Client
     public function setCategory(string $category): static
     {
         $this->category = $category;
+
         return $this;
     }
 
@@ -198,6 +207,7 @@ class Client
     public function setManager(?User $manager): static
     {
         $this->manager = $manager;
+
         return $this;
     }
 
@@ -209,6 +219,7 @@ class Client
     public function setNotes(?string $notes): static
     {
         $this->notes = $notes;
+
         return $this;
     }
 
@@ -220,6 +231,7 @@ class Client
     public function setCreatedAt(\DateTimeInterface $createdAt): static
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 
@@ -231,6 +243,7 @@ class Client
     public function setUpdatedAt(?\DateTimeInterface $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
+
         return $this;
     }
 
@@ -242,6 +255,7 @@ class Client
     public function setLastContactAt(?\DateTimeInterface $lastContactAt): static
     {
         $this->lastContactAt = $lastContactAt;
+
         return $this;
     }
 
@@ -259,6 +273,7 @@ class Client
             $this->deals->add($deal);
             $deal->setClient($this);
         }
+
         return $this;
     }
 
@@ -269,6 +284,7 @@ class Client
                 $deal->setClient(null);
             }
         }
+
         return $this;
     }
 
@@ -286,6 +302,7 @@ class Client
             $this->interactions->add($interaction);
             $interaction->setClient($this);
         }
+
         return $this;
     }
 
@@ -296,6 +313,7 @@ class Client
                 $interaction->setClient(null);
             }
         }
+
         return $this;
     }
 
@@ -310,6 +328,7 @@ class Client
                 $total += $deal->getAmount();
             }
         }
+
         return $total;
     }
 
@@ -318,13 +337,13 @@ class Client
      */
     public function getAverageCheck(): float
     {
-        $wonDeals = $this->deals->filter(fn($deal) => $deal->getStatus() === 'won');
+        $wonDeals = $this->deals->filter(fn ($deal) => $deal->getStatus() === 'won');
         $count = $wonDeals->count();
-        
+
         if ($count === 0) {
             return 0;
         }
-        
+
         return $this->getTotalRevenue() / $count;
     }
 
@@ -333,7 +352,7 @@ class Client
      */
     public function getCompletedDealsCount(): int
     {
-        return $this->deals->filter(fn($deal) => $deal->getStatus() === 'won')->count();
+        return $this->deals->filter(fn ($deal) => $deal->getStatus() === 'won')->count();
     }
 
     public function __toString(): string

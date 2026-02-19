@@ -15,7 +15,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class TaskHistoryController extends AbstractController
 {
     public function __construct(
-        private TaskHistoryService $historyService
+        private TaskHistoryService $historyService,
     ) {
     }
 
@@ -27,7 +27,7 @@ class TaskHistoryController extends AbstractController
         return $this->render('task_history/index.html.twig', [
             'task' => $task,
             'history' => $history,
-            'historyService' => $this->historyService
+            'historyService' => $this->historyService,
         ]);
     }
 
@@ -36,8 +36,9 @@ class TaskHistoryController extends AbstractController
     {
         $history = $this->historyService->getTaskHistory($task);
 
-        $data = array_map(function($item) {
+        $data = array_map(function ($item) {
             $user = $item->getUser();
+
             return [
                 'id' => $item->getId(),
                 'action' => $item->getAction(),
@@ -46,10 +47,10 @@ class TaskHistoryController extends AbstractController
                 'newValue' => $item->getNewValue(),
                 'user' => $user ? [
                     'id' => $user->getId(),
-                    'name' => $user->getFullName()
+                    'name' => $user->getFullName(),
                 ] : null,
                 'createdAt' => $item->getCreatedAt()->format('Y-m-d H:i:s'),
-                'description' => $this->historyService->getChangeDescription($item)
+                'description' => $this->historyService->getChangeDescription($item),
             ];
         }, $history);
 
@@ -63,7 +64,7 @@ class TaskHistoryController extends AbstractController
 
         return $this->render('task_history/recent.html.twig', [
             'activity' => $activity,
-            'historyService' => $this->historyService
+            'historyService' => $this->historyService,
         ]);
     }
 
@@ -75,7 +76,7 @@ class TaskHistoryController extends AbstractController
 
         return $this->render('task_history/user_activity.html.twig', [
             'activity' => $activity,
-            'historyService' => $this->historyService
+            'historyService' => $this->historyService,
         ]);
     }
 
@@ -85,13 +86,13 @@ class TaskHistoryController extends AbstractController
     {
         $from = new \DateTime('-30 days');
         $to = new \DateTime();
-        
+
         $stats = $this->historyService->getActivityStats($from, $to);
 
         return $this->render('task_history/stats.html.twig', [
             'stats' => $stats,
             'from' => $from,
-            'to' => $to
+            'to' => $to,
         ]);
     }
 }

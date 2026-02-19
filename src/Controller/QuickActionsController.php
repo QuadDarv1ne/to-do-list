@@ -2,8 +2,8 @@
 
 namespace App\Controller;
 
-use App\Service\QuickActionsService;
 use App\Repository\UserRepository;
+use App\Service\QuickActionsService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,8 +16,9 @@ class QuickActionsController extends AbstractController
 {
     public function __construct(
         private QuickActionsService $quickActionsService,
-        private UserRepository $userRepository
-    ) {}
+        private UserRepository $userRepository,
+    ) {
+    }
 
     /**
      * Quick create task
@@ -26,29 +27,29 @@ class QuickActionsController extends AbstractController
     public function create(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        
-        if (json_last_error() !== JSON_ERROR_NONE || !is_array($data)) {
+
+        if (json_last_error() !== JSON_ERROR_NONE || !\is_array($data)) {
             return $this->json([
                 'success' => false,
-                'message' => 'Неверный формат данных'
+                'message' => 'Неверный формат данных',
             ], 400);
         }
-        
+
         $user = $this->getUser();
 
         $task = $this->quickActionsService->quickCreateTask(
             $data['title'] ?? '',
             $user,
-            $data['options'] ?? []
+            $data['options'] ?? [],
         );
 
         return $this->json([
             'success' => true,
             'task' => [
                 'id' => $task->getId(),
-                'title' => $task->getTitle()
+                'title' => $task->getTitle(),
             ],
-            'message' => 'Задача создана'
+            'message' => 'Задача создана',
         ]);
     }
 
@@ -59,21 +60,21 @@ class QuickActionsController extends AbstractController
     public function complete(int $id): JsonResponse
     {
         $task = $this->quickActionsService->getTask($id);
-        
+
         if (!$task) {
             return $this->json(['success' => false, 'message' => 'Задача не найдена'], 404);
         }
-        
+
         // Check access rights
         if ($task->getUser() !== $this->getUser() && $task->getAssignedUser() !== $this->getUser()) {
             return $this->json(['success' => false, 'message' => 'Доступ запрещен'], 403);
         }
-        
+
         $success = $this->quickActionsService->quickComplete($id);
 
         return $this->json([
             'success' => $success,
-            'message' => $success ? 'Задача завершена' : 'Ошибка'
+            'message' => $success ? 'Задача завершена' : 'Ошибка',
         ]);
     }
 
@@ -84,21 +85,21 @@ class QuickActionsController extends AbstractController
     public function delete(int $id): JsonResponse
     {
         $task = $this->quickActionsService->getTask($id);
-        
+
         if (!$task) {
             return $this->json(['success' => false, 'message' => 'Задача не найдена'], 404);
         }
-        
+
         // Only owner can delete
         if ($task->getUser() !== $this->getUser()) {
             return $this->json(['success' => false, 'message' => 'Доступ запрещен'], 403);
         }
-        
+
         $success = $this->quickActionsService->quickDelete($id);
 
         return $this->json([
             'success' => $success,
-            'message' => $success ? 'Задача удалена' : 'Ошибка'
+            'message' => $success ? 'Задача удалена' : 'Ошибка',
         ]);
     }
 
@@ -119,7 +120,7 @@ class QuickActionsController extends AbstractController
 
         return $this->json([
             'success' => $success,
-            'message' => $success ? 'Задача назначена' : 'Ошибка'
+            'message' => $success ? 'Задача назначена' : 'Ошибка',
         ]);
     }
 
@@ -134,7 +135,7 @@ class QuickActionsController extends AbstractController
 
         return $this->json([
             'success' => $success,
-            'message' => $success ? 'Приоритет изменен' : 'Ошибка'
+            'message' => $success ? 'Приоритет изменен' : 'Ошибка',
         ]);
     }
 
@@ -149,7 +150,7 @@ class QuickActionsController extends AbstractController
 
         return $this->json([
             'success' => $success,
-            'message' => $success ? 'Статус изменен' : 'Ошибка'
+            'message' => $success ? 'Статус изменен' : 'Ошибка',
         ]);
     }
 
@@ -164,7 +165,7 @@ class QuickActionsController extends AbstractController
         return $this->json([
             'success' => $task !== null,
             'task' => $task ? ['id' => $task->getId(), 'title' => $task->getTitle()] : null,
-            'message' => $task ? 'Задача дублирована' : 'Ошибка'
+            'message' => $task ? 'Задача дублирована' : 'Ошибка',
         ]);
     }
 
@@ -178,7 +179,7 @@ class QuickActionsController extends AbstractController
 
         return $this->json([
             'success' => $success,
-            'message' => $success ? 'Перенесено на сегодня' : 'Ошибка'
+            'message' => $success ? 'Перенесено на сегодня' : 'Ошибка',
         ]);
     }
 
@@ -192,7 +193,7 @@ class QuickActionsController extends AbstractController
 
         return $this->json([
             'success' => $success,
-            'message' => $success ? 'Перенесено на завтра' : 'Ошибка'
+            'message' => $success ? 'Перенесено на завтра' : 'Ошибка',
         ]);
     }
 
@@ -206,7 +207,7 @@ class QuickActionsController extends AbstractController
 
         return $this->json([
             'success' => $success,
-            'message' => $success ? 'Перенесено на следующую неделю' : 'Ошибка'
+            'message' => $success ? 'Перенесено на следующую неделю' : 'Ошибка',
         ]);
     }
 

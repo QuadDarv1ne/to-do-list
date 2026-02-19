@@ -5,16 +5,15 @@ namespace App\Application\CommandHandler;
 use App\Application\Command\CreateTaskCommand;
 use App\Domain\Task\Event\TaskCreated;
 use App\Domain\Task\ValueObject\TaskId;
-use App\Domain\Task\ValueObject\TaskTitle;
 use App\Domain\Task\ValueObject\TaskPriority;
+use App\Domain\Task\ValueObject\TaskTitle;
 use App\Entity\Task;
-use App\Entity\User;
-use App\Repository\TaskCategoryRepository;
 use App\Repository\TagRepository;
+use App\Repository\TaskCategoryRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 #[AsMessageHandler]
 final readonly class CreateTaskCommandHandler
@@ -24,7 +23,7 @@ final readonly class CreateTaskCommandHandler
         private UserRepository $userRepository,
         private TaskCategoryRepository $categoryRepository,
         private TagRepository $tagRepository,
-        private MessageBusInterface $eventBus
+        private MessageBusInterface $eventBus,
     ) {
     }
 
@@ -80,7 +79,7 @@ final readonly class CreateTaskCommandHandler
             $title,
             $priority,
             $command->getUserId(),
-            $command->getAssignedUserId()
+            $command->getAssignedUserId(),
         );
 
         $this->eventBus->dispatch($event);

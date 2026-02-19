@@ -15,8 +15,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class CollaborationController extends AbstractController
 {
     public function __construct(
-        private CollaborationService $collaborationService
-    ) {}
+        private CollaborationService $collaborationService,
+    ) {
+    }
 
     /**
      * Collaboration dashboard
@@ -30,7 +31,7 @@ class CollaborationController extends AbstractController
 
         return $this->render('collaboration/index.html.twig', [
             'stats' => $stats,
-            'collaborators' => $collaborators
+            'collaborators' => $collaborators,
         ]);
     }
 
@@ -44,7 +45,7 @@ class CollaborationController extends AbstractController
         $workload = $this->collaborationService->getTeamWorkload();
 
         return $this->render('collaboration/workload.html.twig', [
-            'workload' => $workload
+            'workload' => $workload,
         ]);
     }
 
@@ -58,7 +59,7 @@ class CollaborationController extends AbstractController
         $network = $this->collaborationService->getCollaborationNetwork();
 
         return $this->render('collaboration/network.html.twig', [
-            'network' => $network
+            'network' => $network,
         ]);
     }
 
@@ -73,7 +74,7 @@ class CollaborationController extends AbstractController
 
         return $this->render('collaboration/shared.html.twig', [
             'other_user' => $otherUser,
-            'shared_tasks' => $sharedTasks
+            'shared_tasks' => $sharedTasks,
         ]);
     }
 

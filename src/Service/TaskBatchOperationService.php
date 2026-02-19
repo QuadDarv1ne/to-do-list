@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use App\Entity\Task;
 use App\Entity\User;
 use App\Repository\TaskRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -11,8 +10,9 @@ class TaskBatchOperationService
 {
     public function __construct(
         private TaskRepository $taskRepository,
-        private EntityManagerInterface $entityManager
-    ) {}
+        private EntityManagerInterface $entityManager,
+    ) {
+    }
 
     /**
      * Batch update status (оптимизировано)
@@ -36,7 +36,7 @@ class TaskBatchOperationService
 
         $this->entityManager->flush();
 
-        return count($tasks);
+        return \count($tasks);
     }
 
     /**
@@ -60,7 +60,7 @@ class TaskBatchOperationService
 
         $this->entityManager->flush();
 
-        return count($tasks);
+        return \count($tasks);
     }
 
     /**
@@ -84,7 +84,7 @@ class TaskBatchOperationService
 
         $this->entityManager->flush();
 
-        return count($tasks);
+        return \count($tasks);
     }
 
     /**
@@ -108,7 +108,7 @@ class TaskBatchOperationService
 
         $this->entityManager->flush();
 
-        return count($tasks);
+        return \count($tasks);
     }
 
     /**
@@ -134,7 +134,7 @@ class TaskBatchOperationService
 
         $this->entityManager->flush();
 
-        return count($tasks);
+        return \count($tasks);
     }
 
     /**
@@ -158,7 +158,7 @@ class TaskBatchOperationService
 
         $this->entityManager->flush();
 
-        return count($tasks);
+        return \count($tasks);
     }
 
     /**
@@ -182,7 +182,7 @@ class TaskBatchOperationService
 
         $this->entityManager->flush();
 
-        return count($tasks);
+        return \count($tasks);
     }
 
     /**
@@ -208,7 +208,7 @@ class TaskBatchOperationService
 
         $this->entityManager->flush();
 
-        return count($tasks);
+        return \count($tasks);
     }
 
     /**
@@ -219,7 +219,7 @@ class TaskBatchOperationService
         return [
             'total_operations' => 0, // TODO: Track in database
             'last_operation' => null,
-            'most_common_operation' => null
+            'most_common_operation' => null,
         ];
     }
 }

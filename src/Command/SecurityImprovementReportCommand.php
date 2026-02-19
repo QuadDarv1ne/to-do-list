@@ -12,12 +12,12 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:security-improvement-report',
-    description: 'Generate a report on security improvements made to the application'
+    description: 'Generate a report on security improvements made to the application',
 )]
 class SecurityImprovementReportCommand extends Command
 {
     public function __construct(
-        private InputValidationService $inputValidationService
+        private InputValidationService $inputValidationService,
     ) {
         parent::__construct();
     }
@@ -35,7 +35,7 @@ class SecurityImprovementReportCommand extends Command
             '✓ Added validateUrl() for secure URL validation',
             '✓ Added validateEmail() for secure email validation',
             '✓ Added validateJson() for safe JSON parsing',
-            '✓ Enhanced string validation with comprehensive sanitization'
+            '✓ Enhanced string validation with comprehensive sanitization',
         ]);
 
         // Show security listener implementation
@@ -46,7 +46,7 @@ class SecurityImprovementReportCommand extends Command
             '✓ Validates and sanitizes request body parameters',
             '✓ Validates and sanitizes route parameters',
             '✓ Skips validation for API and admin paths',
-            '✓ Registered as kernel event subscriber'
+            '✓ Registered as kernel event subscriber',
         ]);
 
         // Show security header additions
@@ -56,12 +56,12 @@ class SecurityImprovementReportCommand extends Command
             '✓ X-Frame-Options: DENY',
             '✓ X-XSS-Protection: 1; mode=block',
             '✓ Referrer-Policy: strict-origin-when-cross-origin',
-            '✓ Content-Security-Policy: configured for safe content loading'
+            '✓ Content-Security-Policy: configured for safe content loading',
         ]);
 
         // Demonstrate validation methods
         $io->section('Validation Method Examples');
-        
+
         $table = new Table($output);
         $table->setHeaders(['Method', 'Input', 'Output', 'Status']);
         $table->setRows([
@@ -81,7 +81,7 @@ class SecurityImprovementReportCommand extends Command
             '• Secure input validation at the kernel level',
             '• Defense against common web application attacks',
             '• Comprehensive sanitization of user inputs',
-            '• Early detection and prevention of malicious inputs'
+            '• Early detection and prevention of malicious inputs',
         ]);
 
         $io->success('Security improvement report generated successfully!');

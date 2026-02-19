@@ -18,7 +18,7 @@ class RealTimeNotificationController extends AbstractController
     {
         $user = $this->getUser();
         $notifications = $notificationService->getUnreadNotifications($user);
-        
+
         $data = [];
         foreach ($notifications as $notification) {
             $data[] = [
@@ -27,10 +27,10 @@ class RealTimeNotificationController extends AbstractController
                 'message' => $notification->getMessage(),
                 'is_read' => $notification->isRead(),
                 'created_at' => $notification->getCreatedAt()->format('c'),
-                'task_id' => $notification->getTask() ? $notification->getTask()->getId() : null
+                'task_id' => $notification->getTask() ? $notification->getTask()->getId() : null,
             ];
         }
-        
+
         return $this->json($data);
     }
 
@@ -38,7 +38,7 @@ class RealTimeNotificationController extends AbstractController
     public function notificationStream(Request $request, NotificationService $notificationService): Response
     {
         $user = $this->getUser();
-        
+
         if (!$user) {
             return $this->json(['error' => 'Unauthorized'], 401);
         }
@@ -51,10 +51,10 @@ class RealTimeNotificationController extends AbstractController
     {
         $user = $this->getUser();
         $stats = $notificationService->getNotificationStats($user);
-        
+
         return $this->json([
             'unread' => $stats['unread'],
-            'total' => $stats['total']
+            'total' => $stats['total'],
         ]);
     }
 
@@ -63,28 +63,29 @@ class RealTimeNotificationController extends AbstractController
     {
         $user = $this->getUser();
         $count = $notificationService->markAllAsRead($user);
-        
+
         return $this->json([
             'success' => true,
-            'marked_count' => $count
+            'marked_count' => $count,
         ]);
     }
 
     #[Route('/{id}/read', name: 'app_notifications_mark_read', methods: ['POST'])]
     public function markAsRead(
-        int $id, 
+        int $id,
         NotificationService $notificationService,
-        \App\Repository\NotificationRepository $notificationRepository
+        \App\Repository\NotificationRepository $notificationRepository,
     ): Response {
         $user = $this->getUser();
-        
+
         $notification = $notificationRepository->find($id);
-        
+
         if (!$notification || $notification->getUser() !== $user) {
             return $this->json(['error' => 'Notification not found'], 404);
         }
-        
+
         $notificationService->markAsRead($notification);
+
         return $this->json(['success' => true]);
     }
 
@@ -93,7 +94,7 @@ class RealTimeNotificationController extends AbstractController
     {
         $user = $this->getUser();
         $notifications = $notificationService->getUnreadNotifications($user);
-        
+
         $data = [];
         foreach ($notifications as $notification) {
             $data[] = [
@@ -102,10 +103,10 @@ class RealTimeNotificationController extends AbstractController
                 'message' => $notification->getMessage(),
                 'is_read' => $notification->isRead(),
                 'created_at' => $notification->getCreatedAt()->format('c'),
-                'task_id' => $notification->getTask() ? $notification->getTask()->getId() : null
+                'task_id' => $notification->getTask() ? $notification->getTask()->getId() : null,
             ];
         }
-        
+
         return $this->json($data);
     }
 }

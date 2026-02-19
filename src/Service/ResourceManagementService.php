@@ -2,13 +2,13 @@
 
 namespace App\Service;
 
-use App\Entity\User;
-use App\Entity\Task;
 use App\Entity\Resource;
 use App\Entity\ResourceAllocation;
 use App\Entity\Skill;
-use App\Repository\ResourceRepository;
+use App\Entity\Task;
+use App\Entity\User;
 use App\Repository\ResourceAllocationRepository;
+use App\Repository\ResourceRepository;
 use App\Repository\SkillRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -18,8 +18,9 @@ class ResourceManagementService
         private ResourceRepository $resourceRepository,
         private ResourceAllocationRepository $allocationRepository,
         private SkillRepository $skillRepository,
-        private EntityManagerInterface $entityManager
-    ) {}
+        private EntityManagerInterface $entityManager,
+    ) {
+    }
 
     /**
      * Get resource availability
@@ -28,7 +29,7 @@ class ResourceManagementService
     {
         $allocations = $this->allocationRepository->findBy([
             'resource' => $resource,
-            'date' => [$from, $to]
+            'date' => [$from, $to],
         ]);
 
         $allocatedHours = 0;
@@ -46,7 +47,7 @@ class ResourceManagementService
             'available_hours' => $availableHours,
             'utilization_percentage' => round($utilizationPercentage, 2),
             'status' => $this->calculateResourceStatus($utilizationPercentage),
-            'calendar' => $this->getAvailabilityCalendar($resource, $from, $to)
+            'calendar' => $this->getAvailabilityCalendar($resource, $from, $to),
         ];
     }
 
@@ -57,11 +58,11 @@ class ResourceManagementService
     {
         $calendar = [];
         $current = clone $from;
-        
+
         while ($current <= $to) {
             $dayAllocations = $this->allocationRepository->findBy([
                 'resource' => $resource,
-                'date' => new \DateTimeImmutable($current->format('Y-m-d'))
+                'date' => new \DateTimeImmutable($current->format('Y-m-d')),
             ]);
 
             $allocatedHours = 0;
@@ -77,12 +78,12 @@ class ResourceManagementService
                 'available_hours' => $availableHours,
                 'allocated_hours' => $allocatedHours,
                 'daily_capacity' => $dailyCapacity,
-                'status' => $status
+                'status' => $status,
             ];
 
             $current->modify('+1 day');
         }
-        
+
         return $calendar;
     }
 
@@ -164,20 +165,20 @@ class ResourceManagementService
         return [
             'resource' => [
                 'id' => $resource->getId(),
-                'name' => $resource->getName()
+                'name' => $resource->getName(),
             ],
             'period' => [
                 'from' => $from->format('Y-m-d'),
-                'to' => $to->format('Y-m-d')
+                'to' => $to->format('Y-m-d'),
             ],
             'workload' => [
-                'total_allocations' => count($allocations),
+                'total_allocations' => \count($allocations),
                 'total_hours' => $totalHours,
                 'by_priority' => $byPriority,
-                'by_project' => $byProject
+                'by_project' => $byProject,
             ],
             'capacity' => $capacity,
-            'utilization' => round($utilization, 2)
+            'utilization' => round($utilization, 2),
         ];
     }
 
@@ -187,19 +188,19 @@ class ResourceManagementService
     public function balanceTeamWorkload(array $resourceIds): array
     {
         $workloads = [];
-        
+
         foreach ($resourceIds as $resourceId) {
             $resource = $this->resourceRepository->find($resourceId);
             if ($resource) {
                 $currentDate = new \DateTime();
                 $nextWeek = (clone $currentDate)->modify('+1 week');
-                
+
                 $workload = $this->getResourceWorkload($resource, $currentDate, $nextWeek);
                 $workloads[$resourceId] = $workload['utilization'];
             }
         }
 
-        $average = count($workloads) > 0 ? array_sum($workloads) / count($workloads) : 0;
+        $average = \count($workloads) > 0 ? array_sum($workloads) / \count($workloads) : 0;
         $recommendations = [];
 
         foreach ($workloads as $resourceId => $workload) {
@@ -207,13 +208,13 @@ class ResourceManagementService
                 $recommendations[] = [
                     'resource_id' => $resourceId,
                     'action' => 'reduce',
-                    'amount' => $workload - $average
+                    'amount' => $workload - $average,
                 ];
             } elseif ($workload < $average * 0.8) {
                 $recommendations[] = [
                     'resource_id' => $resourceId,
                     'action' => 'increase',
-                    'amount' => $average - $workload
+                    'amount' => $average - $workload,
                 ];
             }
         }
@@ -221,7 +222,7 @@ class ResourceManagementService
         return [
             'workloads' => $workloads,
             'average' => $average,
-            'recommendations' => $recommendations
+            'recommendations' => $recommendations,
         ];
     }
 
@@ -250,32 +251,32 @@ class ResourceManagementService
     public function getUtilizationReport(array $resourceIds, \DateTime $from, \DateTime $to): array
     {
         $report = [];
-        
+
         foreach ($resourceIds as $resourceId) {
             $resource = $this->resourceRepository->find($resourceId);
             if ($resource) {
                 $workload = $this->getResourceWorkload($resource, $from, $to);
-                
+
                 $report[] = [
                     'resource_id' => $resourceId,
                     'name' => $resource->getName(),
                     'utilization' => $workload['utilization'],
                     'total_allocated_hours' => $workload['workload']['total_hours'],
                     'capacity' => $workload['capacity'],
-                    'status' => $resource->getStatus()
+                    'status' => $resource->getStatus(),
                 ];
             }
         }
 
-        $avgUtilization = count($report) > 0 ? array_sum(array_column($report, 'utilization')) / count($report) : 0;
+        $avgUtilization = \count($report) > 0 ? array_sum(array_column($report, 'utilization')) / \count($report) : 0;
 
         return [
             'period' => [
                 'from' => $from->format('Y-m-d'),
-                'to' => $to->format('Y-m-d')
+                'to' => $to->format('Y-m-d'),
             ],
             'resources' => $report,
-            'team_average_utilization' => round($avgUtilization, 2)
+            'team_average_utilization' => round($avgUtilization, 2),
         ];
     }
 
@@ -286,7 +287,7 @@ class ResourceManagementService
     {
         // In a real implementation, we would create a ResourcePool entity
         // For now, we'll just return the data
-        
+
         $resources = [];
         foreach ($resourceIds as $resourceId) {
             $resource = $this->resourceRepository->find($resourceId);
@@ -298,10 +299,10 @@ class ResourceManagementService
         return [
             'id' => uniqid(),
             'name' => $name,
-            'resources' => array_map(fn($r) => ['id' => $r->getId(), 'name' => $r->getName()], $resources),
+            'resources' => array_map(fn ($r) => ['id' => $r->getId(), 'name' => $r->getName()], $resources),
             'skills' => $skillRequirements,
             'created_at' => new \DateTime(),
-            'member_count' => count($resources)
+            'member_count' => \count($resources),
         ];
     }
 
@@ -312,7 +313,7 @@ class ResourceManagementService
     {
         // In a real implementation, we would query the ResourcePool entity
         // For now, we'll return an empty array
-        
+
         return [];
     }
 
@@ -326,7 +327,7 @@ class ResourceManagementService
             'task_id' => $task->getId(),
             'requirements' => $requirements,
             'status' => 'pending',
-            'requested_at' => new \DateTime()
+            'requested_at' => new \DateTime(),
         ];
     }
 
@@ -345,13 +346,13 @@ class ResourceManagementService
     public function getResourceConflicts(\DateTime $from, \DateTime $to): array
     {
         $conflicts = [];
-        
+
         // Find resources that are overbooked (allocated hours > capacity)
         $allResources = $this->resourceRepository->findAll();
-        
+
         foreach ($allResources as $resource) {
             $workload = $this->getResourceWorkload($resource, $from, $to);
-            
+
             if ($workload['utilization'] > 100) {
                 $conflicts[] = [
                     'resource_id' => $resource->getId(),
@@ -359,14 +360,14 @@ class ResourceManagementService
                     'allocated_hours' => $workload['workload']['total_hours'],
                     'capacity' => $workload['capacity'],
                     'overallocation' => $workload['workload']['total_hours'] - $workload['capacity'],
-                    'status' => 'overbooked'
+                    'status' => 'overbooked',
                 ];
             }
         }
 
         return [
             'conflicts' => $conflicts,
-            'total_conflicts' => count($conflicts)
+            'total_conflicts' => \count($conflicts),
         ];
     }
 
@@ -385,14 +386,14 @@ class ResourceManagementService
     public function getResourceForecast(array $resourceIds, int $weeks = 4): array
     {
         $forecast = [];
-        
+
         for ($i = 0; $i < $weeks; $i++) {
             $startDate = (new \DateTime())->modify("+$i weeks");
             $endDate = (clone $startDate)->modify('+6 days'); // End of week
-            
+
             $weekAllocations = 0;
             $availableCapacity = 0;
-            
+
             foreach ($resourceIds as $resourceId) {
                 $resource = $this->resourceRepository->find($resourceId);
                 if ($resource) {
@@ -401,14 +402,14 @@ class ResourceManagementService
                     $availableCapacity += $resource->getCapacityPerWeek();
                 }
             }
-            
+
             $forecast[] = [
                 'week_start' => $startDate->format('Y-m-d'),
                 'week_end' => $endDate->format('Y-m-d'),
                 'allocated_hours' => $weekAllocations,
                 'available_capacity' => $availableCapacity,
                 'utilization_percentage' => $availableCapacity > 0 ? round(($weekAllocations / $availableCapacity) * 100, 2) : 0,
-                'shortage' => max(0, $weekAllocations - $availableCapacity)
+                'shortage' => max(0, $weekAllocations - $availableCapacity),
             ];
         }
 
@@ -427,20 +428,20 @@ class ResourceManagementService
             if ($resource) {
                 $resourceSkills = $resource->getSkills();
                 $skills = [];
-                
+
                 foreach ($resourceSkills as $skill) {
                     $skills[$skill->getName()] = $skill->getProficiencyLevel();
                 }
-                
+
                 $matrix[$resourceId] = [
                     'name' => $resource->getName(),
-                    'skills' => $skills
+                    'skills' => $skills,
                 ];
             }
         }
 
         return [
-            'resources' => $matrix
+            'resources' => $matrix,
         ];
     }
 
@@ -459,7 +460,7 @@ class ResourceManagementService
             'hourly_rate' => $rate,
             'base_cost' => $baseCost,
             'overhead' => $overhead,
-            'total_cost' => $total
+            'total_cost' => $total,
         ];
     }
 
@@ -470,14 +471,14 @@ class ResourceManagementService
     {
         // In a real implementation, we would calculate efficiency based on completed tasks
         // For now, we'll return mock data
-        
+
         return [
             'tasks_completed' => 25,
             'hours_worked' => 160,
             'tasks_per_hour' => 0.156,
             'quality_score' => 90,
             'efficiency_score' => 85,
-            'trend' => 'improving'
+            'trend' => 'improving',
         ];
     }
 
@@ -488,18 +489,19 @@ class ResourceManagementService
     {
         // A simple optimization algorithm that tries to balance the load
         $allocations = [];
-        
-        usort($tasks, function($a, $b) {
+
+        usort($tasks, function ($a, $b) {
             // Sort by priority (urgent first)
             $priorityOrder = ['urgent' => 4, 'high' => 3, 'medium' => 2, 'low' => 1];
+
             return ($priorityOrder[$b->getPriority()] ?? 2) <=> ($priorityOrder[$a->getPriority()] ?? 2);
         });
-        
+
         foreach ($tasks as $task) {
             // Find the most suitable resource based on skills and availability
             $bestResource = null;
             $minLoad = PHP_INT_MAX;
-            
+
             foreach ($resources as $resource) {
                 // Check if resource has required skills
                 $hasSkills = true;
@@ -509,36 +511,38 @@ class ResourceManagementService
                         foreach ($resource->getSkills() as $resourceSkill) {
                             if ($resourceSkill->getName() === $requiredSkill->getName()) {
                                 $hasResourceSkill = true;
+
                                 break;
                             }
                         }
                         if (!$hasResourceSkill) {
                             $hasSkills = false;
+
                             break;
                         }
                     }
                 }
-                
+
                 if ($hasSkills) {
                     // Calculate current load for this resource
                     $currentDate = new \DateTime();
                     $nextMonth = (clone $currentDate)->modify('+1 month');
                     $workload = $this->getResourceWorkload($resource, $currentDate, $nextMonth);
                     $currentLoad = $workload['utilization'];
-                    
+
                     if ($currentLoad < $minLoad) {
                         $minLoad = $currentLoad;
                         $bestResource = $resource;
                     }
                 }
             }
-            
+
             if ($bestResource) {
                 $allocations[] = [
                     'task_id' => $task->getId(),
                     'resource_id' => $bestResource->getId(),
                     'resource_name' => $bestResource->getName(),
-                    'allocation_confirmed' => true
+                    'allocation_confirmed' => true,
                 ];
             }
         }
@@ -548,8 +552,8 @@ class ResourceManagementService
             'optimization_score' => 85,
             'improvements' => [
                 'Balanced workload distribution',
-                'Improved skill matching'
-            ]
+                'Improved skill matching',
+            ],
         ];
     }
 
@@ -576,7 +580,7 @@ class ResourceManagementService
         $resource->setStatus($data['status'] ?? 'available');
 
         // Add skills if provided
-        if (isset($data['skills']) && is_array($data['skills'])) {
+        if (isset($data['skills']) && \is_array($data['skills'])) {
             foreach ($data['skills'] as $skillName) {
                 $skill = $this->skillRepository->findOneBy(['name' => $skillName]);
                 if (!$skill) {

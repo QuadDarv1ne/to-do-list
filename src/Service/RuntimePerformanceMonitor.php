@@ -10,12 +10,15 @@ use Psr\Log\LoggerInterface;
 class RuntimePerformanceMonitor
 {
     private array $timers = [];
+
     private array $memorySnapshots = [];
+
     private float $requestStartTime;
+
     private int $requestStartMemory;
 
     public function __construct(
-        private LoggerInterface $logger
+        private LoggerInterface $logger,
     ) {
         $this->requestStartTime = microtime(true);
         $this->requestStartMemory = memory_get_usage(true);
@@ -28,7 +31,7 @@ class RuntimePerformanceMonitor
     {
         $this->timers[$name] = [
             'start' => microtime(true),
-            'memory_start' => memory_get_usage(true)
+            'memory_start' => memory_get_usage(true),
         ];
     }
 
@@ -49,7 +52,7 @@ class RuntimePerformanceMonitor
             'duration' => $duration,
             'duration_ms' => round($duration * 1000, 2),
             'memory_used' => $memoryUsed,
-            'memory_used_mb' => round($memoryUsed / 1024 / 1024, 2)
+            'memory_used_mb' => round($memoryUsed / 1024 / 1024, 2),
         ];
 
         // Логируем медленные операции
@@ -57,11 +60,12 @@ class RuntimePerformanceMonitor
             $this->logger->warning('Slow operation detected', [
                 'operation' => $name,
                 'duration' => $result['duration_ms'] . 'ms',
-                'memory' => $result['memory_used_mb'] . 'MB'
+                'memory' => $result['memory_used_mb'] . 'MB',
             ]);
         }
 
         unset($this->timers[$name]);
+
         return $result;
     }
 
@@ -73,7 +77,7 @@ class RuntimePerformanceMonitor
         $this->memorySnapshots[$label] = [
             'memory' => memory_get_usage(true),
             'peak_memory' => memory_get_peak_usage(true),
-            'timestamp' => microtime(true)
+            'timestamp' => microtime(true),
         ];
     }
 
@@ -98,7 +102,7 @@ class RuntimePerformanceMonitor
             'memory_used' => round(($currentMemory - $this->requestStartMemory) / 1024 / 1024, 2) . 'MB',
             'current_memory' => round($currentMemory / 1024 / 1024, 2) . 'MB',
             'peak_memory' => round(memory_get_peak_usage(true) / 1024 / 1024, 2) . 'MB',
-            'active_timers' => count($this->timers)
+            'active_timers' => \count($this->timers),
         ];
     }
 
@@ -109,7 +113,7 @@ class RuntimePerformanceMonitor
     {
         $currentTime = microtime(true);
         $currentMemory = memory_get_usage(true);
-        
+
         $duration = $currentTime - $this->requestStartTime;
         $memoryMB = $currentMemory / 1024 / 1024;
 
@@ -118,14 +122,14 @@ class RuntimePerformanceMonitor
         if ($duration > $maxDuration) {
             $warnings[] = [
                 'type' => 'duration',
-                'message' => sprintf('Request duration %.2fs exceeds limit %.2fs', $duration, $maxDuration)
+                'message' => \sprintf('Request duration %.2fs exceeds limit %.2fs', $duration, $maxDuration),
             ];
         }
 
         if ($memoryMB > $maxMemoryMB) {
             $warnings[] = [
                 'type' => 'memory',
-                'message' => sprintf('Memory usage %.2fMB exceeds limit %dMB', $memoryMB, $maxMemoryMB)
+                'message' => \sprintf('Memory usage %.2fMB exceeds limit %dMB', $memoryMB, $maxMemoryMB),
             ];
         }
 
@@ -143,16 +147,16 @@ class RuntimePerformanceMonitor
         return [
             'request' => [
                 'duration' => round(($currentTime - $this->requestStartTime) * 1000, 2) . 'ms',
-                'memory_used' => round(($currentMemory - $this->requestStartMemory) / 1024 / 1024, 2) . 'MB'
+                'memory_used' => round(($currentMemory - $this->requestStartMemory) / 1024 / 1024, 2) . 'MB',
             ],
             'memory' => [
                 'current' => round($currentMemory / 1024 / 1024, 2) . 'MB',
                 'peak' => round(memory_get_peak_usage(true) / 1024 / 1024, 2) . 'MB',
-                'limit' => ini_get('memory_limit')
+                'limit' => \ini_get('memory_limit'),
             ],
             'snapshots' => $this->memorySnapshots,
             'active_timers' => array_keys($this->timers),
-            'warnings' => $this->checkLimits()
+            'warnings' => $this->checkLimits(),
         ];
     }
 

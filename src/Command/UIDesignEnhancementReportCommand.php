@@ -4,14 +4,13 @@ namespace App\Command;
 
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:ui-design-enhancement-report',
-    description: 'Generate a report on UI/UX design enhancements made to the application'
+    description: 'Generate a report on UI/UX design enhancements made to the application',
 )]
 class UIDesignEnhancementReportCommand extends Command
 {

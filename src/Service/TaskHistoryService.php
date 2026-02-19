@@ -12,7 +12,7 @@ class TaskHistoryService
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private TaskHistoryRepository $historyRepository
+        private TaskHistoryRepository $historyRepository,
     ) {
     }
 
@@ -28,7 +28,7 @@ class TaskHistoryService
         $history->setMetadata([
             'title' => $task->getTitle(),
             'priority' => $task->getPriority(),
-            'status' => $task->getStatus()
+            'status' => $task->getStatus(),
         ]);
 
         $this->historyRepository->save($history, true);
@@ -65,7 +65,7 @@ class TaskHistoryService
         $history->setAction('deleted');
         $history->setMetadata([
             'title' => $task->getTitle(),
-            'deleted_at' => (new \DateTime())->format('Y-m-d H:i:s')
+            'deleted_at' => (new \DateTime())->format('Y-m-d H:i:s'),
         ]);
 
         $this->historyRepository->save($history, true);
@@ -98,7 +98,7 @@ class TaskHistoryService
         $history->setAction('assigned');
         $history->setMetadata([
             'assigned_to' => $assignedTo->getFullName(),
-            'assigned_to_id' => $assignedTo->getId()
+            'assigned_to_id' => $assignedTo->getId(),
         ]);
 
         $this->historyRepository->save($history, true);
@@ -155,6 +155,7 @@ class TaskHistoryService
     public function cleanOldHistory(int $days = 90): int
     {
         $date = new \DateTime("-{$days} days");
+
         return $this->historyRepository->deleteOlderThan($date);
     }
 
@@ -171,21 +172,22 @@ class TaskHistoryService
             return $value->format('Y-m-d H:i:s');
         }
 
-        if (is_object($value)) {
+        if (\is_object($value)) {
             if (method_exists($value, '__toString')) {
                 return (string) $value;
             }
             if (method_exists($value, 'getId')) {
-                return get_class($value) . '#' . $value->getId();
+                return \get_class($value) . '#' . $value->getId();
             }
-            return get_class($value);
+
+            return \get_class($value);
         }
 
-        if (is_array($value)) {
+        if (\is_array($value)) {
             return json_encode($value);
         }
 
-        if (is_bool($value)) {
+        if (\is_bool($value)) {
             return $value ? 'true' : 'false';
         }
 
@@ -199,7 +201,7 @@ class TaskHistoryService
     {
         $user = $history->getUser();
         $userName = $user ? $user->getFullName() : 'Система';
-        
+
         return match($history->getAction()) {
             'created' => "{$userName} создал(а) задачу",
             'updated' => "{$userName} изменил(а) {$this->getFieldName($history->getField())} с '{$history->getOldValue()}' на '{$history->getNewValue()}'",

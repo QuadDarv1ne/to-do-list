@@ -15,7 +15,7 @@ class TwigGlobalListener
     public function __construct(
         private Environment $twig,
         private TaskRepository $taskRepository,
-        private TokenStorageInterface $tokenStorage
+        private TokenStorageInterface $tokenStorage,
     ) {
     }
 
@@ -36,6 +36,7 @@ class TwigGlobalListener
                 'in_progress' => 0,
                 'completed' => 0,
             ]);
+
             return;
         }
 
@@ -44,7 +45,7 @@ class TwigGlobalListener
         try {
             // Get task stats for current user
             $taskStats = $this->taskRepository->getQuickStats($user);
-            
+
             // Add to Twig globals
             $this->twig->addGlobal('task_stats', $taskStats);
         } catch (\Exception $e) {

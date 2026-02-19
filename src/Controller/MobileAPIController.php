@@ -4,23 +4,24 @@ namespace App\Controller;
 
 use App\Service\MobileAPIService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/api/mobile')]
 class MobileAPIController extends AbstractController
 {
     public function __construct(
-        private MobileAPIService $mobileService
-    ) {}
+        private MobileAPIService $mobileService,
+    ) {
+    }
 
     #[Route('/dashboard', name: 'app_mobile_dashboard', methods: ['GET'])]
     public function dashboard(): JsonResponse
     {
         $user = $this->getUser();
         $dashboard = $this->mobileService->getMobileDashboard($user);
-        
+
         return $this->json($dashboard);
     }
 
@@ -29,9 +30,9 @@ class MobileAPIController extends AbstractController
     {
         $user = $this->getUser();
         $data = json_decode($request->getContent(), true);
-        
+
         $task = $this->mobileService->quickCreateTask($user, $data);
-        
+
         return $this->json($task);
     }
 
@@ -40,9 +41,9 @@ class MobileAPIController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
         $status = $data['status'] ?? 'pending';
-        
+
         $task = $this->mobileService->quickUpdateStatus($id, $status);
-        
+
         return $this->json($task);
     }
 
@@ -50,7 +51,7 @@ class MobileAPIController extends AbstractController
     public function taskDetails(int $id): JsonResponse
     {
         $details = $this->mobileService->getTaskDetails($id);
-        
+
         return $this->json($details);
     }
 
@@ -60,9 +61,9 @@ class MobileAPIController extends AbstractController
         $user = $this->getUser();
         $query = $request->query->get('q', '');
         $limit = (int)$request->query->get('limit', 20);
-        
+
         $tasks = $this->mobileService->searchTasks($user, $query, $limit);
-        
+
         return $this->json($tasks);
     }
 
@@ -73,9 +74,9 @@ class MobileAPIController extends AbstractController
         $filters = json_decode($request->getContent(), true);
         $page = (int)$request->query->get('page', 1);
         $limit = (int)$request->query->get('limit', 20);
-        
+
         $result = $this->mobileService->getFilteredTasks($user, $filters, $page, $limit);
-        
+
         return $this->json($result);
     }
 
@@ -84,9 +85,9 @@ class MobileAPIController extends AbstractController
     {
         $user = $this->getUser();
         $changes = json_decode($request->getContent(), true);
-        
+
         $result = $this->mobileService->syncOfflineChanges($user, $changes);
-        
+
         return $this->json($result);
     }
 
@@ -94,7 +95,7 @@ class MobileAPIController extends AbstractController
     public function config(): JsonResponse
     {
         $config = $this->mobileService->getAppConfig();
-        
+
         return $this->json($config);
     }
 
@@ -103,9 +104,9 @@ class MobileAPIController extends AbstractController
     {
         $user = $this->getUser();
         $deviceData = json_decode($request->getContent(), true);
-        
+
         $result = $this->mobileService->registerDevice($user, $deviceData);
-        
+
         return $this->json($result);
     }
 
@@ -114,7 +115,7 @@ class MobileAPIController extends AbstractController
     {
         $user = $this->getUser();
         $data = $this->mobileService->getWidgetData($user, $type);
-        
+
         return $this->json($data);
     }
 }

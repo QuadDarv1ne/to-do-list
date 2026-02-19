@@ -17,8 +17,9 @@ class PerformanceMetricsSubscriber implements EventSubscriberInterface
     private ?PerformanceMetricsCollector $collector = null;
 
     public function __construct(
-        private PerformanceMetricsCollector $metricsCollector
-    ) {}
+        private PerformanceMetricsCollector $metricsCollector,
+    ) {
+    }
 
     public static function getSubscribedEvents(): array
     {
@@ -47,14 +48,14 @@ class PerformanceMetricsSubscriber implements EventSubscriberInterface
         }
 
         $this->collector->stopTimer('controller_execution');
-        
+
         $request = $event->getRequest();
         $response = $event->getResponse();
 
         // Record response metrics
         $this->collector->recordMetric('response_status', [
             'code' => $response->getStatusCode(),
-            'size' => strlen($response->getContent())
+            'size' => \strlen($response->getContent()),
         ]);
 
         // Add performance header in dev mode
@@ -73,7 +74,7 @@ class PerformanceMetricsSubscriber implements EventSubscriberInterface
         }
 
         $duration = $this->collector->stopTimer('request_total');
-        
+
         $request = $event->getRequest();
         $endpoint = $request->getPathInfo();
 

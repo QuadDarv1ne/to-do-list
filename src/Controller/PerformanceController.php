@@ -4,9 +4,9 @@ namespace App\Controller;
 
 use App\Service\PerformanceMetricsService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -15,8 +15,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class PerformanceController extends AbstractController
 {
     public function __construct(
-        private PerformanceMetricsService $metricsService
-    ) {}
+        private PerformanceMetricsService $metricsService,
+    ) {
+    }
 
     #[Route('', name: 'app_performance_index')]
     public function index(): Response
@@ -30,7 +31,7 @@ class PerformanceController extends AbstractController
 
         return $this->render('performance/index.html.twig', [
             'metrics' => $metrics,
-            'trend' => $trend
+            'trend' => $trend,
         ]);
     }
 
@@ -77,7 +78,7 @@ class PerformanceController extends AbstractController
 
         return new Response($csv, 200, [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="performance.csv"'
+            'Content-Disposition' => 'attachment; filename="performance.csv"',
         ]);
     }
 

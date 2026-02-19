@@ -9,8 +9,9 @@ use Doctrine\ORM\EntityManagerInterface;
 class AdvancedTimeTrackingService
 {
     public function __construct(
-        private EntityManagerInterface $entityManager
-    ) {}
+        private EntityManagerInterface $entityManager,
+    ) {
+    }
 
     /**
      * Start time tracking
@@ -23,7 +24,7 @@ class AdvancedTimeTrackingService
             'task_id' => $task->getId(),
             'user_id' => $user->getId(),
             'started_at' => new \DateTime(),
-            'status' => 'running'
+            'status' => 'running',
         ];
     }
 
@@ -37,7 +38,7 @@ class AdvancedTimeTrackingService
             'id' => $trackingId,
             'stopped_at' => new \DateTime(),
             'duration' => 0,
-            'status' => 'stopped'
+            'status' => 'stopped',
         ];
     }
 
@@ -79,7 +80,7 @@ class AdvancedTimeTrackingService
             'duration_minutes' => $duration,
             'started_at' => new \DateTime(),
             'ends_at' => (new \DateTime())->modify("+$duration minutes"),
-            'status' => 'running'
+            'status' => 'running',
         ];
     }
 
@@ -93,7 +94,7 @@ class AdvancedTimeTrackingService
             'id' => $pomodoroId,
             'completed_at' => new \DateTime(),
             'status' => 'completed',
-            'xp_earned' => 10
+            'xp_earned' => 10,
         ];
     }
 
@@ -108,7 +109,7 @@ class AdvancedTimeTrackingService
             'total_minutes' => 0,
             'average_per_day' => 0,
             'most_productive_hour' => 10,
-            'completion_rate' => 0
+            'completion_rate' => 0,
         ];
     }
 
@@ -125,7 +126,7 @@ class AdvancedTimeTrackingService
             'by_task' => [],
             'by_category' => [],
             'by_day' => [],
-            'by_hour' => []
+            'by_hour' => [],
         ];
     }
 
@@ -151,7 +152,7 @@ class AdvancedTimeTrackingService
             'duration_minutes' => $minutes,
             'description' => $description,
             'created_at' => new \DateTime(),
-            'type' => 'manual'
+            'type' => 'manual',
         ];
     }
 
@@ -195,7 +196,7 @@ class AdvancedTimeTrackingService
     public function exportTimeReport(User $user, \DateTime $from, \DateTime $to, string $format = 'csv'): string
     {
         $report = $this->getTimeReport($user, $from, $to);
-        
+
         return match($format) {
             'csv' => $this->exportToCSV($report),
             'pdf' => $this->exportToPDF($report),
@@ -210,10 +211,10 @@ class AdvancedTimeTrackingService
     private function exportToCSV(array $report): string
     {
         $csv = "Метрика,Значение\n";
-        $csv .= "Всего времени," . $report['total_time'] . " мин\n";
-        $csv .= "Оплачиваемое," . $report['billable_time'] . " мин\n";
-        $csv .= "Неоплачиваемое," . $report['non_billable_time'] . " мин\n";
-        
+        $csv .= 'Всего времени,' . $report['total_time'] . " мин\n";
+        $csv .= 'Оплачиваемое,' . $report['billable_time'] . " мин\n";
+        $csv .= 'Неоплачиваемое,' . $report['non_billable_time'] . " мин\n";
+
         return $csv;
     }
 
@@ -242,7 +243,7 @@ class AdvancedTimeTrackingService
     {
         $billableMinutes = $this->getTimeReport($user, $from, $to)['billable_time'];
         $billableHours = $billableMinutes / 60;
-        
+
         return round($billableHours * $hourlyRate, 2);
     }
 
@@ -252,7 +253,7 @@ class AdvancedTimeTrackingService
     public function getProductivityInsights(User $user, \DateTime $from, \DateTime $to): array
     {
         $report = $this->getTimeReport($user, $from, $to);
-        
+
         return [
             'most_productive_day' => 'Понедельник',
             'most_productive_hour' => $report['most_productive_hour'],
@@ -261,8 +262,8 @@ class AdvancedTimeTrackingService
             'recommendations' => [
                 'Лучшее время для сложных задач: 10:00-12:00',
                 'Делайте перерывы каждые 50 минут',
-                'Ваша продуктивность выше в первой половине дня'
-            ]
+                'Ваша продуктивность выше в первой половине дня',
+            ],
         ];
     }
 
@@ -275,13 +276,13 @@ class AdvancedTimeTrackingService
             [
                 'type' => 'idle',
                 'message' => 'Вы не отслеживали время последние 2 часа',
-                'action' => 'start_tracking'
+                'action' => 'start_tracking',
             ],
             [
                 'type' => 'long_session',
                 'message' => 'Вы работаете уже 3 часа. Сделайте перерыв!',
-                'action' => 'take_break'
-            ]
+                'action' => 'take_break',
+            ],
         ];
     }
 
@@ -294,7 +295,7 @@ class AdvancedTimeTrackingService
             'should_break' => true,
             'reason' => 'Вы работаете уже 90 минут',
             'suggested_duration' => 15, // minutes
-            'type' => 'short_break'
+            'type' => 'short_break',
         ];
     }
 }

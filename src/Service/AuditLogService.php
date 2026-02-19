@@ -11,9 +11,10 @@ class AuditLogService
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private RequestStack $requestStack
-    ) {}
-    
+        private RequestStack $requestStack,
+    ) {
+    }
+
     /**
      * Log an action
      */
@@ -23,7 +24,7 @@ class AuditLogService
         ?User $user = null,
         ?string $entityType = null,
         ?int $entityId = null,
-        ?array $metadata = null
+        ?array $metadata = null,
     ): ActivityLog {
         $log = new ActivityLog();
         $log->setAction($action);
@@ -32,7 +33,7 @@ class AuditLogService
         $log->setEntityType($entityType);
         $log->setEntityId($entityId);
         $log->setCreatedAt(new \DateTime());
-        
+
         // Add request metadata
         $request = $this->requestStack->getCurrentRequest();
         if ($request) {
@@ -40,26 +41,26 @@ class AuditLogService
                 'ip' => $request->getClientIp(),
                 'user_agent' => $request->headers->get('User-Agent'),
                 'method' => $request->getMethod(),
-                'uri' => $request->getRequestUri()
+                'uri' => $request->getRequestUri(),
             ];
-            
+
             if ($metadata) {
                 $metadata = array_merge($metadata, $requestMetadata);
             } else {
                 $metadata = $requestMetadata;
             }
         }
-        
+
         if ($metadata) {
             $log->setMetadata($metadata);
         }
-        
+
         $this->entityManager->persist($log);
         $this->entityManager->flush();
-        
+
         return $log;
     }
-    
+
     /**
      * Log task creation
      */
@@ -67,18 +68,18 @@ class AuditLogService
     {
         $this->log(
             'task.created',
-            sprintf('Создана задача "%s"', $task->getTitle()),
+            \sprintf('Создана задача "%s"', $task->getTitle()),
             $user,
             'Task',
             $task->getId(),
             [
                 'task_title' => $task->getTitle(),
                 'priority' => $task->getPriority(),
-                'status' => $task->getStatus()
-            ]
+                'status' => $task->getStatus(),
+            ],
         );
     }
-    
+
     /**
      * Log task update
      */
@@ -86,17 +87,17 @@ class AuditLogService
     {
         $this->log(
             'task.updated',
-            sprintf('Обновлена задача "%s"', $task->getTitle()),
+            \sprintf('Обновлена задача "%s"', $task->getTitle()),
             $user,
             'Task',
             $task->getId(),
             [
                 'task_title' => $task->getTitle(),
-                'changes' => $changes
-            ]
+                'changes' => $changes,
+            ],
         );
     }
-    
+
     /**
      * Log task deletion
      */
@@ -104,16 +105,16 @@ class AuditLogService
     {
         $this->log(
             'task.deleted',
-            sprintf('Удалена задача "%s"', $task->getTitle()),
+            \sprintf('Удалена задача "%s"', $task->getTitle()),
             $user,
             'Task',
             $task->getId(),
             [
-                'task_title' => $task->getTitle()
-            ]
+                'task_title' => $task->getTitle(),
+            ],
         );
     }
-    
+
     /**
      * Log task status change
      */
@@ -121,18 +122,18 @@ class AuditLogService
     {
         $this->log(
             'task.status_changed',
-            sprintf('Изменен статус задачи "%s" с "%s" на "%s"', $task->getTitle(), $oldStatus, $newStatus),
+            \sprintf('Изменен статус задачи "%s" с "%s" на "%s"', $task->getTitle(), $oldStatus, $newStatus),
             $user,
             'Task',
             $task->getId(),
             [
                 'task_title' => $task->getTitle(),
                 'old_status' => $oldStatus,
-                'new_status' => $newStatus
-            ]
+                'new_status' => $newStatus,
+            ],
         );
     }
-    
+
     /**
      * Log task assignment
      */
@@ -140,18 +141,18 @@ class AuditLogService
     {
         $this->log(
             'task.assigned',
-            sprintf('Задача "%s" назначена пользователю %s', $task->getTitle(), $assignedTo->getFullName()),
+            \sprintf('Задача "%s" назначена пользователю %s', $task->getTitle(), $assignedTo->getFullName()),
             $user,
             'Task',
             $task->getId(),
             [
                 'task_title' => $task->getTitle(),
                 'assigned_to_id' => $assignedTo->getId(),
-                'assigned_to_name' => $assignedTo->getFullName()
-            ]
+                'assigned_to_name' => $assignedTo->getFullName(),
+            ],
         );
     }
-    
+
     /**
      * Log user login
      */
@@ -159,13 +160,13 @@ class AuditLogService
     {
         $this->log(
             'user.login',
-            sprintf('Пользователь %s вошел в систему', $user->getFullName()),
+            \sprintf('Пользователь %s вошел в систему', $user->getFullName()),
             $user,
             'User',
-            $user->getId()
+            $user->getId(),
         );
     }
-    
+
     /**
      * Log user logout
      */
@@ -173,13 +174,13 @@ class AuditLogService
     {
         $this->log(
             'user.logout',
-            sprintf('Пользователь %s вышел из системы', $user->getFullName()),
+            \sprintf('Пользователь %s вышел из системы', $user->getFullName()),
             $user,
             'User',
-            $user->getId()
+            $user->getId(),
         );
     }
-    
+
     /**
      * Log failed login attempt
      */
@@ -187,14 +188,14 @@ class AuditLogService
     {
         $this->log(
             'user.login_failed',
-            sprintf('Неудачная попытка входа для email: %s', $email),
+            \sprintf('Неудачная попытка входа для email: %s', $email),
             null,
             'User',
             null,
-            ['email' => $email]
+            ['email' => $email],
         );
     }
-    
+
     /**
      * Log export action
      */
@@ -202,17 +203,17 @@ class AuditLogService
     {
         $this->log(
             'export.' . $exportType,
-            sprintf('Экспорт данных (%s): %d записей', $exportType, $recordCount),
+            \sprintf('Экспорт данных (%s): %d записей', $exportType, $recordCount),
             $user,
             null,
             null,
             [
                 'export_type' => $exportType,
-                'record_count' => $recordCount
-            ]
+                'record_count' => $recordCount,
+            ],
         );
     }
-    
+
     /**
      * Get activity logs for entity
      */
@@ -222,10 +223,10 @@ class AuditLogService
             ->findBy(
                 ['entityType' => $entityType, 'entityId' => $entityId],
                 ['createdAt' => 'DESC'],
-                $limit
+                $limit,
             );
     }
-    
+
     /**
      * Get user activity logs
      */
@@ -235,10 +236,10 @@ class AuditLogService
             ->findBy(
                 ['user' => $user],
                 ['createdAt' => 'DESC'],
-                $limit
+                $limit,
             );
     }
-    
+
     /**
      * Get recent activity
      */
@@ -248,17 +249,17 @@ class AuditLogService
             ->findBy(
                 [],
                 ['createdAt' => 'DESC'],
-                $limit
+                $limit,
             );
     }
-    
+
     /**
      * Get activity statistics
      */
     public function getActivityStatistics(\DateTime $startDate, \DateTime $endDate): array
     {
         $qb = $this->entityManager->createQueryBuilder();
-        
+
         // Total activities
         $totalActivities = $qb->select('COUNT(a.id)')
             ->from(ActivityLog::class, 'a')
@@ -267,7 +268,7 @@ class AuditLogService
             ->setParameter('end', $endDate)
             ->getQuery()
             ->getSingleScalarResult();
-        
+
         // Activities by action
         $activitiesByAction = $this->entityManager->createQueryBuilder()
             ->select('a.action, COUNT(a.id) as count')
@@ -279,7 +280,7 @@ class AuditLogService
             ->setParameter('end', $endDate)
             ->getQuery()
             ->getResult();
-        
+
         // Most active users
         $mostActiveUsers = $this->entityManager->createQueryBuilder()
             ->select('u.id, u.fullName, COUNT(a.id) as activity_count')
@@ -293,15 +294,15 @@ class AuditLogService
             ->setParameter('end', $endDate)
             ->getQuery()
             ->getResult();
-        
+
         return [
             'total_activities' => (int)$totalActivities,
             'activities_by_action' => $activitiesByAction,
             'most_active_users' => $mostActiveUsers,
             'period' => [
                 'start' => $startDate->format('Y-m-d'),
-                'end' => $endDate->format('Y-m-d')
-            ]
+                'end' => $endDate->format('Y-m-d'),
+            ],
         ];
     }
 }

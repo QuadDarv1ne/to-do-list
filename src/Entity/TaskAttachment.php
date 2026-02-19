@@ -58,6 +58,7 @@ class TaskAttachment
     public function setTask(?Task $task): static
     {
         $this->task = $task;
+
         return $this;
     }
 
@@ -69,6 +70,7 @@ class TaskAttachment
     public function setFilename(string $filename): static
     {
         $this->filename = $filename;
+
         return $this;
     }
 
@@ -80,6 +82,7 @@ class TaskAttachment
     public function setOriginalFilename(string $originalFilename): static
     {
         $this->originalFilename = $originalFilename;
+
         return $this;
     }
 
@@ -91,6 +94,7 @@ class TaskAttachment
     public function setMimeType(string $mimeType): static
     {
         $this->mimeType = $mimeType;
+
         return $this;
     }
 
@@ -102,6 +106,7 @@ class TaskAttachment
     public function setFileSize(int $fileSize): static
     {
         $this->fileSize = $fileSize;
+
         return $this;
     }
 
@@ -113,6 +118,7 @@ class TaskAttachment
     public function setFilePath(string $filePath): static
     {
         $this->filePath = $filePath;
+
         return $this;
     }
 
@@ -124,6 +130,7 @@ class TaskAttachment
     public function setUploadedBy(?User $uploadedBy): static
     {
         $this->uploadedBy = $uploadedBy;
+
         return $this;
     }
 
@@ -135,6 +142,7 @@ class TaskAttachment
     public function setUploadedAt(\DateTimeImmutable $uploadedAt): static
     {
         $this->uploadedAt = $uploadedAt;
+
         return $this;
     }
 
@@ -142,11 +150,11 @@ class TaskAttachment
     {
         $bytes = $this->fileSize;
         $units = ['B', 'KB', 'MB', 'GB'];
-        
-        for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
+
+        for ($i = 0; $bytes > 1024 && $i < \count($units) - 1; $i++) {
             $bytes /= 1024;
         }
-        
+
         return round($bytes, 2) . ' ' . $units[$i];
     }
 }

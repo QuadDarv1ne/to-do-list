@@ -10,20 +10,20 @@ final readonly class TaskCompleted implements DomainEventInterface
         private TaskId $taskId,
         private int $completedByUserId,
         private \DateTimeImmutable $completedAt,
-        private \DateTimeImmutable $occurredAt
+        private \DateTimeImmutable $occurredAt,
     ) {
     }
 
     public static function create(
         TaskId $taskId,
         int $completedByUserId,
-        \DateTimeImmutable $completedAt
+        \DateTimeImmutable $completedAt,
     ): self {
         return new self(
             $taskId,
             $completedByUserId,
             $completedAt,
-            new \DateTimeImmutable()
+            new \DateTimeImmutable(),
         );
     }
 

@@ -13,8 +13,9 @@ class DoctrineBatchProcessor
     private const DEFAULT_BATCH_SIZE = 50;
 
     public function __construct(
-        private EntityManagerInterface $entityManager
-    ) {}
+        private EntityManagerInterface $entityManager,
+    ) {
+    }
 
     /**
      * Batch insert - массовая вставка с автоматическим flush
@@ -22,23 +23,23 @@ class DoctrineBatchProcessor
     public function batchInsert(array $entities, int $batchSize = self::DEFAULT_BATCH_SIZE): int
     {
         $count = 0;
-        
+
         foreach ($entities as $entity) {
             $this->entityManager->persist($entity);
             $count++;
-            
+
             if ($count % $batchSize === 0) {
                 $this->entityManager->flush();
                 $this->entityManager->clear();
             }
         }
-        
+
         // Flush remaining entities
         if ($count % $batchSize !== 0) {
             $this->entityManager->flush();
             $this->entityManager->clear();
         }
-        
+
         return $count;
     }
 
@@ -49,36 +50,36 @@ class DoctrineBatchProcessor
     {
         $repository = $this->entityManager->getRepository($entityClass);
         $qb = $repository->createQueryBuilder('e');
-        
+
         foreach ($criteria as $field => $value) {
             // Валидация имени поля
             if (!preg_match('/^[a-zA-Z0-9_]+$/', $field)) {
                 continue;
             }
-            
+
             $qb->andWhere("e.$field = :$field")
                ->setParameter($field, $value);
         }
-        
+
         $query = $qb->getQuery();
         $iterableResult = $query->toIterable();
-        
+
         $count = 0;
         foreach ($iterableResult as $entity) {
             $callback($entity);
             $count++;
-            
+
             if ($count % $batchSize === 0) {
                 $this->entityManager->flush();
                 $this->entityManager->clear();
             }
         }
-        
+
         if ($count % $batchSize !== 0) {
             $this->entityManager->flush();
             $this->entityManager->clear();
         }
-        
+
         return $count;
     }
 
@@ -89,18 +90,18 @@ class DoctrineBatchProcessor
     {
         $repository = $this->entityManager->getRepository($entityClass);
         $count = 0;
-        
+
         $chunks = array_chunk($ids, $batchSize);
-        
+
         foreach ($chunks as $chunk) {
             $qb = $repository->createQueryBuilder('e');
             $qb->delete()
                ->where('e.id IN (:ids)')
                ->setParameter('ids', $chunk);
-            
+
             $count += $qb->getQuery()->execute();
         }
-        
+
         return $count;
     }
 
@@ -111,32 +112,32 @@ class DoctrineBatchProcessor
     {
         $repository = $this->entityManager->getRepository($entityClass);
         $qb = $repository->createQueryBuilder('e');
-        
+
         foreach ($criteria as $field => $value) {
             // Валидация имени поля
             if (!preg_match('/^[a-zA-Z0-9_]+$/', $field)) {
                 continue;
             }
-            
+
             $qb->andWhere("e.$field = :$field")
                ->setParameter($field, $value);
         }
-        
+
         $query = $qb->getQuery();
         $iterableResult = $query->toIterable();
-        
+
         $count = 0;
         foreach ($iterableResult as $entity) {
             $processor($entity);
             $count++;
-            
+
             if ($count % $batchSize === 0) {
                 $this->entityManager->clear();
             }
         }
-        
+
         $this->entityManager->clear();
-        
+
         return $count;
     }
 }

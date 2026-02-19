@@ -10,7 +10,7 @@ final readonly class GetTasksQuery
         private ?string $priority = null,
         private ?int $categoryId = null,
         private int $page = 1,
-        private int $limit = 10
+        private int $limit = 10,
     ) {
     }
 

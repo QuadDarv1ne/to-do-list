@@ -4,17 +4,18 @@ namespace App\Controller;
 
 use App\Service\AdvancedReportingService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/reports')]
 class ReportingController extends AbstractController
 {
     public function __construct(
-        private AdvancedReportingService $reportingService
-    ) {}
+        private AdvancedReportingService $reportingService,
+    ) {
+    }
 
     #[Route('', name: 'app_reports_index')]
     public function index(): Response
@@ -22,7 +23,7 @@ class ReportingController extends AbstractController
         $predefinedReports = $this->reportingService->getPredefinedReports();
 
         return $this->render('reports/index.html.twig', [
-            'predefined_reports' => $predefinedReports
+            'predefined_reports' => $predefinedReports,
         ]);
     }
 
@@ -41,7 +42,7 @@ class ReportingController extends AbstractController
     public function predefined(string $key): JsonResponse
     {
         $predefinedReports = $this->reportingService->getPredefinedReports();
-        
+
         if (!isset($predefinedReports[$key])) {
             return $this->json(['error' => 'Report not found'], 404);
         }
@@ -65,7 +66,7 @@ class ReportingController extends AbstractController
 
         return new Response($pdf, 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="report.pdf"'
+            'Content-Disposition' => 'attachment; filename="report.pdf"',
         ]);
     }
 
@@ -80,7 +81,7 @@ class ReportingController extends AbstractController
 
         return new Response($excel, 200, [
             'Content-Type' => 'application/vnd.ms-excel',
-            'Content-Disposition' => 'attachment; filename="report.xlsx"'
+            'Content-Disposition' => 'attachment; filename="report.xlsx"',
         ]);
     }
 

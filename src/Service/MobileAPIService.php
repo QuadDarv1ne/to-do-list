@@ -9,8 +9,9 @@ use App\Repository\TaskRepository;
 class MobileAPIService
 {
     public function __construct(
-        private TaskRepository $taskRepository
-    ) {}
+        private TaskRepository $taskRepository,
+    ) {
+    }
 
     /**
      * Get mobile dashboard
@@ -22,7 +23,7 @@ class MobileAPIService
             'stats' => $this->getMobileStats($user),
             'today_tasks' => $this->getTodayTasks($user),
             'urgent_tasks' => $this->getUrgentTasks($user),
-            'notifications' => $this->getRecentNotifications($user, 5)
+            'notifications' => $this->getRecentNotifications($user, 5),
         ];
     }
 
@@ -36,7 +37,7 @@ class MobileAPIService
             'username' => $user->getUsername(),
             'email' => $user->getEmail(),
             'avatar_url' => $user->getAvatarUrl(),
-            'initials' => $user->getInitials()
+            'initials' => $user->getInitials(),
         ];
     }
 
@@ -69,7 +70,7 @@ class MobileAPIService
                 ->setParameter('completed', 'completed')
                 ->getQuery()
                 ->getSingleScalarResult(),
-            'completed_today' => 0 // TODO: Calculate
+            'completed_today' => 0, // TODO: Calculate
         ];
     }
 
@@ -92,7 +93,7 @@ class MobileAPIService
             ->getQuery()
             ->getResult();
 
-        return array_map(fn($task) => $this->formatTaskForMobile($task), $tasks);
+        return array_map(fn ($task) => $this->formatTaskForMobile($task), $tasks);
     }
 
     /**
@@ -112,7 +113,7 @@ class MobileAPIService
             ->getQuery()
             ->getResult();
 
-        return array_map(fn($task) => $this->formatTaskForMobile($task), $tasks);
+        return array_map(fn ($task) => $this->formatTaskForMobile($task), $tasks);
     }
 
     /**
@@ -131,10 +132,10 @@ class MobileAPIService
             'assigned_user' => $task->getAssignedUser() ? [
                 'id' => $task->getAssignedUser()->getId(),
                 'username' => $task->getAssignedUser()->getUsername(),
-                'avatar_url' => $task->getAssignedUser()->getAvatarUrl()
+                'avatar_url' => $task->getAssignedUser()->getAvatarUrl(),
             ] : null,
             'created_at' => $task->getCreatedAt()?->format('Y-m-d H:i:s'),
-            'is_overdue' => $task->getDeadline() && $task->getDeadline() < new \DateTime() && $task->getStatus() !== 'completed'
+            'is_overdue' => $task->getDeadline() && $task->getDeadline() < new \DateTime() && $task->getStatus() !== 'completed',
         ];
     }
 
@@ -183,7 +184,7 @@ class MobileAPIService
             ->setParameter('taskId', $taskId)
             ->getQuery()
             ->getOneOrNullResult();
-            
+
         if (!$task) {
             return ['error' => 'Task not found'];
         }
@@ -216,37 +217,37 @@ class MobileAPIService
             ->setParameter('taskId', $taskId)
             ->getQuery()
             ->getOneOrNullResult();
-            
+
         if (!$task) {
             return ['error' => 'Task not found'];
         }
 
         $details = $this->formatTaskForMobile($task);
-        
+
         // Добавляем детали (уже загружены через JOIN)
-        $details['comments'] = array_map(function($comment) {
+        $details['comments'] = array_map(function ($comment) {
             return [
                 'id' => $comment->getId(),
                 'content' => $comment->getContent(),
                 'author' => $comment->getAuthor()->getUsername(),
-                'created_at' => $comment->getCreatedAt()->format('Y-m-d H:i:s')
+                'created_at' => $comment->getCreatedAt()->format('Y-m-d H:i:s'),
             ];
         }, $task->getComments()->toArray());
-        
-        $details['attachments'] = array_map(function($attachment) {
+
+        $details['attachments'] = array_map(function ($attachment) {
             return [
                 'id' => $attachment->getId(),
                 'filename' => $attachment->getFilename(),
                 'size' => $attachment->getSize(),
-                'mime_type' => $attachment->getMimeType()
+                'mime_type' => $attachment->getMimeType(),
             ];
         }, $task->getAttachments()->toArray());
-        
-        $details['tags'] = array_map(function($tag) {
+
+        $details['tags'] = array_map(function ($tag) {
             return [
                 'id' => $tag->getId(),
                 'name' => $tag->getName(),
-                'color' => $tag->getColor()
+                'color' => $tag->getColor(),
             ];
         }, $task->getTags()->toArray());
 
@@ -268,7 +269,7 @@ class MobileAPIService
             ->getQuery()
             ->getResult();
 
-        return array_map(fn($task) => $this->formatTaskForMobile($task), $tasks);
+        return array_map(fn ($task) => $this->formatTaskForMobile($task), $tasks);
     }
 
     /**
@@ -304,10 +305,10 @@ class MobileAPIService
                     ->getResult();
 
         return [
-            'tasks' => array_map(fn($task) => $this->formatTaskForMobile($task), $tasks),
+            'tasks' => array_map(fn ($task) => $this->formatTaskForMobile($task), $tasks),
             'page' => $page,
             'limit' => $limit,
-            'has_more' => count($tasks) === $limit
+            'has_more' => \count($tasks) === $limit,
         ];
     }
 
@@ -326,25 +327,25 @@ class MobileAPIService
                     'delete' => ['success' => true], // TODO: Implement
                     default => ['error' => 'Unknown change type']
                 };
-                
+
                 $results[] = [
                     'local_id' => $change['local_id'],
                     'success' => true,
-                    'data' => $result
+                    'data' => $result,
                 ];
             } catch (\Exception $e) {
                 $results[] = [
                     'local_id' => $change['local_id'],
                     'success' => false,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ];
             }
         }
 
         return [
-            'synced' => count(array_filter($results, fn($r) => $r['success'])),
-            'failed' => count(array_filter($results, fn($r) => !$r['success'])),
-            'results' => $results
+            'synced' => \count(array_filter($results, fn ($r) => $r['success'])),
+            'failed' => \count(array_filter($results, fn ($r) => !$r['success'])),
+            'results' => $results,
         ];
     }
 
@@ -361,13 +362,13 @@ class MobileAPIService
                 'push_notifications' => true,
                 'biometric_auth' => true,
                 'dark_mode' => true,
-                'widgets' => true
+                'widgets' => true,
             ],
             'limits' => [
                 'max_file_size' => 10485760, // 10MB
                 'max_attachments' => 5,
-                'max_comment_length' => 5000
-            ]
+                'max_comment_length' => 5000,
+            ],
         ];
     }
 
@@ -379,7 +380,7 @@ class MobileAPIService
         // TODO: Save device token to database
         return [
             'success' => true,
-            'device_id' => uniqid()
+            'device_id' => uniqid(),
         ];
     }
 
@@ -392,16 +393,16 @@ class MobileAPIService
             'today_tasks' => [
                 'type' => 'today_tasks',
                 'count' => $this->getMobileStats($user)['today_tasks'],
-                'tasks' => array_slice($this->getTodayTasks($user), 0, 3)
+                'tasks' => \array_slice($this->getTodayTasks($user), 0, 3),
             ],
             'urgent_tasks' => [
                 'type' => 'urgent_tasks',
-                'count' => count($this->getUrgentTasks($user)),
-                'tasks' => array_slice($this->getUrgentTasks($user), 0, 3)
+                'count' => \count($this->getUrgentTasks($user)),
+                'tasks' => \array_slice($this->getUrgentTasks($user), 0, 3),
             ],
             'stats' => [
                 'type' => 'stats',
-                'data' => $this->getMobileStats($user)
+                'data' => $this->getMobileStats($user),
             ],
             default => ['error' => 'Unknown widget type']
         };

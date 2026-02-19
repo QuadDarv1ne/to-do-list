@@ -8,8 +8,9 @@ use App\Repository\TaskRepository;
 class PerformanceMetricsService
 {
     public function __construct(
-        private TaskRepository $taskRepository
-    ) {}
+        private TaskRepository $taskRepository,
+    ) {
+    }
 
     /**
      * Get user performance metrics
@@ -26,7 +27,7 @@ class PerformanceMetricsService
             'tasks_completed' => $this->getTasksCompleted($user, $from, $to),
             'tasks_created' => $this->getTasksCreated($user, $from, $to),
             'overdue_tasks' => $this->getOverdueTasks($user, $from, $to),
-            'on_time_completion' => $this->getOnTimeCompletion($user, $from, $to)
+            'on_time_completion' => $this->getOnTimeCompletion($user, $from, $to),
         ];
     }
 
@@ -39,7 +40,9 @@ class PerformanceMetricsService
         $created = $this->getTasksCreated($user, $from, $to);
         $overdue = $this->getOverdueTasks($user, $from, $to);
 
-        if ($created === 0) return 0;
+        if ($created === 0) {
+            return 0;
+        }
 
         $completionRate = ($completed / $created) * 100;
         $overdueRate = ($overdue / $created) * 100;
@@ -69,6 +72,7 @@ class PerformanceMetricsService
     {
         // TODO: Factor in reopened tasks, comments, revisions
         $onTimeRate = $this->getOnTimeCompletion($user, $from, $to);
+
         return $onTimeRate;
     }
 
@@ -89,9 +93,12 @@ class PerformanceMetricsService
     private function getCompletionRate(User $user, \DateTime $from, \DateTime $to): float
     {
         $created = $this->getTasksCreated($user, $from, $to);
-        if ($created === 0) return 0;
+        if ($created === 0) {
+            return 0;
+        }
 
         $completed = $this->getTasksCompleted($user, $from, $to);
+
         return round(($completed / $created) * 100, 2);
     }
 
@@ -164,7 +171,9 @@ class PerformanceMetricsService
     private function getOnTimeCompletion(User $user, \DateTime $from, \DateTime $to): float
     {
         $completed = $this->getTasksCompleted($user, $from, $to);
-        if ($completed === 0) return 0;
+        if ($completed === 0) {
+            return 0;
+        }
 
         // TODO: Count tasks completed before deadline
         $onTime = $completed; // Placeholder
@@ -178,7 +187,7 @@ class PerformanceMetricsService
     public function getTeamMetrics(array $userIds, \DateTime $from, \DateTime $to): array
     {
         $teamMetrics = [];
-        
+
         foreach ($userIds as $userId) {
             // TODO: Get user by ID
             // $user = $this->userRepository->find($userId);
@@ -189,7 +198,7 @@ class PerformanceMetricsService
             'members' => $teamMetrics,
             'team_average' => $this->calculateTeamAverage($teamMetrics),
             'top_performer' => $this->getTopPerformer($teamMetrics),
-            'total_completed' => array_sum(array_column($teamMetrics, 'tasks_completed'))
+            'total_completed' => array_sum(array_column($teamMetrics, 'tasks_completed')),
         ];
     }
 
@@ -202,12 +211,13 @@ class PerformanceMetricsService
             return [];
         }
 
-        $count = count($teamMetrics);
+        $count = \count($teamMetrics);
+
         return [
             'productivity_score' => array_sum(array_column($teamMetrics, 'productivity_score')) / $count,
             'efficiency_score' => array_sum(array_column($teamMetrics, 'efficiency_score')) / $count,
             'quality_score' => array_sum(array_column($teamMetrics, 'quality_score')) / $count,
-            'velocity' => array_sum(array_column($teamMetrics, 'velocity')) / $count
+            'velocity' => array_sum(array_column($teamMetrics, 'velocity')) / $count,
         ];
     }
 
@@ -240,16 +250,16 @@ class PerformanceMetricsService
     public function getPerformanceTrend(User $user, int $weeks = 4): array
     {
         $trend = [];
-        
+
         for ($i = $weeks - 1; $i >= 0; $i--) {
             $from = new \DateTime("-$i weeks monday");
             $to = new \DateTime("-$i weeks sunday");
-            
+
             $metrics = $this->getUserMetrics($user, $from, $to);
             $trend[] = [
                 'week' => $from->format('Y-W'),
                 'productivity_score' => $metrics['productivity_score'],
-                'tasks_completed' => $metrics['tasks_completed']
+                'tasks_completed' => $metrics['tasks_completed'],
             ];
         }
 
@@ -264,7 +274,7 @@ class PerformanceMetricsService
         return [
             'user1' => $this->getUserMetrics($user1, $from, $to),
             'user2' => $this->getUserMetrics($user2, $from, $to),
-            'winner' => $this->determineWinner($user1, $user2, $from, $to)
+            'winner' => $this->determineWinner($user1, $user2, $from, $to),
         ];
     }
 
@@ -306,7 +316,7 @@ class PerformanceMetricsService
     public function exportMetricsToCSV(array $metrics): string
     {
         $csv = "Метрика,Значение\n";
-        
+
         foreach ($metrics as $key => $value) {
             if (is_numeric($value)) {
                 $csv .= "$key,$value\n";

@@ -13,8 +13,9 @@ use Symfony\Component\HttpKernel\KernelEvents;
 class SecurityValidationListener implements EventSubscriberInterface
 {
     public function __construct(
-        private InputValidationService $inputValidationService
-    ) {}
+        private InputValidationService $inputValidationService,
+    ) {
+    }
 
     public function onKernelRequest(RequestEvent $event): void
     {
@@ -42,7 +43,7 @@ class SecurityValidationListener implements EventSubscriberInterface
         // Sanitize query parameters
         $queryParameters = $request->query->all();
         foreach ($queryParameters as $key => $value) {
-            if (is_string($value)) {
+            if (\is_string($value)) {
                 $sanitizedValue = $this->inputValidationService->validateString($value, 1000, true);
                 if ($sanitizedValue !== $value) {
                     $request->query->set($key, $sanitizedValue);
@@ -53,7 +54,7 @@ class SecurityValidationListener implements EventSubscriberInterface
         // Sanitize request body parameters
         $requestContent = $request->request->all();
         foreach ($requestContent as $key => $value) {
-            if (is_string($value)) {
+            if (\is_string($value)) {
                 $sanitizedValue = $this->inputValidationService->validateString($value, 10000, true);
                 if ($sanitizedValue !== $value) {
                     $request->request->set($key, $sanitizedValue);
@@ -64,7 +65,7 @@ class SecurityValidationListener implements EventSubscriberInterface
         // Sanitize route parameters
         $routeParams = $request->attributes->all();
         foreach ($routeParams as $key => $value) {
-            if (is_string($value)) {
+            if (\is_string($value)) {
                 $sanitizedValue = $this->inputValidationService->validateString($value, 1000, true);
                 if ($sanitizedValue !== $value) {
                     $request->attributes->set($key, $sanitizedValue);

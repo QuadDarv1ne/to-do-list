@@ -10,7 +10,7 @@ class CRMAnalyticsService
 {
     public function __construct(
         private DealRepository $dealRepository,
-        private ClientRepository $clientRepository
+        private ClientRepository $clientRepository,
     ) {
     }
 
@@ -56,7 +56,7 @@ class CRMAnalyticsService
                 'by_stage' => $dealsByStage,
                 'by_status' => $dealsCountByStatus,
                 'overdue' => $overdueDeals,
-                'overdue_count' => count($overdueDeals),
+                'overdue_count' => \count($overdueDeals),
             ],
             'conversion' => [
                 'rate' => $conversionRate,
@@ -76,23 +76,23 @@ class CRMAnalyticsService
     public function getSalesFunnelData(?User $manager = null): array
     {
         $dealsByStage = $this->dealRepository->getDealsByStage($manager);
-        
+
         $funnel = [];
         $prevCount = 0;
-        
+
         foreach ($dealsByStage as $stage) {
             $conversionRate = $prevCount > 0 ? ($stage['count'] / $prevCount) * 100 : 100;
-            
+
             $funnel[] = [
                 'stage' => $stage['stage'],
                 'count' => $stage['count'],
                 'total' => $stage['total'],
                 'conversion_rate' => $conversionRate,
             ];
-            
+
             $prevCount = $stage['count'];
         }
-        
+
         return $funnel;
     }
 
@@ -113,13 +113,13 @@ class CRMAnalyticsService
     {
         $startOfMonth = new \DateTime('first day of this month');
         $endOfMonth = new \DateTime('last day of this month');
-        
+
         $newClients = $this->clientRepository->getNewClientsCount($startOfMonth, $endOfMonth, $manager);
         $inactiveClients = $this->clientRepository->getClientsWithoutRecentContact(30, $manager);
-        
+
         return [
             'new_clients' => $newClients,
-            'inactive_clients' => count($inactiveClients),
+            'inactive_clients' => \count($inactiveClients),
             'total_clients' => $this->clientRepository->getTotalCount($manager),
         ];
     }

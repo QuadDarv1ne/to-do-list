@@ -16,8 +16,9 @@ class KnowledgeBaseService
         private KnowledgeBaseArticleRepository $articleRepository,
         private KnowledgeBaseCategoryRepository $categoryRepository,
         private TagRepository $tagRepository,
-        private EntityManagerInterface $entityManager
-    ) {}
+        private EntityManagerInterface $entityManager,
+    ) {
+    }
 
     /**
      * Create a new knowledge base article
@@ -42,7 +43,7 @@ class KnowledgeBaseService
         }
 
         // Add categories
-        if (isset($data['category_ids']) && is_array($data['category_ids'])) {
+        if (isset($data['category_ids']) && \is_array($data['category_ids'])) {
             foreach ($data['category_ids'] as $categoryId) {
                 $category = $this->categoryRepository->find($categoryId);
                 if ($category) {
@@ -52,7 +53,7 @@ class KnowledgeBaseService
         }
 
         // Add tags
-        if (isset($data['tag_names']) && is_array($data['tag_names'])) {
+        if (isset($data['tag_names']) && \is_array($data['tag_names'])) {
             foreach ($data['tag_names'] as $tagName) {
                 $tag = $this->tagRepository->findOneBy(['name' => $tagName]);
                 if (!$tag) {
@@ -79,30 +80,30 @@ class KnowledgeBaseService
             $article->setTitle($data['title']);
             $article->setSlug($this->generateSlug($data['title']));
         }
-        
+
         if (isset($data['content'])) {
             $article->setContent($data['content']);
         }
-        
+
         if (isset($data['summary'])) {
             $article->setSummary($data['summary']);
         }
-        
+
         if (isset($data['status'])) {
             $article->setStatus($data['status']);
         }
-        
+
         if (isset($data['meta_description'])) {
             $article->setMetaDescription($data['meta_description']);
         }
 
         // Update categories
-        if (isset($data['category_ids']) && is_array($data['category_ids'])) {
+        if (isset($data['category_ids']) && \is_array($data['category_ids'])) {
             // Remove existing categories
             foreach ($article->getCategories() as $category) {
                 $article->removeCategory($category);
             }
-            
+
             // Add new categories
             foreach ($data['category_ids'] as $categoryId) {
                 $category = $this->categoryRepository->find($categoryId);
@@ -113,12 +114,12 @@ class KnowledgeBaseService
         }
 
         // Update tags
-        if (isset($data['tag_names']) && is_array($data['tag_names'])) {
+        if (isset($data['tag_names']) && \is_array($data['tag_names'])) {
             // Remove existing tags
             foreach ($article->getTags() as $tag) {
                 $article->removeTag($tag);
             }
-            
+
             // Add new tags
             foreach ($data['tag_names'] as $tagName) {
                 $tag = $this->tagRepository->findOneBy(['name' => $tagName]);
@@ -179,11 +180,11 @@ class KnowledgeBaseService
             $category->setName($data['name']);
             $category->setSlug($this->generateSlug($data['name']));
         }
-        
+
         if (isset($data['description'])) {
             $category->setDescription($data['description']);
         }
-        
+
         if (isset($data['sort_order'])) {
             $category->setSortOrder($data['sort_order']);
         }
@@ -206,12 +207,12 @@ class KnowledgeBaseService
      * Get articles by various criteria
      */
     public function getArticles(
-        ?string $status = null, 
-        ?User $author = null, 
-        ?int $categoryId = null, 
+        ?string $status = null,
+        ?User $author = null,
+        ?int $categoryId = null,
         ?string $tagName = null,
         int $limit = 20,
-        int $offset = 0
+        int $offset = 0,
     ): array {
         $qb = $this->articleRepository->createQueryBuilder('a')
             ->orderBy('a.createdAt', 'DESC');
@@ -373,24 +374,24 @@ class KnowledgeBaseService
 
         // Try to find articles with similar tags
         $tags = $article->getTags();
-        if (count($tags) > 0) {
+        if (\count($tags) > 0) {
             $tagNames = [];
             foreach ($tags as $tag) {
                 $tagNames[] = $tag->getName();
             }
-            
+
             $qb->leftJoin('a.tags', 't')
                ->andWhere('t.name IN (:tagNames)')
                ->setParameter('tagNames', $tagNames);
         } else {
             // Fallback to same category
             $categories = $article->getCategories();
-            if (count($categories) > 0) {
+            if (\count($categories) > 0) {
                 $categoryIds = [];
                 foreach ($categories as $category) {
                     $categoryIds[] = $category->getId();
                 }
-                
+
                 $qb->leftJoin('a.categories', 'c')
                    ->andWhere('c.id IN (:categoryIds)')
                    ->setParameter('categoryIds', $categoryIds);
@@ -427,6 +428,7 @@ class KnowledgeBaseService
     private function generateSlug(string $title): string
     {
         $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $title)));
+
         return $slug ?: 'untitled';
     }
 
@@ -467,8 +469,8 @@ class KnowledgeBaseService
             'most_popular_article' => $mostPopularArticle ? [
                 'id' => $mostPopularArticle->getId(),
                 'title' => $mostPopularArticle->getTitle(),
-                'view_count' => $mostPopularArticle->getViewCount()
-            ] : null
+                'view_count' => $mostPopularArticle->getViewCount(),
+            ] : null,
         ];
     }
 }

@@ -4,18 +4,19 @@ namespace App\Service;
 
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Contracts\Cache\ItemInterface;
 
 class QueryCacheService
 {
     private CacheItemPoolInterface $cache;
+
     private LoggerInterface $logger;
+
     private int $defaultTtl;
 
     public function __construct(
         CacheItemPoolInterface $cache,
         LoggerInterface $logger,
-        int $defaultTtl = 300 // 5 minutes default
+        int $defaultTtl = 300, // 5 minutes default
     ) {
         $this->cache = $cache;
         $this->logger = $logger;
@@ -28,10 +29,10 @@ class QueryCacheService
     public function cacheQuery(string $key, callable $queryCallback, ?int $ttl = null): mixed
     {
         $ttl = $ttl ?? $this->defaultTtl;
-        
+
         try {
             $item = $this->cache->getItem($this->normalizeKey($key));
-            
+
             if (!$item->isHit()) {
                 $this->logger->info("Cache MISS for key: {$key}");
                 $result = $queryCallback();
@@ -41,10 +42,11 @@ class QueryCacheService
             } else {
                 $this->logger->info("Cache HIT for key: {$key}");
             }
-            
+
             return $item->get();
         } catch (\Exception $e) {
             $this->logger->error("Cache error for key {$key}: " . $e->getMessage());
+
             // Fallback to direct query if cache fails
             return $queryCallback();
         }
@@ -64,11 +66,11 @@ class QueryCacheService
     public function warmCache(callable $warmupCallback): void
     {
         try {
-            $this->logger->info("Starting cache warmup");
+            $this->logger->info('Starting cache warmup');
             $warmupCallback($this);
-            $this->logger->info("Cache warmup completed");
+            $this->logger->info('Cache warmup completed');
         } catch (\Exception $e) {
-            $this->logger->error("Cache warmup failed: " . $e->getMessage());
+            $this->logger->error('Cache warmup failed: ' . $e->getMessage());
         }
     }
 
@@ -86,6 +88,7 @@ class QueryCacheService
     public function cacheWithAutoKey(string $prefix, array $parameters, callable $queryCallback, ?int $ttl = null): mixed
     {
         $key = $prefix . '_' . md5(serialize($parameters));
+
         return $this->cacheQuery($key, $queryCallback, $ttl);
     }
 
@@ -95,13 +98,13 @@ class QueryCacheService
     public function batchCache(array $queries): array
     {
         $results = [];
-        
+
         foreach ($queries as $key => $queryConfig) {
             $callback = $queryConfig['callback'];
             $ttl = $queryConfig['ttl'] ?? null;
             $results[$key] = $this->cacheQuery($key, $callback, $ttl);
         }
-        
+
         return $results;
     }
 
@@ -114,9 +117,11 @@ class QueryCacheService
             $normalizedKey = $this->normalizeKey($key);
             $result = $this->cache->deleteItem($normalizedKey);
             $this->logger->info("Cache invalidated for key: {$key}");
+
             return $result;
         } catch (\Exception $e) {
             $this->logger->error("Cache invalidation error for key {$key}: " . $e->getMessage());
+
             return false;
         }
     }
@@ -130,6 +135,7 @@ class QueryCacheService
             return $this->cache->hasItem($this->normalizeKey($key));
         } catch (\Exception $e) {
             $this->logger->error("Cache check error for key {$key}: " . $e->getMessage());
+
             return false;
         }
     }
@@ -141,10 +147,12 @@ class QueryCacheService
     {
         try {
             $result = $this->cache->clear();
-            $this->logger->info("Cache cleared");
+            $this->logger->info('Cache cleared');
+
             return $result;
         } catch (\Exception $e) {
-            $this->logger->error("Cache clear error: " . $e->getMessage());
+            $this->logger->error('Cache clear error: ' . $e->getMessage());
+
             return false;
         }
     }
@@ -154,11 +162,11 @@ class QueryCacheService
      */
     public function optimize(): void
     {
-        $this->logger->info("Starting cache optimization");
-        
+        $this->logger->info('Starting cache optimization');
+
         // In a real implementation, you would use a cache adapter that supports pruning
         // For now, we'll just log that optimization was attempted
-        $this->logger->info("Cache optimization completed");
+        $this->logger->info('Cache optimization completed');
     }
 
     /**
@@ -169,8 +177,8 @@ class QueryCacheService
         // This is a simplified implementation
         // In production, you'd integrate with your cache provider's stats
         return [
-            'provider' => get_class($this->cache),
-            'default_ttl' => $this->defaultTtl
+            'provider' => \get_class($this->cache),
+            'default_ttl' => $this->defaultTtl,
         ];
     }
 
@@ -180,6 +188,6 @@ class QueryCacheService
     private function normalizeKey(string $key): string
     {
         // Remove special characters and normalize the key
-        return preg_replace('/[^a-zA-Z0-9_\-]/', '_', $key);
+        return preg_replace('/[^a-zA-Z0-9_\\-]/', '_', $key);
     }
 }

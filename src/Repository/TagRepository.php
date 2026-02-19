@@ -18,7 +18,7 @@ use Doctrine\Persistence\ManagerRegistry;
 class TagRepository extends ServiceEntityRepository
 {
     use CachedRepositoryTrait;
-    
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Tag::class);
@@ -48,41 +48,41 @@ class TagRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
-    
+
     /**
      * Get tag usage statistics
      */
     public function getTagUsageStats(): array
     {
         $qb = $this->createQueryBuilder('t');
-        
+
         $result = $qb->select('t.id, t.name, t.color, COUNT(task.id) as taskCount')
             ->leftJoin('t.tasks', 'task')
             ->groupBy('t.id, t.name, t.color')
             ->orderBy('taskCount', 'DESC')
             ->getQuery()
             ->getResult();
-            
+
         return $result;
     }
-    
+
     /**
      * Get tag completion rates
      */
     public function getTagCompletionRates(): array
     {
         $qb = $this->createQueryBuilder('t');
-        
+
         $rawResult = $qb->select('
-                t.id, 
-                t.name, 
+                t.id,
+                t.name,
                 t.color,
                 COUNT(task.id) as totalTasks,
                 SUM(CASE WHEN task.status = \'completed\' THEN 1 ELSE 0 END) as completedTasks,
-                CASE 
-                    WHEN COUNT(task.id) > 0 THEN 
+                CASE
+                    WHEN COUNT(task.id) > 0 THEN
                         (SUM(CASE WHEN task.status = \'completed\' THEN 1 ELSE 0 END) * 100.0) / COUNT(task.id)
-                    ELSE 0 
+                    ELSE 0
                 END as completionRate
             ')
             ->leftJoin('t.tasks', 'task')
@@ -90,25 +90,25 @@ class TagRepository extends ServiceEntityRepository
             ->orderBy('completionRate', 'DESC')
             ->getQuery()
             ->getResult();
-            
+
         // Round the completion rate in PHP
         $result = [];
         foreach ($rawResult as $item) {
             $item['completionRate'] = round($item['completionRate'], 2);
             $result[] = $item;
         }
-        
+
         return $result;
     }
-    
+
     public function findByUser($user): array
     {
         $cacheKey = 'tags_by_user_' . $user->getId();
-        
+
         if ($this->cacheService) {
             return $this->cachedQuery(
                 $cacheKey,
-                function() use ($user) {
+                function () use ($user) {
                     return $this->createQueryBuilder('t')
                         ->andWhere('t.user = :user')
                         ->setParameter('user', $user)
@@ -117,10 +117,10 @@ class TagRepository extends ServiceEntityRepository
                         ->getResult();
                 },
                 ['user_id' => $user->getId()],
-                300 // 5 minutes cache
+                300, // 5 minutes cache
             );
         }
-        
+
         return $this->createQueryBuilder('t')
             ->andWhere('t.user = :user')
             ->setParameter('user', $user)

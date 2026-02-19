@@ -12,7 +12,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:monitor-api-performance',
-    description: 'Monitor and analyze API performance metrics'
+    description: 'Monitor and analyze API performance metrics',
 )]
 class ApiPerformanceMonitorCommand extends Command
 {
@@ -65,18 +65,18 @@ class ApiPerformanceMonitorCommand extends Command
         switch ($action) {
             case 'summary':
                 $io->writeln('Generating API performance summary...');
-                
+
                 $summary = $this->apiPerformanceMonitorService->getPerformanceSummary($filters);
-                
+
                 if ($format === 'json') {
                     $outputData = [
                         'summary' => $summary,
                         'filters' => $filters,
-                        'timestamp' => date('Y-m-d H:i:s')
+                        'timestamp' => date('Y-m-d H:i:s'),
                     ];
-                    
+
                     $jsonData = json_encode($outputData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-                    
+
                     if ($outputFile) {
                         file_put_contents($outputFile, $jsonData);
                         $io->success("Summary saved to {$outputFile}");
@@ -85,29 +85,30 @@ class ApiPerformanceMonitorCommand extends Command
                     }
                 } else {
                     $this->displaySummaryReport($io, $summary);
-                    
+
                     if ($outputFile) {
                         $textData = $this->getSummaryTextReport($summary);
                         file_put_contents($outputFile, $textData);
                         $io->success("Summary saved to {$outputFile}");
                     }
                 }
+
                 break;
 
             case 'slow-requests':
                 $io->writeln("Getting slowest requests (top {$limit})...");
-                
+
                 $slowRequests = $this->apiPerformanceMonitorService->getSlowestRequests($limit);
-                
+
                 if ($format === 'json') {
                     $outputData = [
                         'slow_requests' => $slowRequests,
                         'limit' => $limit,
-                        'timestamp' => date('Y-m-d H:i:s')
+                        'timestamp' => date('Y-m-d H:i:s'),
                     ];
-                    
+
                     $jsonData = json_encode($outputData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-                    
+
                     if ($outputFile) {
                         file_put_contents($outputFile, $jsonData);
                         $io->success("Slow requests saved to {$outputFile}");
@@ -116,28 +117,29 @@ class ApiPerformanceMonitorCommand extends Command
                     }
                 } else {
                     $this->displaySlowRequestsReport($io, $slowRequests);
-                    
+
                     if ($outputFile) {
                         $textData = $this->getSlowRequestsTextReport($slowRequests);
                         file_put_contents($outputFile, $textData);
                         $io->success("Slow requests saved to {$outputFile}");
                     }
                 }
+
                 break;
 
             case 'bottlenecks':
                 $io->writeln('Identifying performance bottlenecks...');
-                
+
                 $bottlenecks = $this->apiPerformanceMonitorService->identifyBottlenecks();
-                
+
                 if ($format === 'json') {
                     $outputData = [
                         'bottlenecks' => $bottlenecks,
-                        'timestamp' => date('Y-m-d H:i:s')
+                        'timestamp' => date('Y-m-d H:i:s'),
                     ];
-                    
+
                     $jsonData = json_encode($outputData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-                    
+
                     if ($outputFile) {
                         file_put_contents($outputFile, $jsonData);
                         $io->success("Bottlenecks report saved to {$outputFile}");
@@ -146,25 +148,28 @@ class ApiPerformanceMonitorCommand extends Command
                     }
                 } else {
                     $this->displayBottlenecksReport($io, $bottlenecks);
-                    
+
                     if ($outputFile) {
                         $textData = $this->getBottlenecksTextReport($bottlenecks);
                         file_put_contents($outputFile, $textData);
                         $io->success("Bottlenecks report saved to {$outputFile}");
                     }
                 }
+
                 break;
 
             case 'clear':
                 $io->writeln('Clearing API performance metrics...');
-                
+
                 $this->apiPerformanceMonitorService->clearMetrics();
-                
+
                 $io->success('API performance metrics cleared successfully.');
+
                 break;
 
             default:
                 $io->error("Unknown action: {$action}. Use summary, slow-requests, bottlenecks, or clear.");
+
                 return 1;
         }
 
@@ -174,7 +179,7 @@ class ApiPerformanceMonitorCommand extends Command
     private function displaySummaryReport(SymfonyStyle $io, array $summary): void
     {
         $io->section('API Performance Summary');
-        
+
         $io->table(
             ['Metric', 'Value'],
             [
@@ -186,21 +191,21 @@ class ApiPerformanceMonitorCommand extends Command
                 ['Total Errors', $summary['total_errors']],
                 ['Error Rate', $summary['error_rate_percent'] . '%'],
                 ['Requests Per Minute', $summary['requests_per_minute']],
-            ]
+            ],
         );
 
         if (!empty($summary['top_slow_endpoints'])) {
             $io->section('Top Slow Endpoints');
-            
+
             $rows = [];
             foreach ($summary['top_slow_endpoints'] as $endpoint => $data) {
                 $rows[] = [
                     $endpoint,
                     round($data['average_time'], 2) . ' ms',
-                    $data['count']
+                    $data['count'],
                 ];
             }
-            
+
             $io->table(['Endpoint', 'Avg Time', 'Requests'], $rows);
         }
     }
@@ -209,11 +214,12 @@ class ApiPerformanceMonitorCommand extends Command
     {
         if (empty($slowRequests)) {
             $io->writeln('No slow requests found.');
+
             return;
         }
 
         $io->section('Slowest API Requests');
-        
+
         $rows = [];
         foreach ($slowRequests as $request) {
             $rows[] = [
@@ -221,10 +227,10 @@ class ApiPerformanceMonitorCommand extends Command
                 $request['uri'],
                 $request['execution_time_ms'] . ' ms',
                 $request['response_status'],
-                $request['timestamp']
+                $request['timestamp'],
             ];
         }
-        
+
         $io->table(['Route', 'URI', 'Time', 'Status', 'Timestamp'], $rows);
     }
 
@@ -232,23 +238,24 @@ class ApiPerformanceMonitorCommand extends Command
     {
         if (empty($bottlenecks)) {
             $io->success('No performance bottlenecks detected.');
+
             return;
         }
 
         foreach ($bottlenecks as $type => $bottleneck) {
             $io->section(ucfirst(str_replace('_', ' ', $type)));
             $io->writeln($bottleneck['description']);
-            
+
             if ($type === 'slow_endpoints') {
                 $rows = [];
                 foreach ($bottleneck['endpoints'] as $endpoint => $data) {
                     $rows[] = [
                         $endpoint,
                         round($data['average_time'], 2) . ' ms',
-                        $data['count']
+                        $data['count'],
                     ];
                 }
-                
+
                 $io->table(['Endpoint', 'Avg Time', 'Requests'], $rows);
             } elseif ($type === 'high_error_endpoints') {
                 $rows = [];
@@ -257,10 +264,10 @@ class ApiPerformanceMonitorCommand extends Command
                         $endpoint,
                         $data['error_rate_percent'] . '%',
                         $data['total_requests'],
-                        $data['error_count']
+                        $data['error_count'],
                     ];
                 }
-                
+
                 $io->table(['Endpoint', 'Error Rate', 'Total Requests', 'Error Count'], $rows);
             }
         }
@@ -269,12 +276,12 @@ class ApiPerformanceMonitorCommand extends Command
     private function getSummaryTextReport(array $summary): string
     {
         $report = "API PERFORMANCE SUMMARY REPORT\n";
-        $report .= str_repeat("=", 50) . "\n\n";
+        $report .= str_repeat('=', 50) . "\n\n";
 
-        $report .= "Timestamp: " . date('Y-m-d H:i:s') . "\n\n";
+        $report .= 'Timestamp: ' . date('Y-m-d H:i:s') . "\n\n";
 
         $report .= "METRICS\n";
-        $report .= str_repeat("-", 20) . "\n";
+        $report .= str_repeat('-', 20) . "\n";
         $report .= "Total Requests: {$summary['total_requests']}\n";
         $report .= "Average Response Time: {$summary['average_response_time_ms']} ms\n";
         $report .= "Min Response Time: {$summary['min_response_time_ms']} ms\n";
@@ -286,16 +293,17 @@ class ApiPerformanceMonitorCommand extends Command
 
         if (!empty($summary['top_slow_endpoints'])) {
             $report .= "TOP SLOW ENDPOINTS\n";
-            $report .= str_repeat("-", 20) . "\n";
-            
+            $report .= str_repeat('-', 20) . "\n";
+
             foreach ($summary['top_slow_endpoints'] as $endpoint => $data) {
-                $report .= sprintf("%s: avg %.2f ms (%d requests)\n", 
-                    $endpoint, 
-                    $data['average_time'], 
-                    $data['count']
+                $report .= \sprintf(
+                    "%s: avg %.2f ms (%d requests)\n",
+                    $endpoint,
+                    $data['average_time'],
+                    $data['count'],
                 );
             }
-            
+
             $report .= "\n";
         }
 
@@ -305,25 +313,26 @@ class ApiPerformanceMonitorCommand extends Command
     private function getSlowRequestsTextReport(array $slowRequests): string
     {
         $report = "SLOWEST API REQUESTS REPORT\n";
-        $report .= str_repeat("=", 50) . "\n\n";
+        $report .= str_repeat('=', 50) . "\n\n";
 
-        $report .= "Timestamp: " . date('Y-m-d H:i:s') . "\n\n";
+        $report .= 'Timestamp: ' . date('Y-m-d H:i:s') . "\n\n";
 
         if (empty($slowRequests)) {
             $report .= "No slow requests found.\n";
+
             return $report;
         }
 
         $report .= "SLOWEST REQUESTS\n";
-        $report .= str_repeat("-", 20) . "\n";
-        
+        $report .= str_repeat('-', 20) . "\n";
+
         foreach ($slowRequests as $request) {
             $report .= "Route: {$request['route']}\n";
             $report .= "URI: {$request['uri']}\n";
             $report .= "Execution Time: {$request['execution_time_ms']} ms\n";
             $report .= "Status: {$request['response_status']}\n";
             $report .= "Timestamp: {$request['timestamp']}\n";
-            $report .= str_repeat("-", 20) . "\n";
+            $report .= str_repeat('-', 20) . "\n";
         }
 
         return $report;
@@ -332,39 +341,42 @@ class ApiPerformanceMonitorCommand extends Command
     private function getBottlenecksTextReport(array $bottlenecks): string
     {
         $report = "API PERFORMANCE BOTTLENECKS REPORT\n";
-        $report .= str_repeat("=", 50) . "\n\n";
+        $report .= str_repeat('=', 50) . "\n\n";
 
-        $report .= "Timestamp: " . date('Y-m-d H:i:s') . "\n\n";
+        $report .= 'Timestamp: ' . date('Y-m-d H:i:s') . "\n\n";
 
         if (empty($bottlenecks)) {
             $report .= "No performance bottlenecks detected.\n";
+
             return $report;
         }
 
         foreach ($bottlenecks as $type => $bottleneck) {
             $report .= strtoupper(str_replace('_', ' ', $type)) . "\n";
-            $report .= str_repeat("-", 20) . "\n";
+            $report .= str_repeat('-', 20) . "\n";
             $report .= $bottleneck['description'] . "\n\n";
-            
+
             if ($type === 'slow_endpoints') {
                 foreach ($bottleneck['endpoints'] as $endpoint => $data) {
-                    $report .= sprintf("%s: avg %.2f ms (%d requests)\n", 
-                        $endpoint, 
-                        $data['average_time'], 
-                        $data['count']
+                    $report .= \sprintf(
+                        "%s: avg %.2f ms (%d requests)\n",
+                        $endpoint,
+                        $data['average_time'],
+                        $data['count'],
                     );
                 }
             } elseif ($type === 'high_error_endpoints') {
                 foreach ($bottleneck['endpoints'] as $endpoint => $data) {
-                    $report .= sprintf("%s: %s%% error rate (%d total, %d errors)\n", 
+                    $report .= \sprintf(
+                        "%s: %s%% error rate (%d total, %d errors)\n",
                         $endpoint,
                         $data['error_rate_percent'],
                         $data['total_requests'],
-                        $data['error_count']
+                        $data['error_count'],
                     );
                 }
             }
-            
+
             $report .= "\n";
         }
 

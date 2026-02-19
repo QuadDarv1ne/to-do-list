@@ -14,9 +14,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class ReportController extends AbstractController
 {
     public function __construct(
-        private ReportGeneratorService $reportGenerator
-    ) {}
-    
+        private ReportGeneratorService $reportGenerator,
+    ) {
+    }
+
     /**
      * Reports dashboard
      */
@@ -25,7 +26,7 @@ class ReportController extends AbstractController
     {
         return $this->render('reports/index.html.twig');
     }
-    
+
     /**
      * Personal productivity report
      */
@@ -33,11 +34,11 @@ class ReportController extends AbstractController
     public function productivity(Request $request): Response
     {
         $user = $this->getUser();
-        
+
         // Default to last 30 days
         $endDate = new \DateTime();
         $startDate = (clone $endDate)->modify('-30 days');
-        
+
         // Allow custom date range
         if ($request->query->has('start_date')) {
             $startDate = new \DateTime($request->query->get('start_date'));
@@ -45,16 +46,16 @@ class ReportController extends AbstractController
         if ($request->query->has('end_date')) {
             $endDate = new \DateTime($request->query->get('end_date'));
         }
-        
+
         $report = $this->reportGenerator->generateProductivityReport($user, $startDate, $endDate);
-        
+
         return $this->render('reports/productivity.html.twig', [
             'report' => $report,
             'start_date' => $startDate,
-            'end_date' => $endDate
+            'end_date' => $endDate,
         ]);
     }
-    
+
     /**
      * Team performance report (managers and admins only)
      */
@@ -65,7 +66,7 @@ class ReportController extends AbstractController
         // Default to last 30 days
         $endDate = new \DateTime();
         $startDate = (clone $endDate)->modify('-30 days');
-        
+
         // Allow custom date range
         if ($request->query->has('start_date')) {
             $startDate = new \DateTime($request->query->get('start_date'));
@@ -73,16 +74,16 @@ class ReportController extends AbstractController
         if ($request->query->has('end_date')) {
             $endDate = new \DateTime($request->query->get('end_date'));
         }
-        
+
         $report = $this->reportGenerator->generateTeamReport($startDate, $endDate);
-        
+
         return $this->render('reports/team.html.twig', [
             'report' => $report,
             'start_date' => $startDate,
-            'end_date' => $endDate
+            'end_date' => $endDate,
         ]);
     }
-    
+
     /**
      * Overdue tasks report
      */
@@ -90,12 +91,12 @@ class ReportController extends AbstractController
     public function overdue(): Response
     {
         $report = $this->reportGenerator->generateOverdueReport();
-        
+
         return $this->render('reports/overdue.html.twig', [
-            'report' => $report
+            'report' => $report,
         ]);
     }
-    
+
     /**
      * Export productivity report as JSON
      */
@@ -103,22 +104,22 @@ class ReportController extends AbstractController
     public function exportProductivity(Request $request): Response
     {
         $user = $this->getUser();
-        
+
         $endDate = new \DateTime();
         $startDate = (clone $endDate)->modify('-30 days');
-        
+
         if ($request->query->has('start_date')) {
             $startDate = new \DateTime($request->query->get('start_date'));
         }
         if ($request->query->has('end_date')) {
             $endDate = new \DateTime($request->query->get('end_date'));
         }
-        
+
         $report = $this->reportGenerator->generateProductivityReport($user, $startDate, $endDate);
-        
+
         return $this->json($report);
     }
-    
+
     /**
      * Export team report as JSON
      */
@@ -128,16 +129,16 @@ class ReportController extends AbstractController
     {
         $endDate = new \DateTime();
         $startDate = (clone $endDate)->modify('-30 days');
-        
+
         if ($request->query->has('start_date')) {
             $startDate = new \DateTime($request->query->get('start_date'));
         }
         if ($request->query->has('end_date')) {
             $endDate = new \DateTime($request->query->get('end_date'));
         }
-        
+
         $report = $this->reportGenerator->generateTeamReport($startDate, $endDate);
-        
+
         return $this->json($report);
     }
 }

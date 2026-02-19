@@ -4,25 +4,26 @@ namespace App\Service;
 
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
-use Scheb\TwoFactorBundle\Model\Google\TwoFactorInterface as GoogleTwoFactorInterface;
-use Scheb\TwoFactorBundle\Security\TwoFactor\Provider\Google\GoogleAuthenticatorInterface;
 use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\RoundBlockSizeMode;
 use Endroid\QrCode\Writer\PngWriter;
+use Psr\Log\LoggerInterface;
+use Scheb\TwoFactorBundle\Security\TwoFactor\Provider\Google\GoogleAuthenticatorInterface;
 
 class TwoFactorAuthService
 {
     private EntityManagerInterface $entityManager;
+
     private LoggerInterface $logger;
+
     private ?GoogleAuthenticatorInterface $googleAuthenticator;
 
     public function __construct(
         EntityManagerInterface $entityManager,
         LoggerInterface $logger,
-        ?GoogleAuthenticatorInterface $googleAuthenticator = null
+        ?GoogleAuthenticatorInterface $googleAuthenticator = null,
     ) {
         $this->entityManager = $entityManager;
         $this->logger = $logger;
@@ -40,15 +41,15 @@ class TwoFactorAuthService
 
         // Generate secret key
         $secret = $this->googleAuthenticator->generateSecret();
-        
+
         // Store secret temporarily (will be moved to main secret after verification)
         $user->setTotpSecretTemp($secret);
         $this->entityManager->persist($user);
         $this->entityManager->flush();
-        
+
         // Create QR code URL (getGoogleAuthenticatorSecret will return temp secret)
         $qrCodeUrl = $this->googleAuthenticator->getQRContent($user);
-        
+
         // Generate QR code image
         $qrCodeImage = $this->generateQrCode($qrCodeUrl);
 
@@ -57,7 +58,7 @@ class TwoFactorAuthService
         return [
             'secret' => $secret,
             'qr_code_url' => $qrCodeUrl,
-            'qr_code_image' => $qrCodeImage
+            'qr_code_image' => $qrCodeImage,
         ];
     }
 
@@ -78,9 +79,9 @@ class TwoFactorAuthService
         // Temporarily set the secret to verify the code
         $originalSecret = $user->getTotpSecret();
         $user->setTotpSecret($tempSecret);
-        
+
         $isValid = $this->googleAuthenticator->checkCode($user, $code);
-        
+
         if ($isValid) {
             // Activate 2FA permanently
             $user->setTotpSecret($tempSecret);
@@ -88,7 +89,7 @@ class TwoFactorAuthService
             $user->setIsTotpEnabled(true);
             $user->setTotpEnabledAt(new \DateTime());
             $this->entityManager->flush();
-            
+
             $this->logger->info("2FA activated for user {$user->getId()}");
         } else {
             // Restore original secret
@@ -108,9 +109,9 @@ class TwoFactorAuthService
         $user->setTotpSecretTemp(null);
         $user->setIsTotpEnabled(false);
         $user->setTotpEnabledAt(null);
-        
+
         $this->entityManager->flush();
-        
+
         $this->logger->info("2FA disabled for user {$user->getId()}");
     }
 
@@ -124,7 +125,7 @@ class TwoFactorAuthService
         }
 
         $isValid = $this->googleAuthenticator->checkCode($user, $code);
-        
+
         if ($isValid) {
             $this->logger->info("2FA code verified for user {$user->getId()}");
         } else {
@@ -140,7 +141,7 @@ class TwoFactorAuthService
     public function generateBackupCodes(User $user, int $count = 10): array
     {
         $backupCodes = [];
-        
+
         for ($i = 0; $i < $count; $i++) {
             $code = strtoupper(bin2hex(random_bytes(4))); // 8-character codes
             $backupCodes[] = $code;
@@ -160,7 +161,7 @@ class TwoFactorAuthService
     public function verifyBackupCode(User $user, string $code): bool
     {
         $backupCodes = $user->getBackupCodes();
-        
+
         if (!$backupCodes) {
             return false;
         }
@@ -173,8 +174,9 @@ class TwoFactorAuthService
             unset($backupCodes[$key]);
             $user->setBackupCodes(array_values($backupCodes));
             $this->entityManager->flush();
-            
+
             $this->logger->info("Backup code used by user {$user->getId()}");
+
             return true;
         }
 
@@ -198,7 +200,7 @@ class TwoFactorAuthService
             'enabled' => $user->isTotpEnabled(),
             'enabled_at' => $user->getTotpEnabledAt()?->format('c'),
             'has_backup_codes' => !empty($user->getBackupCodes()),
-            'backup_codes_count' => count($user->getBackupCodes() ?? [])
+            'backup_codes_count' => \count($user->getBackupCodes() ?? []),
         ];
     }
 
@@ -218,14 +220,15 @@ class TwoFactorAuthService
                 errorCorrectionLevel: ErrorCorrectionLevel::High,
                 size: 300,
                 margin: 10,
-                roundBlockSizeMode: RoundBlockSizeMode::Margin
+                roundBlockSizeMode: RoundBlockSizeMode::Margin,
             );
 
             $result = $builder->build();
 
             return 'data:image/png;base64,' . base64_encode($result->getString());
         } catch (\Exception $e) {
-            $this->logger->error("Failed to generate QR code: " . $e->getMessage());
+            $this->logger->error('Failed to generate QR code: ' . $e->getMessage());
+
             return '';
         }
     }
@@ -244,17 +247,17 @@ class TwoFactorAuthService
     public function validateSetupRequirements(User $user): array
     {
         $errors = [];
-        
+
         // Check if user already has 2FA enabled
         if ($user->isTotpEnabled()) {
             $errors[] = '2FA уже активирована для этого аккаунта';
         }
-        
+
         // Check if Google Authenticator is available
         if (!$this->googleAuthenticator) {
             $errors[] = 'Сервис аутентификации недоступен';
         }
-        
+
         return $errors;
     }
 }

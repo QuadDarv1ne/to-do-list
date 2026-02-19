@@ -9,7 +9,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
 class SecurityHeadersSubscriber implements EventSubscriberInterface
 {
     public function __construct(
-        private string $environment
+        private string $environment,
     ) {
     }
 
@@ -52,7 +52,7 @@ class SecurityHeadersSubscriber implements EventSubscriberInterface
             'usb=()',
             'magnetometer=()',
             'gyroscope=()',
-            'accelerometer=()'
+            'accelerometer=()',
         ]));
 
         // HSTS (only in production with HTTPS)

@@ -14,8 +14,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class ActivityFeedController extends AbstractController
 {
     public function __construct(
-        private ActivityFeedService $activityFeedService
-    ) {}
+        private ActivityFeedService $activityFeedService,
+    ) {
+    }
 
     /**
      * Activity feed page
@@ -27,7 +28,7 @@ class ActivityFeedController extends AbstractController
         $feed = $this->activityFeedService->getUserFeed($user, 50);
 
         return $this->render('activity/index.html.twig', [
-            'feed' => $feed
+            'feed' => $feed,
         ]);
     }
 
@@ -41,7 +42,7 @@ class ActivityFeedController extends AbstractController
         $feed = $this->activityFeedService->getTeamFeed(100);
 
         return $this->render('activity/team.html.twig', [
-            'feed' => $feed
+            'feed' => $feed,
         ]);
     }
 
@@ -74,7 +75,7 @@ class ActivityFeedController extends AbstractController
             'stats' => $stats,
             'most_active' => $mostActive,
             'from' => $from,
-            'to' => $to
+            'to' => $to,
         ]);
     }
 }

@@ -14,7 +14,7 @@ class HealthCheckController extends AbstractController
     {
         $status = 'healthy';
         $checks = [];
-        
+
         // Check database connection
         try {
             $connection->executeQuery('SELECT 1');
@@ -23,26 +23,26 @@ class HealthCheckController extends AbstractController
             $checks['database'] = 'error';
             $status = 'unhealthy';
         }
-        
+
         // Check cache directory
         $cacheDir = $this->getParameter('kernel.cache_dir');
         $checks['cache'] = is_writable($cacheDir) ? 'ok' : 'error';
         if ($checks['cache'] === 'error') {
             $status = 'unhealthy';
         }
-        
+
         // Check log directory
         $logDir = $this->getParameter('kernel.logs_dir');
         $checks['logs'] = is_writable($logDir) ? 'ok' : 'error';
         if ($checks['logs'] === 'error') {
             $status = 'unhealthy';
         }
-        
+
         return new JsonResponse([
             'status' => $status,
             'timestamp' => time(),
             'checks' => $checks,
-            'version' => $this->getParameter('kernel.environment')
+            'version' => $this->getParameter('kernel.environment'),
         ], $status === 'healthy' ? 200 : 503);
     }
 }

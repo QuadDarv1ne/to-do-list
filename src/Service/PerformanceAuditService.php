@@ -15,9 +15,13 @@ use Symfony\Component\HttpKernel\KernelInterface;
 class PerformanceAuditService
 {
     private EntityManagerInterface $entityManager;
+
     private Connection $connection;
+
     private LoggerInterface $logger;
+
     private ContainerInterface $container;
+
     private KernelInterface $kernel;
 
     public function __construct(
@@ -25,7 +29,7 @@ class PerformanceAuditService
         Connection $connection,
         LoggerInterface $logger,
         ContainerInterface $container,
-        KernelInterface $kernel
+        KernelInterface $kernel,
     ) {
         $this->entityManager = $entityManager;
         $this->connection = $connection;
@@ -51,8 +55,8 @@ class PerformanceAuditService
                 'code_quality' => $this->auditCodeQuality(),
                 'configuration' => $this->auditConfiguration(),
                 'security' => $this->auditSecurity(),
-                'performance_metrics' => $this->auditPerformanceMetrics()
-            ]
+                'performance_metrics' => $this->auditPerformanceMetrics(),
+            ],
         ];
 
         $auditResults['duration_ms'] = round((microtime(true) - $startTime) * 1000, 2);
@@ -68,19 +72,19 @@ class PerformanceAuditService
     {
         $results = [
             'tables_count' => 0,
-            'recommendations' => []
+            'recommendations' => [],
         ];
 
         try {
             // Get table count
             $schemaManager = $this->connection->createSchemaManager();
             $tables = $schemaManager->listTables();
-            $results['tables_count'] = count($tables);
+            $results['tables_count'] = \count($tables);
 
             // Add recommendations for common optimizations
             $results['recommendations'][] = [
                 'type' => 'index_recommendation',
-                'reason' => 'Consider adding indexes on frequently queried columns like status, priority, and dates'
+                'reason' => 'Consider adding indexes on frequently queried columns like status, priority, and dates',
             ];
 
         } catch (\Exception $e) {
@@ -99,7 +103,7 @@ class PerformanceAuditService
         $results = [
             'files_analyzed' => 0,
             'potential_issues' => [],
-            'recommendations' => []
+            'recommendations' => [],
         ];
 
         try {
@@ -113,13 +117,13 @@ class PerformanceAuditService
             // Look for potential performance issues in code
             foreach ($finder as $file) {
                 $content = $file->getContents();
-                
+
                 // Check for raw SQL queries
-                if (preg_match_all('/->executeQuery\(|->prepare\(|->query\(/', $content, $matches)) {
+                if (preg_match_all('/->executeQuery\\(|->prepare\\(|->query\\(/', $content, $matches)) {
                     $results['potential_issues'][] = [
                         'type' => 'raw_sql_usage',
                         'file' => $file->getRelativePathname(),
-                        'count' => count($matches[0])
+                        'count' => \count($matches[0]),
                     ];
                 }
             }
@@ -140,7 +144,7 @@ class PerformanceAuditService
         $results = [
             'cache_configured' => false,
             'debug_mode' => false,
-            'recommended_settings' => []
+            'recommended_settings' => [],
         ];
 
         try {
@@ -156,7 +160,7 @@ class PerformanceAuditService
                 $results['recommended_settings'][] = [
                     'setting' => 'kernel.debug',
                     'recommended_value' => 'false',
-                    'reason' => 'Debug mode should be disabled in production for performance'
+                    'reason' => 'Debug mode should be disabled in production for performance',
                 ];
             }
 
@@ -176,7 +180,7 @@ class PerformanceAuditService
         $results = [
             'security_configured' => false,
             'csrf_enabled' => false,
-            'recommendations' => []
+            'recommendations' => [],
         ];
 
         try {
@@ -189,7 +193,7 @@ class PerformanceAuditService
             if (!$results['security_configured']) {
                 $results['recommendations'][] = [
                     'type' => 'missing_security',
-                    'reason' => 'Security configuration is not properly set up'
+                    'reason' => 'Security configuration is not properly set up',
                 ];
             }
 
@@ -210,7 +214,7 @@ class PerformanceAuditService
             'memory_usage' => memory_get_usage(),
             'peak_memory_usage' => memory_get_peak_usage(),
             'current_time' => microtime(true),
-            'metrics' => []
+            'metrics' => [],
         ];
 
         try {
@@ -218,7 +222,7 @@ class PerformanceAuditService
             $results['metrics'] = [
                 'memory_current_formatted' => $this->formatBytes($results['memory_usage']),
                 'memory_peak_formatted' => $this->formatBytes($results['peak_memory_usage']),
-                'memory_limit' => ini_get('memory_limit')
+                'memory_limit' => \ini_get('memory_limit'),
             ];
 
         } catch (\Exception $e) {
@@ -237,7 +241,7 @@ class PerformanceAuditService
         $units = ['B', 'KB', 'MB', 'GB'];
         $bytes = max($bytes, 0);
         $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-        $pow = min($pow, count($units) - 1);
+        $pow = min($pow, \count($units) - 1);
 
         $bytes /= pow(1024, $pow);
 
@@ -255,13 +259,13 @@ class PerformanceAuditService
             'warnings' => 0,
             'passed_checks' => 0,
             'total_checks' => 0,
-            'status' => 'unknown'
+            'status' => 'unknown',
         ];
 
         // Count issues and calculate score
         foreach ($auditResults['checks'] as $category => $results) {
             $summary['total_checks']++;
-            
+
             if (isset($results['error'])) {
                 $summary['critical_issues']++;
             } elseif (!empty($results['recommendations']) || !empty($results['potential_issues'])) {
@@ -276,7 +280,7 @@ class PerformanceAuditService
             $passedRatio = $summary['passed_checks'] / $summary['total_checks'];
             $warningRatio = $summary['warnings'] / $summary['total_checks'];
             $criticalRatio = $summary['critical_issues'] / $summary['total_checks'];
-            
+
             $score = 100 - ($criticalRatio * 50) - ($warningRatio * 10); // Deduct points for issues
             $summary['overall_score'] = max(0, min(100, round($score)));
         }

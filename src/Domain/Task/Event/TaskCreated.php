@@ -3,8 +3,8 @@
 namespace App\Domain\Task\Event;
 
 use App\Domain\Task\ValueObject\TaskId;
-use App\Domain\Task\ValueObject\TaskTitle;
 use App\Domain\Task\ValueObject\TaskPriority;
+use App\Domain\Task\ValueObject\TaskTitle;
 
 final readonly class TaskCreated implements DomainEventInterface
 {
@@ -14,7 +14,7 @@ final readonly class TaskCreated implements DomainEventInterface
         private TaskPriority $priority,
         private int $userId,
         private int $assignedUserId,
-        private \DateTimeImmutable $occurredAt
+        private \DateTimeImmutable $occurredAt,
     ) {
     }
 
@@ -23,7 +23,7 @@ final readonly class TaskCreated implements DomainEventInterface
         TaskTitle $title,
         TaskPriority $priority,
         int $userId,
-        int $assignedUserId
+        int $assignedUserId,
     ): self {
         return new self(
             $taskId,
@@ -31,7 +31,7 @@ final readonly class TaskCreated implements DomainEventInterface
             $priority,
             $userId,
             $assignedUserId,
-            new \DateTimeImmutable()
+            new \DateTimeImmutable(),
         );
     }
 

@@ -40,7 +40,7 @@ trait ApiResponseTrait
         int $page,
         int $limit,
         int $total,
-        array $groups = ['default']
+        array $groups = ['default'],
     ): JsonResponse {
         return $this->getOptimizer()->createPaginatedResponse($items, $page, $limit, $total, $groups);
     }
@@ -49,7 +49,7 @@ trait ApiResponseTrait
         mixed $data,
         int $status = 200,
         array $groups = ['default'],
-        array $headers = []
+        array $headers = [],
     ): JsonResponse {
         return $this->getOptimizer()->createResponse($data, $status, $groups, $headers);
     }

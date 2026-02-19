@@ -10,7 +10,7 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 final readonly class GetTasksQueryHandler
 {
     public function __construct(
-        private TaskRepository $taskRepository
+        private TaskRepository $taskRepository,
     ) {
     }
 
@@ -44,7 +44,7 @@ final readonly class GetTasksQueryHandler
 
         $tasks = $qb->getQuery()->getResult();
 
-        return array_map(fn($task) => [
+        return array_map(fn ($task) => [
             'id' => $task->getId(),
             'title' => $task->getTitle(),
             'status' => $task->getStatus(),

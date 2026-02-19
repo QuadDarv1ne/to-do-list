@@ -22,25 +22,25 @@ class UserController extends AbstractController
     public function index(
         UserRepository $userRepository,
         Request $request,
-        ?PerformanceMonitorService $performanceMonitor = null
+        ?PerformanceMonitorService $performanceMonitor = null,
     ): Response {
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('user_controller_index');
         }
-        
+
         try {
             // Добавляем пагинацию для оптимизации
             $page = max(1, $request->query->getInt('page', 1));
             $limit = 50;
-            
+
             $qb = $userRepository->createQueryBuilder('u')
                 ->orderBy('u.createdAt', 'DESC')
                 ->setFirstResult(($page - 1) * $limit)
                 ->setMaxResults($limit);
-            
+
             $users = $qb->getQuery()->getResult();
             $total = $userRepository->count([]);
-            
+
             return $this->render('user/index.html.twig', [
                 'users' => $users,
                 'statistics' => $userRepository->getStatistics(),
@@ -60,12 +60,12 @@ class UserController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         UserPasswordHasherInterface $passwordHasher,
-        ?PerformanceMonitorService $performanceMonitor = null
+        ?PerformanceMonitorService $performanceMonitor = null,
     ): Response {
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('user_controller_new');
         }
-        
+
         $user = new User();
         $form = $this->createForm(UserType::class, $user, ['is_new' => true]);
         $form->handleRequest($request);
@@ -107,12 +107,12 @@ class UserController extends AbstractController
     #[Route('/{id}', name: 'app_user_show', methods: ['GET'])]
     public function show(
         User $user,
-        ?PerformanceMonitorService $performanceMonitor = null
+        ?PerformanceMonitorService $performanceMonitor = null,
     ): Response {
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('user_controller_show');
         }
-        
+
         try {
             return $this->render('user/show.html.twig', [
                 'user' => $user,
@@ -130,12 +130,12 @@ class UserController extends AbstractController
         User $user,
         EntityManagerInterface $entityManager,
         UserPasswordHasherInterface $passwordHasher,
-        ?PerformanceMonitorService $performanceMonitor = null
+        ?PerformanceMonitorService $performanceMonitor = null,
     ): Response {
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('user_controller_edit');
         }
-        
+
         $form = $this->createForm(UserType::class, $user, ['is_new' => false]);
         $form->handleRequest($request);
 
@@ -179,17 +179,17 @@ class UserController extends AbstractController
         Request $request,
         User $user,
         EntityManagerInterface $entityManager,
-        ?PerformanceMonitorService $performanceMonitor = null
+        ?PerformanceMonitorService $performanceMonitor = null,
     ): Response {
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('user_controller_delete');
         }
-        
+
         if ($this->isCsrfTokenValid('delete'.$user->getId(), $request->request->get('_token'))) {
             // Не удаляем администратора системы
             if ($user->getUsername() === 'admin') {
                 $this->addFlash('error', 'Нельзя удалить системного администратора');
-                
+
                 try {
                     return $this->redirectToRoute('app_user_index');
                 } finally {
@@ -201,7 +201,7 @@ class UserController extends AbstractController
 
             $entityManager->remove($user);
             $entityManager->flush();
-            
+
             $this->addFlash('success', 'Пользователь успешно удален');
         }
 
@@ -219,12 +219,12 @@ class UserController extends AbstractController
         Request $request,
         User $user,
         EntityManagerInterface $entityManager,
-        ?PerformanceMonitorService $performanceMonitor = null
+        ?PerformanceMonitorService $performanceMonitor = null,
     ): Response {
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('user_controller_toggle_active');
         }
-        
+
         if ($this->isCsrfTokenValid('toggle-active'.$user->getId(), $request->request->get('_token'))) {
             $user->setIsActive(!$user->isActive());
             $entityManager->flush();
@@ -247,12 +247,12 @@ class UserController extends AbstractController
         Request $request,
         User $user,
         UserRepository $userRepository,
-        ?PerformanceMonitorService $performanceMonitor = null
+        ?PerformanceMonitorService $performanceMonitor = null,
     ): Response {
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('user_controller_unlock');
         }
-        
+
         if ($this->isCsrfTokenValid('unlock'.$user->getId(), $request->request->get('_token'))) {
             $userRepository->unlockUser($user);
             $this->addFlash('success', 'Пользователь разблокирован');

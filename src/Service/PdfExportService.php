@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use App\Entity\Task;
 use App\Entity\User;
 
 class PdfExportService
@@ -16,10 +15,10 @@ class PdfExportService
         $html = $this->getHtmlHeader();
         $html .= $this->getTasksTable($tasks, $user);
         $html .= $this->getHtmlFooter();
-        
+
         return $html;
     }
-    
+
     /**
      * Generate productivity report PDF
      */
@@ -30,7 +29,7 @@ class PdfExportService
         $html .= '<p style="text-align: center; color: #666;">Пользователь: ' . htmlspecialchars($user->getFullName()) . '</p>';
         $html .= '<p style="text-align: center; color: #666;">Дата: ' . date('d.m.Y H:i') . '</p>';
         $html .= '<hr>';
-        
+
         // Summary section
         $html .= '<h2>Сводка</h2>';
         $html .= '<table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">';
@@ -55,12 +54,12 @@ class PdfExportService
         $html .= '<td style="padding: 10px; border: 1px solid #ddd;">' . $reportData['productivity_score'] . ' / 100</td>';
         $html .= '</tr>';
         $html .= '</table>';
-        
+
         $html .= $this->getHtmlFooter();
-        
+
         return $html;
     }
-    
+
     /**
      * Get HTML header
      */
@@ -132,7 +131,7 @@ class PdfExportService
         </head>
         <body>';
     }
-    
+
     /**
      * Get HTML footer
      */
@@ -146,7 +145,7 @@ class PdfExportService
         </body>
         </html>';
     }
-    
+
     /**
      * Get tasks table HTML
      */
@@ -154,9 +153,9 @@ class PdfExportService
     {
         $html = '<h1>Список задач</h1>';
         $html .= '<p>Пользователь: ' . htmlspecialchars($user->getFullName()) . '</p>';
-        $html .= '<p>Всего задач: ' . count($tasks) . '</p>';
+        $html .= '<p>Всего задач: ' . \count($tasks) . '</p>';
         $html .= '<hr>';
-        
+
         $html .= '<table>';
         $html .= '<thead>';
         $html .= '<tr>';
@@ -169,7 +168,7 @@ class PdfExportService
         $html .= '</tr>';
         $html .= '</thead>';
         $html .= '<tbody>';
-        
+
         foreach ($tasks as $task) {
             $html .= '<tr>';
             $html .= '<td>' . $task->getId() . '</td>';
@@ -180,13 +179,13 @@ class PdfExportService
             $html .= '<td>' . ($task->getDeadline() ? $task->getDeadline()->format('d.m.Y') : '-') . '</td>';
             $html .= '</tr>';
         }
-        
+
         $html .= '</tbody>';
         $html .= '</table>';
-        
+
         return $html;
     }
-    
+
     /**
      * Get status badge HTML
      */
@@ -199,7 +198,7 @@ class PdfExportService
             'cancelled' => 'badge-danger',
             default => 'badge-info'
         };
-        
+
         $label = match($status) {
             'completed' => 'Завершено',
             'in_progress' => 'В процессе',
@@ -207,10 +206,10 @@ class PdfExportService
             'cancelled' => 'Отменено',
             default => $status
         };
-        
+
         return '<span class="badge ' . $class . '">' . $label . '</span>';
     }
-    
+
     /**
      * Get priority badge HTML
      */
@@ -223,7 +222,7 @@ class PdfExportService
             'low' => 'badge-secondary',
             default => 'badge-secondary'
         };
-        
+
         $label = match($priority) {
             'urgent' => 'Срочный',
             'high' => 'Высокий',
@@ -231,10 +230,10 @@ class PdfExportService
             'low' => 'Низкий',
             default => $priority
         };
-        
+
         return '<span class="badge ' . $class . '">' . $label . '</span>';
     }
-    
+
     /**
      * Convert HTML to PDF (placeholder for actual PDF generation)
      * In production, use: TCPDF, mPDF, Dompdf, or wkhtmltopdf
@@ -243,14 +242,14 @@ class PdfExportService
     {
         // This is a placeholder
         // In production, integrate with a PDF library:
-        
+
         // Example with Dompdf:
         // $dompdf = new \Dompdf\Dompdf();
         // $dompdf->loadHtml($html);
         // $dompdf->setPaper('A4', 'portrait');
         // $dompdf->render();
         // return $dompdf->output();
-        
+
         return $html; // For now, return HTML
     }
 }

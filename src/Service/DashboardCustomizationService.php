@@ -16,10 +16,10 @@ class DashboardCustomizationService
             'widgets' => [
                 ['id' => 'task_stats', 'position' => 1, 'size' => 'col-md-6'],
                 ['id' => 'recent_tasks', 'position' => 2, 'size' => 'col-md-6'],
-                ['id' => 'upcoming_deadlines', 'position' => 3, 'size' => 'col-md-12']
+                ['id' => 'upcoming_deadlines', 'position' => 3, 'size' => 'col-md-12'],
             ],
             'theme' => 'light',
-            'compact_mode' => false
+            'compact_mode' => false,
         ];
     }
 
@@ -39,6 +39,7 @@ class DashboardCustomizationService
     {
         $defaultLayout = $this->getDefaultLayout();
         $this->saveLayout($user, $defaultLayout);
+
         return $defaultLayout;
     }
 
@@ -52,10 +53,10 @@ class DashboardCustomizationService
                 ['id' => 'task_stats', 'position' => 1, 'size' => 'col-md-6'],
                 ['id' => 'recent_tasks', 'position' => 2, 'size' => 'col-md-6'],
                 ['id' => 'upcoming_deadlines', 'position' => 3, 'size' => 'col-md-6'],
-                ['id' => 'productivity_chart', 'position' => 4, 'size' => 'col-md-6']
+                ['id' => 'productivity_chart', 'position' => 4, 'size' => 'col-md-6'],
             ],
             'theme' => 'light',
-            'compact_mode' => false
+            'compact_mode' => false,
         ];
     }
 
@@ -68,23 +69,23 @@ class DashboardCustomizationService
             'light' => [
                 'name' => 'Светлая',
                 'description' => 'Классическая светлая тема',
-                'preview' => '/images/themes/light.png'
+                'preview' => '/images/themes/light.png',
             ],
             'dark' => [
                 'name' => 'Темная',
                 'description' => 'Темная тема для работы ночью',
-                'preview' => '/images/themes/dark.png'
+                'preview' => '/images/themes/dark.png',
             ],
             'blue' => [
                 'name' => 'Синяя',
                 'description' => 'Профессиональная синяя тема',
-                'preview' => '/images/themes/blue.png'
+                'preview' => '/images/themes/blue.png',
             ],
             'green' => [
                 'name' => 'Зеленая',
                 'description' => 'Успокаивающая зеленая тема',
-                'preview' => '/images/themes/green.png'
-            ]
+                'preview' => '/images/themes/green.png',
+            ],
         ];
     }
 
@@ -94,6 +95,7 @@ class DashboardCustomizationService
     public function exportLayout(User $user): string
     {
         $layout = $this->getUserLayout($user);
+
         return json_encode($layout, JSON_PRETTY_PRINT);
     }
 
@@ -104,6 +106,7 @@ class DashboardCustomizationService
     {
         try {
             $layout = json_decode($json, true);
+
             return $this->saveLayout($user, $layout);
         } catch (\Exception $e) {
             return false;

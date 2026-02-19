@@ -2,9 +2,9 @@
 
 namespace App\EventListener;
 
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
  * Автоматическое сжатие HTTP ответов
@@ -12,6 +12,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class CompressionListener implements EventSubscriberInterface
 {
     private int $minSize = 1024; // Минимальный размер для сжатия (1KB)
+
     private array $compressibleTypes = [
         'text/html',
         'text/css',
@@ -21,12 +22,13 @@ class CompressionListener implements EventSubscriberInterface
         'application/xml',
         'text/xml',
         'image/svg+xml',
-        'application/x-javascript'
+        'application/x-javascript',
     ];
 
     public function __construct(
-        private bool $enabled = true
-    ) {}
+        private bool $enabled = true,
+    ) {
+    }
 
     public static function getSubscribedEvents(): array
     {
@@ -46,7 +48,7 @@ class CompressionListener implements EventSubscriberInterface
 
         // Проверяем, поддерживает ли клиент сжатие
         $acceptEncoding = $request->headers->get('Accept-Encoding', '');
-        
+
         if (!str_contains($acceptEncoding, 'gzip')) {
             return;
         }
@@ -63,23 +65,23 @@ class CompressionListener implements EventSubscriberInterface
         }
 
         $content = $response->getContent();
-        
+
         // Проверяем минимальный размер
-        if (strlen($content) < $this->minSize) {
+        if (\strlen($content) < $this->minSize) {
             return;
         }
 
         // Сжимаем контент
         $compressed = gzencode($content, 6); // Уровень сжатия 6 (баланс скорость/размер)
-        
+
         if ($compressed === false) {
             return;
         }
 
         // Проверяем, что сжатие дало результат
-        $originalSize = strlen($content);
-        $compressedSize = strlen($compressed);
-        
+        $originalSize = \strlen($content);
+        $compressedSize = \strlen($compressed);
+
         if ($compressedSize >= $originalSize) {
             return; // Сжатие не эффективно
         }
@@ -101,6 +103,7 @@ class CompressionListener implements EventSubscriberInterface
                 return true;
             }
         }
+
         return false;
     }
 }

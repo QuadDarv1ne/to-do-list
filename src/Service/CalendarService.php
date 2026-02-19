@@ -8,8 +8,9 @@ use App\Repository\TaskRepository;
 class CalendarService
 {
     public function __construct(
-        private TaskRepository $taskRepository
-    ) {}
+        private TaskRepository $taskRepository,
+    ) {
+    }
 
     /**
      * Get calendar events for user
@@ -39,8 +40,8 @@ class CalendarService
                 'extendedProps' => [
                     'priority' => $task->getPriority(),
                     'status' => $task->getStatus(),
-                    'category' => $task->getCategory()?->getName()
-                ]
+                    'category' => $task->getCategory()?->getName(),
+                ],
             ];
         }
 
@@ -83,7 +84,7 @@ class CalendarService
             'start' => $start,
             'end' => $end,
             'tasks' => $calendar,
-            'total_tasks' => count($tasks)
+            'total_tasks' => \count($tasks),
         ];
     }
 
@@ -113,7 +114,7 @@ class CalendarService
             $day = $current->format('Y-m-d');
             $week[$day] = [
                 'date' => clone $current,
-                'tasks' => []
+                'tasks' => [],
             ];
             $current->modify('+1 day');
         }
@@ -129,7 +130,7 @@ class CalendarService
             'start' => $weekStart,
             'end' => $weekEnd,
             'days' => $week,
-            'total_tasks' => count($tasks)
+            'total_tasks' => \count($tasks),
         ];
     }
 
@@ -157,9 +158,9 @@ class CalendarService
         return [
             'date' => $date,
             'tasks' => $tasks,
-            'total_tasks' => count($tasks),
+            'total_tasks' => \count($tasks),
             'by_priority' => $this->groupByPriority($tasks),
-            'by_status' => $this->groupByStatus($tasks)
+            'by_status' => $this->groupByStatus($tasks),
         ];
     }
 
@@ -215,7 +216,7 @@ class CalendarService
             'urgent' => [],
             'high' => [],
             'medium' => [],
-            'low' => []
+            'low' => [],
         ];
 
         foreach ($tasks as $task) {
@@ -237,7 +238,7 @@ class CalendarService
             'pending' => [],
             'in_progress' => [],
             'completed' => [],
-            'cancelled' => []
+            'cancelled' => [],
         ];
 
         foreach ($tasks as $task) {
@@ -256,14 +257,14 @@ class CalendarService
     public function updateTaskDate(int $taskId, \DateTime $newDate): mixed
     {
         $task = $this->taskRepository->find($taskId);
-        
+
         if (!$task) {
             throw new \Exception('Задача не найдена');
         }
-        
+
         $task->setDeadline($newDate);
         $this->taskRepository->save($task, true);
-        
+
         return $task;
     }
 
@@ -291,18 +292,18 @@ class CalendarService
 
         foreach ($tasks as $task) {
             $ical .= "BEGIN:VEVENT\r\n";
-            $ical .= "UID:task-" . $task->getId() . "@crm-system.local\r\n";
-            $ical .= "DTSTAMP:" . (new \DateTime())->format('Ymd\THis\Z') . "\r\n";
-            $ical .= "DTSTART:" . $task->getDeadline()->format('Ymd') . "\r\n";
-            $ical .= "DTEND:" . $task->getDeadline()->format('Ymd') . "\r\n";
-            $ical .= "SUMMARY:" . $this->escapeICalText($task->getTitle()) . "\r\n";
-            
+            $ical .= 'UID:task-' . $task->getId() . "@crm-system.local\r\n";
+            $ical .= 'DTSTAMP:' . (new \DateTime())->format('Ymd\\THis\\Z') . "\r\n";
+            $ical .= 'DTSTART:' . $task->getDeadline()->format('Ymd') . "\r\n";
+            $ical .= 'DTEND:' . $task->getDeadline()->format('Ymd') . "\r\n";
+            $ical .= 'SUMMARY:' . $this->escapeICalText($task->getTitle()) . "\r\n";
+
             if ($task->getDescription()) {
-                $ical .= "DESCRIPTION:" . $this->escapeICalText($task->getDescription()) . "\r\n";
+                $ical .= 'DESCRIPTION:' . $this->escapeICalText($task->getDescription()) . "\r\n";
             }
-            
-            $ical .= "PRIORITY:" . $this->getICalPriority($task->getPriority()) . "\r\n";
-            $ical .= "STATUS:" . $this->getICalStatus($task->getStatus()) . "\r\n";
+
+            $ical .= 'PRIORITY:' . $this->getICalPriority($task->getPriority()) . "\r\n";
+            $ical .= 'STATUS:' . $this->getICalStatus($task->getStatus()) . "\r\n";
             $ical .= "END:VEVENT\r\n";
         }
 
@@ -316,7 +317,7 @@ class CalendarService
      */
     private function escapeICalText(string $text): string
     {
-        return str_replace(["\r\n", "\n", "\r", ",", ";"], ["\\n", "\\n", "\\n", "\\,", "\\;"], $text);
+        return str_replace(["\r\n", "\n", "\r", ',', ';'], ['\\n', '\\n', '\\n', '\\,', '\\;'], $text);
     }
 
     /**

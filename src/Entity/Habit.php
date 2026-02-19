@@ -73,6 +73,7 @@ class Habit
     public function setName(string $name): static
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -84,6 +85,7 @@ class Habit
     public function setDescription(?string $description): static
     {
         $this->description = $description;
+
         return $this;
     }
 
@@ -95,6 +97,7 @@ class Habit
     public function setUser(?User $user): static
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -106,6 +109,7 @@ class Habit
     public function setFrequency(string $frequency): static
     {
         $this->frequency = $frequency;
+
         return $this;
     }
 
@@ -117,6 +121,7 @@ class Habit
     public function setWeekDays(array $weekDays): static
     {
         $this->weekDays = $weekDays;
+
         return $this;
     }
 
@@ -128,6 +133,7 @@ class Habit
     public function setTargetCount(int $targetCount): static
     {
         $this->targetCount = $targetCount;
+
         return $this;
     }
 
@@ -139,6 +145,7 @@ class Habit
     public function setCategory(string $category): static
     {
         $this->category = $category;
+
         return $this;
     }
 
@@ -150,6 +157,7 @@ class Habit
     public function setIcon(string $icon): static
     {
         $this->icon = $icon;
+
         return $this;
     }
 
@@ -161,6 +169,7 @@ class Habit
     public function setColor(string $color): static
     {
         $this->color = $color;
+
         return $this;
     }
 
@@ -172,6 +181,7 @@ class Habit
     public function setActive(bool $active): static
     {
         $this->active = $active;
+
         return $this;
     }
 
@@ -183,6 +193,7 @@ class Habit
     public function setCreatedAt(\DateTimeInterface $createdAt): static
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 
@@ -197,6 +208,7 @@ class Habit
             $this->logs->add($log);
             $log->setHabit($this);
         }
+
         return $this;
     }
 
@@ -207,24 +219,25 @@ class Habit
                 $log->setHabit(null);
             }
         }
+
         return $this;
     }
 
     public function getCurrentStreak(): int
     {
         $logs = $this->logs->toArray();
-        usort($logs, fn($a, $b) => $b->getDate() <=> $a->getDate());
-        
+        usort($logs, fn ($a, $b) => $b->getDate() <=> $a->getDate());
+
         $streak = 0;
         $currentDate = new \DateTime();
         $currentDate->setTime(0, 0, 0);
-        
+
         foreach ($logs as $log) {
             $logDate = clone $log->getDate();
             $logDate->setTime(0, 0, 0);
-            
+
             $diff = $currentDate->diff($logDate)->days;
-            
+
             if ($diff === $streak) {
                 $streak++;
                 $currentDate->modify('-1 day');
@@ -232,23 +245,23 @@ class Habit
                 break;
             }
         }
-        
+
         return $streak;
     }
 
     public function getLongestStreak(): int
     {
         $logs = $this->logs->toArray();
-        usort($logs, fn($a, $b) => $a->getDate() <=> $b->getDate());
-        
+        usort($logs, fn ($a, $b) => $a->getDate() <=> $b->getDate());
+
         $maxStreak = 0;
         $currentStreak = 0;
         $previousDate = null;
-        
+
         foreach ($logs as $log) {
             $logDate = clone $log->getDate();
             $logDate->setTime(0, 0, 0);
-            
+
             if ($previousDate === null) {
                 $currentStreak = 1;
             } else {
@@ -260,10 +273,10 @@ class Habit
                     $currentStreak = 1;
                 }
             }
-            
+
             $previousDate = $logDate;
         }
-        
+
         return max($maxStreak, $currentStreak);
     }
 
@@ -271,13 +284,13 @@ class Habit
     {
         $startDate = new \DateTime("-{$days} days");
         $completedDays = 0;
-        
+
         foreach ($this->logs as $log) {
             if ($log->getDate() >= $startDate) {
                 $completedDays++;
             }
         }
-        
+
         return $days > 0 ? ($completedDays / $days) * 100 : 0;
     }
 }

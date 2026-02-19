@@ -19,17 +19,18 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class TagController extends AbstractController
 {
     use FlashMessageTrait;
+
     #[Route('/', name: 'app_tag_index', methods: ['GET'])]
     public function index(
         TagRepository $tagRepository,
-        ?PerformanceMonitoringService $performanceMonitor = null
+        ?PerformanceMonitoringService $performanceMonitor = null,
     ): Response {
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('tag_controller_index');
         }
-        
+
         $user = $this->getUser();
-        
+
         try {
             return $this->render('tag/index.html.twig', [
                 'tags' => $tagRepository->findByUser($user),
@@ -43,14 +44,14 @@ class TagController extends AbstractController
 
     #[Route('/new', name: 'app_tag_new', methods: ['GET', 'POST'])]
     public function new(
-        Request $request, 
+        Request $request,
         EntityManagerInterface $entityManager,
-        ?PerformanceMonitoringService $performanceMonitor = null
+        ?PerformanceMonitoringService $performanceMonitor = null,
     ): Response {
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('tag_controller_new');
         }
-        
+
         $user = $this->getUser();
         $tag = new Tag();
         $tag->setUser($user); // Assign tag to current user
@@ -87,15 +88,15 @@ class TagController extends AbstractController
     #[Route('/{id}', name: 'app_tag_show', methods: ['GET'])]
     public function show(
         Tag $tag,
-        ?PerformanceMonitoringService $performanceMonitor = null
+        ?PerformanceMonitoringService $performanceMonitor = null,
     ): Response {
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('tag_controller_show');
         }
-        
+
         // Check if the current user owns the tag
         $this->denyAccessUnlessGranted('view', $tag);
-        
+
         try {
             return $this->render('tag/show.html.twig', [
                 'tag' => $tag,
@@ -109,18 +110,18 @@ class TagController extends AbstractController
 
     #[Route('/{id}/edit', name: 'app_tag_edit', methods: ['GET', 'POST'])]
     public function edit(
-        Request $request, 
-        Tag $tag, 
+        Request $request,
+        Tag $tag,
         EntityManagerInterface $entityManager,
-        ?PerformanceMonitoringService $performanceMonitor = null
+        ?PerformanceMonitoringService $performanceMonitor = null,
     ): Response {
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('tag_controller_edit');
         }
-        
+
         // Check if the current user owns the tag
         $this->denyAccessUnlessGranted('edit', $tag);
-        
+
         $form = $this->createForm(TagType::class, $tag);
         $form->handleRequest($request);
 
@@ -153,14 +154,14 @@ class TagController extends AbstractController
 
     #[Route('/create-ajax', name: 'app_tag_create_ajax', methods: ['POST'])]
     public function createAjax(
-        Request $request, 
+        Request $request,
         EntityManagerInterface $entityManager,
-        ?PerformanceMonitoringService $performanceMonitor = null
+        ?PerformanceMonitoringService $performanceMonitor = null,
     ): Response {
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('tag_controller_create_ajax');
         }
-        
+
         $user = $this->getUser();
         $data = json_decode($request->getContent(), true);
         $tagName = trim($data['name'] ?? '');
@@ -171,7 +172,7 @@ class TagController extends AbstractController
             try {
                 return $this->json([
                     'success' => false,
-                    'message' => 'Имя тега не может быть пустым'
+                    'message' => 'Имя тега не может быть пустым',
                 ], 400);
             } finally {
                 if ($performanceMonitor) {
@@ -192,8 +193,8 @@ class TagController extends AbstractController
                     'tag' => [
                         'id' => $existingTag->getId(),
                         'name' => $existingTag->getName(),
-                        'color' => $existingTag->getColor()
-                    ]
+                        'color' => $existingTag->getColor(),
+                    ],
                 ]);
             } finally {
                 if ($performanceMonitor) {
@@ -219,8 +220,8 @@ class TagController extends AbstractController
                     'id' => $tag->getId(),
                     'name' => $tag->getName(),
                     'color' => $tag->getColor(),
-                    'description' => $tag->getDescription()
-                ]
+                    'description' => $tag->getDescription(),
+                ],
             ]);
         } finally {
             if ($performanceMonitor) {
@@ -228,21 +229,21 @@ class TagController extends AbstractController
             }
         }
     }
-    
+
     #[Route('/{id}', name: 'app_tag_delete', methods: ['POST'])]
     public function delete(
-        Request $request, 
-        Tag $tag, 
+        Request $request,
+        Tag $tag,
         EntityManagerInterface $entityManager,
-        ?PerformanceMonitoringService $performanceMonitor = null
+        ?PerformanceMonitoringService $performanceMonitor = null,
     ): Response {
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('tag_controller_delete');
         }
-        
+
         // Check if the current user owns the tag
         $this->denyAccessUnlessGranted('delete', $tag);
-        
+
         if ($this->isCsrfTokenValid('delete'.$tag->getId(), $request->request->get('_token'))) {
             $entityManager->remove($tag);
             $entityManager->flush();

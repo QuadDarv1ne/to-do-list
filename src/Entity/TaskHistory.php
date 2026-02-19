@@ -60,6 +60,7 @@ class TaskHistory
     public function setTask(?Task $task): static
     {
         $this->task = $task;
+
         return $this;
     }
 
@@ -71,6 +72,7 @@ class TaskHistory
     public function setUser(?User $user): static
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -82,6 +84,7 @@ class TaskHistory
     public function setAction(string $action): static
     {
         $this->action = $action;
+
         return $this;
     }
 
@@ -93,6 +96,7 @@ class TaskHistory
     public function setField(?string $field): static
     {
         $this->field = $field;
+
         return $this;
     }
 
@@ -104,6 +108,7 @@ class TaskHistory
     public function setOldValue(?string $oldValue): static
     {
         $this->oldValue = $oldValue;
+
         return $this;
     }
 
@@ -115,6 +120,7 @@ class TaskHistory
     public function setNewValue(?string $newValue): static
     {
         $this->newValue = $newValue;
+
         return $this;
     }
 
@@ -126,6 +132,7 @@ class TaskHistory
     public function setCreatedAt(\DateTimeInterface $createdAt): static
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 
@@ -137,6 +144,7 @@ class TaskHistory
     public function setMetadata(?array $metadata): static
     {
         $this->metadata = $metadata;
+
         return $this;
     }
 }

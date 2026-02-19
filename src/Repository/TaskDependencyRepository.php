@@ -14,7 +14,7 @@ use Doctrine\Persistence\ManagerRegistry;
 class TaskDependencyRepository extends ServiceEntityRepository
 {
     use CachedRepositoryTrait;
-    
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, TaskDependency::class);
@@ -24,7 +24,7 @@ class TaskDependencyRepository extends ServiceEntityRepository
     {
         $this->cacheService = $cacheService;
     }
-        
+
     /**
      * Find dependencies for a task with optimized query including related entities
      */
@@ -39,7 +39,7 @@ class TaskDependencyRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-        
+
     /**
      * Find dependencies for a task with minimal data for API responses
      */
@@ -54,7 +54,7 @@ class TaskDependencyRepository extends ServiceEntityRepository
                 'depTask.id as dependent_task_id',
                 'dtTask.id as dependency_task_id',
                 'dtTask.title as dependency_task_name',
-                'dtTask.status as dependency_task_status'
+                'dtTask.status as dependency_task_status',
             ])
             ->leftJoin('td.dependentTask', 'depTask')
             ->leftJoin('td.dependencyTask', 'dtTask')
@@ -113,13 +113,13 @@ class TaskDependencyRepository extends ServiceEntityRepository
     public function hasUnsatisfiedBlockingDependencies($task): bool
     {
         $blockingDependencies = $this->getBlockingDependencies($task);
-        
+
         foreach ($blockingDependencies as $dependency) {
             if (!$dependency->isSatisfied()) {
                 return true;
             }
         }
-        
+
         return false;
     }
 }

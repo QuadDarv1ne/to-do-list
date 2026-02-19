@@ -11,7 +11,7 @@ use Doctrine\ORM\EntityManagerInterface;
 class ExportService
 {
     public function __construct(
-        private EntityManagerInterface $em
+        private EntityManagerInterface $em,
     ) {
     }
 
@@ -28,7 +28,7 @@ class ExportService
             'Приоритет',
             'Срок выполнения',
             'Дата создания',
-            'Дата обновления'
+            'Дата обновления',
         ];
 
         $rows = [];
@@ -41,7 +41,7 @@ class ExportService
                 $task->getPriority(),
                 $task->getDueDate()?->format('Y-m-d') ?? '',
                 $task->getCreatedAt()->format('Y-m-d H:i:s'),
-                $task->getUpdatedAt()->format('Y-m-d H:i:s')
+                $task->getUpdatedAt()->format('Y-m-d H:i:s'),
             ];
         }
 
@@ -54,7 +54,7 @@ class ExportService
     public function tasksToExcel(array $tasks, string $filename = 'tasks.xlsx'): string
     {
         // Проверка наличия библиотеки PhpSpreadsheet
-        if (!class_exists('\PhpOffice\PhpSpreadsheet\Spreadsheet')) {
+        if (!class_exists('\\PhpOffice\\PhpSpreadsheet\\Spreadsheet')) {
             throw new \RuntimeException('PhpSpreadsheet not installed. Run: composer require phpoffice/phpspreadsheet');
         }
 
@@ -69,7 +69,7 @@ class ExportService
             'Статус',
             'Приоритет',
             'Срок выполнения',
-            'Дата создания'
+            'Дата создания',
         ];
 
         $sheet->fromArray([$headers], null, 'A1');
@@ -79,9 +79,9 @@ class ExportService
             'font' => ['bold' => true],
             'fill' => [
                 'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                'startColor' => ['argb' => 'FF667eea']
+                'startColor' => ['argb' => 'FF667eea'],
             ],
-            'alignment' => ['horizontal' => 'center']
+            'alignment' => ['horizontal' => 'center'],
         ]);
 
         // Данные
@@ -94,7 +94,7 @@ class ExportService
                 $task->getStatus(),
                 $task->getPriority(),
                 $task->getDueDate()?->format('Y-m-d'),
-                $task->getCreatedAt()->format('Y-m-d')
+                $task->getCreatedAt()->format('Y-m-d'),
             ]], null, 'A' . $rowIndex);
             $rowIndex++;
         }
@@ -118,7 +118,7 @@ class ExportService
     public function tasksToPdf(array $tasks, string $filename = 'tasks.pdf'): string
     {
         // Проверка наличия TCPDF
-        if (!class_exists('\TCPDF')) {
+        if (!class_exists('\\TCPDF')) {
             throw new \RuntimeException('TCPDF not installed. Run: composer require tecnickcom/tcpdf');
         }
 
@@ -149,14 +149,14 @@ class ExportService
 
         // Таблица
         $pdf->SetFont('helvetica', 'B', 10);
-        
+
         // Заголовки таблицы
         $headers = ['ID', 'Название', 'Статус', 'Приоритет', 'Срок'];
         $widths = [15, 80, 30, 30, 35];
-        
+
         $pdf->SetFillColor(102, 126, 234);
         $pdf->SetTextColor(255);
-        
+
         foreach ($headers as $i => $header) {
             $pdf->Cell($widths[$i], 7, $header, 1, 0, 'C', true);
         }
@@ -181,7 +181,7 @@ class ExportService
         // Итоговая статистика
         $pdf->Ln(5);
         $pdf->SetFont('helvetica', 'B', 10);
-        $pdf->Cell(0, 7, 'Всего задач: ' . count($tasks), 0, 1, 'L');
+        $pdf->Cell(0, 7, 'Всего задач: ' . \count($tasks), 0, 1, 'L');
 
         // Сохранение
         $filepath = $this->getExportPath($filename);
@@ -197,7 +197,7 @@ class ExportService
     {
         $data = [
             'exported_at' => date('Y-m-d H:i:s'),
-            'statistics' => $statistics
+            'statistics' => $statistics,
         ];
 
         $filepath = $this->getExportPath($filename);
@@ -215,7 +215,7 @@ class ExportService
         $file = fopen($filepath, 'w');
 
         // Добавляем BOM для UTF-8
-        fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+        fprintf($file, \chr(0xEF).\chr(0xBB).\chr(0xBF));
 
         // Заголовки
         fputcsv($file, $headers);
@@ -241,7 +241,7 @@ class ExportService
 
         // Удаляем специальные символы
         $value = str_replace(["\r", "\n", "\t"], ' ', $value);
-        
+
         // Экранируем кавычки
         return str_replace('"', '""', $value);
     }
@@ -263,8 +263,8 @@ class ExportService
      */
     private function getExportPath(string $filename): string
     {
-        $exportDir = dirname(__DIR__) . '/../var/exports';
-        
+        $exportDir = \dirname(__DIR__) . '/../var/exports';
+
         if (!is_dir($exportDir)) {
             mkdir($exportDir, 0755, true);
         }
@@ -272,7 +272,7 @@ class ExportService
         $timestamp = date('Ymd_His');
         $name = pathinfo($filename, PATHINFO_FILENAME);
         $ext = pathinfo($filename, PATHINFO_EXTENSION);
-        
+
         return $exportDir . "/{$name}_{$timestamp}.{$ext}";
     }
 
@@ -281,8 +281,8 @@ class ExportService
      */
     public function cleanupOldExports(int $daysToKeep = 7): int
     {
-        $exportDir = dirname(__DIR__) . '/../var/exports';
-        
+        $exportDir = \dirname(__DIR__) . '/../var/exports';
+
         if (!is_dir($exportDir)) {
             return 0;
         }
@@ -296,7 +296,7 @@ class ExportService
             }
 
             $filepath = $exportDir . '/' . $file;
-            
+
             if (filemtime($filepath) < $cutoffTime) {
                 unlink($filepath);
                 $deleted++;
@@ -311,8 +311,8 @@ class ExportService
      */
     public function getAvailableExports(): array
     {
-        $exportDir = dirname(__DIR__) . '/../var/exports';
-        
+        $exportDir = \dirname(__DIR__) . '/../var/exports';
+
         if (!is_dir($exportDir)) {
             return [];
         }
@@ -324,17 +324,17 @@ class ExportService
             }
 
             $filepath = $exportDir . '/' . $file;
-            
+
             $files[] = [
                 'filename' => $file,
                 'size' => filesize($filepath),
                 'created' => date('Y-m-d H:i:s', filemtime($filepath)),
-                'type' => pathinfo($file, PATHINFO_EXTENSION)
+                'type' => pathinfo($file, PATHINFO_EXTENSION),
             ];
         }
 
         // Сортировка по дате (новые первые)
-        usort($files, fn($a, $b) => strtotime($b['created']) - strtotime($a['created']));
+        usort($files, fn ($a, $b) => strtotime($b['created']) - strtotime($a['created']));
 
         return $files;
     }

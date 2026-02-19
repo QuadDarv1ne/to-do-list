@@ -19,7 +19,7 @@ class CreateTestUsersCommand extends Command
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private UserPasswordHasherInterface $passwordHasher
+        private UserPasswordHasherInterface $passwordHasher,
     ) {
         parent::__construct();
     }
@@ -33,25 +33,25 @@ class CreateTestUsersCommand extends Command
                 'email' => 'admin@example.com',
                 'password' => 'admin123',
                 'roles' => ['ROLE_ADMIN'],
-                'name' => 'Администратор'
+                'name' => 'Администратор',
             ],
             [
                 'email' => 'manager@example.com',
                 'password' => 'manager123',
                 'roles' => ['ROLE_MANAGER'],
-                'name' => 'Менеджер'
+                'name' => 'Менеджер',
             ],
             [
                 'email' => 'user@example.com',
                 'password' => 'user123',
                 'roles' => ['ROLE_USER'],
-                'name' => 'Пользователь'
+                'name' => 'Пользователь',
             ],
             [
                 'email' => 'analyst@example.com',
                 'password' => 'analyst123',
                 'roles' => ['ROLE_ANALYST'],
-                'name' => 'Аналитик'
+                'name' => 'Аналитик',
             ],
         ];
 
@@ -61,7 +61,8 @@ class CreateTestUsersCommand extends Command
                 ->findOneBy(['email' => $userData['email']]);
 
             if ($existingUser) {
-                $io->warning(sprintf('Пользователь %s уже существует', $userData['email']));
+                $io->warning(\sprintf('Пользователь %s уже существует', $userData['email']));
+
                 continue;
             }
 
@@ -70,15 +71,15 @@ class CreateTestUsersCommand extends Command
             $user->setUsername($userData['email']); // Используем email как username
             $user->setRoles($userData['roles']);
             $user->setIsActive(true);
-            
+
             $hashedPassword = $this->passwordHasher->hashPassword(
                 $user,
-                $userData['password']
+                $userData['password'],
             );
             $user->setPassword($hashedPassword);
 
             $this->entityManager->persist($user);
-            $io->success(sprintf('Создан пользователь: %s (%s)', $userData['name'], $userData['email']));
+            $io->success(\sprintf('Создан пользователь: %s (%s)', $userData['name'], $userData['email']));
         }
 
         $this->entityManager->flush();

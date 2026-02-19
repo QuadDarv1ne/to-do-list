@@ -11,12 +11,12 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:send-reminders',
-    description: 'Send due task reminders to users'
+    description: 'Send due task reminders to users',
 )]
 class SendRemindersCommand extends Command
 {
     public function __construct(
-        private ReminderService $reminderService
+        private ReminderService $reminderService,
     ) {
         parent::__construct();
     }
@@ -31,7 +31,7 @@ class SendRemindersCommand extends Command
             $sentCount = $this->reminderService->sendDueReminders();
 
             if ($sentCount > 0) {
-                $io->success(sprintf('Successfully sent %d reminder(s)', $sentCount));
+                $io->success(\sprintf('Successfully sent %d reminder(s)', $sentCount));
             } else {
                 $io->info('No reminders to send at this time');
             }
@@ -39,6 +39,7 @@ class SendRemindersCommand extends Command
             return Command::SUCCESS;
         } catch (\Exception $e) {
             $io->error('Error sending reminders: ' . $e->getMessage());
+
             return Command::FAILURE;
         }
     }

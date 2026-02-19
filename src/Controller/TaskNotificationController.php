@@ -22,7 +22,7 @@ class TaskNotificationController extends AbstractController
         $user = $this->getUser();
         // Only show notifications for the current user
         $notifications = $taskNotificationRepository->findForUser($user);
-        
+
         return $this->render('task_notification/index.html.twig', [
             'task_notifications' => $notifications,
         ]);
@@ -58,13 +58,13 @@ class TaskNotificationController extends AbstractController
     {
         // Ensure user can only view their own notifications
         $this->denyAccessUnlessGranted('view', $taskNotification);
-        
+
         // Mark notification as read when viewed
         if (!$taskNotification->isIsRead()) {
             $taskNotification->setIsRead(true);
             $entityManager->flush();
         }
-        
+
         return $this->render('task_notification/show.html.twig', [
             'task_notification' => $taskNotification,
         ]);
@@ -100,7 +100,7 @@ class TaskNotificationController extends AbstractController
         if ($this->isCsrfTokenValid('delete'.$taskNotification->getId(), $request->request->get('_token'))) {
             $entityManager->remove($taskNotification);
             $entityManager->flush();
-            
+
             $this->addFlash('success', 'Уведомление удалено успешно!');
         }
 

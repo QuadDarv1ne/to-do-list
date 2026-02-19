@@ -12,13 +12,13 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:performance-improvement-report',
-    description: 'Generate a report on performance improvements made to the application'
+    description: 'Generate a report on performance improvements made to the application',
 )]
 class PerformanceImprovementReportCommand extends Command
 {
     public function __construct(
         private TaskRepository $taskRepository,
-        private TaskPerformanceOptimizerService $performanceOptimizer
+        private TaskPerformanceOptimizerService $performanceOptimizer,
     ) {
         parent::__construct();
     }
@@ -32,9 +32,9 @@ class PerformanceImprovementReportCommand extends Command
         $io->section('Database Index Improvements');
         $io->text([
             '✓ Added composite index: idx_task_due_date_status_priority',
-            '✓ Added composite index: idx_task_user_status_priority', 
+            '✓ Added composite index: idx_task_user_status_priority',
             '✓ Added composite index: idx_task_assigned_user_status_priority',
-            '✓ Existing indexes preserved for optimal query performance'
+            '✓ Existing indexes preserved for optimal query performance',
         ]);
 
         // Show caching improvements
@@ -44,7 +44,7 @@ class PerformanceImprovementReportCommand extends Command
             '✓ Added getDashboardStats method for single-query statistics',
             '✓ Optimized task list retrieval with conditional query optimization',
             '✓ Added performance timing to cache operations',
-            '✓ Improved cache invalidation strategies'
+            '✓ Improved cache invalidation strategies',
         ]);
 
         // Show repository improvements
@@ -53,7 +53,7 @@ class PerformanceImprovementReportCommand extends Command
             '✓ Added getDashboardStats() method with optimized query',
             '✓ Implemented composite indexes for common query patterns',
             '✓ Enhanced findDashboardTasks() with eager loading',
-            '✓ Added cache tagging for better cache management'
+            '✓ Added cache tagging for better cache management',
         ]);
 
         // Show performance benefits
@@ -63,7 +63,7 @@ class PerformanceImprovementReportCommand extends Command
             '• Faster filtering and sorting of tasks with composite indexes',
             '• Better cache hit rates with tagged caching',
             '• Improved response times for user dashboards',
-            '• Reduced database load through optimized queries'
+            '• Reduced database load through optimized queries',
         ]);
 
         $io->success('Performance improvement report generated successfully!');

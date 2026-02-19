@@ -14,8 +14,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class MetricsController extends AbstractController
 {
     public function __construct(
-        private PerformanceMetricsCollector $metricsCollector
-    ) {}
+        private PerformanceMetricsCollector $metricsCollector,
+    ) {
+    }
 
     /**
      * Metrics dashboard
@@ -33,12 +34,12 @@ class MetricsController extends AbstractController
     public function endpoint(string $path = '/', int $hours = 1): JsonResponse
     {
         $metrics = $this->metricsCollector->getAggregatedMetrics($path, $hours);
-        
+
         return $this->json([
             'success' => true,
             'endpoint' => $path,
             'hours' => $hours,
-            'metrics' => $metrics
+            'metrics' => $metrics,
         ]);
     }
 
@@ -49,10 +50,10 @@ class MetricsController extends AbstractController
     public function summary(): JsonResponse
     {
         $summary = $this->metricsCollector->getPerformanceSummary();
-        
+
         return $this->json([
             'success' => true,
-            'summary' => $summary
+            'summary' => $summary,
         ]);
     }
 
@@ -63,12 +64,12 @@ class MetricsController extends AbstractController
     public function health(): JsonResponse
     {
         $metrics = $this->metricsCollector->getMetrics();
-        
+
         $status = 'healthy';
         $issues = [];
 
         // Check memory usage
-        $memoryLimit = ini_get('memory_limit');
+        $memoryLimit = \ini_get('memory_limit');
         $memoryLimitBytes = $this->parseMemoryLimit($memoryLimit);
         $memoryUsagePercent = ($metrics['memory_peak'] / $memoryLimitBytes) * 100;
 
@@ -96,16 +97,16 @@ class MetricsController extends AbstractController
             'timestamp' => time(),
             'metrics' => [
                 'memory_usage' => round($memoryUsagePercent, 2) . '%',
-                'request_duration' => round($metrics['request_duration'], 3) . 's'
+                'request_duration' => round($metrics['request_duration'], 3) . 's',
             ],
-            'issues' => $issues
+            'issues' => $issues,
         ]);
     }
 
     private function parseMemoryLimit(string $limit): int
     {
         $limit = trim($limit);
-        $last = strtolower($limit[strlen($limit) - 1]);
+        $last = strtolower($limit[\strlen($limit) - 1]);
         $value = (int)$limit;
 
         return match($last) {

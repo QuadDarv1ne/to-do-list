@@ -18,7 +18,7 @@ use Doctrine\Persistence\ManagerRegistry;
 class TaskNotificationRepository extends ServiceEntityRepository
 {
     use CachedRepositoryTrait;
-    
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, TaskNotification::class);
@@ -36,28 +36,28 @@ class TaskNotificationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-    
+
     /**
      * Find notifications for a user
      */
     public function findForUser($user)
     {
         $cacheKey = 'task_notifications_for_user_' . $user->getId();
-        
+
         if ($this->cacheService) {
             return $this->cachedQuery(
                 $cacheKey,
-                function() use ($user) {
+                function () use ($user) {
                     return $this->performFindForUser($user);
                 },
                 ['user_id' => $user->getId()],
-                300 // 5 minutes cache
+                300, // 5 minutes cache
             );
         }
-        
+
         return $this->performFindForUser($user);
     }
-    
+
     /**
      * Internal method to find notifications for user
      */
@@ -70,28 +70,28 @@ class TaskNotificationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-    
+
     /**
      * Count unread notifications for a recipient
      */
     public function countUnreadByRecipient($recipient)
     {
         $cacheKey = 'count_unread_notifications_' . $recipient->getId();
-        
+
         if ($this->cacheService) {
             return $this->cachedQuery(
                 $cacheKey,
-                function() use ($recipient) {
+                function () use ($recipient) {
                     return $this->performCountUnreadByRecipient($recipient);
                 },
                 ['recipient_id' => $recipient->getId()],
-                120 // 2 minutes cache
+                120, // 2 minutes cache
             );
         }
-        
+
         return $this->performCountUnreadByRecipient($recipient);
     }
-    
+
     /**
      * Internal method to count unread notifications for a recipient
      */

@@ -27,7 +27,7 @@ class TaskPriorityCalculatorService
         if ($task->getDeadline()) {
             $now = new \DateTime();
             $daysUntil = $now->diff($task->getDeadline())->days;
-            
+
             if ($daysUntil <= 1) {
                 $score += 50; // Very urgent
             } elseif ($daysUntil <= 3) {
@@ -72,10 +72,10 @@ class TaskPriorityCalculatorService
     public function autoAdjustPriorities(): int
     {
         $adjusted = 0;
-        
+
         // TODO: Get all tasks and adjust priorities
         // Tasks with approaching deadlines should be upgraded
-        
+
         return $adjusted;
     }
 
@@ -88,7 +88,7 @@ class TaskPriorityCalculatorService
             'urgent' => 0,
             'high' => 0,
             'medium' => 0,
-            'low' => 0
+            'low' => 0,
         ];
     }
 
@@ -99,9 +99,16 @@ class TaskPriorityCalculatorService
     {
         $score = $this->calculatePriorityScore($task);
 
-        if ($score >= 150) return 'urgent';
-        if ($score >= 100) return 'high';
-        if ($score >= 50) return 'medium';
+        if ($score >= 150) {
+            return 'urgent';
+        }
+        if ($score >= 100) {
+            return 'high';
+        }
+        if ($score >= 50) {
+            return 'medium';
+        }
+
         return 'low';
     }
 }

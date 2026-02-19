@@ -6,20 +6,20 @@ use App\Entity\Document;
 use App\Entity\User;
 use App\Repository\DocumentRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class DocumentService
 {
     private string $uploadDirectory;
-    
+
     public function __construct(
         private DocumentRepository $documentRepository,
         private EntityManagerInterface $entityManager,
-        string $kernelProjectDir
+        string $kernelProjectDir,
     ) {
         $this->uploadDirectory = $kernelProjectDir . '/public/uploads/documents';
-        
+
         // Create upload directory if it doesn't exist
         if (!is_dir($this->uploadDirectory)) {
             mkdir($this->uploadDirectory, 0755, true);
@@ -38,11 +38,11 @@ class DocumentService
         $document->setCreatedBy($user->getId());
         $document->setStatus($data['status'] ?? 'draft');
         $document->setContentType($data['content_type'] ?? 'text/markdown');
-        
+
         if (isset($data['parent_id'])) {
             $document->setParentId($data['parent_id']);
         }
-        
+
         if (isset($data['tags'])) {
             $document->setTags(implode(',', $data['tags']));
         }
@@ -61,28 +61,28 @@ class DocumentService
         if (isset($data['title'])) {
             $document->setTitle($data['title']);
         }
-        
+
         if (isset($data['content'])) {
             $document->setContent($data['content']);
             $document->incrementVersion(); // Increment version when content changes
         }
-        
+
         if (isset($data['description'])) {
             $document->setDescription($data['description']);
         }
-        
+
         if (isset($data['status'])) {
             $document->setStatus($data['status']);
         }
-        
+
         if (isset($data['content_type'])) {
             $document->setContentType($data['content_type']);
         }
-        
+
         if (isset($data['parent_id'])) {
             $document->setParentId($data['parent_id']);
         }
-        
+
         if (isset($data['tags'])) {
             $document->setTags(implode(',', $data['tags']));
         }
@@ -134,11 +134,11 @@ class DocumentService
         $document->setCreatedBy($user->getId());
         $document->setStatus($metadata['status'] ?? 'published');
         $document->setDescription($metadata['description'] ?? '');
-        
+
         if (isset($metadata['parent_id'])) {
             $document->setParentId($metadata['parent_id']);
         }
-        
+
         if (isset($metadata['tags'])) {
             $document->setTags(implode(',', $metadata['tags']));
         }
@@ -174,7 +174,7 @@ class DocumentService
         if ($limit) {
             $qb->setMaxResults($limit);
         }
-        
+
         if ($offset) {
             $qb->setFirstResult($offset);
         }
@@ -195,7 +195,7 @@ class DocumentService
         if ($limit) {
             $qb->setMaxResults($limit);
         }
-        
+
         if ($offset) {
             $qb->setFirstResult($offset);
         }
@@ -230,14 +230,14 @@ class DocumentService
     public function getDocumentStatistics(?User $user = null): array
     {
         $qb = $this->documentRepository->createQueryBuilder('d');
-        
+
         if ($user) {
             $qb->where('d.createdBy = :userId')
                ->setParameter('userId', $user->getId());
         }
 
         $totalDocs = $qb->select('COUNT(d.id)')->getQuery()->getSingleScalarResult();
-        
+
         $statusCounts = $qb->select('d.status, COUNT(d.id) as count')
                           ->groupBy('d.status')
                           ->getQuery()
@@ -254,7 +254,7 @@ class DocumentService
         return [
             'total_documents' => (int)$totalDocs,
             'by_status' => $statusCounts,
-            'monthly_creation' => $monthlyStats
+            'monthly_creation' => $monthlyStats,
         ];
     }
 
@@ -305,7 +305,7 @@ class DocumentService
     public function getDocumentsByTags(array $tags, ?User $user = null): array
     {
         $tagString = '%' . implode('%', $tags) . '%';
-        
+
         $qb = $this->documentRepository->createQueryBuilder('d')
             ->where('d.tags LIKE :tags')
             ->setParameter('tags', $tagString);
@@ -324,11 +324,11 @@ class DocumentService
     public function generatePreview(Document $document, int $length = 200): string
     {
         $content = $document->getContent();
-        
-        if (strlen($content) <= $length) {
+
+        if (\strlen($content) <= $length) {
             return $content;
         }
-        
+
         return substr($content, 0, $length) . '...';
     }
 

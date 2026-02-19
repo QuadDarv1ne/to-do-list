@@ -22,12 +22,12 @@ use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 class UserRepository extends ServiceEntityRepository implements PasswordUpgraderInterface
 {
     use CachedRepositoryTrait;
-    
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, User::class);
     }
-    
+
     public function setCacheService(QueryCacheService $cacheService): void
     {
         $this->cacheService = $cacheService;
@@ -39,7 +39,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void
     {
         if (!$user instanceof User) {
-            throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', $user::class));
+            throw new UnsupportedUserException(\sprintf('Instances of "%s" are not supported.', $user::class));
         }
 
         $user->setPassword($newHashedPassword);
@@ -101,14 +101,14 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ')
             ->setParameter('admin_role', '%ROLE_ADMIN%')
             ->setParameter('manager_role', '%ROLE_MANAGER%');
-        
+
         $stats = $qb->getQuery()->getSingleResult();
-        
+
         // Get users who logged in today
         $today = new \DateTime();
         $todayStart = $today->format('Y-m-d 00:00:00');
         $todayEnd = $today->format('Y-m-d 23:59:59');
-        
+
         $activeToday = $this->createQueryBuilder('u')
             ->select('COUNT(u.id)')
             ->where('u.lastLoginAt BETWEEN :start AND :end')
@@ -116,7 +116,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->setParameter('end', $todayEnd)
             ->getQuery()
             ->getSingleScalarResult();
-        
+
         return [
             'total' => (int) $stats['total'],
             'active' => (int) $stats['active'],
@@ -130,10 +130,10 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     {
         $lockedUntil = new \DateTime();
         $lockedUntil->modify("+{$minutes} minutes");
-        
+
         $user->setLockedUntil($lockedUntil);
         $user->setFailedLoginAttempts(0);
-        
+
         $this->getEntityManager()->flush();
     }
 
@@ -141,9 +141,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     {
         $user->setLockedUntil(null);
         $user->setFailedLoginAttempts(0);
-        
+
         $this->getEntityManager()->flush();
     }
-    
-
 }

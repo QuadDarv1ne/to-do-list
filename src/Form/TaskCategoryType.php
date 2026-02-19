@@ -4,9 +4,9 @@ namespace App\Form;
 
 use App\Entity\TaskCategory;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -19,8 +19,8 @@ class TaskCategoryType extends AbstractType
                 'label' => 'Название категории',
                 'attr' => [
                     'class' => 'form-control',
-                    'placeholder' => 'Введите название категории...'
-                ]
+                    'placeholder' => 'Введите название категории...',
+                ],
             ])
             ->add('description', TextareaType::class, [
                 'label' => 'Описание',
@@ -28,14 +28,14 @@ class TaskCategoryType extends AbstractType
                 'attr' => [
                     'class' => 'form-control',
                     'rows' => 3,
-                    'placeholder' => 'Введите описание категории...'
-                ]
+                    'placeholder' => 'Введите описание категории...',
+                ],
             ])
             ->add('save', SubmitType::class, [
                 'label' => 'Сохранить категорию',
                 'attr' => [
-                    'class' => 'btn btn-primary'
-                ]
+                    'class' => 'btn btn-primary',
+                ],
             ]);
     }
 

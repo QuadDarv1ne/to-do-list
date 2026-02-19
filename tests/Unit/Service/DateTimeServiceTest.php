@@ -18,14 +18,14 @@ class DateTimeServiceTest extends TestCase
     {
         $result = $this->service->getCurrentDateTime();
         $this->assertInstanceOf(\DateTimeInterface::class, $result);
-        $this->assertEquals('Y-m-d H:i:s', $result->format('Y-m-d H:i:s'));
+        $this->assertEquals(date('Y-m-d'), $result->format('Y-m-d'));
     }
 
     public function testGetCurrentDate(): void
     {
         $result = $this->service->getCurrentDate();
         $this->assertInstanceOf(\DateTimeInterface::class, $result);
-        $this->assertEquals('Y-m-d', $result->format('Y-m-d'));
+        $this->assertEquals(date('Y-m-d'), $result->format('Y-m-d'));
     }
 
     public function testFormatDateTime(): void

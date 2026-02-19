@@ -4,10 +4,10 @@ namespace App\Form;
 
 use App\Entity\TaskNotification;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -32,7 +32,7 @@ class TaskNotificationType extends AbstractType
                 'label' => 'Тема',
                 'attr' => [
                     'class' => 'form-control',
-                    'placeholder' => 'Введите тему уведомления'
+                    'placeholder' => 'Введите тему уведомления',
                 ],
             ])
             ->add('message', TextareaType::class, [
@@ -40,7 +40,7 @@ class TaskNotificationType extends AbstractType
                 'attr' => [
                     'class' => 'form-control',
                     'rows' => 5,
-                    'placeholder' => 'Введите текст сообщения уведомления'
+                    'placeholder' => 'Введите текст сообщения уведомления',
                 ],
             ])
             ->add('isSent', CheckboxType::class, [

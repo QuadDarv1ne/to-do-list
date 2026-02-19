@@ -12,20 +12,22 @@ use Symfony\Component\Security\Core\User\UserInterface;
 class TaskCategoryVoter extends Voter
 {
     public const VIEW = 'TASK_CATEGORY_VIEW';
+
     public const EDIT = 'TASK_CATEGORY_EDIT';
+
     public const DELETE = 'TASK_CATEGORY_DELETE';
 
     protected function supports(string $attribute, mixed $subject): bool
     {
-        if (!in_array($attribute, [self::VIEW, self::EDIT, self::DELETE])) {
+        if (!\in_array($attribute, [self::VIEW, self::EDIT, self::DELETE])) {
             return false;
         }
 
-        if (!$subject instanceof TaskCategory) {
-            return false;
-        }
+        return !(!$subject instanceof TaskCategory)
 
-        return true;
+
+
+        ;
     }
 
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token, ?Vote $vote = null): bool

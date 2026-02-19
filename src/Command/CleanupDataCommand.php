@@ -12,12 +12,12 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:cleanup-data',
-    description: 'Очистка устаревших данных'
+    description: 'Очистка устаревших данных',
 )]
 class CleanupDataCommand extends Command
 {
     public function __construct(
-        private DataCleanupService $cleanupService
+        private DataCleanupService $cleanupService,
     ) {
         parent::__construct();
     }
@@ -36,12 +36,12 @@ class CleanupDataCommand extends Command
 
         // Показываем статистику
         $stats = $this->cleanupService->getCleanupStats();
-        
+
         $io->section('Данные для очистки');
         $io->text([
             "Старые логи активности (>90 дней): {$stats['old_activity_logs']}",
             "Прочитанные уведомления (>30 дней): {$stats['old_notifications']}",
-            "Завершенные задачи (>365 дней): {$stats['old_completed_tasks']}"
+            "Завершенные задачи (>365 дней): {$stats['old_completed_tasks']}",
         ]);
 
         if ($input->getOption('stats')) {
@@ -52,6 +52,7 @@ class CleanupDataCommand extends Command
         if (!$input->getOption('force')) {
             if (!$io->confirm('Продолжить очистку?', false)) {
                 $io->info('Очистка отменена');
+
                 return Command::SUCCESS;
             }
         }
@@ -65,7 +66,7 @@ class CleanupDataCommand extends Command
             "Удалено логов: {$results['activity_logs']}",
             "Удалено уведомлений: {$results['notifications']}",
             "Архивировано задач: {$results['archived_tasks']}",
-            "Удалено истории: {$results['task_history']}"
+            "Удалено истории: {$results['task_history']}",
         ]);
 
         return Command::SUCCESS;

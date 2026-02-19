@@ -57,6 +57,7 @@ class TaskCategory
     public function setName(string $name): static
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -68,6 +69,7 @@ class TaskCategory
     public function setDescription(?string $description): static
     {
         $this->description = $description;
+
         return $this;
     }
 
@@ -79,6 +81,7 @@ class TaskCategory
     public function setUser(?User $user): static
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -120,6 +123,7 @@ class TaskCategory
     public function setCreatedAt(\DateTimeInterface $createdAt): static
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 
@@ -131,6 +135,7 @@ class TaskCategory
     public function setUpdatedAt(?\DateTimeInterface $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
+
         return $this;
     }
 }

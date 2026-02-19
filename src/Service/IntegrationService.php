@@ -16,7 +16,7 @@ class IntegrationService
         return [
             'connected' => true,
             'username' => 'github_user',
-            'repositories' => []
+            'repositories' => [],
         ];
     }
 
@@ -29,7 +29,7 @@ class IntegrationService
         return [
             'issue_number' => 123,
             'url' => "https://github.com/user/$repo/issues/123",
-            'created_at' => new \DateTime()
+            'created_at' => new \DateTime(),
         ];
     }
 
@@ -51,7 +51,7 @@ class IntegrationService
         return [
             'connected' => true,
             'channel' => '#general',
-            'webhook_url' => $webhookUrl
+            'webhook_url' => $webhookUrl,
         ];
     }
 
@@ -82,7 +82,7 @@ class IntegrationService
         return [
             'connected' => true,
             'domain' => $domain,
-            'projects' => []
+            'projects' => [],
         ];
     }
 
@@ -103,7 +103,7 @@ class IntegrationService
         // TODO: Create Jira issue
         return [
             'issue_key' => 'PROJ-123',
-            'url' => 'https://company.atlassian.net/browse/PROJ-123'
+            'url' => 'https://company.atlassian.net/browse/PROJ-123',
         ];
     }
 
@@ -115,7 +115,7 @@ class IntegrationService
         // TODO: Save credentials
         return [
             'connected' => true,
-            'boards' => []
+            'boards' => [],
         ];
     }
 
@@ -136,7 +136,7 @@ class IntegrationService
         // TODO: Save token
         return [
             'connected' => true,
-            'calendars' => []
+            'calendars' => [],
         ];
     }
 
@@ -157,7 +157,7 @@ class IntegrationService
         // TODO: Save chat ID
         return [
             'connected' => true,
-            'chat_id' => $chatId
+            'chat_id' => $chatId,
         ];
     }
 
@@ -187,7 +187,7 @@ class IntegrationService
         // TODO: Process Zapier webhook
         return [
             'success' => true,
-            'task_id' => null
+            'task_id' => null,
         ];
     }
 
@@ -204,8 +204,8 @@ class IntegrationService
                 'features' => [
                     'Создание issues из задач',
                     'Импорт issues в задачи',
-                    'Двусторонняя синхронизация'
-                ]
+                    'Двусторонняя синхронизация',
+                ],
             ],
             'slack' => [
                 'name' => 'Slack',
@@ -214,8 +214,8 @@ class IntegrationService
                 'features' => [
                     'Уведомления в каналы',
                     'Создание задач из Slack',
-                    'Slash команды'
-                ]
+                    'Slash команды',
+                ],
             ],
             'jira' => [
                 'name' => 'Jira',
@@ -224,8 +224,8 @@ class IntegrationService
                 'features' => [
                     'Импорт issues',
                     'Экспорт задач',
-                    'Синхронизация статусов'
-                ]
+                    'Синхронизация статусов',
+                ],
             ],
             'trello' => [
                 'name' => 'Trello',
@@ -234,8 +234,8 @@ class IntegrationService
                 'features' => [
                     'Импорт досок',
                     'Импорт карточек',
-                    'Сохранение структуры'
-                ]
+                    'Сохранение структуры',
+                ],
             ],
             'google_calendar' => [
                 'name' => 'Google Calendar',
@@ -244,8 +244,8 @@ class IntegrationService
                 'features' => [
                     'Экспорт дедлайнов',
                     'Напоминания',
-                    'Двусторонняя синхронизация'
-                ]
+                    'Двусторонняя синхронизация',
+                ],
             ],
             'telegram' => [
                 'name' => 'Telegram',
@@ -254,8 +254,8 @@ class IntegrationService
                 'features' => [
                     'Мгновенные уведомления',
                     'Создание задач из чата',
-                    'Бот команды'
-                ]
+                    'Бот команды',
+                ],
             ],
             'zapier' => [
                 'name' => 'Zapier',
@@ -264,9 +264,9 @@ class IntegrationService
                 'features' => [
                     'Автоматизация',
                     'Триггеры и действия',
-                    'Неограниченные возможности'
-                ]
-            ]
+                    'Неограниченные возможности',
+                ],
+            ],
         ];
     }
 
@@ -296,7 +296,7 @@ class IntegrationService
         // TODO: Test API connection
         return [
             'success' => true,
-            'message' => 'Подключение успешно'
+            'message' => 'Подключение успешно',
         ];
     }
 
@@ -309,7 +309,7 @@ class IntegrationService
             'total_synced' => 0,
             'last_sync' => null,
             'active_integrations' => 0,
-            'sync_errors' => 0
+            'sync_errors' => 0,
         ];
     }
 }

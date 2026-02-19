@@ -2,46 +2,47 @@
 
 namespace App\Service;
 
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
-use Psr\Log\LoggerInterface;
 
 class APIOptimizationService
 {
     public function __construct(
         private CacheInterface $cache,
-        private LoggerInterface $logger
-    ) {}
+        private LoggerInterface $logger,
+    ) {
+    }
 
     /**
      * Кэширование API ответов с учетом параметров запроса
      */
     public function cacheAPIResponse(
-        string $endpoint, 
-        array $parameters, 
-        callable $dataProvider, 
-        int $ttl = 300
+        string $endpoint,
+        array $parameters,
+        callable $dataProvider,
+        int $ttl = 300,
     ): array {
         $cacheKey = $this->generateCacheKey($endpoint, $parameters);
-        
+
         return $this->cache->get($cacheKey, function (ItemInterface $item) use ($dataProvider, $ttl) {
             $item->expiresAfter($ttl);
-            
+
             $startTime = microtime(true);
             $data = $dataProvider();
             $executionTime = microtime(true) - $startTime;
-            
+
             $this->logger->info('API response cached', [
                 'execution_time' => $executionTime,
-                'data_size' => strlen(json_encode($data))
+                'data_size' => \strlen(json_encode($data)),
             ]);
-            
+
             return [
                 'data' => $data,
                 'cached_at' => time(),
-                'execution_time' => $executionTime
+                'execution_time' => $executionTime,
             ];
         });
     }
@@ -53,6 +54,7 @@ class APIOptimizationService
     {
         ksort($parameters); // Сортируем для консистентности
         $paramString = http_build_query($parameters);
+
         return 'api_' . md5($endpoint . '_' . $paramString);
     }
 
@@ -68,7 +70,7 @@ class APIOptimizationService
         return [
             'page' => $page,
             'limit' => $limit,
-            'offset' => $offset
+            'offset' => $offset,
         ];
     }
 
@@ -79,9 +81,9 @@ class APIOptimizationService
     {
         // Удаляем null значения для уменьшения размера
         $compressed = $this->removeNullValues($data);
-        
+
         // Сокращаем длинные строки если это массив объектов
-        if (is_array($compressed) && count($compressed) > 0 && is_array($compressed[0])) {
+        if (\is_array($compressed) && \count($compressed) > 0 && \is_array($compressed[0])) {
             $compressed = array_map([$this, 'truncateStrings'], $compressed);
         }
 
@@ -94,19 +96,19 @@ class APIOptimizationService
     private function removeNullValues(array $data): array
     {
         $result = [];
-        
+
         foreach ($data as $key => $value) {
             if ($value === null) {
                 continue;
             }
-            
-            if (is_array($value)) {
+
+            if (\is_array($value)) {
                 $value = $this->removeNullValues($value);
             }
-            
+
             $result[$key] = $value;
         }
-        
+
         return $result;
     }
 
@@ -116,11 +118,11 @@ class APIOptimizationService
     private function truncateStrings(array $item, int $maxLength = 200): array
     {
         foreach ($item as $key => $value) {
-            if (is_string($value) && strlen($value) > $maxLength) {
+            if (\is_string($value) && \strlen($value) > $maxLength) {
                 $item[$key] = substr($value, 0, $maxLength) . '...';
             }
         }
-        
+
         return $item;
     }
 
@@ -131,14 +133,14 @@ class APIOptimizationService
     {
         $batchSize = 50; // Обрабатываем по 50 запросов за раз
         $results = [];
-        
+
         $batches = array_chunk($requests, $batchSize);
-        
+
         foreach ($batches as $batch) {
             $batchResults = $batchProcessor($batch);
             $results = array_merge($results, $batchResults);
         }
-        
+
         return $results;
     }
 
@@ -151,9 +153,9 @@ class APIOptimizationService
             'data' => $data,
             'meta' => array_merge([
                 'timestamp' => time(),
-                'count' => is_array($data) ? count($data) : 1,
-                'cached' => false
-            ], $metadata)
+                'count' => \is_array($data) ? \count($data) : 1,
+                'cached' => false,
+            ], $metadata),
         ];
     }
 
@@ -163,19 +165,19 @@ class APIOptimizationService
     public function sanitizeAPIParams(Request $request, array $allowedParams): array
     {
         $params = [];
-        
+
         foreach ($allowedParams as $param => $config) {
             $value = $request->query->get($param);
-            
+
             if ($value === null && isset($config['default'])) {
                 $value = $config['default'];
             }
-            
+
             if ($value !== null) {
                 $params[$param] = $this->sanitizeValue($value, $config);
             }
         }
-        
+
         return $params;
     }
 
@@ -185,7 +187,7 @@ class APIOptimizationService
     private function sanitizeValue($value, array $config)
     {
         $type = $config['type'] ?? 'string';
-        
+
         switch ($type) {
             case 'int':
                 return (int) $value;
@@ -198,9 +200,10 @@ class APIOptimizationService
                 if (isset($config['max_length'])) {
                     $value = substr($value, 0, $config['max_length']);
                 }
+
                 return $value;
             case 'array':
-                return is_array($value) ? $value : explode(',', $value);
+                return \is_array($value) ? $value : explode(',', $value);
             default:
                 return $value;
         }
@@ -220,6 +223,7 @@ class APIOptimizationService
     public function checkConditionalRequest(Request $request, string $etag): bool
     {
         $ifNoneMatch = $request->headers->get('If-None-Match');
+
         return $ifNoneMatch === $etag;
     }
 
@@ -229,12 +233,12 @@ class APIOptimizationService
     public function createOptimizedResponse(array $data, int $maxAge = 300): Response
     {
         $etag = $this->generateETag($data);
-        
+
         $response = new Response(json_encode($data));
         $response->headers->set('Content-Type', 'application/json');
         $response->headers->set('ETag', $etag);
         $response->headers->set('Cache-Control', "public, max-age={$maxAge}");
-        
+
         return $response;
     }
 
@@ -248,14 +252,14 @@ class APIOptimizationService
             'execution_time' => $executionTime,
             'data_size_bytes' => $dataSize,
             'memory_usage' => memory_get_usage(true),
-            'peak_memory' => memory_get_peak_usage(true)
+            'peak_memory' => memory_get_peak_usage(true),
         ]);
-        
+
         // Предупреждение о медленных запросах
         if ($executionTime > 1.0) {
             $this->logger->warning('Slow API request detected', [
                 'endpoint' => $endpoint,
-                'execution_time' => $executionTime
+                'execution_time' => $executionTime,
             ]);
         }
     }

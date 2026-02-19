@@ -25,19 +25,19 @@ class PerformanceCacheWarmer implements CacheWarmerInterface
         // Initialize performance monitoring metrics
         $this->performanceMonitor->startTiming('cache_warmup_initialization');
         $this->performanceMonitor->stopTiming('cache_warmup_initialization');
-        
+
         // Pre-populate common aggregate metrics keys
         $operations = [
             'task_controller_index',
-            'task_controller_show', 
+            'task_controller_show',
             'task_controller_edit',
             'analytics_controller_dashboard',
             'dashboard_controller_index',
             'user_controller_index',
             'tag_controller_index',
-            'task_category_controller_index'
+            'task_category_controller_index',
         ];
-        
+
         foreach ($operations as $operation) {
             // Initialize aggregate metrics structure for common operations
             $this->performanceMonitor->startTiming($operation);

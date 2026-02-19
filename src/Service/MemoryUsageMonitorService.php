@@ -11,13 +11,16 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class MemoryUsageMonitorService
 {
     private LoggerInterface $logger;
+
     private ContainerInterface $container;
+
     private array $memorySnapshots;
+
     private array $trackingPoints;
 
     public function __construct(
         LoggerInterface $logger,
-        ContainerInterface $container
+        ContainerInterface $container,
     ) {
         $this->logger = $logger;
         $this->container = $container;
@@ -32,7 +35,7 @@ class MemoryUsageMonitorService
     {
         $requestTimeFloat = $_SERVER['REQUEST_TIME_FLOAT'] ?? null;
         $executionTime = $requestTimeFloat ? (microtime(true) - $requestTimeFloat) : 0;
-        
+
         $memoryUsage = [
             'label' => $label,
             'timestamp' => microtime(true),
@@ -48,7 +51,7 @@ class MemoryUsageMonitorService
         $this->logger->info('Memory snapshot taken', [
             'label' => $label,
             'memory_usage' => $memoryUsage['formatted_memory_usage'],
-            'memory_peak' => $memoryUsage['formatted_memory_peak']
+            'memory_peak' => $memoryUsage['formatted_memory_peak'],
         ]);
 
         return $memoryUsage;
@@ -65,13 +68,13 @@ class MemoryUsageMonitorService
             'memory_peak_bytes' => memory_get_peak_usage(true),
             'formatted_memory_usage' => $this->formatBytes(memory_get_usage(true)),
             'formatted_memory_peak' => $this->formatBytes(memory_get_peak_usage(true)),
-            'timestamp' => microtime(true)
+            'timestamp' => microtime(true),
         ];
 
         $this->logger->info('Memory tracked at point', [
             'point' => $pointName,
             'context' => $context,
-            'memory_usage' => $this->trackingPoints[$pointName]['formatted_memory_usage']
+            'memory_usage' => $this->trackingPoints[$pointName]['formatted_memory_usage'],
         ]);
     }
 
@@ -120,7 +123,7 @@ class MemoryUsageMonitorService
     {
         if (empty($this->memorySnapshots)) {
             return [
-                'error' => 'No memory snapshots available'
+                'error' => 'No memory snapshots available',
             ];
         }
 
@@ -132,7 +135,7 @@ class MemoryUsageMonitorService
         $maxPeak = max($peaks);
 
         $analysis = [
-            'total_snapshots' => count($this->memorySnapshots),
+            'total_snapshots' => \count($this->memorySnapshots),
             'min_memory_usage_bytes' => $minUsage,
             'max_memory_usage_bytes' => $maxUsage,
             'min_memory_usage_formatted' => $this->formatBytes($minUsage),
@@ -141,10 +144,10 @@ class MemoryUsageMonitorService
             'max_memory_peak_bytes' => $maxPeak,
             'min_memory_peak_formatted' => $this->formatBytes($minPeak),
             'max_memory_peak_formatted' => $this->formatBytes($maxPeak),
-            'average_memory_usage_bytes' => (int)(array_sum($usages) / count($usages)),
-            'average_memory_usage_formatted' => $this->formatBytes((int)(array_sum($usages) / count($usages))),
-            'current_memory_limit' => ini_get('memory_limit'),
-            'snapshots' => $this->memorySnapshots
+            'average_memory_usage_bytes' => (int)(array_sum($usages) / \count($usages)),
+            'average_memory_usage_formatted' => $this->formatBytes((int)(array_sum($usages) / \count($usages))),
+            'current_memory_limit' => \ini_get('memory_limit'),
+            'snapshots' => $this->memorySnapshots,
         ];
 
         return $analysis;
@@ -157,14 +160,14 @@ class MemoryUsageMonitorService
     {
         if (empty($this->trackingPoints)) {
             return [
-                'error' => 'No memory tracking points available'
+                'error' => 'No memory tracking points available',
             ];
         }
 
         $analysis = [
-            'total_points' => count($this->trackingPoints),
+            'total_points' => \count($this->trackingPoints),
             'tracking_points' => $this->trackingPoints,
-            'usage_comparison' => $this->compareTrackingPoints()
+            'usage_comparison' => $this->compareTrackingPoints(),
         ];
 
         return $analysis;
@@ -178,7 +181,7 @@ class MemoryUsageMonitorService
         $points = array_keys($this->trackingPoints);
         $comparisons = [];
 
-        for ($i = 1; $i < count($points); $i++) {
+        for ($i = 1; $i < \count($points); $i++) {
             $prevPoint = $points[$i - 1];
             $currPoint = $points[$i];
 
@@ -193,7 +196,7 @@ class MemoryUsageMonitorService
                 'to_point' => $currPoint,
                 'difference_bytes' => $diff,
                 'difference_formatted' => $diffFormatted,
-                'direction' => $diff > 0 ? 'increased' : ($diff < 0 ? 'decreased' : 'unchanged')
+                'direction' => $diff > 0 ? 'increased' : ($diff < 0 ? 'decreased' : 'unchanged'),
             ];
         }
 
@@ -206,45 +209,45 @@ class MemoryUsageMonitorService
     public function detectPotentialLeaks(int $thresholdIncreasePercent = 50): array
     {
         $leakSuspects = [];
-        
+
         // Check snapshots for unusual increases
-        for ($i = 1; $i < count($this->memorySnapshots); $i++) {
+        for ($i = 1; $i < \count($this->memorySnapshots); $i++) {
             $prev = $this->memorySnapshots[$i - 1];
             $curr = $this->memorySnapshots[$i];
-            
+
             if ($prev['memory_usage_bytes'] > 0) {
                 $increasePercent = (($curr['memory_usage_bytes'] - $prev['memory_usage_bytes']) / $prev['memory_usage_bytes']) * 100;
-                
+
                 if ($increasePercent > $thresholdIncreasePercent) {
                     $leakSuspects[] = [
                         'from_snapshot' => $prev['label'],
                         'to_snapshot' => $curr['label'],
                         'increase_percent' => round($increasePercent, 2),
                         'from_memory' => $prev['formatted_memory_usage'],
-                        'to_memory' => $curr['formatted_memory_usage']
+                        'to_memory' => $curr['formatted_memory_usage'],
                     ];
                 }
             }
         }
-        
+
         // Check tracking points
         $trackingComparisons = $this->compareTrackingPoints();
         foreach ($trackingComparisons as $comp) {
             if ($comp['difference_bytes'] > 0) {
                 $increasePercent = (($comp['difference_bytes']) / $this->trackingPoints[$comp['from_point']]['memory_usage_bytes']) * 100;
-                
+
                 if ($increasePercent > $thresholdIncreasePercent) {
                     $leakSuspects[] = [
                         'from_point' => $comp['from_point'],
                         'to_point' => $comp['to_point'],
                         'increase_percent' => round($increasePercent, 2),
                         'from_memory' => $this->trackingPoints[$comp['from_point']]['formatted_memory_usage'],
-                        'to_memory' => $this->trackingPoints[$comp['to_point']]['formatted_memory_usage']
+                        'to_memory' => $this->trackingPoints[$comp['to_point']]['formatted_memory_usage'],
                     ];
                 }
             }
         }
-        
+
         return $leakSuspects;
     }
 
@@ -255,7 +258,7 @@ class MemoryUsageMonitorService
     {
         $this->memorySnapshots = [];
         $this->trackingPoints = [];
-        
+
         $this->logger->info('Memory snapshots and tracking points cleared');
     }
 
@@ -267,7 +270,7 @@ class MemoryUsageMonitorService
         $units = ['B', 'KB', 'MB', 'GB'];
         $bytes = max($bytes, 0);
         $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-        $pow = min($pow, count($units) - 1);
+        $pow = min($pow, \count($units) - 1);
 
         $bytes /= pow(1024, $pow);
 
@@ -279,9 +282,9 @@ class MemoryUsageMonitorService
      */
     public function getMemoryTrend(): array
     {
-        if (count($this->memorySnapshots) < 2) {
+        if (\count($this->memorySnapshots) < 2) {
             return [
-                'error' => 'Need at least 2 snapshots to calculate trend'
+                'error' => 'Need at least 2 snapshots to calculate trend',
             ];
         }
 
@@ -289,7 +292,7 @@ class MemoryUsageMonitorService
         $memories = array_column($this->memorySnapshots, 'memory_usage_bytes');
 
         // Calculate linear regression
-        $n = count($timestamps);
+        $n = \count($timestamps);
         $sumX = array_sum($timestamps);
         $sumY = array_sum($memories);
         $sumXY = 0;
@@ -309,7 +312,7 @@ class MemoryUsageMonitorService
             'slope_description' => $this->describeSlope($slopePerSecond),
             'total_samples' => $n,
             'first_sample' => $this->memorySnapshots[0],
-            'last_sample' => $this->memorySnapshots[$n - 1]
+            'last_sample' => $this->memorySnapshots[$n - 1],
         ];
 
         return $trend;
@@ -321,7 +324,7 @@ class MemoryUsageMonitorService
     private function describeSlope(float $slope): string
     {
         $absSlope = abs($slope * 1000000); // Convert to bytes per second
-        
+
         if ($absSlope < 1024) {
             return $slope > 0 ? 'Slowly increasing' : 'Slowly decreasing';
         } elseif ($absSlope < 1024 * 1024) {

@@ -12,8 +12,9 @@ class DataCleanupService
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private LoggerInterface $logger
-    ) {}
+        private LoggerInterface $logger,
+    ) {
+    }
 
     /**
      * Получить статистику старых данных
@@ -27,7 +28,7 @@ class DataCleanupService
             'notifications_read_old' => $this->countOldReadNotifications($daysToCheck),
             'tasks_completed_old' => $this->countOldCompletedTasks($daysToCheck),
             'cutoff_date' => $cutoffDate->format('Y-m-d H:i:s'),
-            'estimated_cleanup_time' => '5-10 минут'
+            'estimated_cleanup_time' => '5-10 минут',
         ];
     }
 
@@ -41,7 +42,7 @@ class DataCleanupService
             'notifications_deleted' => $this->cleanupReadNotifications($options['notifications_days'] ?? 30),
             'tasks_archived' => $this->archiveCompletedTasks($options['tasks_days'] ?? 365),
             'success' => true,
-            'timestamp' => (new \DateTime())->format('Y-m-d H:i:s')
+            'timestamp' => (new \DateTime())->format('Y-m-d H:i:s'),
         ];
 
         return $results;
@@ -54,9 +55,9 @@ class DataCleanupService
     {
         $cutoffDate = new \DateTime("-{$days} days");
         $qb = $this->entityManager->createQueryBuilder();
-        
+
         return (int) $qb->select('COUNT(a.id)')
-            ->from('App\Entity\ActivityLog', 'a')
+            ->from('App\\Entity\\ActivityLog', 'a')
             ->where('a.createdAt < :cutoff')
             ->setParameter('cutoff', $cutoffDate)
             ->getQuery()
@@ -70,9 +71,9 @@ class DataCleanupService
     {
         $cutoffDate = new \DateTime("-{$days} days");
         $qb = $this->entityManager->createQueryBuilder();
-        
+
         return (int) $qb->select('COUNT(n.id)')
-            ->from('App\Entity\Notification', 'n')
+            ->from('App\\Entity\\Notification', 'n')
             ->where('n.isRead = :read')
             ->andWhere('n.createdAt < :cutoff')
             ->setParameter('read', true)
@@ -88,9 +89,9 @@ class DataCleanupService
     {
         $cutoffDate = new \DateTime("-{$days} days");
         $qb = $this->entityManager->createQueryBuilder();
-        
+
         return (int) $qb->select('COUNT(t.id)')
-            ->from('App\Entity\Task', 't')
+            ->from('App\\Entity\\Task', 't')
             ->where('t.status = :status')
             ->andWhere('t.completedAt < :cutoff')
             ->setParameter('status', 'completed')
@@ -105,9 +106,9 @@ class DataCleanupService
     public function cleanupActivityLogs(int $daysToKeep = 90): int
     {
         $cutoffDate = new \DateTime("-{$daysToKeep} days");
-        
+
         $qb = $this->entityManager->createQueryBuilder();
-        $deleted = $qb->delete('App\Entity\ActivityLog', 'a')
+        $deleted = $qb->delete('App\\Entity\\ActivityLog', 'a')
             ->where('a.createdAt < :cutoff')
             ->setParameter('cutoff', $cutoffDate)
             ->getQuery()
@@ -115,7 +116,7 @@ class DataCleanupService
 
         $this->logger->info('Activity logs cleaned up', [
             'deleted' => $deleted,
-            'cutoff_date' => $cutoffDate->format('Y-m-d')
+            'cutoff_date' => $cutoffDate->format('Y-m-d'),
         ]);
 
         return $deleted;
@@ -127,9 +128,9 @@ class DataCleanupService
     public function cleanupReadNotifications(int $daysToKeep = 30): int
     {
         $cutoffDate = new \DateTime("-{$daysToKeep} days");
-        
+
         $qb = $this->entityManager->createQueryBuilder();
-        $deleted = $qb->delete('App\Entity\Notification', 'n')
+        $deleted = $qb->delete('App\\Entity\\Notification', 'n')
             ->where('n.isRead = :read')
             ->andWhere('n.createdAt < :cutoff')
             ->setParameter('read', true)
@@ -139,7 +140,7 @@ class DataCleanupService
 
         $this->logger->info('Read notifications cleaned up', [
             'deleted' => $deleted,
-            'cutoff_date' => $cutoffDate->format('Y-m-d')
+            'cutoff_date' => $cutoffDate->format('Y-m-d'),
         ]);
 
         return $deleted;
@@ -151,10 +152,10 @@ class DataCleanupService
     public function archiveCompletedTasks(int $daysToKeep = 365): int
     {
         $cutoffDate = new \DateTime("-{$daysToKeep} days");
-        
+
         // Помечаем как архивные вместо удаления
         $qb = $this->entityManager->createQueryBuilder();
-        $archived = $qb->update('App\Entity\Task', 't')
+        $archived = $qb->update('App\\Entity\\Task', 't')
             ->set('t.isArchived', ':archived')
             ->where('t.status = :status')
             ->andWhere('t.completedAt < :cutoff')
@@ -166,7 +167,7 @@ class DataCleanupService
 
         $this->logger->info('Completed tasks archived', [
             'archived' => $archived,
-            'cutoff_date' => $cutoffDate->format('Y-m-d')
+            'cutoff_date' => $cutoffDate->format('Y-m-d'),
         ]);
 
         return $archived;
@@ -194,6 +195,7 @@ class DataCleanupService
         }
 
         $this->logger->info('Temp files cleaned up', ['deleted' => $deleted]);
+
         return $deleted;
     }
 
@@ -203,9 +205,9 @@ class DataCleanupService
     public function cleanupTaskHistory(int $daysToKeep = 180): int
     {
         $cutoffDate = new \DateTime("-{$daysToKeep} days");
-        
+
         $qb = $this->entityManager->createQueryBuilder();
-        $deleted = $qb->delete('App\Entity\TaskHistory', 'h')
+        $deleted = $qb->delete('App\\Entity\\TaskHistory', 'h')
             ->where('h.createdAt < :cutoff')
             ->setParameter('cutoff', $cutoffDate)
             ->getQuery()
@@ -213,7 +215,7 @@ class DataCleanupService
 
         $this->logger->info('Task history cleaned up', [
             'deleted' => $deleted,
-            'cutoff_date' => $cutoffDate->format('Y-m-d')
+            'cutoff_date' => $cutoffDate->format('Y-m-d'),
         ]);
 
         return $deleted;
@@ -229,10 +231,11 @@ class DataCleanupService
             'notifications' => $this->cleanupReadNotifications(),
             'archived_tasks' => $this->archiveCompletedTasks(),
             'task_history' => $this->cleanupTaskHistory(),
-            'timestamp' => date('Y-m-d H:i:s')
+            'timestamp' => date('Y-m-d H:i:s'),
         ];
 
         $this->logger->info('Full cleanup completed', $results);
+
         return $results;
     }
 
@@ -246,7 +249,7 @@ class DataCleanupService
         // Старые логи активности
         $qb = $this->entityManager->createQueryBuilder();
         $stats['old_activity_logs'] = $qb->select('COUNT(a.id)')
-            ->from('App\Entity\ActivityLog', 'a')
+            ->from('App\\Entity\\ActivityLog', 'a')
             ->where('a.createdAt < :cutoff')
             ->setParameter('cutoff', new \DateTime('-90 days'))
             ->getQuery()
@@ -255,7 +258,7 @@ class DataCleanupService
         // Прочитанные уведомления
         $qb = $this->entityManager->createQueryBuilder();
         $stats['old_notifications'] = $qb->select('COUNT(n.id)')
-            ->from('App\Entity\Notification', 'n')
+            ->from('App\\Entity\\Notification', 'n')
             ->where('n.isRead = :read')
             ->andWhere('n.createdAt < :cutoff')
             ->setParameter('read', true)
@@ -266,7 +269,7 @@ class DataCleanupService
         // Старые завершенные задачи
         $qb = $this->entityManager->createQueryBuilder();
         $stats['old_completed_tasks'] = $qb->select('COUNT(t.id)')
-            ->from('App\Entity\Task', 't')
+            ->from('App\\Entity\\Task', 't')
             ->where('t.status = :status')
             ->andWhere('t.completedAt < :cutoff')
             ->setParameter('status', 'completed')

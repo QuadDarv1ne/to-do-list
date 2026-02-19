@@ -3,17 +3,18 @@
 namespace App\Service;
 
 use App\Entity\Task;
-use App\Entity\User;
 use App\Entity\TaskNotification;
+use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 
 class ReminderService
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private RealTimeNotificationService $notificationService
-    ) {}
-    
+        private RealTimeNotificationService $notificationService,
+    ) {
+    }
+
     /**
      * Create reminder for task
      */
@@ -22,7 +23,7 @@ class ReminderService
         User $user,
         \DateTime $reminderTime,
         string $type = 'deadline',
-        ?string $customMessage = null
+        ?string $customMessage = null,
     ): TaskNotification {
         $notification = new TaskNotification();
         $notification->setTask($task);
@@ -30,16 +31,16 @@ class ReminderService
         $notification->setScheduledFor($reminderTime);
         $notification->setType($type);
         $notification->setIsSent(false);
-        
+
         $message = $customMessage ?? $this->generateReminderMessage($task, $type);
         $notification->setMessage($message);
-        
+
         $this->entityManager->persist($notification);
         $this->entityManager->flush();
-        
+
         return $notification;
     }
-    
+
     /**
      * Create smart reminders based on task deadline
      */
@@ -48,42 +49,42 @@ class ReminderService
         if (!$task->getDeadline()) {
             return [];
         }
-        
+
         $deadline = $task->getDeadline();
         $now = new \DateTime();
         $reminders = [];
-        
+
         // Calculate time until deadline
         $hoursUntilDeadline = ($deadline->getTimestamp() - $now->getTimestamp()) / 3600;
-        
+
         // 1 week before (if deadline is more than 1 week away)
         if ($hoursUntilDeadline > 168) {
             $reminderTime = (clone $deadline)->modify('-7 days');
             $reminders[] = $this->createReminder($task, $user, $reminderTime, 'week_before');
         }
-        
+
         // 1 day before
         if ($hoursUntilDeadline > 24) {
             $reminderTime = (clone $deadline)->modify('-1 day');
             $reminders[] = $this->createReminder($task, $user, $reminderTime, 'day_before');
         }
-        
+
         // 1 hour before
         if ($hoursUntilDeadline > 1) {
             $reminderTime = (clone $deadline)->modify('-1 hour');
             $reminders[] = $this->createReminder($task, $user, $reminderTime, 'hour_before');
         }
-        
+
         return $reminders;
     }
-    
+
     /**
      * Send due reminders
      */
     public function sendDueReminders(): int
     {
         $now = new \DateTime();
-        
+
         $dueReminders = $this->entityManager->getRepository(TaskNotification::class)
             ->createQueryBuilder('tn')
             ->where('tn.isSent = :false')
@@ -92,9 +93,9 @@ class ReminderService
             ->setParameter('now', $now)
             ->getQuery()
             ->getResult();
-        
+
         $sentCount = 0;
-        
+
         foreach ($dueReminders as $reminder) {
             try {
                 $this->sendReminder($reminder);
@@ -104,10 +105,10 @@ class ReminderService
                 error_log('Failed to send reminder: ' . $e->getMessage());
             }
         }
-        
+
         return $sentCount;
     }
-    
+
     /**
      * Send individual reminder
      */
@@ -115,7 +116,7 @@ class ReminderService
     {
         $task = $reminder->getTask();
         $user = $reminder->getUser();
-        
+
         // Send notification
         $this->notificationService->sendNotification(
             $user,
@@ -125,17 +126,17 @@ class ReminderService
             [
                 'task_id' => $task->getId(),
                 'task_title' => $task->getTitle(),
-                'reminder_type' => $reminder->getType()
-            ]
+                'reminder_type' => $reminder->getType(),
+            ],
         );
-        
+
         // Mark as sent
         $reminder->setIsSent(true);
         $reminder->setSentAt(new \DateTime());
-        
+
         $this->entityManager->flush();
     }
-    
+
     /**
      * Get upcoming reminders for user
      */
@@ -143,7 +144,7 @@ class ReminderService
     {
         $now = new \DateTime();
         $future = (clone $now)->modify("+{$days} days");
-        
+
         return $this->entityManager->getRepository(TaskNotification::class)
             ->createQueryBuilder('tn')
             ->where('tn.user = :user')
@@ -157,7 +158,7 @@ class ReminderService
             ->getQuery()
             ->getResult();
     }
-    
+
     /**
      * Cancel reminder
      */
@@ -166,7 +167,7 @@ class ReminderService
         $this->entityManager->remove($reminder);
         $this->entityManager->flush();
     }
-    
+
     /**
      * Cancel all reminders for task
      */
@@ -174,18 +175,18 @@ class ReminderService
     {
         $reminders = $this->entityManager->getRepository(TaskNotification::class)
             ->findBy(['task' => $task, 'isSent' => false]);
-        
-        $count = count($reminders);
-        
+
+        $count = \count($reminders);
+
         foreach ($reminders as $reminder) {
             $this->entityManager->remove($reminder);
         }
-        
+
         $this->entityManager->flush();
-        
+
         return $count;
     }
-    
+
     /**
      * Reschedule reminder
      */
@@ -194,14 +195,14 @@ class ReminderService
         $reminder->setScheduledFor($newTime);
         $this->entityManager->flush();
     }
-    
+
     /**
      * Get reminder statistics
      */
     public function getReminderStatistics(User $user): array
     {
         $qb = $this->entityManager->createQueryBuilder();
-        
+
         // Total reminders
         $total = $qb->select('COUNT(tn.id)')
             ->from(TaskNotification::class, 'tn')
@@ -209,7 +210,7 @@ class ReminderService
             ->setParameter('user', $user)
             ->getQuery()
             ->getSingleScalarResult();
-        
+
         // Sent reminders
         $sent = $this->entityManager->createQueryBuilder()
             ->select('COUNT(tn.id)')
@@ -220,7 +221,7 @@ class ReminderService
             ->setParameter('true', true)
             ->getQuery()
             ->getSingleScalarResult();
-        
+
         // Pending reminders
         $pending = $this->entityManager->createQueryBuilder()
             ->select('COUNT(tn.id)')
@@ -231,14 +232,14 @@ class ReminderService
             ->setParameter('false', false)
             ->getQuery()
             ->getSingleScalarResult();
-        
+
         return [
             'total' => (int)$total,
             'sent' => (int)$sent,
-            'pending' => (int)$pending
+            'pending' => (int)$pending,
         ];
     }
-    
+
     /**
      * Generate reminder message based on type
      */
@@ -246,7 +247,7 @@ class ReminderService
     {
         $title = $task->getTitle();
         $deadline = $task->getDeadline()?->format('d.m.Y H:i');
-        
+
         return match($type) {
             'week_before' => "Напоминание: до дедлайна задачи \"{$title}\" осталась неделя ({$deadline})",
             'day_before' => "Напоминание: до дедлайна задачи \"{$title}\" остался день ({$deadline})",
@@ -256,7 +257,7 @@ class ReminderService
             default => "Напоминание о задаче: {$title}"
         };
     }
-    
+
     /**
      * Create recurring reminders
      */
@@ -265,32 +266,35 @@ class ReminderService
         User $user,
         string $frequency, // daily, weekly, monthly
         \DateTime $startDate,
-        \DateTime $endDate
+        \DateTime $endDate,
     ): array {
         $reminders = [];
         $currentDate = clone $startDate;
-        
+
         while ($currentDate <= $endDate) {
             $reminders[] = $this->createReminder(
                 $task,
                 $user,
                 clone $currentDate,
-                'recurring'
+                'recurring',
             );
-            
+
             switch ($frequency) {
                 case 'daily':
                     $currentDate->modify('+1 day');
+
                     break;
                 case 'weekly':
                     $currentDate->modify('+1 week');
+
                     break;
                 case 'monthly':
                     $currentDate->modify('+1 month');
+
                     break;
             }
         }
-        
+
         return $reminders;
     }
 }

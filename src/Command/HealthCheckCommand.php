@@ -12,7 +12,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:health-check',
-    description: 'Perform system health checks'
+    description: 'Perform system health checks',
 )]
 class HealthCheckCommand extends Command
 {
@@ -50,23 +50,23 @@ class HealthCheckCommand extends Command
             $checksToRun = array_intersect($requestedChecks, $availableChecks);
         }
 
-        $io->writeln("Running health checks...");
-        $io->writeln("Checks to run: " . implode(', ', $checksToRun));
+        $io->writeln('Running health checks...');
+        $io->writeln('Checks to run: ' . implode(', ', $checksToRun));
 
         // Run the health check
         $healthResults = $this->healthCheckService->performHealthCheck([
-            'checks' => $checksToRun
+            'checks' => $checksToRun,
         ]);
 
         // Format output based on selected format
         if ($format === 'json') {
             $outputData = [
                 'health_results' => $healthResults,
-                'timestamp' => date('Y-m-d H:i:s')
+                'timestamp' => date('Y-m-d H:i:s'),
             ];
-            
+
             $jsonData = json_encode($outputData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-            
+
             if ($outputFile) {
                 file_put_contents($outputFile, $jsonData);
                 $io->success("Health check results saved to {$outputFile}");
@@ -76,7 +76,7 @@ class HealthCheckCommand extends Command
         } else {
             // Text format output
             $this->displayTextReport($io, $healthResults);
-            
+
             if ($outputFile) {
                 $textData = $this->getTextReport($healthResults);
                 file_put_contents($outputFile, $textData);
@@ -104,31 +104,31 @@ class HealthCheckCommand extends Command
                 ['Duration', $healthResults['duration_ms'] . ' ms'],
                 ['Environment', $healthResults['environment']],
                 ['Timestamp', $healthResults['timestamp']],
-            ]
+            ],
         );
 
         // Display detailed results
         foreach ($healthResults['checks'] as $checkName => $results) {
             $status = $results['status'];
             $statusColor = $status === 'ok' ? 'green' : ($status === 'warning' ? 'yellow' : 'red');
-            
+
             $io->section("{$checkName} Check - <fg={$statusColor}>{$status}</>");
-            
+
             $io->writeln($results['message']);
-            
+
             if (!empty($results['details'])) {
                 $io->writeln('');
                 $io->writeln('<comment>Details:</comment>');
-                
+
                 foreach ($results['details'] as $key => $value) {
-                    if (is_array($value)) {
+                    if (\is_array($value)) {
                         $io->writeln("  {$key}: " . json_encode($value));
                     } else {
                         $io->writeln("  {$key}: {$value}");
                     }
                 }
             }
-            
+
             $io->writeln('');
         }
     }
@@ -136,7 +136,7 @@ class HealthCheckCommand extends Command
     private function getTextReport(array $healthResults): string
     {
         $report = "SYSTEM HEALTH CHECK REPORT\n";
-        $report .= str_repeat("=", 50) . "\n\n";
+        $report .= str_repeat('=', 50) . "\n\n";
 
         $report .= "Timestamp: {$healthResults['timestamp']}\n";
         $report .= "Duration: {$healthResults['duration_ms']} ms\n";
@@ -145,14 +145,14 @@ class HealthCheckCommand extends Command
 
         foreach ($healthResults['checks'] as $checkName => $results) {
             $report .= strtoupper(str_replace('-', ' ', $checkName)) . " CHECK\n";
-            $report .= str_repeat("-", 30) . "\n";
+            $report .= str_repeat('-', 30) . "\n";
             $report .= "Status: {$results['status']}\n";
             $report .= "Message: {$results['message']}\n";
 
             if (!empty($results['details'])) {
                 $report .= "Details:\n";
                 foreach ($results['details'] as $key => $value) {
-                    if (is_array($value)) {
+                    if (\is_array($value)) {
                         $report .= "  {$key}: " . json_encode($value) . "\n";
                     } else {
                         $report .= "  {$key}: {$value}\n";

@@ -2,28 +2,29 @@
 
 namespace App\Service;
 
-use App\Entity\User;
 use App\Entity\Notification;
 use App\Entity\Task;
+use App\Entity\User;
 use App\Repository\NotificationRepository;
-use App\Service\PerformanceMonitorService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class NotificationService
 {
     private EntityManagerInterface $entityManager;
+
     private LoggerInterface $logger;
+
     private NotificationRepository $notificationRepository;
+
     private ?PerformanceMonitorService $performanceMonitor;
 
     public function __construct(
         EntityManagerInterface $entityManager,
         LoggerInterface $logger,
         NotificationRepository $notificationRepository,
-        ?PerformanceMonitorService $performanceMonitor = null
+        ?PerformanceMonitorService $performanceMonitor = null,
     ) {
         $this->entityManager = $entityManager;
         $this->logger = $logger;
@@ -38,11 +39,12 @@ class NotificationService
         User $user,
         string $title,
         string $message,
-        ?Task $task = null
+        ?Task $task = null,
     ): Notification {
         if ($this->performanceMonitor) {
             $this->performanceMonitor->startTiming('notification_service_create_notification');
         }
+
         try {
             $notification = new Notification();
             $notification->setUser($user);
@@ -75,11 +77,12 @@ class NotificationService
         string $title,
         string $message,
         int $taskId,
-        ?string $taskTitle = null
+        ?string $taskTitle = null,
     ): Notification {
         if ($this->performanceMonitor) {
             $this->performanceMonitor->startTiming('notification_service_create_task_notification');
         }
+
         try {
             // For now, we'll create a basic notification
             // In a real implementation, you might want to extend the Notification entity
@@ -99,10 +102,11 @@ class NotificationService
         if ($this->performanceMonitor) {
             $this->performanceMonitor->startTiming('notification_service_get_unread_notifications');
         }
+
         try {
             return $this->notificationRepository->findBy([
                 'user' => $user,
-                'isRead' => false
+                'isRead' => false,
             ], ['createdAt' => 'DESC']);
         } finally {
             if ($this->performanceMonitor) {
@@ -119,6 +123,7 @@ class NotificationService
         if ($this->performanceMonitor) {
             $this->performanceMonitor->startTiming('notification_service_mark_as_read');
         }
+
         try {
             $notification->setIsRead(true);
             $this->entityManager->flush();
@@ -137,15 +142,17 @@ class NotificationService
         if ($this->performanceMonitor) {
             $this->performanceMonitor->startTiming('notification_service_mark_all_as_read');
         }
+
         try {
             $unreadNotifications = $this->getUnreadNotifications($user);
-            $count = count($unreadNotifications);
+            $count = \count($unreadNotifications);
 
             foreach ($unreadNotifications as $notification) {
                 $notification->setIsRead(true);
             }
 
             $this->entityManager->flush();
+
             return $count;
         } finally {
             if ($this->performanceMonitor) {
@@ -163,6 +170,7 @@ class NotificationService
         if ($this->performanceMonitor) {
             $this->performanceMonitor->startTiming('notification_service_create_notification_stream');
         }
+
         try {
             $response = new StreamedResponse(function () use ($user) {
                 // Send headers
@@ -173,7 +181,7 @@ class NotificationService
 
                 // Send initial connection confirmation
                 echo "event: connected\n";
-                echo "data: " . json_encode(['status' => 'connected', 'user_id' => $user->getId()]) . "\n\n";
+                echo 'data: ' . json_encode(['status' => 'connected', 'user_id' => $user->getId()]) . "\n\n";
                 flush();
 
                 $lastCheck = new \DateTime();
@@ -181,34 +189,34 @@ class NotificationService
                 $checkInterval = 15; // seconds
                 $maxDuration = 900; // 15 minutes maximum connection time
                 $startTime = time();
-                
+
                 while ((time() - $startTime) < $maxDuration && !connection_aborted()) {
                     // Check for new notifications
                     $newNotifications = $this->getNewNotifications($user, $lastCheck);
-                    
+
                     if (!empty($newNotifications)) {
                         foreach ($newNotifications as $notification) {
                             // Handle both object and array formats for backward compatibility
-                            $id = is_object($notification) ? $notification->getId() : $notification['id'];
-                            $title = is_object($notification) ? htmlspecialchars($notification->getTitle(), ENT_QUOTES, 'UTF-8') : htmlspecialchars($notification['title'], ENT_QUOTES, 'UTF-8');
-                            $message = is_object($notification) ? htmlspecialchars($notification->getMessage(), ENT_QUOTES, 'UTF-8') : htmlspecialchars($notification['message'], ENT_QUOTES, 'UTF-8');
-                            $createdAt = is_object($notification) ? $notification->getCreatedAt() : new \DateTime($notification['createdAt']);
-                            $taskId = is_object($notification) ? ($notification->getTask() ? $notification->getTask()->getId() : null) : ($notification['taskId'] ?? null);
-                            
+                            $id = \is_object($notification) ? $notification->getId() : $notification['id'];
+                            $title = \is_object($notification) ? htmlspecialchars($notification->getTitle(), ENT_QUOTES, 'UTF-8') : htmlspecialchars($notification['title'], ENT_QUOTES, 'UTF-8');
+                            $message = \is_object($notification) ? htmlspecialchars($notification->getMessage(), ENT_QUOTES, 'UTF-8') : htmlspecialchars($notification['message'], ENT_QUOTES, 'UTF-8');
+                            $createdAt = \is_object($notification) ? $notification->getCreatedAt() : new \DateTime($notification['createdAt']);
+                            $taskId = \is_object($notification) ? ($notification->getTask() ? $notification->getTask()->getId() : null) : ($notification['taskId'] ?? null);
+
                             echo "event: notification\n";
-                            echo "data: " . json_encode([
+                            echo 'data: ' . json_encode([
                                 'id' => $id,
                                 'title' => $title,
                                 'message' => $message,
                                 'task_id' => $taskId,
-                                'created_at' => $createdAt->format('c')
+                                'created_at' => $createdAt->format('c'),
                             ]) . "\n\n";
                             if (ob_get_level()) {
                                 ob_flush();
                             }
                             flush();
                         }
-                        
+
                         $lastCheck = new \DateTime();
                     }
 
@@ -216,29 +224,29 @@ class NotificationService
                     $elapsed = time() - $startTime;
                     if ($elapsed % $heartbeatInterval === 0) {
                         echo "event: heartbeat\n";
-                        echo "data: " . json_encode(['time' => date('c'), 'elapsed' => $elapsed]) . "\n\n";
+                        echo 'data: ' . json_encode(['time' => date('c'), 'elapsed' => $elapsed]) . "\n\n";
                         flush();
                     }
 
                     // Sleep with connection check
                     $remainingSleep = $checkInterval;
                     $chunkSize = 2;
-                    
+
                     while ($remainingSleep > 0 && !connection_aborted()) {
                         $sleepChunk = min($chunkSize, $remainingSleep);
                         sleep($sleepChunk);
                         $remainingSleep -= $sleepChunk;
                     }
-                    
+
                     if (connection_aborted()) {
                         break;
                     }
                 }
-                
+
                 // Send disconnect event before closing
                 $reason = (time() - $startTime) >= $maxDuration ? 'timeout' : 'client_disconnect';
                 echo "event: disconnected\n";
-                echo "data: " . json_encode(['status' => 'disconnected', 'reason' => $reason]) . "\n\n";
+                echo 'data: ' . json_encode(['status' => 'disconnected', 'reason' => $reason]) . "\n\n";
                 flush();
             });
 
@@ -263,9 +271,10 @@ class NotificationService
         if ($this->performanceMonitor) {
             $this->performanceMonitor->startTiming('notification_service_get_new_notifications');
         }
+
         try {
             $sinceImmutable = \DateTimeImmutable::createFromMutable($since);
-            
+
             // More optimized query with explicit field selection to reduce memory usage
             return $this->notificationRepository->createQueryBuilder('n')
                 ->select('n.id, n.title, n.message, n.createdAt, n.isRead, t.id as taskId')
@@ -294,14 +303,15 @@ class NotificationService
         User $assigner,
         int $taskId,
         string $taskTitle,
-        string $priority = 'medium'
+        string $priority = 'medium',
     ): void {
         if ($this->performanceMonitor) {
             $this->performanceMonitor->startTiming('notification_service_send_task_assignment_notification');
         }
+
         try {
             $title = 'Новая задача назначена';
-            
+
             // Include priority in message if urgent
             $priorityLabel = '';
             if ($priority === 'urgent') {
@@ -309,12 +319,12 @@ class NotificationService
             } elseif ($priority === 'high') {
                 $priorityLabel = ' (высокий приоритет)';
             }
-            
-            $message = sprintf(
+
+            $message = \sprintf(
                 'Пользователь %s назначил вам задачу "%s"%s',
                 $assigner->getFullName(),
                 $taskTitle,
-                $priorityLabel
+                $priorityLabel,
             );
 
             $this->createTaskNotification($assignedUser, $title, $message, $taskId, $taskTitle);
@@ -332,18 +342,19 @@ class NotificationService
         User $taskCreator,
         User $completer,
         int $taskId,
-        string $taskTitle
+        string $taskTitle,
     ): void {
         if ($this->performanceMonitor) {
             $this->performanceMonitor->startTiming('notification_service_send_task_completion_notification');
         }
+
         try {
             if ($taskCreator->getId() !== $completer->getId()) {
                 $title = 'Задача завершена';
-                $message = sprintf(
+                $message = \sprintf(
                     'Пользователь %s завершил задачу "%s"',
                     $completer->getFullName(),
-                    $taskTitle
+                    $taskTitle,
                 );
 
                 $this->createTaskNotification($taskCreator, $title, $message, $taskId, $taskTitle);
@@ -362,17 +373,18 @@ class NotificationService
         User $user,
         int $taskId,
         string $taskTitle,
-        \DateTime $deadline
+        \DateTime $deadline,
     ): void {
         if ($this->performanceMonitor) {
             $this->performanceMonitor->startTiming('notification_service_send_deadline_reminder');
         }
+
         try {
             $title = 'Напоминание о сроке';
-            $message = sprintf(
+            $message = \sprintf(
                 'Задача "%s" должна быть завершена до %s',
                 $taskTitle,
-                $deadline->format('d.m.Y H:i')
+                $deadline->format('d.m.Y H:i'),
             );
 
             $this->createTaskNotification($user, $title, $message, $taskId, $taskTitle);
@@ -389,11 +401,12 @@ class NotificationService
     public function sendSystemNotification(
         string $title,
         string $message,
-        ?string $type = 'info'
+        ?string $type = 'info',
     ): void {
         if ($this->performanceMonitor) {
             $this->performanceMonitor->startTiming('notification_service_send_system_notification');
         }
+
         try {
             // This would typically send to all active users
             // For now, we'll just log it
@@ -413,22 +426,23 @@ class NotificationService
         if ($this->performanceMonitor) {
             $this->performanceMonitor->startTiming('notification_service_get_notification_stats');
         }
+
         try {
             $total = $this->notificationRepository->count(['user' => $user]);
             $unread = $this->notificationRepository->count([
                 'user' => $user,
-                'isRead' => false
+                'isRead' => false,
             ]);
             $today = $this->notificationRepository->count([
                 'user' => $user,
-                'createdAt' => \DateTimeImmutable::createFromMutable(new \DateTime('today'))
+                'createdAt' => \DateTimeImmutable::createFromMutable(new \DateTime('today')),
             ]);
 
             return [
                 'total' => $total,
                 'unread' => $unread,
                 'today' => $today,
-                'read' => $total - $unread
+                'read' => $total - $unread,
             ];
         } finally {
             if ($this->performanceMonitor) {
@@ -445,25 +459,26 @@ class NotificationService
         if ($this->performanceMonitor) {
             $this->performanceMonitor->startTiming('notification_service_cleanup_old_notifications');
         }
+
         try {
             $cutoffDate = \DateTimeImmutable::createFromMutable(new \DateTime('-30 days'));
-            
+
             $oldNotifications = $this->notificationRepository->createQueryBuilder('n')
                 ->where('n.createdAt < :cutoff')
                 ->setParameter('cutoff', $cutoffDate)
                 ->getQuery()
                 ->getResult();
 
-            $count = count($oldNotifications);
-            
+            $count = \count($oldNotifications);
+
             foreach ($oldNotifications as $notification) {
                 $this->entityManager->remove($notification);
             }
-            
+
             $this->entityManager->flush();
-            
+
             $this->logger->info("Cleaned up {$count} old notifications");
-            
+
             return $count;
         } finally {
             if ($this->performanceMonitor) {

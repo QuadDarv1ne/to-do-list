@@ -9,5 +9,3 @@ parameters:
     excludePaths:
         - src/Kernel.php
         - migrations/*
-    checkMissingIterableValueType: false
-    checkGenericClassInNonGenericContext: false

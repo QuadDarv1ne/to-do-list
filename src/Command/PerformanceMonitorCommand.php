@@ -12,7 +12,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:performance-monitor',
-    description: 'Monitor and analyze application performance metrics'
+    description: 'Monitor and analyze application performance metrics',
 )]
 class PerformanceMonitorCommand extends Command
 {
@@ -42,24 +42,29 @@ class PerformanceMonitorCommand extends Command
         switch ($action) {
             case 'report':
                 $this->showPerformanceReport($io);
+
                 break;
 
             case 'slow-ops':
                 $threshold = (int) $input->getOption('threshold');
                 $this->showSlowOperations($io, $threshold);
+
                 break;
 
             case 'memory-stats':
                 $this->showMemoryStats($io);
+
                 break;
 
             case 'clear':
                 $operation = $input->getOption('operation');
                 $this->clearMetrics($io, $operation);
+
                 break;
 
             default:
                 $this->showHelp($io);
+
                 return Command::FAILURE;
         }
 
@@ -69,9 +74,9 @@ class PerformanceMonitorCommand extends Command
     private function showPerformanceReport(SymfonyStyle $io): void
     {
         $io->section('Performance Report');
-        
+
         $report = $this->performanceMonitor->getPerformanceReport();
-        
+
         $io->table(
             ['Metric', 'Value'],
             [
@@ -82,13 +87,13 @@ class PerformanceMonitorCommand extends Command
                 ['Slowest Operation', ($report['summary']['slowest_operation_ms'] ?? 0) . ' ms (' . ($report['summary']['slowest_operation_name'] ?? 'N/A') . ')'],
                 ['Fastest Operation', ($report['summary']['fastest_operation_ms'] ?? 0) . ' ms (' . ($report['summary']['fastest_operation_name'] ?? 'N/A') . ')'],
                 ['Total Memory Used', $this->formatBytes($report['summary']['total_memory_used_bytes'])],
-            ]
+            ],
         );
 
         // Show detailed metrics for operations
         if (!empty($report['detailed_metrics'])) {
             $io->section('Detailed Operation Metrics');
-            
+
             $rows = [];
             foreach ($report['detailed_metrics'] as $operation => $metrics) {
                 $rows[] = [
@@ -97,20 +102,20 @@ class PerformanceMonitorCommand extends Command
                     $metrics['avg_execution_time_ms'] . ' ms',
                     $metrics['min_execution_time_ms'] . ' ms',
                     $metrics['max_execution_time_ms'] . ' ms',
-                    $metrics['total_execution_time_ms'] . ' ms'
+                    $metrics['total_execution_time_ms'] . ' ms',
                 ];
             }
 
             $io->table(
                 ['Operation', 'Count', 'Avg Time', 'Min Time', 'Max Time', 'Total Time'],
-                $rows
+                $rows,
             );
         }
 
         // Show recommendations
         if (!empty($report['recommendations'])) {
             $io->section('Performance Recommendations');
-            
+
             foreach ($report['recommendations'] as $rec) {
                 $io->text("<comment>[{$rec['priority']}]</comment> {$rec['message']}");
             }
@@ -127,6 +132,7 @@ class PerformanceMonitorCommand extends Command
 
         if (empty($slowOps)) {
             $io->success("No operations found exceeding {$threshold}ms threshold.");
+
             return;
         }
 
@@ -136,16 +142,16 @@ class PerformanceMonitorCommand extends Command
                 $op['operation'],
                 $op['execution_time_ms'] . ' ms',
                 $this->formatBytes($op['memory_used_bytes']),
-                date('Y-m-d H:i:s', (int)$op['timestamp'])
+                date('Y-m-d H:i:s', (int)$op['timestamp']),
             ];
         }
 
         $io->table(
             ['Operation', 'Execution Time', 'Memory Used', 'Timestamp'],
-            $rows
+            $rows,
         );
 
-        $io->writeln("<info>Found " . count($slowOps) . " slow operations.</info>");
+        $io->writeln('<info>Found ' . \count($slowOps) . ' slow operations.</info>');
     }
 
     private function showMemoryStats(SymfonyStyle $io): void
@@ -161,7 +167,7 @@ class PerformanceMonitorCommand extends Command
                 ['Peak Memory Usage', $stats['peak_formatted']],
                 ['Current Bytes', $stats['current_memory_usage']],
                 ['Peak Bytes', $stats['peak_memory_usage']],
-            ]
+            ],
         );
     }
 
@@ -181,7 +187,7 @@ class PerformanceMonitorCommand extends Command
         $units = ['B', 'KB', 'MB', 'GB'];
         $bytes = max($bytes, 0);
         $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-        $pow = min($pow, count($units) - 1);
+        $pow = min($pow, \count($units) - 1);
 
         $bytes /= pow(1024, $pow);
 
@@ -195,14 +201,14 @@ class PerformanceMonitorCommand extends Command
             'report - Show comprehensive performance report',
             'slow-ops - Show operations exceeding threshold',
             'memory-stats - Show memory usage statistics',
-            'clear - Clear metrics (optionally for specific operation)'
+            'clear - Clear metrics (optionally for specific operation)',
         ]);
 
         $io->section('Options');
         $io->listing([
             '--action (-a) - Action to perform',
             '--threshold (-t) - Threshold for slow operations (default: 100ms)',
-            '--operation (-o) - Specific operation to clear'
+            '--operation (-o) - Specific operation to clear',
         ]);
 
         $io->section('Examples');
@@ -210,7 +216,7 @@ class PerformanceMonitorCommand extends Command
             'php bin/console app:performance-monitor --action=report',
             'php bin/console app:performance-monitor --action=slow-ops --threshold=200',
             'php bin/console app:performance-monitor --action=memory-stats',
-            'php bin/console app:performance-monitor --action=clear --operation=task_repository_findAll'
+            'php bin/console app:performance-monitor --action=clear --operation=task_repository_findAll',
         ]);
     }
 }

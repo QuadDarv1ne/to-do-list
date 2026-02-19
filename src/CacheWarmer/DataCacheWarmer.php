@@ -2,9 +2,9 @@
 
 namespace App\CacheWarmer;
 
-use App\Service\QueryCacheService;
 use App\Repository\TaskRepository;
 use App\Repository\UserRepository;
+use App\Service\QueryCacheService;
 use Symfony\Component\HttpKernel\CacheWarmer\CacheWarmerInterface;
 
 /**
@@ -13,13 +13,15 @@ use Symfony\Component\HttpKernel\CacheWarmer\CacheWarmerInterface;
 class DataCacheWarmer implements CacheWarmerInterface
 {
     private QueryCacheService $cacheService;
+
     private TaskRepository $taskRepository;
+
     private UserRepository $userRepository;
 
     public function __construct(
         QueryCacheService $cacheService,
         TaskRepository $taskRepository,
-        UserRepository $userRepository
+        UserRepository $userRepository,
     ) {
         $this->cacheService = $cacheService;
         $this->taskRepository = $taskRepository;
@@ -34,13 +36,13 @@ class DataCacheWarmer implements CacheWarmerInterface
         try {
             // Pre-warm common task queries
             $this->warmTaskQueries();
-            
+
             // Pre-warm common user queries
             $this->warmUserQueries();
-            
+
             // Pre-warm common dashboard queries
             $this->warmDashboardQueries();
-            
+
         } catch (\Exception $e) {
             // Silently fail if warming fails - shouldn't break the application
             error_log('Data cache warming failed: ' . $e->getMessage());
@@ -59,7 +61,7 @@ class DataCacheWarmer implements CacheWarmerInterface
                 // Call the method - the repository will handle caching internally
                 $this->taskRepository->countByStatus(null, null, $status);
             }
-            
+
             // Warm search queries with common search terms
             $commonSearches = ['important', 'urgent', 'meeting', 'deadline', 'today', 'week'];
             foreach ($commonSearches as $search) {
@@ -73,12 +75,12 @@ class DataCacheWarmer implements CacheWarmerInterface
     private function warmUserQueries(): void
     {
         try {
-            // Pre-warm user statistics 
+            // Pre-warm user statistics
             $this->userRepository->getStatistics();
-            
-            // Pre-warm active users list 
+
+            // Pre-warm active users list
             $this->userRepository->findActiveUsers();
-            
+
             // Pre-warm role-based user lists
             $roles = ['ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_USER'];
             foreach ($roles as $role) {

@@ -3,18 +3,17 @@
 namespace App\Controller;
 
 use App\Entity\Resource;
-use App\Entity\Task;
 use App\Repository\ResourceRepository;
 use App\Repository\TaskRepository;
 use App\Service\ResourceManagementService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
-use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/resource')]
 class ResourceController extends AbstractController
@@ -23,7 +22,7 @@ class ResourceController extends AbstractController
         private ResourceManagementService $resourceManagementService,
         private ResourceRepository $resourceRepository,
         private TaskRepository $taskRepository,
-        private EntityManagerInterface $entityManager
+        private EntityManagerInterface $entityManager,
     ) {
     }
 
@@ -34,15 +33,15 @@ class ResourceController extends AbstractController
         // Добавляем пагинацию
         $page = max(1, $request->query->getInt('page', 1));
         $limit = 50;
-        
+
         $qb = $this->resourceRepository->createQueryBuilder('r')
             ->orderBy('r.name', 'ASC')
             ->setFirstResult(($page - 1) * $limit)
             ->setMaxResults($limit);
-        
+
         $resources = $qb->getQuery()->getResult();
         $total = $this->resourceRepository->count([]);
-        
+
         return $this->render('resource/index.html.twig', [
             'resources' => $resources,
             'page' => $page,
@@ -57,7 +56,7 @@ class ResourceController extends AbstractController
     {
         if ($request->isMethod('POST')) {
             $data = json_decode($request->getContent(), true);
-            
+
             $resource = $this->resourceManagementService->createResource([
                 'name' => $data['name'],
                 'email' => $data['email'] ?? null,
@@ -65,16 +64,16 @@ class ResourceController extends AbstractController
                 'hourly_rate' => $data['hourly_rate'] ?? '0.00',
                 'capacity_per_week' => $data['capacity_per_week'] ?? 40,
                 'status' => $data['status'] ?? 'available',
-                'skills' => $data['skills'] ?? []
+                'skills' => $data['skills'] ?? [],
             ]);
-            
+
             return $this->redirectToRoute('app_resource_index');
         }
 
         return $this->render('resource/create.html.twig');
     }
 
-    #[Route('/{id}', name: 'app_resource_show', methods: ['GET'], requirements: ['id' => '\d+'])]
+    #[Route('/{id}', name: 'app_resource_show', methods: ['GET'], requirements: ['id' => '\\d+'])]
     #[IsGranted('ROLE_USER')]
     public function show(Resource $resource): Response
     {
@@ -83,22 +82,22 @@ class ResourceController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'app_resource_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
+    #[Route('/{id}/edit', name: 'app_resource_edit', methods: ['GET', 'POST'], requirements: ['id' => '\\d+'])]
     #[IsGranted('ROLE_ADMIN')]
     public function edit(Request $request, Resource $resource): Response
     {
         if ($request->isMethod('POST')) {
             $data = json_decode($request->getContent(), true);
-            
+
             $this->resourceManagementService->updateResource($resource, [
                 'name' => $data['name'] ?? $resource->getName(),
                 'email' => $data['email'] ?? $resource->getEmail(),
                 'description' => $data['description'] ?? $resource->getDescription(),
                 'hourly_rate' => $data['hourly_rate'] ?? $resource->getHourlyRate(),
                 'capacity_per_week' => $data['capacity_per_week'] ?? $resource->getCapacityPerWeek(),
-                'status' => $data['status'] ?? $resource->getStatus()
+                'status' => $data['status'] ?? $resource->getStatus(),
             ]);
-            
+
             return $this->redirectToRoute('app_resource_show', ['id' => $resource->getId()]);
         }
 
@@ -107,7 +106,7 @@ class ResourceController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/delete', name: 'app_resource_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
+    #[Route('/{id}/delete', name: 'app_resource_delete', methods: ['POST'], requirements: ['id' => '\\d+'])]
     #[IsGranted('ROLE_ADMIN')]
     public function delete(Request $request, Resource $resource): Response
     {
@@ -124,14 +123,14 @@ class ResourceController extends AbstractController
     {
         $from = new \DateTime($request->query->get('from', 'today'));
         $to = new \DateTime($request->query->get('to', '+1 month'));
-        
+
         // Оптимизировано: загружаем ресурсы с allocations одним запросом
         $resources = $this->resourceRepository->findWithAllocations($from, $to);
         $availabilityData = [];
 
         foreach ($resources as $resource) {
             $availability = $this->resourceManagementService->getResourceAvailability($resource, $from, $to);
-            
+
             $availabilityData[] = [
                 'id' => $resource->getId(),
                 'name' => $resource->getName(),
@@ -139,26 +138,26 @@ class ResourceController extends AbstractController
                 'capacity' => $resource->getCapacityPerWeek(),
                 'utilization' => $availability['utilization_percentage'],
                 'available' => $availability['status'] === 'available' || $availability['status'] === 'underutilized',
-                'status' => $availability['status']
+                'status' => $availability['status'],
             ];
         }
 
         return $this->json($availabilityData);
     }
 
-    #[Route('/workload/{id}', name: 'app_resource_workload', methods: ['GET'], requirements: ['id' => '\d+'])]
+    #[Route('/workload/{id}', name: 'app_resource_workload', methods: ['GET'], requirements: ['id' => '\\d+'])]
     #[IsGranted('ROLE_USER')]
     public function getResourceWorkload(int $id): JsonResponse
     {
         $resource = $this->resourceRepository->find($id);
-        
+
         if (!$resource) {
             return $this->json(['error' => 'Resource not found'], 404);
         }
 
         $from = new \DateTime('-1 week');
         $to = new \DateTime('+1 month');
-        
+
         $workloadData = $this->resourceManagementService->getResourceWorkload($resource, $from, $to);
 
         return $this->json($workloadData);
@@ -169,32 +168,32 @@ class ResourceController extends AbstractController
     public function allocateResource(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        
+
         $taskId = $data['task_id'] ?? null;
         $resourceId = $data['resource_id'] ?? null;
         $hours = $data['hours'] ?? 1;
         $dateStr = $data['date'] ?? 'today';
-        
+
         if (!$taskId || !$resourceId) {
             return $this->json(['error' => 'Task ID and Resource ID are required'], 400);
         }
 
         $task = $this->taskRepository->find($taskId);
         $resource = $this->resourceRepository->find($resourceId);
-        
+
         if (!$task || !$resource) {
             return $this->json(['error' => 'Task or Resource not found'], 404);
         }
 
         try {
             $allocation = $this->resourceManagementService->allocateResource($task, $resource, $hours, new \DateTime($dateStr));
-            
+
             return $this->json([
                 'success' => true,
                 'message' => 'Resource allocated successfully',
                 'allocation_id' => $allocation->getId(),
                 'task_id' => $taskId,
-                'resource_id' => $resourceId
+                'resource_id' => $resourceId,
             ]);
         } catch (\Exception $e) {
             return $this->json(['error' => 'Failed to allocate resource: ' . $e->getMessage()], 500);
@@ -207,8 +206,8 @@ class ResourceController extends AbstractController
     {
         // Оптимизировано: загружаем ресурсы со skills одним запросом
         $resources = $this->resourceRepository->findAllWithSkills();
-        $resourceIds = array_map(fn($r) => $r->getId(), $resources);
-        
+        $resourceIds = array_map(fn ($r) => $r->getId(), $resources);
+
         $forecastData = $this->resourceManagementService->getResourceForecast($resourceIds, 4);
 
         return $this->json($forecastData);
@@ -220,8 +219,8 @@ class ResourceController extends AbstractController
     {
         // Оптимизировано: загружаем ресурсы со skills одним запросом
         $resources = $this->resourceRepository->findAllWithSkills();
-        $resourceIds = array_map(fn($r) => $r->getId(), $resources);
-        
+        $resourceIds = array_map(fn ($r) => $r->getId(), $resources);
+
         $skillsData = $this->resourceManagementService->getSkillMatrix($resourceIds);
 
         return $this->json($skillsData);
@@ -233,7 +232,7 @@ class ResourceController extends AbstractController
     {
         $from = new \DateTime($request->query->get('from', 'today'));
         $to = new \DateTime($request->query->get('to', '+1 month'));
-        
+
         $conflictsData = $this->resourceManagementService->getResourceConflicts($from, $to);
 
         return $this->json($conflictsData);
@@ -245,10 +244,10 @@ class ResourceController extends AbstractController
     {
         $from = new \DateTime($request->query->get('from', '-1 month'));
         $to = new \DateTime($request->query->get('to', 'now'));
-        
+
         $resources = $this->resourceRepository->findAll();
-        $resourceIds = array_map(fn($r) => $r->getId(), $resources);
-        
+        $resourceIds = array_map(fn ($r) => $r->getId(), $resources);
+
         $reportData = $this->resourceManagementService->getUtilizationReport($resourceIds, $from, $to);
 
         return $this->json($reportData);

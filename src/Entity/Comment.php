@@ -51,6 +51,7 @@ class Comment
     public function setContent(string $content): static
     {
         $this->content = $content;
+
         return $this;
     }
 
@@ -62,6 +63,7 @@ class Comment
     public function setCreatedAt(\DateTimeInterface $createdAt): static
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 
@@ -73,6 +75,7 @@ class Comment
     public function setUpdatedAt(?\DateTimeInterface $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
+
         return $this;
     }
 
@@ -84,6 +87,7 @@ class Comment
     public function setAuthor(?User $author): static
     {
         $this->author = $author;
+
         return $this;
     }
 
@@ -95,6 +99,7 @@ class Comment
     public function setTask(?Task $task): static
     {
         $this->task = $task;
+
         return $this;
     }
 

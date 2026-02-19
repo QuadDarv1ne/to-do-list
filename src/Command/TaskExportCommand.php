@@ -13,7 +13,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:task-export',
-    description: 'Export tasks to various formats'
+    description: 'Export tasks to various formats',
 )]
 class TaskExportCommand extends Command
 {
@@ -65,6 +65,7 @@ class TaskExportCommand extends Command
             foreach ($availableFormats as $key => $info) {
                 $io->writeln("  - {$key}: {$info['description']}");
             }
+
             return Command::FAILURE;
         }
 
@@ -76,11 +77,11 @@ class TaskExportCommand extends Command
             'search' => $input->getOption('search'),
             'overdue' => $input->getOption('overdue'),
             'completed' => $input->getOption('completed'),
-            'limit' => $input->getOption('limit')
+            'limit' => $input->getOption('limit'),
         ];
 
         // Remove null/empty values
-        $filters = array_filter($filters, function($value) {
+        $filters = array_filter($filters, function ($value) {
             return $value !== null && $value !== false && $value !== '';
         });
 
@@ -89,20 +90,20 @@ class TaskExportCommand extends Command
             ['Setting', 'Value'],
             [
                 ['Format', $format],
-                ['Filters Applied', count($filters) > 0 ? json_encode($filters) : 'None'],
-                ['Output File', $outputFile ?? 'stdout']
-            ]
+                ['Filters Applied', \count($filters) > 0 ? json_encode($filters) : 'None'],
+                ['Output File', $outputFile ?? 'stdout'],
+            ],
         );
 
         try {
             // Perform export
             $content = $this->performExport($format, $mockUser, $filters);
-            
+
             // Output result
             if ($outputFile) {
                 file_put_contents($outputFile, $content);
                 $io->success("Export completed successfully to: {$outputFile}");
-                $io->writeln("File size: " . number_format(strlen($content)) . " bytes");
+                $io->writeln('File size: ' . number_format(\strlen($content)) . ' bytes');
             } else {
                 $io->section('Exported Data');
                 $io->writeln($content);
@@ -110,7 +111,8 @@ class TaskExportCommand extends Command
 
             return Command::SUCCESS;
         } catch (\Exception $e) {
-            $io->error("Export failed: " . $e->getMessage());
+            $io->error('Export failed: ' . $e->getMessage());
+
             return Command::FAILURE;
         }
     }
@@ -146,8 +148,8 @@ class TaskExportCommand extends Command
                 ['Overdue Tasks', $stats['overdue_tasks']],
                 ['Categories Used', $stats['categories_used']],
                 ['Tags Used', $stats['tags_used']],
-                ['Completion Rate', $stats['completion_rate'] . '%']
-            ]
+                ['Completion Rate', $stats['completion_rate'] . '%'],
+            ],
         );
 
         $io->section('Available Export Formats');
@@ -158,13 +160,13 @@ class TaskExportCommand extends Command
                 $info['name'],
                 $info['description'],
                 $info['extension'],
-                $info['mime_type']
+                $info['mime_type'],
             ];
         }
-        
+
         $io->table(
             ['Key', 'Name', 'Description', 'Extension', 'MIME Type'],
-            $formatTable
+            $formatTable,
         );
 
         return Command::SUCCESS;
@@ -179,11 +181,11 @@ class TaskExportCommand extends Command
         $idProperty = $reflection->getProperty('id');
         $idProperty->setAccessible(true);
         $idProperty->setValue($user, 1);
-        
+
         $usernameProperty = $reflection->getProperty('username');
         $usernameProperty->setAccessible(true);
         $usernameProperty->setValue($user, 'demo_user');
-        
+
         return $user;
     }
 }

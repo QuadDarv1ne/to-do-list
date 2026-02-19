@@ -2,11 +2,11 @@
 
 namespace App\Controller;
 
-use App\Service\AIAssistantService;
 use App\Repository\TaskRepository;
+use App\Service\AIAssistantService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/ai')]
@@ -14,15 +14,16 @@ class AIAssistantController extends AbstractController
 {
     public function __construct(
         private AIAssistantService $aiService,
-        private TaskRepository $taskRepository
-    ) {}
+        private TaskRepository $taskRepository,
+    ) {
+    }
 
     #[Route('/suggest-title', name: 'app_ai_suggest_title', methods: ['POST'])]
     public function suggestTitle(Request $request): JsonResponse
     {
         $description = $request->request->get('description', '');
         $suggestions = $this->aiService->suggestTitle($description);
-        
+
         return $this->json($suggestions);
     }
 
@@ -31,7 +32,7 @@ class AIAssistantController extends AbstractController
     {
         $partial = $request->request->get('partial', '');
         $suggestions = $this->aiService->autoCompleteDescription($partial);
-        
+
         return $this->json($suggestions);
     }
 
@@ -44,7 +45,7 @@ class AIAssistantController extends AbstractController
         }
 
         $priority = $this->aiService->suggestPriority($task);
-        
+
         return $this->json(['priority' => $priority]);
     }
 
@@ -57,7 +58,7 @@ class AIAssistantController extends AbstractController
         }
 
         $deadline = $this->aiService->suggestDeadline($task);
-        
+
         return $this->json(['deadline' => $deadline->format('Y-m-d H:i:s')]);
     }
 
@@ -70,7 +71,7 @@ class AIAssistantController extends AbstractController
         }
 
         $tags = $this->aiService->suggestTags($task);
-        
+
         return $this->json(['tags' => $tags]);
     }
 
@@ -83,7 +84,7 @@ class AIAssistantController extends AbstractController
         }
 
         $checklist = $this->aiService->generateChecklist($task);
-        
+
         return $this->json(['checklist' => $checklist]);
     }
 
@@ -96,7 +97,7 @@ class AIAssistantController extends AbstractController
         }
 
         $sentiment = $this->aiService->analyzeSentiment($task);
-        
+
         return $this->json($sentiment);
     }
 
@@ -109,7 +110,7 @@ class AIAssistantController extends AbstractController
         }
 
         $prediction = $this->aiService->predictCompletionTime($task);
-        
+
         return $this->json($prediction);
     }
 }

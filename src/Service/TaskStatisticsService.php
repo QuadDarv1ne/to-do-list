@@ -8,8 +8,9 @@ use App\Repository\TaskRepository;
 class TaskStatisticsService
 {
     public function __construct(
-        private TaskRepository $taskRepository
-    ) {}
+        private TaskRepository $taskRepository,
+    ) {
+    }
 
     /**
      * Get comprehensive statistics
@@ -26,7 +27,7 @@ class TaskStatisticsService
             'by_month' => $this->getStatsByMonth($user, $from, $to),
             'completion_rate' => $this->getCompletionRate($user, $from, $to),
             'average_completion_time' => $this->getAverageCompletionTime($user, $from, $to),
-            'productivity_trend' => $this->getProductivityTrend($user, $from, $to)
+            'productivity_trend' => $this->getProductivityTrend($user, $from, $to),
         ];
     }
 
@@ -67,7 +68,7 @@ class TaskStatisticsService
             'completed' => $completed,
             'in_progress' => $inProgress,
             'pending' => $pending,
-            'completion_rate' => $total > 0 ? round(($completed / $total) * 100, 2) : 0
+            'completion_rate' => $total > 0 ? round(($completed / $total) * 100, 2) : 0,
         ];
     }
 
@@ -183,7 +184,7 @@ class TaskStatisticsService
 
         while ($current <= $to) {
             $weekEnd = (clone $current)->modify('+6 days');
-            
+
             $count = (int)$this->taskRepository->createQueryBuilder('t')
                 ->select('COUNT(t.id)')
                 ->where('t.user = :user OR t.assignedUser = :user')
@@ -196,7 +197,7 @@ class TaskStatisticsService
 
             $weekKey = $current->format('Y-W');
             $stats[$weekKey] = $count;
-            
+
             $current->modify('+7 days');
         }
 
@@ -214,7 +215,7 @@ class TaskStatisticsService
 
         while ($current <= $to) {
             $monthEnd = (clone $current)->modify('last day of this month');
-            
+
             $count = (int)$this->taskRepository->createQueryBuilder('t')
                 ->select('COUNT(t.id)')
                 ->where('t.user = :user OR t.assignedUser = :user')
@@ -227,7 +228,7 @@ class TaskStatisticsService
 
             $monthKey = $current->format('Y-m');
             $stats[$monthKey] = $count;
-            
+
             $current->modify('first day of next month');
         }
 
@@ -240,6 +241,7 @@ class TaskStatisticsService
     private function getCompletionRate(User $user, \DateTime $from, \DateTime $to): float
     {
         $overview = $this->getOverviewStats($user, $from, $to);
+
         return $overview['completion_rate'];
     }
 
@@ -275,8 +277,8 @@ class TaskStatisticsService
             'difference' => [
                 'total' => $stats2['total'] - $stats1['total'],
                 'completed' => $stats2['completed'] - $stats1['completed'],
-                'completion_rate' => $stats2['completion_rate'] - $stats1['completion_rate']
-            ]
+                'completion_rate' => $stats2['completion_rate'] - $stats1['completion_rate'],
+            ],
         ];
     }
 
@@ -295,7 +297,7 @@ class TaskStatisticsService
     public function exportToCSV(array $stats): string
     {
         $csv = "Метрика,Значение\n";
-        
+
         foreach ($stats['overview'] as $key => $value) {
             $csv .= "$key,$value\n";
         }

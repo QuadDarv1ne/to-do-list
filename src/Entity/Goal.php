@@ -73,6 +73,7 @@ class Goal
     public function setTitle(string $title): static
     {
         $this->title = $title;
+
         return $this;
     }
 
@@ -84,6 +85,7 @@ class Goal
     public function setDescription(?string $description): static
     {
         $this->description = $description;
+
         return $this;
     }
 
@@ -95,6 +97,7 @@ class Goal
     public function setOwner(?User $owner): static
     {
         $this->owner = $owner;
+
         return $this;
     }
 
@@ -106,6 +109,7 @@ class Goal
     public function setStartDate(\DateTimeInterface $startDate): static
     {
         $this->startDate = $startDate;
+
         return $this;
     }
 
@@ -117,6 +121,7 @@ class Goal
     public function setEndDate(\DateTimeInterface $endDate): static
     {
         $this->endDate = $endDate;
+
         return $this;
     }
 
@@ -128,6 +133,7 @@ class Goal
     public function setTargetValue(string $targetValue): static
     {
         $this->targetValue = $targetValue;
+
         return $this;
     }
 
@@ -139,6 +145,7 @@ class Goal
     public function setCurrentValue(string $currentValue): static
     {
         $this->currentValue = $currentValue;
+
         return $this;
     }
 
@@ -150,6 +157,7 @@ class Goal
     public function setStatus(string $status): static
     {
         $this->status = $status;
+
         return $this;
     }
 
@@ -161,6 +169,7 @@ class Goal
     public function setPriority(string $priority): static
     {
         $this->priority = $priority;
+
         return $this;
     }
 
@@ -172,6 +181,7 @@ class Goal
     public function setCreatedAt(\DateTimeInterface $createdAt): static
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 
@@ -183,6 +193,7 @@ class Goal
     public function setUpdatedAt(?\DateTimeInterface $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
+
         return $this;
     }
 
@@ -197,6 +208,7 @@ class Goal
             $this->milestones->add($milestone);
             $milestone->setGoal($this);
         }
+
         return $this;
     }
 
@@ -207,6 +219,7 @@ class Goal
                 $milestone->setGoal(null);
             }
         }
+
         return $this;
     }
 
@@ -215,6 +228,7 @@ class Goal
         if ($this->targetValue <= 0) {
             return 0;
         }
+
         return min(100, ($this->currentValue / $this->targetValue) * 100);
     }
 
@@ -222,6 +236,7 @@ class Goal
     {
         $now = new \DateTime();
         $diff = $now->diff($this->endDate);
+
         return $diff->invert ? 0 : $diff->days;
     }
 }

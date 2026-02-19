@@ -14,7 +14,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class BackupController extends AbstractController
 {
     public function __construct(
-        private BackupService $backupService
+        private BackupService $backupService,
     ) {
     }
 
@@ -26,7 +26,7 @@ class BackupController extends AbstractController
 
         return $this->render('backup/index.html.twig', [
             'backups' => $backups,
-            'totalSize' => $totalSize
+            'totalSize' => $totalSize,
         ]);
     }
 
@@ -68,7 +68,7 @@ class BackupController extends AbstractController
 
         return $this->json([
             'success' => true,
-            'deleted' => $deleted
+            'deleted' => $deleted,
         ]);
     }
 

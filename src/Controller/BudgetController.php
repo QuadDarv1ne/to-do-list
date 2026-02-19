@@ -6,21 +6,21 @@ use App\Entity\Budget;
 use App\Entity\User;
 use App\Repository\BudgetRepository;
 use App\Service\BudgetService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/budget')]
 class BudgetController extends AbstractController
 {
     public function __construct(
         private BudgetService $budgetService,
-        private EntityManagerInterface $entityManager
+        private EntityManagerInterface $entityManager,
     ) {
     }
 
@@ -29,7 +29,7 @@ class BudgetController extends AbstractController
     public function index(#[CurrentUser] User $user): Response
     {
         $budgets = $this->budgetService->getUserBudgets($user);
-        
+
         return $this->render('budget/index.html.twig', [
             'budgets' => $budgets,
         ]);
@@ -41,7 +41,7 @@ class BudgetController extends AbstractController
     {
         if ($request->isMethod('POST')) {
             $data = json_decode($request->getContent(), true);
-            
+
             $budget = new Budget();
             $budget->setTitle($data['title'] ?? '');
             $budget->setDescription($data['description'] ?? '');
@@ -62,7 +62,7 @@ class BudgetController extends AbstractController
         return $this->render('budget/create.html.twig');
     }
 
-    #[Route('/{id}', name: 'app_budget_show', methods: ['GET'], requirements: ['id' => '\d+'])]
+    #[Route('/{id}', name: 'app_budget_show', methods: ['GET'], requirements: ['id' => '\\d+'])]
     #[IsGranted('ROLE_USER')]
     public function show(Budget $budget, #[CurrentUser] User $user): Response
     {
@@ -70,13 +70,13 @@ class BudgetController extends AbstractController
         if ($budget->getUserId() !== $user->getId()) {
             throw $this->createAccessDeniedException();
         }
-        
+
         return $this->render('budget/show.html.twig', [
             'budget' => $budget,
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'app_budget_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
+    #[Route('/{id}/edit', name: 'app_budget_edit', methods: ['GET', 'POST'], requirements: ['id' => '\\d+'])]
     #[IsGranted('ROLE_USER')]
     public function edit(Request $request, Budget $budget, #[CurrentUser] User $user): Response
     {
@@ -84,10 +84,10 @@ class BudgetController extends AbstractController
         if ($budget->getUserId() !== $user->getId()) {
             throw $this->createAccessDeniedException();
         }
-        
+
         if ($request->isMethod('POST')) {
             $data = json_decode($request->getContent(), true);
-            
+
             $budget->setTitle($data['title'] ?? $budget->getTitle());
             $budget->setDescription($data['description'] ?? $budget->getDescription());
             $budget->setAmount($data['amount'] ?? $budget->getAmount());
@@ -107,7 +107,7 @@ class BudgetController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/delete', name: 'app_budget_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
+    #[Route('/{id}/delete', name: 'app_budget_delete', methods: ['POST'], requirements: ['id' => '\\d+'])]
     #[IsGranted('ROLE_USER')]
     public function delete(Request $request, Budget $budget, #[CurrentUser] User $user): Response
     {
@@ -115,7 +115,7 @@ class BudgetController extends AbstractController
         if ($budget->getUserId() !== $user->getId()) {
             throw $this->createAccessDeniedException();
         }
-        
+
         if ($this->isCsrfTokenValid('delete'.$budget->getId(), $request->request->get('_token'))) {
             $this->entityManager->remove($budget);
             $this->entityManager->flush();
@@ -129,7 +129,7 @@ class BudgetController extends AbstractController
     public function getUserComparison(BudgetRepository $budgetRepository): JsonResponse
     {
         $comparisonData = $budgetRepository->getUserSpendingComparison();
-        
+
         return $this->json($comparisonData);
     }
 

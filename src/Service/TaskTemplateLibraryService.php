@@ -9,8 +9,9 @@ use Doctrine\ORM\EntityManagerInterface;
 class TaskTemplateLibraryService
 {
     public function __construct(
-        private EntityManagerInterface $entityManager
-    ) {}
+        private EntityManagerInterface $entityManager,
+    ) {
+    }
 
     /**
      * Get all templates
@@ -26,8 +27,8 @@ class TaskTemplateLibraryService
                     'title' => 'Исправить ошибку: ',
                     'description' => "**Описание ошибки:**\n\n**Шаги воспроизведения:**\n1. \n2. \n3. \n\n**Ожидаемое поведение:**\n\n**Фактическое поведение:**\n\n**Скриншоты:**",
                     'priority' => 'high',
-                    'status' => 'pending'
-                ]
+                    'status' => 'pending',
+                ],
             ],
             'feature_request' => [
                 'name' => 'Запрос функции',
@@ -37,8 +38,8 @@ class TaskTemplateLibraryService
                     'title' => 'Новая функция: ',
                     'description' => "**Описание функции:**\n\n**Зачем это нужно:**\n\n**Предлагаемое решение:**\n\n**Альтернативы:**",
                     'priority' => 'medium',
-                    'status' => 'pending'
-                ]
+                    'status' => 'pending',
+                ],
             ],
             'meeting' => [
                 'name' => 'Встреча',
@@ -48,8 +49,8 @@ class TaskTemplateLibraryService
                     'title' => 'Встреча: ',
                     'description' => "**Дата и время:**\n\n**Участники:**\n\n**Повестка дня:**\n1. \n2. \n3. \n\n**Заметки:**",
                     'priority' => 'medium',
-                    'status' => 'pending'
-                ]
+                    'status' => 'pending',
+                ],
             ],
             'code_review' => [
                 'name' => 'Ревью кода',
@@ -59,8 +60,8 @@ class TaskTemplateLibraryService
                     'title' => 'Ревью: ',
                     'description' => "**PR/MR:**\n\n**Что проверить:**\n- [ ] Код соответствует стандартам\n- [ ] Тесты написаны\n- [ ] Документация обновлена\n- [ ] Нет конфликтов\n\n**Комментарии:**",
                     'priority' => 'high',
-                    'status' => 'pending'
-                ]
+                    'status' => 'pending',
+                ],
             ],
             'deployment' => [
                 'name' => 'Деплой',
@@ -70,8 +71,8 @@ class TaskTemplateLibraryService
                     'title' => 'Деплой: ',
                     'description' => "**Версия:**\n\n**Окружение:**\n\n**Чеклист:**\n- [ ] Тесты пройдены\n- [ ] Бэкап создан\n- [ ] Миграции готовы\n- [ ] Документация обновлена\n\n**Rollback план:**",
                     'priority' => 'urgent',
-                    'status' => 'pending'
-                ]
+                    'status' => 'pending',
+                ],
             ],
             'research' => [
                 'name' => 'Исследование',
@@ -81,8 +82,8 @@ class TaskTemplateLibraryService
                     'title' => 'Исследовать: ',
                     'description' => "**Цель исследования:**\n\n**Вопросы:**\n1. \n2. \n3. \n\n**Источники:**\n\n**Выводы:**",
                     'priority' => 'medium',
-                    'status' => 'pending'
-                ]
+                    'status' => 'pending',
+                ],
             ],
             'documentation' => [
                 'name' => 'Документация',
@@ -92,8 +93,8 @@ class TaskTemplateLibraryService
                     'title' => 'Документировать: ',
                     'description' => "**Что документировать:**\n\n**Целевая аудитория:**\n\n**Структура:**\n1. Введение\n2. Основная часть\n3. Примеры\n4. FAQ\n\n**Ссылки:**",
                     'priority' => 'low',
-                    'status' => 'pending'
-                ]
+                    'status' => 'pending',
+                ],
             ],
             'testing' => [
                 'name' => 'Тестирование',
@@ -103,8 +104,8 @@ class TaskTemplateLibraryService
                     'title' => 'Тестировать: ',
                     'description' => "**Что тестировать:**\n\n**Тест-кейсы:**\n1. \n2. \n3. \n\n**Окружение:**\n\n**Результаты:**",
                     'priority' => 'high',
-                    'status' => 'pending'
-                ]
+                    'status' => 'pending',
+                ],
             ],
             'refactoring' => [
                 'name' => 'Рефакторинг',
@@ -114,8 +115,8 @@ class TaskTemplateLibraryService
                     'title' => 'Рефакторинг: ',
                     'description' => "**Текущее состояние:**\n\n**Проблемы:**\n\n**Предлагаемые изменения:**\n\n**Преимущества:**\n\n**Риски:**",
                     'priority' => 'medium',
-                    'status' => 'pending'
-                ]
+                    'status' => 'pending',
+                ],
             ],
             'customer_support' => [
                 'name' => 'Поддержка клиента',
@@ -125,9 +126,9 @@ class TaskTemplateLibraryService
                     'title' => 'Запрос поддержки: ',
                     'description' => "**Клиент:**\n\n**Проблема:**\n\n**Приоритет:**\n\n**Шаги решения:**\n1. \n2. \n3. \n\n**Статус:**",
                     'priority' => 'high',
-                    'status' => 'pending'
-                ]
-            ]
+                    'status' => 'pending',
+                ],
+            ],
         ];
     }
 
@@ -137,6 +138,7 @@ class TaskTemplateLibraryService
     public function getTemplate(string $key): ?array
     {
         $templates = $this->getAllTemplates();
+
         return $templates[$key] ?? null;
     }
 
@@ -177,7 +179,8 @@ class TaskTemplateLibraryService
     public function getTemplatesByCategory(string $category): array
     {
         $templates = $this->getAllTemplates();
-        return array_filter($templates, fn($t) => $t['category'] === $category);
+
+        return array_filter($templates, fn ($t) => $t['category'] === $category);
     }
 
     /**
@@ -187,6 +190,7 @@ class TaskTemplateLibraryService
     {
         $templates = $this->getAllTemplates();
         $categories = array_unique(array_column($templates, 'category'));
+
         return array_values($categories);
     }
 
@@ -198,7 +202,7 @@ class TaskTemplateLibraryService
         $templates = $this->getAllTemplates();
         $query = strtolower($query);
 
-        return array_filter($templates, function($template) use ($query) {
+        return array_filter($templates, function ($template) use ($query) {
             return str_contains(strtolower($template['name']), $query) ||
                    str_contains(strtolower($template['category']), $query);
         });
@@ -216,7 +220,7 @@ class TaskTemplateLibraryService
             'template' => $template,
             'user_id' => $user->getId(),
             'is_custom' => true,
-            'created_at' => new \DateTime()
+            'created_at' => new \DateTime(),
         ];
     }
 
@@ -236,6 +240,7 @@ class TaskTemplateLibraryService
     {
         // TODO: Track usage and return most used
         $templates = $this->getAllTemplates();
-        return array_slice($templates, 0, $limit);
+
+        return \array_slice($templates, 0, $limit);
     }
 }

@@ -19,7 +19,7 @@ class ResetTestPasswordsCommand extends Command
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private UserPasswordHasherInterface $passwordHasher
+        private UserPasswordHasherInterface $passwordHasher,
     ) {
         parent::__construct();
     }
@@ -40,7 +40,8 @@ class ResetTestPasswordsCommand extends Command
                 ->findOneBy(['email' => $email]);
 
             if (!$user) {
-                $io->warning(sprintf('Пользователь %s не найден', $email));
+                $io->warning(\sprintf('Пользователь %s не найден', $email));
+
                 continue;
             }
 
@@ -50,7 +51,7 @@ class ResetTestPasswordsCommand extends Command
             $user->unlockAccount();
 
             $this->entityManager->persist($user);
-            $io->success(sprintf('Пароль сброшен для: %s', $email));
+            $io->success(\sprintf('Пароль сброшен для: %s', $email));
         }
 
         $this->entityManager->flush();
@@ -63,7 +64,7 @@ class ResetTestPasswordsCommand extends Command
                 ['manager@example.com', 'manager123'],
                 ['user@example.com', 'user123'],
                 ['analyst@example.com', 'analyst123'],
-            ]
+            ],
         );
 
         return Command::SUCCESS;

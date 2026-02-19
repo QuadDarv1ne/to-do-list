@@ -13,8 +13,9 @@ class CollaborationService
     public function __construct(
         private TaskRepository $taskRepository,
         private UserRepository $userRepository,
-        private EntityManagerInterface $entityManager
-    ) {}
+        private EntityManagerInterface $entityManager,
+    ) {
+    }
 
     /**
      * Get shared tasks between users
@@ -62,7 +63,7 @@ class CollaborationService
             'assigned_to_others' => (int)$assignedToOthers,
             'assigned_from_others' => (int)$assignedFromOthers,
             'total_collaborations' => (int)$assignedToOthers + (int)$assignedFromOthers,
-            'top_collaborators' => $collaborators
+            'top_collaborators' => $collaborators,
         ];
     }
 
@@ -106,29 +107,29 @@ class CollaborationService
         arsort($collaborators);
 
         // Оптимизация: загружаем пользователей одним запросом
-        $topUserIds = array_keys(array_slice($collaborators, 0, $limit, true));
-        
+        $topUserIds = array_keys(\array_slice($collaborators, 0, $limit, true));
+
         if (empty($topUserIds)) {
             return [];
         }
-        
+
         $users = $this->userRepository->createQueryBuilder('u')
             ->where('u.id IN (:ids)')
             ->setParameter('ids', $topUserIds)
             ->getQuery()
             ->getResult();
-        
+
         $usersById = [];
         foreach ($users as $user) {
             $usersById[$user->getId()] = $user;
         }
-        
+
         $result = [];
         foreach ($topUserIds as $userId) {
             if (isset($usersById[$userId])) {
                 $result[] = [
                     'user' => $usersById[$userId],
-                    'collaboration_count' => $collaborators[$userId]
+                    'collaboration_count' => $collaborators[$userId],
                 ];
             }
         }
@@ -150,16 +151,16 @@ class CollaborationService
             ->setParameter('completed', 'completed')
             ->groupBy('u.id')
             ->setMaxResults(100);
-        
+
         $results = $qb->getQuery()->getResult();
-        
+
         if (empty($results)) {
             return [];
         }
-        
+
         // Get user IDs for the next query
         $userIds = array_column($results, 'id');
-        
+
         // Now get urgent task counts for all users in one query
         $urgentTasksData = $this->taskRepository->createQueryBuilder('t')
             ->select('COALESCE(IDENTITY(t.assignedUser), IDENTITY(t.user)) as userId, COUNT(t.id) as urgentCount')
@@ -174,36 +175,36 @@ class CollaborationService
             ->groupBy('userId')
             ->getQuery()
             ->getResult();
-        
+
         // Convert urgent tasks data to associative array for quick lookup
         $urgentTasksMap = [];
         foreach ($urgentTasksData as $data) {
             $userId = $data['userId'];
             $urgentTasksMap[$userId] = (int)$data['urgentCount'];
         }
-        
+
         // Get all users in one query
         $users = $this->userRepository->createQueryBuilder('u')
             ->where('u.id IN (:userIds)')
             ->setParameter('userIds', $userIds)
             ->getQuery()
             ->getResult();
-        
+
         // Create user map for quick lookup
         $userMap = [];
         foreach ($users as $user) {
             $userMap[$user->getId()] = $user;
         }
-        
+
         $workload = [];
         foreach ($results as $result) {
             $userId = $result['id'];
             $user = $userMap[$userId] ?? null;
-            
+
             if (!$user) {
                 continue; // Skip if user not found
             }
-            
+
             $activeTasks = (int)($result['activeTasksCount'] ?? 0);
             $urgentTasks = $urgentTasksMap[$userId] ?? 0;
 
@@ -211,12 +212,12 @@ class CollaborationService
                 'user' => $user,
                 'active_tasks' => $activeTasks,
                 'urgent_tasks' => $urgentTasks,
-                'workload_level' => $this->calculateWorkloadLevel($activeTasks)
+                'workload_level' => $this->calculateWorkloadLevel($activeTasks),
             ];
         }
 
         // Sort by active tasks
-        usort($workload, fn($a, $b) => $b['active_tasks'] <=> $a['active_tasks']);
+        usort($workload, fn ($a, $b) => $b['active_tasks'] <=> $a['active_tasks']);
 
         return $workload;
     }
@@ -226,9 +227,16 @@ class CollaborationService
      */
     private function calculateWorkloadLevel(int $taskCount): string
     {
-        if ($taskCount >= 20) return 'overloaded';
-        if ($taskCount >= 10) return 'high';
-        if ($taskCount >= 5) return 'medium';
+        if ($taskCount >= 20) {
+            return 'overloaded';
+        }
+        if ($taskCount >= 10) {
+            return 'high';
+        }
+        if ($taskCount >= 5) {
+            return 'medium';
+        }
+
         return 'low';
     }
 
@@ -297,12 +305,12 @@ class CollaborationService
 
             $scores[$user->getId()] = [
                 'user' => $user,
-                'score' => $score
+                'score' => $score,
             ];
         }
 
         // Sort by score
-        uasort($scores, fn($a, $b) => $b['score'] <=> $a['score']);
+        uasort($scores, fn ($a, $b) => $b['score'] <=> $a['score']);
 
         return reset($scores)['user'] ?? null;
     }
@@ -318,11 +326,11 @@ class CollaborationService
 
         foreach ($users as $user) {
             $collaborators = $this->getMostFrequentCollaborators($user, 5);
-            
+
             $network[] = [
                 'user' => $user,
                 'collaborators' => $collaborators,
-                'total_collaborations' => array_sum(array_column($collaborators, 'collaboration_count'))
+                'total_collaborations' => array_sum(array_column($collaborators, 'collaboration_count')),
             ];
         }
 

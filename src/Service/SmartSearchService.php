@@ -3,8 +3,8 @@
 namespace App\Service;
 
 use App\Entity\User;
-use App\Repository\TaskRepository;
 use App\Repository\CommentRepository;
+use App\Repository\TaskRepository;
 use App\Repository\UserRepository;
 
 class SmartSearchService
@@ -12,8 +12,9 @@ class SmartSearchService
     public function __construct(
         private TaskRepository $taskRepository,
         private CommentRepository $commentRepository,
-        private UserRepository $userRepository
-    ) {}
+        private UserRepository $userRepository,
+    ) {
+    }
 
     /**
      * Smart search across all entities
@@ -24,25 +25,25 @@ class SmartSearchService
             'tasks' => [],
             'comments' => [],
             'users' => [],
-            'total' => 0
+            'total' => 0,
         ];
 
         // Search tasks
-        if (!isset($options['entities']) || in_array('tasks', $options['entities'])) {
+        if (!isset($options['entities']) || \in_array('tasks', $options['entities'])) {
             $results['tasks'] = $this->searchTasks($query, $user, $options);
         }
 
         // Search comments
-        if (!isset($options['entities']) || in_array('comments', $options['entities'])) {
+        if (!isset($options['entities']) || \in_array('comments', $options['entities'])) {
             $results['comments'] = $this->searchComments($query, $user, $options);
         }
 
         // Search users
-        if (!isset($options['entities']) || in_array('users', $options['entities'])) {
+        if (!isset($options['entities']) || \in_array('users', $options['entities'])) {
             $results['users'] = $this->searchUsers($query, $options);
         }
 
-        $results['total'] = count($results['tasks']) + count($results['comments']) + count($results['users']);
+        $results['total'] = \count($results['tasks']) + \count($results['comments']) + \count($results['users']);
 
         return $results;
     }
@@ -125,7 +126,7 @@ class SmartSearchService
 
         // Get recent searches
         // TODO: Store in database
-        
+
         // Get popular searches
         // TODO: Track in database
 
@@ -243,7 +244,7 @@ class SmartSearchService
             'name' => $name,
             'filters' => $filters,
             'user_id' => $user->getId(),
-            'created_at' => new \DateTime()
+            'created_at' => new \DateTime(),
         ];
     }
 

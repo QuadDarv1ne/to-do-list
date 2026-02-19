@@ -14,18 +14,19 @@ class StrongPasswordValidator extends ConstraintValidator
             throw new UnexpectedTypeException($constraint, StrongPassword::class);
         }
 
-        if (null === $value || '' === $value) {
+        if ($value === null || $value === '') {
             return;
         }
 
-        if (!is_string($value)) {
+        if (!\is_string($value)) {
             throw new UnexpectedTypeException($value, 'string');
         }
 
         // Check minimum length
-        if (strlen($value) < $constraint->minLength) {
+        if (\strlen($value) < $constraint->minLength) {
             $this->context->buildViolation($constraint->message)
                 ->addViolation();
+
             return;
         }
 
@@ -33,6 +34,7 @@ class StrongPasswordValidator extends ConstraintValidator
         if ($constraint->requireUppercase && !preg_match('/[A-Z]/', $value)) {
             $this->context->buildViolation($constraint->message)
                 ->addViolation();
+
             return;
         }
 
@@ -40,13 +42,15 @@ class StrongPasswordValidator extends ConstraintValidator
         if ($constraint->requireLowercase && !preg_match('/[a-z]/', $value)) {
             $this->context->buildViolation($constraint->message)
                 ->addViolation();
+
             return;
         }
 
         // Check digit
-        if ($constraint->requireDigit && !preg_match('/\d/', $value)) {
+        if ($constraint->requireDigit && !preg_match('/\\d/', $value)) {
             $this->context->buildViolation($constraint->message)
                 ->addViolation();
+
             return;
         }
 
@@ -54,6 +58,7 @@ class StrongPasswordValidator extends ConstraintValidator
         if ($constraint->requireSpecialChar && !preg_match('/[^A-Za-z0-9]/', $value)) {
             $this->context->buildViolation($constraint->message)
                 ->addViolation();
+
             return;
         }
     }

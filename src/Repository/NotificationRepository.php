@@ -14,7 +14,7 @@ use Doctrine\Persistence\ManagerRegistry;
 class NotificationRepository extends ServiceEntityRepository
 {
     use CachedRepositoryTrait;
-    
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Notification::class);
@@ -58,7 +58,7 @@ class NotificationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-        
+
     /**
      * Count unread notifications for a user (optimized query)
      */
@@ -73,7 +73,7 @@ class NotificationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
-        
+
     /**
      * Get notifications created after a specific date for a user (optimized for SSE)
      * Optimized with JOIN to preload related task data

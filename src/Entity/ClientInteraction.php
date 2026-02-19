@@ -60,6 +60,7 @@ class ClientInteraction
     public function setClient(?Client $client): static
     {
         $this->client = $client;
+
         return $this;
     }
 
@@ -71,6 +72,7 @@ class ClientInteraction
     public function setUser(?User $user): static
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -82,6 +84,7 @@ class ClientInteraction
     public function setInteractionType(string $interactionType): static
     {
         $this->interactionType = $interactionType;
+
         return $this;
     }
 
@@ -93,6 +96,7 @@ class ClientInteraction
     public function setInteractionDate(\DateTimeInterface $interactionDate): static
     {
         $this->interactionDate = $interactionDate;
+
         return $this;
     }
 
@@ -104,6 +108,7 @@ class ClientInteraction
     public function setDescription(string $description): static
     {
         $this->description = $description;
+
         return $this;
     }
 
@@ -115,6 +120,7 @@ class ClientInteraction
     public function setCreatedAt(\DateTimeInterface $createdAt): static
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 

@@ -13,21 +13,28 @@ use Symfony\Contracts\Cache\ItemInterface;
 class AdvancedCacheService
 {
     private CacheInterface $cache;
+
     private CacheItemPoolInterface $cachePool;
+
     private LoggerInterface $logger;
-    
+
     // Cache pool names
     private const POOL_QUERIES = 'cache.app_queries';
+
     private const POOL_STATISTICS = 'cache.app_statistics';
+
     private const POOL_USER_DATA = 'cache.app_user_data';
+
     private const POOL_AGGREGATE_METRICS = 'cache.app_aggregate_metrics';
+
     private const POOL_PERFORMANCE = 'cache.app_performance';
+
     private const POOL_NOTIFICATIONS = 'cache.app_notifications';
 
     public function __construct(
         CacheInterface $cache,
         CacheItemPoolInterface $cachePool,
-        LoggerInterface $logger
+        LoggerInterface $logger,
     ) {
         $this->cache = $cache;
         $this->cachePool = $cachePool;
@@ -40,22 +47,23 @@ class AdvancedCacheService
     public function cacheQuery(string $key, callable $queryCallback, array $tags = [], int $ttl = 300): mixed
     {
         $cacheKey = $this->generateKey(self::POOL_QUERIES, $key, $tags);
-        
+
         try {
             return $this->cache->get($cacheKey, function (ItemInterface $item) use ($queryCallback, $ttl, $tags, $cacheKey) {
                 $item->expiresAfter($ttl);
                 if (!empty($tags)) {
                     $item->tag($tags);
                 }
-                
+
                 $this->logger->info("Cache MISS - executing query: {$cacheKey}");
                 $result = $queryCallback();
                 $this->logger->info("Query result cached: {$cacheKey}");
-                
+
                 return $result;
             });
         } catch (\Exception $e) {
-            $this->logger->error("Cache query failed: " . $e->getMessage());
+            $this->logger->error('Cache query failed: ' . $e->getMessage());
+
             return $queryCallback();
         }
     }
@@ -66,17 +74,19 @@ class AdvancedCacheService
     public function cacheStatistics(string $key, callable $statsCallback, int $ttl = 600): mixed
     {
         $cacheKey = $this->generateKey(self::POOL_STATISTICS, $key);
-        
+
         try {
             return $this->cache->get($cacheKey, function (ItemInterface $item) use ($statsCallback, $ttl, $cacheKey) {
                 $item->expiresAfter($ttl);
                 $this->logger->info("Cache MISS - generating statistics: {$cacheKey}");
                 $result = $statsCallback();
                 $this->logger->info("Statistics cached: {$cacheKey}");
+
                 return $result;
             });
         } catch (\Exception $e) {
-            $this->logger->error("Cache statistics failed: " . $e->getMessage());
+            $this->logger->error('Cache statistics failed: ' . $e->getMessage());
+
             return $statsCallback();
         }
     }
@@ -87,7 +97,7 @@ class AdvancedCacheService
     public function cacheUserData(int $userId, string $key, callable $dataCallback, int $ttl = 900): mixed
     {
         $cacheKey = $this->generateKey(self::POOL_USER_DATA, $key, ['user_' . $userId]);
-        
+
         try {
             return $this->cache->get($cacheKey, function (ItemInterface $item) use ($dataCallback, $ttl, $userId, $cacheKey) {
                 $item->expiresAfter($ttl);
@@ -95,10 +105,12 @@ class AdvancedCacheService
                 $this->logger->info("Cache MISS - loading user data for user {$userId}: {$cacheKey}");
                 $result = $dataCallback();
                 $this->logger->info("User data cached for user {$userId}: {$cacheKey}");
+
                 return $result;
             });
         } catch (\Exception $e) {
-            $this->logger->error("Cache user data failed: " . $e->getMessage());
+            $this->logger->error('Cache user data failed: ' . $e->getMessage());
+
             return $dataCallback();
         }
     }
@@ -109,7 +121,7 @@ class AdvancedCacheService
     public function cachePerformanceMetrics(string $key, callable $metricsCallback, int $ttl = 1800): mixed
     {
         $cacheKey = $this->generateKey(self::POOL_AGGREGATE_METRICS, $key);
-        
+
         try {
             return $this->cache->get($cacheKey, function (ItemInterface $item) use ($metricsCallback, $ttl, $cacheKey) {
                 $item->expiresAfter($ttl);
@@ -117,10 +129,12 @@ class AdvancedCacheService
                 $this->logger->info("Cache MISS - collecting performance metrics: {$cacheKey}");
                 $result = $metricsCallback();
                 $this->logger->info("Performance metrics cached: {$cacheKey}");
+
                 return $result;
             });
         } catch (\Exception $e) {
-            $this->logger->error("Cache performance metrics failed: " . $e->getMessage());
+            $this->logger->error('Cache performance metrics failed: ' . $e->getMessage());
+
             return $metricsCallback();
         }
     }
@@ -131,7 +145,7 @@ class AdvancedCacheService
     public function cacheRealTimeData(string $key, callable $dataCallback, int $ttl = 120): mixed
     {
         $cacheKey = $this->generateKey(self::POOL_PERFORMANCE, $key);
-        
+
         try {
             return $this->cache->get($cacheKey, function (ItemInterface $item) use ($dataCallback, $ttl, $cacheKey) {
                 $item->expiresAfter($ttl);
@@ -139,10 +153,12 @@ class AdvancedCacheService
                 $this->logger->info("Cache MISS - fetching real-time data: {$cacheKey}");
                 $result = $dataCallback();
                 $this->logger->info("Real-time data cached: {$cacheKey}");
+
                 return $result;
             });
         } catch (\Exception $e) {
-            $this->logger->error("Cache real-time data failed: " . $e->getMessage());
+            $this->logger->error('Cache real-time data failed: ' . $e->getMessage());
+
             return $dataCallback();
         }
     }
@@ -153,7 +169,7 @@ class AdvancedCacheService
     public function cacheNotifications(int $userId, callable $notificationsCallback, int $ttl = 300): mixed
     {
         $cacheKey = $this->generateKey(self::POOL_NOTIFICATIONS, 'user_notifications', ['user_' . $userId]);
-        
+
         try {
             return $this->cache->get($cacheKey, function (ItemInterface $item) use ($notificationsCallback, $ttl, $userId, $cacheKey) {
                 $item->expiresAfter($ttl);
@@ -161,10 +177,12 @@ class AdvancedCacheService
                 $this->logger->info("Cache MISS - loading notifications for user {$userId}: {$cacheKey}");
                 $result = $notificationsCallback();
                 $this->logger->info("Notifications cached for user {$userId}: {$cacheKey}");
+
                 return $result;
             });
         } catch (\Exception $e) {
-            $this->logger->error("Cache notifications failed: " . $e->getMessage());
+            $this->logger->error('Cache notifications failed: ' . $e->getMessage());
+
             return $notificationsCallback();
         }
     }
@@ -177,11 +195,11 @@ class AdvancedCacheService
         try {
             // For filesystem cache, we can't invalidate by tags directly
             // In production with Redis, this would use tag-based invalidation
-            $this->logger->info("Cache tag invalidation requested for: " . implode(', ', $tags));
+            $this->logger->info('Cache tag invalidation requested for: ' . implode(', ', $tags));
             // Simulate tag invalidation by clearing related cache entries
             // This is a placeholder - real implementation would depend on cache adapter
         } catch (\Exception $e) {
-            $this->logger->error("Cache invalidation failed: " . $e->getMessage());
+            $this->logger->error('Cache invalidation failed: ' . $e->getMessage());
         }
     }
 
@@ -202,11 +220,11 @@ class AdvancedCacheService
                 self::POOL_NOTIFICATIONS => ['notifications'],
                 default => [$poolName]
             };
-            
+
             $this->invalidateTags($tags);
             $this->logger->info("Cache pool cleared: {$poolName}");
         } catch (\Exception $e) {
-            $this->logger->error("Cache pool clear failed: " . $e->getMessage());
+            $this->logger->error('Cache pool clear failed: ' . $e->getMessage());
         }
     }
 
@@ -222,7 +240,7 @@ class AdvancedCacheService
                 'user_data' => self::POOL_USER_DATA,
                 'aggregate_metrics' => self::POOL_AGGREGATE_METRICS,
                 'performance' => self::POOL_PERFORMANCE,
-                'notifications' => self::POOL_NOTIFICATIONS
+                'notifications' => self::POOL_NOTIFICATIONS,
             ],
             'default_ttls' => [
                 'queries' => 300,
@@ -230,8 +248,8 @@ class AdvancedCacheService
                 'user_data' => 900,
                 'aggregate_metrics' => 1800,
                 'performance' => 120,
-                'notifications' => 300
-            ]
+                'notifications' => 300,
+            ],
         ];
     }
 
@@ -244,6 +262,7 @@ class AdvancedCacheService
         if (!empty($tags)) {
             $baseKey .= '.' . implode('.', $tags);
         }
+
         return $baseKey;
     }
 }

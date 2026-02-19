@@ -8,24 +8,26 @@ use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * Advanced Performance Optimization Service
- * 
+ *
  * Умное кеширование, предзагрузка данных, оптимизация запросов
  */
 class PerformanceOptimizerService
 {
     private array $queryCache = [];
+
     private array $preloadData = [];
+
     private array $optimizationStats = [
         'queries_saved' => 0,
         'cache_hits' => 0,
         'cache_misses' => 0,
-        'optimization_time' => 0
+        'optimization_time' => 0,
     ];
 
     public function __construct(
         private CacheItemPoolInterface $cache,
         private EntityManagerInterface $em,
-        private RequestStack $requestStack
+        private RequestStack $requestStack,
     ) {
     }
 
@@ -36,46 +38,48 @@ class PerformanceOptimizerService
         string $key,
         callable $query,
         int $ttl = 300,
-        array $tags = []
+        array $tags = [],
     ): mixed {
         $startTime = microtime(true);
-        
+
         // Проверяем локальный кэш
         if (isset($this->queryCache[$key])) {
             $this->optimizationStats['queries_saved']++;
             $this->optimizationStats['cache_hits']++;
+
             return $this->queryCache[$key];
         }
-        
+
         // Проверяем системный кэш
         $cacheKey = $this->normalizeCacheKey($key);
         $cacheItem = $this->cache->getItem($cacheKey);
-        
+
         if ($cacheItem->isHit()) {
             $this->queryCache[$key] = $cacheItem->get();
             $this->optimizationStats['queries_saved']++;
             $this->optimizationStats['cache_hits']++;
+
             return $cacheItem->get();
         }
-        
+
         // Выполняем запрос
         $this->optimizationStats['cache_misses']++;
         $result = $query();
-        
+
         // Сохраняем в кэш
         $cacheItem->set($result);
         $cacheItem->expiresAfter($ttl);
-        
+
         // Добавляем теги для инвалидации
         if (!empty($tags) && method_exists($cacheItem, 'tag')) {
             $cacheItem->tag($tags);
         }
-        
+
         $this->cache->save($cacheItem);
         $this->queryCache[$key] = $result;
-        
+
         $this->optimizationStats['optimization_time'] += microtime(true) - $startTime;
-        
+
         return $result;
     }
 
@@ -107,7 +111,7 @@ class PerformanceOptimizerService
         if (method_exists($this->cache, 'invalidateTags')) {
             $this->cache->invalidateTags($tags);
         }
-        
+
         // Очищаем локальный кэш
         $this->queryCache = [];
     }
@@ -118,33 +122,34 @@ class PerformanceOptimizerService
     public function batchOperation(
         callable $operation,
         int $batchSize = 100,
-        int $totalItems = 0
+        int $totalItems = 0,
     ): array {
         $results = [];
         $processed = 0;
-        
+
         $this->em->getConnection()->beginTransaction();
-        
+
         try {
             foreach ($operation() as $item) {
                 $results[] = $item;
                 $processed++;
-                
+
                 // Флеш каждые N элементов
                 if ($processed % $batchSize === 0) {
                     $this->em->flush();
                     $this->em->clear();
                 }
             }
-            
+
             $this->em->flush();
             $this->em->getConnection()->commit();
-            
+
         } catch (\Exception $e) {
             $this->em->getConnection()->rollBack();
+
             throw $e;
         }
-        
+
         return $results;
     }
 
@@ -154,17 +159,17 @@ class PerformanceOptimizerService
     public function lazyLoad(
         string $entityClass,
         array $ids,
-        string $association
+        string $association,
     ): array {
         if (empty($ids)) {
             return [];
         }
-        
-        $key = sprintf('lazy_%s_%s_%s', $entityClass, md5(implode(',', $ids)), $association);
-        
-        return $this->cacheQuery($key, function() use ($entityClass, $ids, $association) {
+
+        $key = \sprintf('lazy_%s_%s_%s', $entityClass, md5(implode(',', $ids)), $association);
+
+        return $this->cacheQuery($key, function () use ($entityClass, $ids, $association) {
             $qb = $this->em->createQueryBuilder();
-            
+
             return $qb->select('e', 'a')
                 ->from($entityClass, 'e')
                 ->leftJoin('e.' . $association, 'a')
@@ -182,17 +187,17 @@ class PerformanceOptimizerService
     {
         $hitRate = $this->optimizationStats['cache_hits'] + $this->optimizationStats['cache_misses'] > 0
             ? round(
-                ($this->optimizationStats['cache_hits'] / 
+                ($this->optimizationStats['cache_hits'] /
                 ($this->optimizationStats['cache_hits'] + $this->optimizationStats['cache_misses'])) * 100,
-                2
+                2,
             )
             : 0;
-        
+
         return [
             ...$this->optimizationStats,
             'hit_rate' => $hitRate . '%',
-            'local_cache_size' => count($this->queryCache),
-            'preload_size' => count($this->preloadData)
+            'local_cache_size' => \count($this->queryCache),
+            'preload_size' => \count($this->preloadData),
         ];
     }
 
@@ -205,7 +210,7 @@ class PerformanceOptimizerService
             'queries_saved' => 0,
             'cache_hits' => 0,
             'cache_misses' => 0,
-            'optimization_time' => 0
+            'optimization_time' => 0,
         ];
     }
 
@@ -224,11 +229,11 @@ class PerformanceOptimizerService
     {
         // Логируем статистику при завершении запроса
         if ($this->optimizationStats['optimization_time'] > 0.1) {
-            error_log(sprintf(
+            error_log(\sprintf(
                 '[PerformanceOptimizer] Queries saved: %d, Cache hits: %d, Time: %.3fs',
                 $this->optimizationStats['queries_saved'],
                 $this->optimizationStats['cache_hits'],
-                $this->optimizationStats['optimization_time']
+                $this->optimizationStats['optimization_time'],
             ));
         }
     }

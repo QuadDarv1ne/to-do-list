@@ -10,7 +10,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:initialize-system',
-    description: 'Initialize the system with default data'
+    description: 'Initialize the system with default data',
 )]
 class InitializeSystemCommand extends Command
 {
@@ -24,7 +24,7 @@ class InitializeSystemCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
         $io->success('System initialized successfully!');
-        
+
         return Command::SUCCESS;
     }
 }

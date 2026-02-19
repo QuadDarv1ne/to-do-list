@@ -2,16 +2,17 @@
 
 namespace App\Service;
 
-use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\QueryBuilder;
 use Psr\Log\LoggerInterface;
 
 class RepositoryOptimizationService
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private LoggerInterface $logger
-    ) {}
+        private LoggerInterface $logger,
+    ) {
+    }
 
     /**
      * Оптимизация QueryBuilder с автоматическим добавлением JOIN для связанных сущностей
@@ -19,33 +20,34 @@ class RepositoryOptimizationService
     public function optimizeQueryBuilder(QueryBuilder $qb, array $associations = []): QueryBuilder
     {
         $alias = $qb->getRootAliases()[0];
-        
+
         foreach ($associations as $association => $joinAlias) {
             if (is_numeric($association)) {
                 // Если передан только алиас без ключа
                 $association = $joinAlias;
                 $joinAlias = $this->generateJoinAlias($association);
             }
-            
+
             // Проверяем, не добавлен ли уже этот JOIN
             $joins = $qb->getDQLPart('join');
             $alreadyJoined = false;
-            
+
             foreach ($joins as $joinPart) {
                 foreach ($joinPart as $join) {
                     if ($join->getAlias() === $joinAlias) {
                         $alreadyJoined = true;
+
                         break 2;
                     }
                 }
             }
-            
+
             if (!$alreadyJoined) {
                 $qb->leftJoin("{$alias}.{$association}", $joinAlias)
                    ->addSelect($joinAlias);
             }
         }
-        
+
         return $qb;
     }
 
@@ -57,6 +59,7 @@ class RepositoryOptimizationService
         // Преобразуем camelCase в короткий алиас
         $parts = preg_split('/(?=[A-Z])/', $association);
         $alias = strtolower(implode('_', array_filter($parts)));
+
         return substr($alias, 0, 10); // Ограничиваем длину
     }
 
@@ -66,7 +69,7 @@ class RepositoryOptimizationService
     public function addPagination(QueryBuilder $qb, int $page = 1, int $limit = 20): QueryBuilder
     {
         $offset = ($page - 1) * $limit;
-        
+
         return $qb->setFirstResult($offset)
                   ->setMaxResults($limit);
     }
@@ -78,7 +81,7 @@ class RepositoryOptimizationService
     {
         $countQb = clone $qb;
         $alias = $countQb->getRootAliases()[0];
-        
+
         return (int) $countQb->select("COUNT(DISTINCT {$alias}.id)")
                             ->setFirstResult(0)
                             ->setMaxResults(null)
@@ -93,27 +96,27 @@ class RepositoryOptimizationService
     {
         $alias = 'e';
         $qb = $this->entityManager->createQueryBuilder();
-        
+
         // Валидация полей - только буквы, цифры и подчеркивания
-        $validFields = array_filter($fields, fn($field) => preg_match('/^[a-zA-Z0-9_]+$/', $field));
-        
+        $validFields = array_filter($fields, fn ($field) => preg_match('/^[a-zA-Z0-9_]+$/', $field));
+
         if (empty($validFields)) {
             throw new \InvalidArgumentException('No valid fields provided');
         }
-        
+
         // Формируем SELECT с нужными полями
-        $selectFields = array_map(fn($field) => "{$alias}.{$field}", $validFields);
+        $selectFields = array_map(fn ($field) => "{$alias}.{$field}", $validFields);
         $qb->select(implode(', ', $selectFields))
            ->from($entityClass, $alias);
-        
+
         // Добавляем критерии с валидацией
         foreach ($criteria as $field => $value) {
             // Валидация имени поля
             if (!preg_match('/^[a-zA-Z0-9_]+$/', $field)) {
                 continue;
             }
-            
-            if (is_array($value)) {
+
+            if (\is_array($value)) {
                 $qb->andWhere("{$alias}.{$field} IN (:{$field})")
                    ->setParameter($field, $value);
             } else {
@@ -121,7 +124,7 @@ class RepositoryOptimizationService
                    ->setParameter($field, $value);
             }
         }
-        
+
         return $qb->getQuery()->getResult();
     }
 
@@ -132,29 +135,29 @@ class RepositoryOptimizationService
     {
         $offset = 0;
         $processed = 0;
-        
+
         do {
             $batchQb = clone $qb;
             $results = $batchQb->setFirstResult($offset)
                               ->setMaxResults($batchSize)
                               ->getQuery()
                               ->getResult();
-            
+
             if (empty($results)) {
                 break;
             }
-            
+
             $processor($results);
-            
+
             // Очищаем EntityManager для освобождения памяти
             $this->entityManager->clear();
-            
-            $processed += count($results);
+
+            $processed += \count($results);
             $offset += $batchSize;
-            
+
             $this->logger->info("Batch processed: {$processed} entities");
-            
-        } while (count($results) === $batchSize);
+
+        } while (\count($results) === $batchSize);
     }
 
     /**
@@ -164,13 +167,13 @@ class RepositoryOptimizationService
     {
         // PostgreSQL не поддерживает INDEX HINTS напрямую
         // Но можно использовать другие оптимизации
-        
+
         // Добавляем ORDER BY для использования индексов
         foreach ($indexes as $field => $direction) {
             $alias = $qb->getRootAliases()[0];
             $qb->addOrderBy("{$alias}.{$field}", $direction);
         }
-        
+
         return $qb;
     }
 
@@ -181,26 +184,26 @@ class RepositoryOptimizationService
     {
         $alias = 'e';
         $qb = $this->entityManager->createQueryBuilder();
-        
+
         $qb->select("{$alias}.id")
            ->from($entityClass, $alias);
-        
+
         foreach ($criteria as $field => $value) {
             // Валидация имени поля
             if (!preg_match('/^[a-zA-Z0-9_]+$/', $field)) {
                 continue;
             }
-            
+
             $qb->andWhere("{$alias}.{$field} = :{$field}")
                ->setParameter($field, $value);
         }
-        
+
         if ($limit) {
             $qb->setMaxResults($limit);
         }
-        
+
         $results = $qb->getQuery()->getResult();
-        
+
         return array_column($results, 'id');
     }
 
@@ -210,6 +213,7 @@ class RepositoryOptimizationService
     public function addSubquery(QueryBuilder $qb, string $subqueryDQL, string $alias): QueryBuilder
     {
         $qb->andWhere($qb->expr()->in($alias, $subqueryDQL));
+
         return $qb;
     }
 
@@ -220,25 +224,25 @@ class RepositoryOptimizationService
     {
         $query = $qb->getQuery();
         $sql = $query->getSQL();
-        
+
         $startTime = microtime(true);
         $results = $query->getResult();
         $executionTime = microtime(true) - $startTime;
-        
+
         $analysis = [
             'dql' => $qb->getDQL(),
             'sql' => $sql,
             'execution_time' => $executionTime,
-            'result_count' => count($results),
+            'result_count' => \count($results),
             'memory_usage' => memory_get_usage(true),
-            'parameters' => $query->getParameters()->toArray()
+            'parameters' => $query->getParameters()->toArray(),
         ];
-        
+
         // Логируем медленные запросы
         if ($executionTime > 0.5) {
             $this->logger->warning('Slow query detected', $analysis);
         }
-        
+
         return $analysis;
     }
 
@@ -258,26 +262,26 @@ class RepositoryOptimizationService
         string $aggregateFunction,
         string $field,
         array $criteria = [],
-        ?string $groupBy = null
+        ?string $groupBy = null,
     ): array {
         $alias = 'e';
         $qb = $this->entityManager->createQueryBuilder();
-        
+
         $selectParts = ["{$aggregateFunction}({$alias}.{$field}) as aggregate_value"];
-        
+
         if ($groupBy) {
             $selectParts[] = "{$alias}.{$groupBy}";
             $qb->groupBy("{$alias}.{$groupBy}");
         }
-        
+
         $qb->select(implode(', ', $selectParts))
            ->from($entityClass, $alias);
-        
+
         foreach ($criteria as $criteriaField => $value) {
             $qb->andWhere("{$alias}.{$criteriaField} = :{$criteriaField}")
                ->setParameter($criteriaField, $value);
         }
-        
+
         return $qb->getQuery()->getResult();
     }
 
@@ -288,7 +292,7 @@ class RepositoryOptimizationService
     {
         $query = $qb->getQuery();
         $query->useResultCache(true, $lifetime, $cacheKey);
-        
+
         return $qb;
     }
 
@@ -299,14 +303,14 @@ class RepositoryOptimizationService
         string $entityClass,
         array $searchFields,
         string $searchTerm,
-        array $additionalCriteria = []
+        array $additionalCriteria = [],
     ): QueryBuilder {
         $alias = 'e';
         $qb = $this->entityManager->createQueryBuilder();
-        
+
         $qb->select($alias)
            ->from($entityClass, $alias);
-        
+
         // Валидация и добавление условий поиска
         $searchConditions = [];
         foreach ($searchFields as $field) {
@@ -314,28 +318,28 @@ class RepositoryOptimizationService
             if (!preg_match('/^[a-zA-Z0-9_]+$/', $field)) {
                 continue;
             }
-            
+
             $searchConditions[] = $qb->expr()->like(
                 "LOWER({$alias}.{$field})",
-                $qb->expr()->literal('%' . strtolower($searchTerm) . '%')
+                $qb->expr()->literal('%' . strtolower($searchTerm) . '%'),
             );
         }
-        
+
         if (!empty($searchConditions)) {
             $qb->andWhere($qb->expr()->orX(...$searchConditions));
         }
-        
+
         // Добавляем дополнительные критерии с валидацией
         foreach ($additionalCriteria as $field => $value) {
             // Валидация имени поля
             if (!preg_match('/^[a-zA-Z0-9_]+$/', $field)) {
                 continue;
             }
-            
+
             $qb->andWhere("{$alias}.{$field} = :{$field}")
                ->setParameter($field, $value);
         }
-        
+
         return $qb;
     }
 
@@ -345,25 +349,26 @@ class RepositoryOptimizationService
     public function addFetchJoin(QueryBuilder $qb, string $association, string $joinAlias): QueryBuilder
     {
         $alias = $qb->getRootAliases()[0];
-        
+
         // Проверяем, не добавлен ли уже этот JOIN
         $joins = $qb->getDQLPart('join');
         $alreadyJoined = false;
-        
+
         foreach ($joins as $joinPart) {
             foreach ($joinPart as $join) {
                 if ($join->getAlias() === $joinAlias) {
                     $alreadyJoined = true;
+
                     break 2;
                 }
             }
         }
-        
+
         if (!$alreadyJoined) {
             $qb->leftJoin("{$alias}.{$association}", $joinAlias)
                ->addSelect($joinAlias);
         }
-        
+
         return $qb;
     }
 
@@ -374,41 +379,41 @@ class RepositoryOptimizationService
         string $entityClass,
         array $relations,
         array $criteria = [],
-        ?int $limit = null
+        ?int $limit = null,
     ): array {
         $alias = 'e';
         $qb = $this->entityManager->createQueryBuilder();
-        
+
         $qb->select($alias)
            ->from($entityClass, $alias);
-        
+
         // Добавляем все связи с валидацией
         foreach ($relations as $relation) {
             // Валидация имени связи
             if (!preg_match('/^[a-zA-Z0-9_]+$/', $relation)) {
                 continue;
             }
-            
+
             $relationAlias = $this->generateJoinAlias($relation);
             $qb->leftJoin("{$alias}.{$relation}", $relationAlias)
                ->addSelect($relationAlias);
         }
-        
+
         // Добавляем критерии с валидацией
         foreach ($criteria as $field => $value) {
             // Валидация имени поля
             if (!preg_match('/^[a-zA-Z0-9_]+$/', $field)) {
                 continue;
             }
-            
+
             $qb->andWhere("{$alias}.{$field} = :{$field}")
                ->setParameter($field, $value);
         }
-        
+
         if ($limit) {
             $qb->setMaxResults($limit);
         }
-        
+
         return $qb->getQuery()->getResult();
     }
 }

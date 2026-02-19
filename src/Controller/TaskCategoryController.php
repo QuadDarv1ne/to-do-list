@@ -20,14 +20,14 @@ class TaskCategoryController extends AbstractController
     #[Route('/', name: 'app_task_category_index', methods: ['GET'])]
     public function index(
         TaskCategoryRepository $taskCategoryRepository,
-        ?PerformanceMonitorService $performanceMonitor = null
+        ?PerformanceMonitorService $performanceMonitor = null,
     ): Response {
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('task_category_controller_index');
         }
-        
+
         $categories = $taskCategoryRepository->findByUser($this->getUser());
-        
+
         try {
             return $this->render('task_category/index.html.twig', [
                 'categories' => $categories,
@@ -41,17 +41,17 @@ class TaskCategoryController extends AbstractController
 
     #[Route('/new', name: 'app_task_category_new', methods: ['GET', 'POST'])]
     public function new(
-        Request $request, 
+        Request $request,
         EntityManagerInterface $entityManager,
-        ?PerformanceMonitorService $performanceMonitor = null
+        ?PerformanceMonitorService $performanceMonitor = null,
     ): Response {
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('task_category_controller_new');
         }
-        
+
         $taskCategory = new TaskCategory();
         $taskCategory->setUser($this->getUser());
-        
+
         $form = $this->createForm(TaskCategoryType::class, $taskCategory);
         $form->handleRequest($request);
 
@@ -86,14 +86,14 @@ class TaskCategoryController extends AbstractController
     #[Route('/{id}', name: 'app_task_category_show', methods: ['GET'])]
     public function show(
         TaskCategory $taskCategory,
-        ?PerformanceMonitorService $performanceMonitor = null
+        ?PerformanceMonitorService $performanceMonitor = null,
     ): Response {
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('task_category_controller_show');
         }
-        
+
         $this->denyAccessUnlessGranted('TASK_CATEGORY_VIEW', $taskCategory);
-        
+
         try {
             return $this->render('task_category/show.html.twig', [
                 'task_category' => $taskCategory,
@@ -107,17 +107,17 @@ class TaskCategoryController extends AbstractController
 
     #[Route('/{id}/edit', name: 'app_task_category_edit', methods: ['GET', 'POST'])]
     public function edit(
-        Request $request, 
-        TaskCategory $taskCategory, 
+        Request $request,
+        TaskCategory $taskCategory,
         EntityManagerInterface $entityManager,
-        ?PerformanceMonitorService $performanceMonitor = null
+        ?PerformanceMonitorService $performanceMonitor = null,
     ): Response {
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('task_category_controller_edit');
         }
-        
+
         $this->denyAccessUnlessGranted('TASK_CATEGORY_EDIT', $taskCategory);
-        
+
         $form = $this->createForm(TaskCategoryType::class, $taskCategory);
         $form->handleRequest($request);
 
@@ -150,22 +150,22 @@ class TaskCategoryController extends AbstractController
 
     #[Route('/{id}', name: 'app_task_category_delete', methods: ['POST'])]
     public function delete(
-        Request $request, 
-        TaskCategory $taskCategory, 
+        Request $request,
+        TaskCategory $taskCategory,
         EntityManagerInterface $entityManager,
-        ?PerformanceMonitorService $performanceMonitor = null
+        ?PerformanceMonitorService $performanceMonitor = null,
     ): Response {
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('task_category_controller_delete');
         }
-        
+
         $this->denyAccessUnlessGranted('TASK_CATEGORY_DELETE', $taskCategory);
-        
+
         if ($this->isCsrfTokenValid('delete'.$taskCategory->getId(), $request->request->get('_token'))) {
             // Check if category has tasks
-            if (count($taskCategory->getTasks()) > 0) {
+            if (\count($taskCategory->getTasks()) > 0) {
                 $this->addFlash('error', 'Нельзя удалить категорию, содержащую задачи');
-                
+
                 try {
                     return $this->redirectToRoute('app_task_category_index', [], Response::HTTP_SEE_OTHER);
                 } finally {
@@ -174,10 +174,10 @@ class TaskCategoryController extends AbstractController
                     }
                 }
             }
-            
+
             $entityManager->remove($taskCategory);
             $entityManager->flush();
-            
+
             $this->addFlash('success', 'Категория успешно удалена');
         }
 

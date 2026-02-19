@@ -12,12 +12,12 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:optimize-css',
-    description: 'Optimize and combine CSS files'
+    description: 'Optimize and combine CSS files',
 )]
 class OptimizeCssCommand extends Command
 {
     public function __construct(
-        private CssOptimizerService $cssOptimizer
+        private CssOptimizerService $cssOptimizer,
     ) {
         parent::__construct();
     }
@@ -62,17 +62,17 @@ class OptimizeCssCommand extends Command
 
         $io->table(
             ['File', 'Size (KB)', 'Lines'],
-            array_map(fn($file) => [
+            array_map(fn ($file) => [
                 $file['file'],
                 $file['size_kb'],
-                $file['lines']
-            ], $result['files'])
+                $file['lines'],
+            ], $result['files']),
         );
 
-        $io->info(sprintf(
+        $io->info(\sprintf(
             'Total: %d files, %.2f KB',
             $result['total_files'],
-            $result['total_size_kb']
+            $result['total_size_kb'],
         ));
 
         return Command::SUCCESS;
@@ -85,10 +85,10 @@ class OptimizeCssCommand extends Command
         $result = $this->cssOptimizer->removeDuplicates();
 
         if ($result['total_duplicates'] > 0) {
-            $io->warning(sprintf('Found %d duplicate rules', $result['total_duplicates']));
-            
+            $io->warning(\sprintf('Found %d duplicate rules', $result['total_duplicates']));
+
             foreach ($result['duplicates_found'] as $file => $count) {
-                $io->writeln(sprintf('  - %s: %d duplicates', $file, $count));
+                $io->writeln(\sprintf('  - %s: %d duplicates', $file, $count));
             }
         } else {
             $io->success('No duplicate rules found');
@@ -104,10 +104,10 @@ class OptimizeCssCommand extends Command
         $result = $this->cssOptimizer->optimizeAndCombine();
 
         if ($result['success']) {
-            $io->success(sprintf(
+            $io->success(\sprintf(
                 'CSS optimized successfully! Processed %d files, reduced size by %s%%',
                 $result['files_processed'],
-                $result['reduction_percent']
+                $result['reduction_percent'],
             ));
 
             $io->table(
@@ -116,11 +116,12 @@ class OptimizeCssCommand extends Command
                     ['Original Size', number_format($result['original_size']) . ' bytes'],
                     ['Final Size', number_format($result['final_size']) . ' bytes'],
                     ['Reduction', $result['reduction_percent'] . '%'],
-                    ['Output File', basename($result['output_file'])]
-                ]
+                    ['Output File', basename($result['output_file'])],
+                ],
             );
         } else {
             $io->error('CSS optimization failed: ' . $result['error']);
+
             return Command::FAILURE;
         }
 

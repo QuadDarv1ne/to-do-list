@@ -50,6 +50,7 @@ class HabitLog
     public function setHabit(?Habit $habit): static
     {
         $this->habit = $habit;
+
         return $this;
     }
 
@@ -61,6 +62,7 @@ class HabitLog
     public function setDate(\DateTimeInterface $date): static
     {
         $this->date = $date;
+
         return $this;
     }
 
@@ -72,6 +74,7 @@ class HabitLog
     public function setCount(int $count): static
     {
         $this->count = $count;
+
         return $this;
     }
 
@@ -83,6 +86,7 @@ class HabitLog
     public function setNote(?string $note): static
     {
         $this->note = $note;
+
         return $this;
     }
 
@@ -94,6 +98,7 @@ class HabitLog
     public function setCreatedAt(\DateTimeInterface $createdAt): static
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 }

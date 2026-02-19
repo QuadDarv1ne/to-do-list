@@ -13,9 +13,10 @@ class TaskImportService
     public function __construct(
         private EntityManagerInterface $entityManager,
         private TaskCategoryRepository $categoryRepository,
-        private UserRepository $userRepository
-    ) {}
-    
+        private UserRepository $userRepository,
+    ) {
+    }
+
     /**
      * Import tasks from CSV file
      */
@@ -24,18 +25,18 @@ class TaskImportService
         if (!file_exists($filePath)) {
             throw new \Exception('File not found');
         }
-        
+
         $handle = fopen($filePath, 'r');
         if (!$handle) {
             throw new \Exception('Cannot open file');
         }
-        
+
         $results = [
             'success' => 0,
             'failed' => 0,
-            'errors' => []
+            'errors' => [],
         ];
-        
+
         // Skip header row
         $header = fgetcsv($handle, 0, ';');
         if (!$header) {
@@ -43,19 +44,19 @@ class TaskImportService
             rewind($handle);
             fgetcsv($handle, 0, ',');
         }
-        
+
         $lineNumber = 1;
-        
+
         while (($data = fgetcsv($handle, 0, ';')) !== false) {
-            if (empty($data) || count($data) < 2) {
+            if (empty($data) || \count($data) < 2) {
                 $data = fgetcsv($handle, 0, ',');
-                if (empty($data) || count($data) < 2) {
+                if (empty($data) || \count($data) < 2) {
                     continue;
                 }
             }
-            
+
             $lineNumber++;
-            
+
             try {
                 $this->importTaskFromRow($data, $creator);
                 $results['success']++;
@@ -64,15 +65,15 @@ class TaskImportService
                 $results['errors'][] = "Строка {$lineNumber}: " . $e->getMessage();
             }
         }
-        
+
         fclose($handle);
-        
+
         // Flush all changes
         $this->entityManager->flush();
-        
+
         return $results;
     }
-    
+
     /**
      * Import single task from CSV row
      */
@@ -86,32 +87,32 @@ class TaskImportService
         $categoryName = trim($row[4] ?? '');
         $assignedToEmail = trim($row[5] ?? '');
         $deadline = trim($row[6] ?? '');
-        
+
         if (empty($title)) {
             throw new \Exception('Title is required');
         }
-        
+
         $task = new Task();
         $task->setTitle($title);
         $task->setDescription($description ?: null);
         $task->setUser($creator);
-        
+
         // Validate and set status
         $validStatuses = ['pending', 'in_progress', 'completed', 'cancelled'];
-        if (in_array($status, $validStatuses)) {
+        if (\in_array($status, $validStatuses)) {
             $task->setStatus($status);
         } else {
             $task->setStatus('pending');
         }
-        
+
         // Validate and set priority
         $validPriorities = ['low', 'medium', 'high', 'urgent'];
-        if (in_array($priority, $validPriorities)) {
+        if (\in_array($priority, $validPriorities)) {
             $task->setPriority($priority);
         } else {
             $task->setPriority('medium');
         }
-        
+
         // Set category
         if (!empty($categoryName)) {
             $category = $this->categoryRepository->findOneBy(['name' => $categoryName]);
@@ -119,7 +120,7 @@ class TaskImportService
                 $task->setCategory($category);
             }
         }
-        
+
         // Set assigned user
         if (!empty($assignedToEmail)) {
             $assignedUser = $this->userRepository->findOneBy(['email' => $assignedToEmail]);
@@ -127,7 +128,7 @@ class TaskImportService
                 $task->setAssignedUser($assignedUser);
             }
         }
-        
+
         // Set deadline
         if (!empty($deadline)) {
             try {
@@ -137,12 +138,12 @@ class TaskImportService
                 // Invalid date format, skip
             }
         }
-        
+
         $this->entityManager->persist($task);
-        
+
         return $task;
     }
-    
+
     /**
      * Generate CSV template
      */
@@ -151,10 +152,10 @@ class TaskImportService
         $template = "Название;Описание;Статус;Приоритет;Категория;Назначено (email);Дедлайн\n";
         $template .= "Пример задачи;Описание задачи;pending;medium;Продажи;user@example.com;2024-12-31\n";
         $template .= "Срочная задача;Требует немедленного внимания;in_progress;urgent;Поддержка;manager@example.com;2024-01-15\n";
-        
+
         return $template;
     }
-    
+
     /**
      * Validate CSV file
      */
@@ -163,38 +164,39 @@ class TaskImportService
         if (!file_exists($filePath)) {
             return ['valid' => false, 'error' => 'File not found'];
         }
-        
+
         $handle = fopen($filePath, 'r');
         if (!$handle) {
             return ['valid' => false, 'error' => 'Cannot open file'];
         }
-        
+
         // Check header
         $header = fgetcsv($handle, 0, ';');
         if (!$header) {
             $header = fgetcsv($handle, 0, ',');
         }
-        
-        if (empty($header) || count($header) < 2) {
+
+        if (empty($header) || \count($header) < 2) {
             fclose($handle);
+
             return ['valid' => false, 'error' => 'Invalid CSV format'];
         }
-        
+
         // Count rows
         $rowCount = 0;
         while (($data = fgetcsv($handle, 0, ';')) !== false) {
             $rowCount++;
         }
-        
+
         fclose($handle);
-        
+
         return [
             'valid' => true,
             'row_count' => $rowCount,
-            'columns' => count($header)
+            'columns' => \count($header),
         ];
     }
-    
+
     /**
      * Get import statistics
      */
@@ -206,7 +208,7 @@ class TaskImportService
             'total_imports' => 0,
             'total_tasks_imported' => 0,
             'last_import_date' => null,
-            'success_rate' => 0
+            'success_rate' => 0,
         ];
     }
 }

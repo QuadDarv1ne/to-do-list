@@ -12,7 +12,7 @@ final readonly class CreateTaskCommand
         private int $assignedUserId,
         private ?int $categoryId = null,
         private ?\DateTimeImmutable $dueDate = null,
-        private array $tagIds = []
+        private array $tagIds = [],
     ) {
     }
 

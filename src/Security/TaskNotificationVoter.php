@@ -12,21 +12,24 @@ use Symfony\Component\Security\Core\User\UserInterface;
 class TaskNotificationVoter extends Voter
 {
     public const VIEW = 'view';
+
     public const EDIT = 'edit';
+
     public const DELETE = 'delete';
+
     public const CREATE = 'create';
 
     protected function supports(string $attribute, mixed $subject): bool
     {
-        if (!in_array($attribute, [self::VIEW, self::EDIT, self::DELETE])) {
+        if (!\in_array($attribute, [self::VIEW, self::EDIT, self::DELETE])) {
             return false;
         }
 
-        if (!$subject instanceof TaskNotification) {
-            return false;
-        }
+        return !(!$subject instanceof TaskNotification)
 
-        return true;
+
+
+        ;
     }
 
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token, ?Vote $vote = null): bool

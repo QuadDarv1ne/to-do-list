@@ -4,17 +4,18 @@ namespace App\Controller;
 
 use App\Service\IntegrationService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/integrations')]
 class IntegrationController extends AbstractController
 {
     public function __construct(
-        private IntegrationService $integrationService
-    ) {}
+        private IntegrationService $integrationService,
+    ) {
+    }
 
     #[Route('', name: 'app_integrations_index')]
     public function index(): Response
@@ -27,7 +28,7 @@ class IntegrationController extends AbstractController
         return $this->render('integrations/index.html.twig', [
             'available' => $available,
             'connected' => $connected,
-            'stats' => $stats
+            'stats' => $stats,
         ]);
     }
 
@@ -36,9 +37,9 @@ class IntegrationController extends AbstractController
     {
         $user = $this->getUser();
         $token = $request->request->get('token');
-        
+
         $result = $this->integrationService->connectGitHub($user, $token);
-        
+
         return $this->json($result);
     }
 
@@ -47,9 +48,9 @@ class IntegrationController extends AbstractController
     {
         $user = $this->getUser();
         $webhookUrl = $request->request->get('webhook_url');
-        
+
         $result = $this->integrationService->connectSlack($user, $webhookUrl);
-        
+
         return $this->json($result);
     }
 
@@ -60,9 +61,9 @@ class IntegrationController extends AbstractController
         $domain = $request->request->get('domain');
         $email = $request->request->get('email');
         $apiToken = $request->request->get('api_token');
-        
+
         $result = $this->integrationService->connectJira($user, $domain, $email, $apiToken);
-        
+
         return $this->json($result);
     }
 
@@ -71,7 +72,7 @@ class IntegrationController extends AbstractController
     {
         $user = $this->getUser();
         $result = $this->integrationService->disconnectIntegration($user, $integration);
-        
+
         return $this->json(['success' => $result]);
     }
 
@@ -80,7 +81,7 @@ class IntegrationController extends AbstractController
     {
         $credentials = json_decode($request->getContent(), true);
         $result = $this->integrationService->testConnection($integration, $credentials);
-        
+
         return $this->json($result);
     }
 }

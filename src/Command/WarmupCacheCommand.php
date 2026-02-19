@@ -12,12 +12,12 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:cache:warmup-data',
-    description: 'Прогрев кэша данных приложения'
+    description: 'Прогрев кэша данных приложения',
 )]
 class WarmupCacheCommand extends Command
 {
     public function __construct(
-        private DataCacheWarmer $cacheWarmer
+        private DataCacheWarmer $cacheWarmer,
     ) {
         parent::__construct();
     }
@@ -40,17 +40,17 @@ class WarmupCacheCommand extends Command
 
         $io->text('Прогрев кэша для всех пользователей...');
         $startTime = microtime(true);
-        
+
         $results = $this->cacheWarmer->warmupAll();
-        
+
         $duration = round(microtime(true) - $startTime, 2);
 
-        $io->success(sprintf(
+        $io->success(\sprintf(
             'Прогрев завершен за %s сек. Обработано: %d пользователей, создано: %d записей, ошибок: %d',
             $duration,
             $results['users_processed'],
             $results['cache_entries'],
-            $results['errors']
+            $results['errors'],
         ));
 
         return Command::SUCCESS;

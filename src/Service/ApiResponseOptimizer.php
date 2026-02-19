@@ -3,8 +3,8 @@
 namespace App\Service;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * API Response Optimizer - оптимизация JSON ответов
@@ -13,8 +13,9 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 class ApiResponseOptimizer
 {
     public function __construct(
-        private SerializerInterface $serializer
-    ) {}
+        private SerializerInterface $serializer,
+    ) {
+    }
 
     /**
      * Create optimized JSON response with serialization groups
@@ -23,7 +24,7 @@ class ApiResponseOptimizer
         mixed $data,
         int $status = 200,
         array $groups = ['default'],
-        array $headers = []
+        array $headers = [],
     ): JsonResponse {
         $context = [
             AbstractNormalizer::GROUPS => $groups,
@@ -35,7 +36,7 @@ class ApiResponseOptimizer
         ];
 
         $json = $this->serializer->serialize($data, 'json', $context);
-        
+
         // Add standard headers
         $headers = array_merge([
             'Content-Type' => 'application/json',
@@ -53,7 +54,7 @@ class ApiResponseOptimizer
         int $page,
         int $limit,
         int $total,
-        array $groups = ['default']
+        array $groups = ['default'],
     ): JsonResponse {
         $data = [
             'data' => $items,
@@ -61,8 +62,8 @@ class ApiResponseOptimizer
                 'page' => $page,
                 'limit' => $limit,
                 'total' => $total,
-                'pages' => (int)ceil($total / $limit)
-            ]
+                'pages' => (int)ceil($total / $limit),
+            ],
         ];
 
         return $this->createResponse($data, 200, $groups);
@@ -76,7 +77,7 @@ class ApiResponseOptimizer
         return new JsonResponse([
             'success' => true,
             'message' => $message,
-            'data' => $data
+            'data' => $data,
         ], $status);
     }
 
@@ -87,7 +88,7 @@ class ApiResponseOptimizer
     {
         $response = [
             'success' => false,
-            'message' => $message
+            'message' => $message,
         ];
 
         if (!empty($errors)) {
@@ -121,7 +122,7 @@ class ApiResponseOptimizer
         $response->setPublic();
         $response->setMaxAge($maxAge);
         $response->setSharedMaxAge($maxAge);
-        
+
         return $response;
     }
 
@@ -132,7 +133,7 @@ class ApiResponseOptimizer
     {
         $etag = md5($response->getContent());
         $response->setEtag($etag);
-        
+
         return $response;
     }
 }

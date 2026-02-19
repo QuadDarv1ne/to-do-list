@@ -7,12 +7,11 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Scheb\TwoFactorBundle\Model\Google\TwoFactorInterface;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use App\Entity\ActivityLog;
 use Symfony\Component\Validator\Constraints as Assert;
-use Scheb\TwoFactorBundle\Model\Google\TwoFactorInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'users')]
@@ -64,8 +63,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
 
     #[ORM\Column(length: 20, nullable: true)]
     #[Assert\Regex(
-        pattern: '/^\+7\d{10}$/',
-        message: 'Телефон должен быть в формате +79993332211'
+        pattern: '/^\\+7\\d{10}$/',
+        message: 'Телефон должен быть в формате +79993332211',
     )]
     private ?string $phone = null;
 
@@ -281,6 +280,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
     public function getFullName(): string
     {
         $fullName = trim($this->firstName . ' ' . $this->lastName);
+
         return $fullName ?: $this->username;
     }
 
@@ -445,7 +445,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
         if ($this->totpSecretTemp !== null) {
             return $this->totpSecretTemp;
         }
-        
+
         return $this->isTotpEnabled ? $this->totpSecret : null;
     }
 
@@ -727,7 +727,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
 
     public function hasRole(string $role): bool
     {
-        return in_array($role, $this->getRoles());
+        return \in_array($role, $this->getRoles());
     }
 
     public function getLockedUntil(): ?\DateTimeInterface
@@ -753,7 +753,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
 
         return $this;
     }
-    
+
     /**
      * Check if the user account is currently locked
      *
@@ -764,37 +764,35 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
         if ($this->lockedUntil === null) {
             return false;
         }
-        
+
         return new \DateTime() < $this->lockedUntil;
     }
-    
+
     /**
      * Lock the user account until the specified time
      *
      * @param \DateTimeInterface|null $until Time until which the account should be locked
-     * @return static
      */
     public function lockAccount(?\DateTimeInterface $until): static
     {
         $this->lockedUntil = $until;
         $this->failedLoginAttempts = 0; // Reset failed attempts when locking
-        
+
         return $this;
     }
-    
+
     /**
      * Unlock the user account
      *
-     * @return static
      */
     public function unlockAccount(): static
     {
         $this->lockedUntil = null;
         $this->failedLoginAttempts = 0;
-        
+
         return $this;
     }
-    
+
     /**
      * Get avatar URL (using Gravatar)
      */
@@ -804,10 +802,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
         $hash = md5(strtolower(trim($this->email ?? '')));
         $default = 'identicon'; // Default avatar style
         $size = 40;
-        
+
         return "https://www.gravatar.com/avatar/{$hash}?d={$default}&s={$size}";
     }
-    
+
     /**
      * Get initials for avatar fallback
      */
@@ -815,42 +813,42 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
     {
         $firstName = $this->firstName ?? '';
         $lastName = $this->lastName ?? '';
-        
+
         if ($firstName && $lastName) {
             return strtoupper(substr($firstName, 0, 1) . substr($lastName, 0, 1));
         }
-        
+
         if ($this->username) {
             return strtoupper(substr($this->username, 0, 2));
         }
-        
+
         return 'U';
     }
-    
+
     /**
      * Check if user is admin
      */
     public function isAdmin(): bool
     {
-        return in_array('ROLE_ADMIN', $this->roles, true) || in_array('ROLE_SUPER_ADMIN', $this->roles, true);
+        return \in_array('ROLE_ADMIN', $this->roles, true) || \in_array('ROLE_SUPER_ADMIN', $this->roles, true);
     }
-    
+
     /**
      * Check if user is manager
      */
     public function isManager(): bool
     {
-        return in_array('ROLE_MANAGER', $this->roles, true) || $this->isAdmin();
+        return \in_array('ROLE_MANAGER', $this->roles, true) || $this->isAdmin();
     }
-    
+
     /**
      * Check if user is analyst
      */
     public function isAnalyst(): bool
     {
-        return in_array('ROLE_ANALYST', $this->roles, true) || $this->isManager() || $this->isAdmin();
+        return \in_array('ROLE_ANALYST', $this->roles, true) || $this->isManager() || $this->isAdmin();
     }
-    
+
     /**
      * Get role display name
      */
@@ -868,9 +866,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
         if ($this->hasRole('ROLE_ANALYST')) {
             return 'Аналитик';
         }
+
         return 'Пользователь';
     }
-    
+
     /**
      * Can manage users
      */
@@ -878,7 +877,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
     {
         return $this->isAdmin();
     }
-    
+
     /**
      * Can view reports
      */
@@ -886,7 +885,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
     {
         return $this->isAnalyst() || $this->isManager() || $this->isAdmin();
     }
-    
+
     /**
      * Can manage budget
      */
@@ -894,7 +893,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
     {
         return $this->isManager() || $this->isAdmin();
     }
-    
+
     /**
      * Can manage resources
      */

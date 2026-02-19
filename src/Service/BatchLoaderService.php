@@ -13,8 +13,9 @@ class BatchLoaderService
     private array $cache = [];
 
     public function __construct(
-        private EntityManagerInterface $entityManager
-    ) {}
+        private EntityManagerInterface $entityManager,
+    ) {
+    }
 
     /**
      * Пакетная загрузка пользователей по ID
@@ -22,12 +23,12 @@ class BatchLoaderService
     public function loadUsers(array $userIds): array
     {
         $cacheKey = 'users_' . md5(serialize($userIds));
-        
+
         if (isset($this->cache[$cacheKey])) {
             return $this->cache[$cacheKey];
         }
 
-        $users = $this->entityManager->getRepository('App\Entity\User')
+        $users = $this->entityManager->getRepository('App\\Entity\\User')
             ->createQueryBuilder('u')
             ->where('u.id IN (:ids)')
             ->setParameter('ids', $userIds)
@@ -40,6 +41,7 @@ class BatchLoaderService
         }
 
         $this->cache[$cacheKey] = $indexed;
+
         return $indexed;
     }
 
@@ -49,12 +51,12 @@ class BatchLoaderService
     public function loadTasks(array $taskIds): array
     {
         $cacheKey = 'tasks_' . md5(serialize($taskIds));
-        
+
         if (isset($this->cache[$cacheKey])) {
             return $this->cache[$cacheKey];
         }
 
-        $tasks = $this->entityManager->getRepository('App\Entity\Task')
+        $tasks = $this->entityManager->getRepository('App\\Entity\\Task')
             ->createQueryBuilder('t')
             ->leftJoin('t.user', 'u')->addSelect('u')
             ->leftJoin('t.assignedUser', 'au')->addSelect('au')
@@ -70,6 +72,7 @@ class BatchLoaderService
         }
 
         $this->cache[$cacheKey] = $indexed;
+
         return $indexed;
     }
 
@@ -79,12 +82,12 @@ class BatchLoaderService
     public function loadCommentsForTasks(array $taskIds): array
     {
         $cacheKey = 'comments_' . md5(serialize($taskIds));
-        
+
         if (isset($this->cache[$cacheKey])) {
             return $this->cache[$cacheKey];
         }
 
-        $comments = $this->entityManager->getRepository('App\Entity\Comment')
+        $comments = $this->entityManager->getRepository('App\\Entity\\Comment')
             ->createQueryBuilder('c')
             ->leftJoin('c.author', 'a')->addSelect('a')
             ->where('c.task IN (:taskIds)')
@@ -104,6 +107,7 @@ class BatchLoaderService
         }
 
         $this->cache[$cacheKey] = $grouped;
+
         return $grouped;
     }
 
@@ -113,14 +117,14 @@ class BatchLoaderService
     public function loadTagsForTasks(array $taskIds): array
     {
         $cacheKey = 'tags_' . md5(serialize($taskIds));
-        
+
         if (isset($this->cache[$cacheKey])) {
             return $this->cache[$cacheKey];
         }
 
         $qb = $this->entityManager->createQueryBuilder();
         $results = $qb->select('t.id as task_id, tag')
-            ->from('App\Entity\Task', 't')
+            ->from('App\\Entity\\Task', 't')
             ->leftJoin('t.tags', 'tag')
             ->where('t.id IN (:taskIds)')
             ->setParameter('taskIds', $taskIds)
@@ -140,6 +144,7 @@ class BatchLoaderService
         }
 
         $this->cache[$cacheKey] = $grouped;
+
         return $grouped;
     }
 
@@ -149,12 +154,12 @@ class BatchLoaderService
     public function loadNotificationsForUsers(array $userIds, bool $unreadOnly = false): array
     {
         $cacheKey = 'notifications_' . md5(serialize($userIds) . $unreadOnly);
-        
+
         if (isset($this->cache[$cacheKey])) {
             return $this->cache[$cacheKey];
         }
 
-        $qb = $this->entityManager->getRepository('App\Entity\Notification')
+        $qb = $this->entityManager->getRepository('App\\Entity\\Notification')
             ->createQueryBuilder('n')
             ->leftJoin('n.task', 't')->addSelect('t')
             ->where('n.user IN (:userIds)')
@@ -179,6 +184,7 @@ class BatchLoaderService
         }
 
         $this->cache[$cacheKey] = $grouped;
+
         return $grouped;
     }
 
@@ -188,12 +194,12 @@ class BatchLoaderService
     public function loadCategories(array $categoryIds): array
     {
         $cacheKey = 'categories_' . md5(serialize($categoryIds));
-        
+
         if (isset($this->cache[$cacheKey])) {
             return $this->cache[$cacheKey];
         }
 
-        $categories = $this->entityManager->getRepository('App\Entity\TaskCategory')
+        $categories = $this->entityManager->getRepository('App\\Entity\\TaskCategory')
             ->createQueryBuilder('c')
             ->where('c.id IN (:ids)')
             ->setParameter('ids', $categoryIds)
@@ -206,6 +212,7 @@ class BatchLoaderService
         }
 
         $this->cache[$cacheKey] = $indexed;
+
         return $indexed;
     }
 
@@ -218,7 +225,7 @@ class BatchLoaderService
             return;
         }
 
-        $taskIds = array_map(fn($task) => $task->getId(), $tasks);
+        $taskIds = array_map(fn ($task) => $task->getId(), $tasks);
 
         // Загружаем все связанные данные одним пакетом
         $this->loadCommentsForTasks($taskIds);
@@ -263,9 +270,9 @@ class BatchLoaderService
     public function getCacheStats(): array
     {
         return [
-            'entries' => count($this->cache),
+            'entries' => \count($this->cache),
             'keys' => array_keys($this->cache),
-            'memory' => memory_get_usage(true)
+            'memory' => memory_get_usage(true),
         ];
     }
 }

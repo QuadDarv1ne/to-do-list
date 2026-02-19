@@ -10,8 +10,9 @@ class AdvancedReportingService
 {
     public function __construct(
         private TaskRepository $taskRepository,
-        private EntityManagerInterface $entityManager
-    ) {}
+        private EntityManagerInterface $entityManager,
+    ) {
+    }
 
     /**
      * Generate custom report
@@ -19,7 +20,7 @@ class AdvancedReportingService
     public function generateCustomReport(array $config, User $user): array
     {
         $data = [];
-        
+
         foreach ($config['metrics'] as $metric) {
             $data[$metric] = $this->calculateMetric($metric, $config, $user);
         }
@@ -29,7 +30,7 @@ class AdvancedReportingService
             'period' => $config['period'] ?? 'month',
             'data' => $data,
             'charts' => $this->generateCharts($data, $config),
-            'generated_at' => new \DateTime()
+            'generated_at' => new \DateTime(),
         ];
     }
 
@@ -111,9 +112,12 @@ class AdvancedReportingService
     private function getCompletionRate(User $user, \DateTime $from, \DateTime $to): float
     {
         $total = $this->getTotalTasks($user, $from, $to);
-        if ($total === 0) return 0;
-        
+        if ($total === 0) {
+            return 0;
+        }
+
         $completed = $this->getCompletedTasks($user, $from, $to);
+
         return round(($completed / $total) * 100, 2);
     }
 
@@ -166,6 +170,7 @@ class AdvancedReportingService
         foreach ($results as $result) {
             $data[$result['priority']] = (int)$result['count'];
         }
+
         return $data;
     }
 
@@ -189,6 +194,7 @@ class AdvancedReportingService
         foreach ($results as $result) {
             $data[$result['status']] = (int)$result['count'];
         }
+
         return $data;
     }
 
@@ -213,6 +219,7 @@ class AdvancedReportingService
         foreach ($results as $result) {
             $data[$result['name'] ?? 'Без категории'] = (int)$result['count'];
         }
+
         return $data;
     }
 
@@ -223,7 +230,7 @@ class AdvancedReportingService
     {
         $completed = $this->getCompletedTasks($user, $from, $to);
         $overdue = $this->getOverdueTasks($user, $from, $to);
-        
+
         // Score: completed tasks - overdue tasks
         return max(0, $completed - $overdue);
     }
@@ -248,7 +255,7 @@ class AdvancedReportingService
             $charts['priority_chart'] = [
                 'type' => 'pie',
                 'data' => $data['tasks_by_priority'],
-                'title' => 'Задачи по приоритету'
+                'title' => 'Задачи по приоритету',
             ];
         }
 
@@ -256,7 +263,7 @@ class AdvancedReportingService
             $charts['status_chart'] = [
                 'type' => 'bar',
                 'data' => $data['tasks_by_status'],
-                'title' => 'Задачи по статусу'
+                'title' => 'Задачи по статусу',
             ];
         }
 
@@ -264,7 +271,7 @@ class AdvancedReportingService
             $charts['category_chart'] = [
                 'type' => 'doughnut',
                 'data' => $data['tasks_by_category'],
-                'title' => 'Задачи по категориям'
+                'title' => 'Задачи по категориям',
             ];
         }
 
@@ -300,7 +307,7 @@ class AdvancedReportingService
             'config' => $config,
             'user_id' => $user->getId(),
             'frequency' => $frequency,
-            'next_run' => new \DateTime('+1 ' . $frequency)
+            'next_run' => new \DateTime('+1 ' . $frequency),
         ];
     }
 
@@ -313,23 +320,23 @@ class AdvancedReportingService
             'daily_summary' => [
                 'title' => 'Ежедневная сводка',
                 'period' => 'today',
-                'metrics' => ['total_tasks', 'completed_tasks', 'completion_rate']
+                'metrics' => ['total_tasks', 'completed_tasks', 'completion_rate'],
             ],
             'weekly_performance' => [
                 'title' => 'Недельная производительность',
                 'period' => 'week',
-                'metrics' => ['total_tasks', 'completed_tasks', 'completion_rate', 'productivity_score']
+                'metrics' => ['total_tasks', 'completed_tasks', 'completion_rate', 'productivity_score'],
             ],
             'monthly_overview' => [
                 'title' => 'Месячный обзор',
                 'period' => 'month',
-                'metrics' => ['total_tasks', 'completed_tasks', 'tasks_by_priority', 'tasks_by_status', 'tasks_by_category']
+                'metrics' => ['total_tasks', 'completed_tasks', 'tasks_by_priority', 'tasks_by_status', 'tasks_by_category'],
             ],
             'team_report' => [
                 'title' => 'Отчет команды',
                 'period' => 'month',
-                'metrics' => ['team_performance', 'total_tasks', 'completion_rate']
-            ]
+                'metrics' => ['team_performance', 'total_tasks', 'completion_rate'],
+            ],
         ];
     }
 }

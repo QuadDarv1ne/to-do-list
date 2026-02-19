@@ -15,8 +15,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class FilterController extends AbstractController
 {
     public function __construct(
-        private TaskFilterService $filterService
-    ) {}
+        private TaskFilterService $filterService,
+    ) {
+    }
 
     /**
      * Filters page
@@ -32,7 +33,7 @@ class FilterController extends AbstractController
         return $this->render('filters/index.html.twig', [
             'filters' => $filters,
             'counts' => $counts,
-            'custom_filters' => $customFilters
+            'custom_filters' => $customFilters,
         ]);
     }
 
@@ -50,7 +51,7 @@ class FilterController extends AbstractController
         return $this->render('filters/results.html.twig', [
             'tasks' => $tasks,
             'filter_key' => $key,
-            'filter_info' => $filterInfo
+            'filter_info' => $filterInfo,
         ]);
     }
 
@@ -90,12 +91,12 @@ class FilterController extends AbstractController
         $filter = $this->filterService->createCustomFilter(
             $data['name'],
             $data['filter'],
-            $user
+            $user,
         );
 
         return $this->json([
             'success' => true,
-            'filter' => $filter
+            'filter' => $filter,
         ]);
     }
 }
