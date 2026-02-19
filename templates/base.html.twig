@@ -375,6 +375,12 @@
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
     
+    <!-- Preload critical JS -->
+    <link rel="preload" href="/js/core-bundle.min.js" as="script">
+    {% if app.user %}
+        <link rel="preload" href="/js/common-bundle.min.js" as="script">
+    {% endif %}
+    
     <!-- Service Worker Registration -->
     <script>
         // FAB Menu toggle
@@ -439,8 +445,13 @@
         {# Environment flag for JS #}
         <meta name="environment" content="{{ app.environment }}" data-environment="{{ app.environment }}">
 
-        {# Essential scripts only #}
-        <script src="/js/utils.js" defer></script>
+        {# Core scripts - always loaded #}
+        <script src="/js/core-bundle.min.js" defer></script>
+        
+        {# Common features - for authenticated users #}
+        {% if app.user %}
+            <script src="/js/common-bundle.min.js" defer></script>
+        {% endif %}
         
         {# Page-specific scripts - loaded conditionally #}
         {% if app.request.attributes.get('_route') starts with 'app_task' %}
@@ -458,18 +469,6 @@
         {% if app.request.attributes.get('_route') starts with 'app_dashboard' or app.request.attributes.get('_route') starts with 'app_analytics' %}
             <script src="/js/dashboard-widgets.js" defer></script>
         {% endif %}
-
-        {# Common features - Loaded after critical #}
-        {% if app.user %}
-            <script src="/js/realtime-notifications.js" defer></script>
-            <script src="/js/offline-support.js" defer></script>
-        {% endif %}
-
-        {# Non-critical enhancements - Loaded on idle #}
-        <script src="/js/debounced-search.js" defer></script>
-        <script src="/js/global-interactions.js" defer></script>
-        <script src="/js/ui-enhancements.js" defer></script>
-        <script src="/js/pwa-install.js" defer></script>
 
         {# Performance monitoring - only in dev mode #}
         {% if app.environment == 'dev' %}
