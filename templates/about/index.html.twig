@@ -2,17 +2,111 @@
 
 {% block title %}О системе{% endblock %}
 
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.about-container {
+    animation: fadeIn 0.8s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.about-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 3rem 2rem;
+    border-radius: 16px 16px 0 0;
+    animation: slideDown 0.6s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.feature-item {
+    transition: all 0.3s ease;
+    padding: 0.75rem;
+    border-radius: 8px;
+}
+
+.feature-item:hover {
+    background: rgba(102, 126, 234, 0.05);
+    transform: translateX(10px);
+}
+
+.tech-card {
+    transition: all 0.3s ease;
+    border-radius: 12px;
+    animation: scaleIn 0.5s ease-out backwards;
+}
+
+.tech-card:nth-child(1) { animation-delay: 0.1s; }
+.tech-card:nth-child(2) { animation-delay: 0.2s; }
+.tech-card:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.tech-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+.tech-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    transition: all 0.3s ease;
+}
+
+.tech-card:hover .tech-icon {
+    transform: rotate(360deg);
+}
+</style>
+{% endblock %}
+
 {% block body %}
-<div class="container py-5">
+{{ include('components/breadcrumbs.html.twig', {
+    items: [
+        {label: 'Главная', url: path('app_dashboard')},
+        {label: 'О системе', active: true}
+    ]
+}) }}
+
+<div class="container py-5 about-container">
     <div class="row justify-content-center">
         <div class="col-lg-10">
             <div class="card shadow-lg border-0">
-                <div class="card-header bg-primary text-white text-center py-4">
-                    <h1 class="mb-0">
-                        <i class="fas fa-chart-line me-2"></i>
-                        {{ system_name }}
-                    </h1>
-                    <p class="mb-0 mt-2 opacity-75">{{ company_name }}</p>
+                <div class="about-header">
+                    <div class="text-center">
+                        <h1 class="mb-2">
+                            <i class="fas fa-tasks me-2"></i>
+                            {{ system_name }}
+                        </h1>
+                        <p class="mb-0 opacity-75 fs-5">{{ company_name }}</p>
+                    </div>
                 </div>
                 
                 <div class="card-body p-5">
@@ -23,9 +117,9 @@
                                 О системе
                             </h3>
                             <p class="lead">
-                                CRM система для анализа продаж разработана специально для 
-                                {{ company_name }} с целью оптимизации процессов управления 
-                                продажами и повышения эффективности работы команды.
+                                Современная система управления задачами, разработанная для 
+                                {{ company_name }} с целью оптимизации процессов работы 
+                                и повышения эффективности команды.
                             </p>
                         </div>
                     </div>
@@ -38,9 +132,9 @@
                             </h3>
                             <div class="row">
                                 {% for feature in features %}
-                                    <div class="col-md-6 mb-3">
-                                        <div class="d-flex align-items-start">
-                                            <i class="fas fa-check-circle text-success me-3 mt-1"></i>
+                                    <div class="col-md-6 mb-2">
+                                        <div class="feature-item">
+                                            <i class="fas fa-check-circle text-success me-3"></i>
                                             <span>{{ feature }}</span>
                                         </div>
                                     </div>
@@ -50,24 +144,30 @@
                     </div>
                     
                     <div class="row mb-4">
-                        <div class="col-md-4 text-center mb-4">
-                            <div class="p-4 bg-light rounded">
-                                <i class="fas fa-code fa-3x text-primary mb-3"></i>
-                                <h5>Технологии</h5>
+                        <div class="col-md-4 mb-4">
+                            <div class="tech-card p-4 bg-light text-center h-100">
+                                <div class="tech-icon bg-primary bg-opacity-10">
+                                    <i class="fas fa-code fa-2x text-primary"></i>
+                                </div>
+                                <h5 class="mb-2">Технологии</h5>
                                 <p class="text-muted mb-0">Symfony 8.0, PHP 8.5</p>
                             </div>
                         </div>
-                        <div class="col-md-4 text-center mb-4">
-                            <div class="p-4 bg-light rounded">
-                                <i class="fas fa-shield-alt fa-3x text-success mb-3"></i>
-                                <h5>Безопасность</h5>
+                        <div class="col-md-4 mb-4">
+                            <div class="tech-card p-4 bg-light text-center h-100">
+                                <div class="tech-icon bg-success bg-opacity-10">
+                                    <i class="fas fa-shield-alt fa-2x text-success"></i>
+                                </div>
+                                <h5 class="mb-2">Безопасность</h5>
                                 <p class="text-muted mb-0">2FA, шифрование данных</p>
                             </div>
                         </div>
-                        <div class="col-md-4 text-center mb-4">
-                            <div class="p-4 bg-light rounded">
-                                <i class="fas fa-rocket fa-3x text-danger mb-3"></i>
-                                <h5>Версия</h5>
+                        <div class="col-md-4 mb-4">
+                            <div class="tech-card p-4 bg-light text-center h-100">
+                                <div class="tech-icon bg-danger bg-opacity-10">
+                                    <i class="fas fa-rocket fa-2x text-danger"></i>
+                                </div>
+                                <h5 class="mb-2">Версия</h5>
                                 <p class="text-muted mb-0">{{ version }}</p>
                             </div>
                         </div>

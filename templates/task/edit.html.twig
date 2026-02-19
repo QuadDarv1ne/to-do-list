@@ -4,61 +4,238 @@
 
 {% block title %}Редактировать задачу{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .task-edit-container {
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .edit-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 16px 16px 0 0;
+            margin-bottom: 0;
+        }
+        
+        .form-section {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .form-section:last-child {
+            border-bottom: none;
+        }
+        
+        .form-section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .tag-creator {
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 0.75rem;
+            transition: all 0.3s;
+        }
+        
+        .tag-creator:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+    </style>
+{% endblock %}
+
 {% block body %}
-<div class="container">
+{{ include('components/breadcrumbs.html.twig', {
+    items: [
+        {label: 'Главная', url: path('app_dashboard')},
+        {label: 'Задачи', url: path('app_task_index')},
+        {label: 'Редактировать', active: true}
+    ]
+}) }}
+
+<div class="container py-4 task-edit-container">
     <div class="row justify-content-center">
-        <div class="col-md-8">
+        <div class="col-lg-10">
             <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white">
-                    <h3 class="card-title mb-0">
-                        <i class="fas fa-edit me-2 text-primary"></i>Редактировать задачу
-                    </h3>
+                <div class="edit-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-1">
+                                <i class="fas fa-edit me-2"></i>
+                                Редактировать задачу
+                            </h2>
+                            <p class="mb-0 opacity-75">Обновите информацию о задаче</p>
+                        </div>
+                        <a href="{{ path('app_task_show', {'id': task.id}) }}" class="btn btn-light">
+                            <i class="fas fa-arrow-left me-2"></i>Назад
+                        </a>
+                    </div>
                 </div>
-                <div class="card-body">
-                    {{ form_start(form) }}
-                    <div class="row">
-                        <div class="col-md-12 mb-3">
-                            {{ form_row(form.title) }}
+                
+                <div class="card-body p-0">
+                    {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+                    
+                    <!-- Basic Information -->
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <i class="fas fa-info-circle text-primary"></i>
+                            Основная информация
                         </div>
-                        <div class="col-md-12 mb-3">
-                            {{ form_row(form.description) }}
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            {{ form_row(form.status) }}
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            {{ form_row(form.priority) }}
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            {{ form_row(form.category) }}
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            {{ form_row(form.dueDate) }}
-                        </div>
-                        <div class="col-md-12 mb-3">
-                            {{ form_row(form.assignedUser) }}
-                        </div>
-                        <div class="col-md-12 mb-3">
-                            {{ form_row(form.tags) }}
-                            <div class="d-flex align-items-center mt-2">
-                                <input type="text" id="quick-tag-input" class="form-control me-2" placeholder="Введите название нового тега...">
-                                <input type="color" id="quick-tag-color" class="form-control form-control-color" value="#007bff" title="Выберите цвет тега">
-                                <button type="button" class="btn btn-outline-primary ms-2" id="create-quick-tag-btn">
-                                    <i class="fas fa-plus"></i> Создать тег
-                                </button>
+                        
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-heading me-2"></i>Название задачи
+                                </label>
+                                {{ form_widget(form.title, {
+                                    'attr': {
+                                        'class': 'form-control form-control-lg',
+                                        'placeholder': 'Введите название задачи...'
+                                    }
+                                }) }}
+                                {{ form_errors(form.title) }}
                             </div>
-                            <small class="form-text text-muted">Выберите существующие теги или создайте новые</small>
+                            
+                            <div class="col-12 mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-align-left me-2"></i>Описание
+                                </label>
+                                {{ form_widget(form.description, {
+                                    'attr': {
+                                        'class': 'form-control',
+                                        'rows': '5',
+                                        'placeholder': 'Подробное описание задачи...'
+                                    }
+                                }) }}
+                                {{ form_errors(form.description) }}
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <a href="{{ path('app_task_show', {'id': task.id}) }}" class="btn btn-outline-secondary me-md-2">
-                            <i class="fas fa-arrow-left me-2"></i>Назад
-                        </a>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save me-2"></i>Обновить
-                        </button>
+                    <!-- Status and Priority -->
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <i class="fas fa-sliders-h text-info"></i>
+                            Статус и приоритет
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-tasks me-2"></i>Статус
+                                </label>
+                                {{ form_widget(form.status, {'attr': {'class': 'form-select'}}) }}
+                                {{ form_errors(form.status) }}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>Приоритет
+                                </label>
+                                {{ form_widget(form.priority, {'attr': {'class': 'form-select'}}) }}
+                                {{ form_errors(form.priority) }}
+                            </div>
+                        </div>
                     </div>
+                    
+                    <!-- Category and Due Date -->
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <i class="fas fa-calendar-alt text-warning"></i>
+                            Категория и сроки
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-folder me-2"></i>Категория
+                                </label>
+                                {{ form_widget(form.category, {'attr': {'class': 'form-select'}}) }}
+                                {{ form_errors(form.category) }}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-clock me-2"></i>Срок выполнения
+                                </label>
+                                {{ form_widget(form.dueDate, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(form.dueDate) }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Assignment and Tags -->
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <i class="fas fa-user-tag text-success"></i>
+                            Назначение и теги
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-user me-2"></i>Исполнитель
+                                </label>
+                                {{ form_widget(form.assignedUser, {'attr': {'class': 'form-select'}}) }}
+                                {{ form_errors(form.assignedUser) }}
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-tags me-2"></i>Теги
+                                </label>
+                                {{ form_widget(form.tags, {'attr': {'class': 'form-select', 'multiple': 'multiple'}}) }}
+                                {{ form_errors(form.tags) }}
+                                
+                                <div class="tag-creator">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <input type="text" id="quick-tag-input" class="form-control" placeholder="Создать новый тег...">
+                                        <input type="color" id="quick-tag-color" class="form-control form-control-color" value="#667eea" title="Цвет тега">
+                                        <button type="button" class="btn btn-primary" id="create-quick-tag-btn">
+                                            <i class="fas fa-plus me-1"></i>Создать
+                                        </button>
+                                    </div>
+                                    <small class="text-muted mt-2 d-block">
+                                        <i class="fas fa-lightbulb me-1"></i>
+                                        Выберите существующие теги или создайте новые
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="form-section">
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a href="{{ path('app_task_show', {'id': task.id}) }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Отмена
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Сохранить изменения
+                            </button>
+                        </div>
+                    </div>
+                    
                     {{ form_end(form) }}
                 </div>
             </div>
@@ -74,29 +251,26 @@ document.addEventListener('DOMContentLoaded', function() {
     const quickTagInput = document.getElementById('quick-tag-input');
     const quickTagColor = document.getElementById('quick-tag-color');
     const createQuickTagBtn = document.getElementById('create-quick-tag-btn');
-    const tagsSelect = document.querySelector('#task_tags'); // Adjust selector based on actual form field ID
+    const tagsSelect = document.querySelector('select[multiple]');
     
     if (createQuickTagBtn) {
         createQuickTagBtn.addEventListener('click', function() {
             const tagName = quickTagInput.value.trim();
             
             if (!tagName) {
-                alert('Пожалуйста, введите название тега');
+                showToast('Введите название тега', 'warning');
                 return;
             }
             
-            // Make AJAX request to create the tag
             fetch('{{ path('app_tag_create_ajax') }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-Token': document.querySelector('[name="_token"]').value
+                    'X-Requested-With': 'XMLHttpRequest'
                 },
                 body: JSON.stringify({
                     name: tagName,
-                    color: quickTagColor.value,
-                    description: ''
+                    color: quickTagColor.value
                 })
             })
             .then(response => response.json())

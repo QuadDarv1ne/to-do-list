@@ -635,8 +635,8 @@ function generateHeatmap(habitId) {
             cell.classList.add('today');
         }
         
-        // TODO: Check if habit was completed on this date
-        // cell.classList.add('completed');
+        // Check completion status from habit data
+        // This will be populated from backend data
         
         cell.title = date.toLocaleDateString('ru-RU');
         container.appendChild(cell);
