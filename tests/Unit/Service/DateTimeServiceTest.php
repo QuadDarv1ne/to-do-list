@@ -7,146 +7,174 @@ use PHPUnit\Framework\TestCase;
 
 class DateTimeServiceTest extends TestCase
 {
-    private DateTimeService $dateTimeService;
+    private DateTimeService $service;
 
     protected function setUp(): void
     {
-        $this->dateTimeService = new DateTimeService();
+        $this->service = new DateTimeService();
     }
 
-    public function testStartOfDayReturnsMidnight(): void
+    public function testGetCurrentDateTime(): void
     {
-        $date = new \DateTime('2026-01-15 14:30:45');
-        $result = $this->dateTimeService->startOfDay($date);
-        
-        $this->assertEquals('00:00:00', $result->format('H:i:s'));
-        $this->assertEquals('2026-01-15', $result->format('Y-m-d'));
+        $result = $this->service->getCurrentDateTime();
+        $this->assertInstanceOf(\DateTimeInterface::class, $result);
+        $this->assertEquals('Y-m-d H:i:s', $result->format('Y-m-d H:i:s'));
     }
 
-    public function testStartOfDayWithNullCreatesNewDate(): void
+    public function testGetCurrentDate(): void
     {
-        $result = $this->dateTimeService->startOfDay(null);
-        
-        $this->assertInstanceOf(\DateTime::class, $result);
-        $this->assertEquals('00:00:00', $result->format('H:i:s'));
+        $result = $this->service->getCurrentDate();
+        $this->assertInstanceOf(\DateTimeInterface::class, $result);
+        $this->assertEquals('Y-m-d', $result->format('Y-m-d'));
     }
 
-    public function testEndOfDayReturnsEndOfDay(): void
+    public function testFormatDateTime(): void
     {
-        $date = new \DateTime('2026-01-15 10:00:00');
-        $result = $this->dateTimeService->endOfDay($date);
-        
-        $this->assertEquals('23:59:59', $result->format('H:i:s'));
-        $this->assertEquals('2026-01-15', $result->format('Y-m-d'));
+        $date = new \DateTime('2024-02-19 14:30:00');
+        $result = $this->service->formatDateTime($date);
+        $this->assertEquals('19.02.2024 14:30', $result);
     }
 
-    public function testIsOverdueReturnsTrueForPastDate(): void
+    public function testFormatDate(): void
     {
-        $date = new \DateTime('-1 day');
-        $this->assertTrue($this->dateTimeService->isOverdue($date));
+        $date = new \DateTime('2024-02-19');
+        $result = $this->service->formatDate($date);
+        $this->assertEquals('19.02.2024', $result);
     }
 
-    public function testIsOverdueReturnsFalseForFutureDate(): void
+    public function testFormatTime(): void
     {
-        $date = new \DateTime('+1 day');
-        $this->assertFalse($this->dateTimeService->isOverdue($date));
+        $date = new \DateTime('2024-02-19 14:30:00');
+        $result = $this->service->formatTime($date);
+        $this->assertEquals('14:30', $result);
     }
 
-    public function testIsOverdueReturnsFalseForNull(): void
-    {
-        $this->assertFalse($this->dateTimeService->isOverdue(null));
-    }
-
-    public function testFormatReturnsFormattedDate(): void
-    {
-        $date = new \DateTime('2026-01-15 14:30:45');
-        $result = $this->dateTimeService->format($date, 'Y-m-d');
-        
-        $this->assertEquals('2026-01-15', $result);
-    }
-
-    public function testFormatDefaultFormat(): void
-    {
-        $date = new \DateTime('2026-01-15 14:30:45');
-        $result = $this->dateTimeService->format($date);
-        
-        $this->assertEquals('2026-01-15 14:30:45', $result);
-    }
-
-    public function testFormatISOReturnsISO8601(): void
-    {
-        $date = new \DateTime('2026-01-15 14:30:45+03:00');
-        $result = $this->dateTimeService->formatISO($date);
-        
-        $this->assertMatchesRegularExpression('/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/', $result);
-    }
-
-    public function testHumanReadableReturnsString(): void
-    {
-        $date = new \DateTime('-1 day');
-        $result = $this->dateTimeService->humanReadable($date);
-        
-        $this->assertNotEmpty($result);
-    }
-
-    public function testStartOfWeekReturnsMonday(): void
-    {
-        $date = new \DateTime('2026-02-19'); // Thursday
-        $result = $this->dateTimeService->startOfWeek($date);
-        
-        $this->assertEquals('Monday', $result->format('l'));
-    }
-
-    public function testEndOfWeekReturnsSunday(): void
-    {
-        $date = new \DateTime('2026-02-19'); // Thursday
-        $result = $this->dateTimeService->endOfWeek($date);
-        
-        $this->assertEquals('Sunday', $result->format('l'));
-    }
-
-    public function testStartOfMonthReturnsFirstDay(): void
-    {
-        $date = new \DateTime('2026-02-15');
-        $result = $this->dateTimeService->startOfMonth($date);
-        
-        $this->assertEquals('01', $result->format('d'));
-    }
-
-    public function testEndOfMonthReturnsLastDay(): void
-    {
-        $date = new \DateTime('2026-02-15');
-        $result = $this->dateTimeService->endOfMonth($date);
-        
-        $this->assertEquals('28', $result->format('d')); // February 2026 has 28 days
-    }
-
-    public function testDaysUntilReturnsPositiveDays(): void
+    public function testGetRelativeTime(): void
     {
         $now = new \DateTime();
-        $future = clone $now;
-        $future->modify('+10 days');
-        $result = $this->dateTimeService->daysUntil($future);
-        
-        // Allow for time differences (should be 9 or 10)
-        $this->assertGreaterThanOrEqual(9, $result);
-        $this->assertLessThanOrEqual(10, $result);
+        $this->assertEquals('только что', $this->service->getRelativeTime($now));
+
+        $minutesAgo = (clone $now)->modify('-5 minutes');
+        $this->assertStringContainsString('минут', $this->service->getRelativeTime($minutesAgo));
+
+        $hoursAgo = (clone $now)->modify('-2 hours');
+        $this->assertStringContainsString('час', $this->service->getRelativeTime($hoursAgo));
+
+        $daysAgo = (clone $now)->modify('-3 days');
+        $this->assertStringContainsString('дн', $this->service->getRelativeTime($daysAgo));
     }
 
-    public function testDaysUntilReturnsNegativeDays(): void
+    public function testIsToday(): void
     {
-        $date = new \DateTime('-10 days');
-        $result = $this->dateTimeService->daysUntil($date);
-        
-        $this->assertEquals(-10, $result);
+        $today = new \DateTime();
+        $this->assertTrue($this->service->isToday($today));
+
+        $yesterday = (clone $today)->modify('-1 day');
+        $this->assertFalse($this->service->isToday($yesterday));
     }
 
-    public function testDaysBetweenReturnsDifference(): void
+    public function testIsYesterday(): void
     {
-        $start = new \DateTime('2026-01-01');
-        $end = new \DateTime('2026-01-11');
-        $result = $this->dateTimeService->daysBetween($start, $end);
-        
-        $this->assertEquals(10, $result);
+        $yesterday = (new \DateTime())->modify('-1 day');
+        $this->assertTrue($this->service->isYesterday($yesterday));
+
+        $today = new \DateTime();
+        $this->assertFalse($this->service->isYesterday($today));
+    }
+
+    public function testIsTomorrow(): void
+    {
+        $tomorrow = (new \DateTime())->modify('+1 day');
+        $this->assertTrue($this->service->isTomorrow($tomorrow));
+
+        $today = new \DateTime();
+        $this->assertFalse($this->service->isTomorrow($today));
+    }
+
+    public function testGetDaysUntil(): void
+    {
+        $today = new \DateTime();
+        $tomorrow = (clone $today)->modify('+1 day');
+        $this->assertEquals(1, $this->service->getDaysUntil($today, $tomorrow));
+
+        $nextWeek = (clone $today)->modify('+7 days');
+        $this->assertEquals(7, $this->service->getDaysUntil($today, $nextWeek));
+    }
+
+    public function testIsPast(): void
+    {
+        $past = (new \DateTime())->modify('-1 day');
+        $this->assertTrue($this->service->isPast($past));
+
+        $future = (new \DateTime())->modify('+1 day');
+        $this->assertFalse($this->service->isPast($future));
+    }
+
+    public function testIsFuture(): void
+    {
+        $future = (new \DateTime())->modify('+1 day');
+        $this->assertTrue($this->service->isFuture($future));
+
+        $past = (new \DateTime())->modify('-1 day');
+        $this->assertFalse($this->service->isFuture($past));
+    }
+
+    public function testGetWeekNumber(): void
+    {
+        $date = new \DateTime('2024-02-19');
+        $result = $this->service->getWeekNumber($date);
+        $this->assertIsInt($result);
+        $this->assertGreaterThan(0, $result);
+        $this->assertLessThanOrEqual(53, $result);
+    }
+
+    public function testGetQuarter(): void
+    {
+        $q1 = new \DateTime('2024-02-19');
+        $this->assertEquals(1, $this->service->getQuarter($q1));
+
+        $q2 = new \DateTime('2024-05-15');
+        $this->assertEquals(2, $this->service->getQuarter($q2));
+
+        $q3 = new \DateTime('2024-08-20');
+        $this->assertEquals(3, $this->service->getQuarter($q3));
+
+        $q4 = new \DateTime('2024-11-10');
+        $this->assertEquals(4, $this->service->getQuarter($q4));
+    }
+
+    public function testGetBusinessDaysBetween(): void
+    {
+        $start = new \DateTime('2024-02-19'); // Monday
+        $end = (clone $start)->modify('+1 week');
+        $result = $this->service->getBusinessDaysBetween($start, $end);
+        $this->assertIsInt($result);
+        $this->assertGreaterThan(0, $result);
+    }
+
+    public function testAddBusinessDays(): void
+    {
+        $date = new \DateTime('2024-02-19'); // Monday
+        $result = $this->service->addBusinessDays($date, 5);
+        $this->assertInstanceOf(\DateTimeInterface::class, $result);
+        $this->assertGreaterThan($date, $result);
+    }
+
+    public function testIsWeekend(): void
+    {
+        $saturday = new \DateTime('2024-02-17'); // Saturday
+        $this->assertTrue($this->service->isWeekend($saturday));
+
+        $monday = new \DateTime('2024-02-19'); // Monday
+        $this->assertFalse($this->service->isWeekend($monday));
+    }
+
+    public function testIsBusinessHours(): void
+    {
+        $businessTime = new \DateTime('2024-02-19 10:00:00'); // Monday 10 AM
+        $this->assertTrue($this->service->isBusinessHours($businessTime));
+
+        $afterHours = new \DateTime('2024-02-19 20:00:00'); // Monday 8 PM
+        $this->assertFalse($this->service->isBusinessHours($afterHours));
     }
 }

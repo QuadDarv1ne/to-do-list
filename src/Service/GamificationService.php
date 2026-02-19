@@ -2,388 +2,376 @@
 
 namespace App\Service;
 
+use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\User;
-use App\Repository\TaskRepository;
 
+/**
+ * Gamification Service
+ * Система достижений, уровней и наград
+ */
 class GamificationService
 {
+    // Список всех достижений
+    private const ACHIEVEMENTS = [
+        'first_task' => [
+            'name' => 'Первый шаг',
+            'description' => 'Создайте первую задачу',
+            'icon' => 'fa-seedling',
+            'points' => 10,
+            'color' => 'success'
+        ],
+        'task_master_10' => [
+            'name' => 'Мастер задач',
+            'description' => 'Выполните 10 задач',
+            'icon' => 'fa-medal',
+            'points' => 50,
+            'color' => 'primary'
+        ],
+        'task_master_50' => [
+            'name' => 'Гуру продуктивности',
+            'description' => 'Выполните 50 задач',
+            'icon' => 'fa-trophy',
+            'points' => 150,
+            'color' => 'warning'
+        ],
+        'task_master_100' => [
+            'name' => 'Легенда',
+            'description' => 'Выполните 100 задач',
+            'icon' => 'fa-crown',
+            'points' => 300,
+            'color' => 'danger'
+        ],
+        'streak_3' => [
+            'name' => 'Трёхдневный воин',
+            'description' => 'Выполняйте задачи 3 дня подряд',
+            'icon' => 'fa-fire',
+            'points' => 30,
+            'color' => 'info'
+        ],
+        'streak_7' => [
+            'name' => 'Недельный чемпион',
+            'description' => 'Выполняйте задачи 7 дней подряд',
+            'icon' => 'fa-fire-alt',
+            'points' => 100,
+            'color' => 'warning'
+        ],
+        'streak_30' => [
+            'name' => 'Месяц славы',
+            'description' => 'Выполняйте задачи 30 дней подряд',
+            'icon' => 'fa-fire-flame-curved',
+            'points' => 500,
+            'color' => 'danger'
+        ],
+        'early_bird' => [
+            'name' => 'Жаворонок',
+            'description' => 'Выполните задачу до 8 утра',
+            'icon' => 'fa-sun',
+            'points' => 25,
+            'color' => 'warning'
+        ],
+        'night_owl' => [
+            'name' => 'Сова',
+            'description' => 'Выполните задачу после 23:00',
+            'icon' => 'fa-moon',
+            'points' => 25,
+            'color' => 'info'
+        ],
+        'deadline_hero' => [
+            'name' => 'Герой дедлайнов',
+            'description' => 'Выполните 5 задач в день дедлайна',
+            'icon' => 'fa-stopwatch',
+            'points' => 75,
+            'color' => 'primary'
+        ],
+        'priority_master' => [
+            'name' => 'Приоритетный',
+            'description' => 'Выполните 10 задач с высоким приоритетом',
+            'icon' => 'fa-exclamation-circle',
+            'points' => 100,
+            'color' => 'danger'
+        ],
+        'organizer' => [
+            'name' => 'Организатор',
+            'description' => 'Создайте 5 категорий для задач',
+            'icon' => 'fa-folder',
+            'points' => 40,
+            'color' => 'info'
+        ],
+        'team_player' => [
+            'name' => 'Командный игрок',
+            'description' => 'Назначьте 10 задач другим пользователям',
+            'icon' => 'fa-users',
+            'points' => 60,
+            'color' => 'primary'
+        ],
+        'completer' => [
+            'name' => 'Завершитель',
+            'description' => 'Достигните 100% выполнения задач',
+            'icon' => 'fa-percentage',
+            'points' => 200,
+            'color' => 'success'
+        ],
+        'comeback_king' => [
+            'name' => 'Король возвращения',
+            'description' => 'Выполните 5 просроченных задач',
+            'icon' => 'fa-undo',
+            'points' => 80,
+            'color' => 'warning'
+        ]
+    ];
+
     public function __construct(
-        private TaskRepository $taskRepository
-    ) {}
-
-    /**
-     * Get user level and XP
-     */
-    public function getUserLevel(User $user): array
-    {
-        $xp = $this->calculateTotalXP($user);
-        $level = $this->calculateLevel($xp);
-        $nextLevelXP = $this->getXPForLevel($level + 1);
-        $currentLevelXP = $this->getXPForLevel($level);
-        
-        return [
-            'level' => $level,
-            'xp' => $xp,
-            'xp_to_next_level' => $nextLevelXP - $xp,
-            'xp_current_level' => $xp - $currentLevelXP,
-            'xp_needed_for_level' => $nextLevelXP - $currentLevelXP,
-            'progress_percent' => round((($xp - $currentLevelXP) / ($nextLevelXP - $currentLevelXP)) * 100, 2)
-        ];
+        private EntityManagerInterface $em
+    ) {
     }
 
     /**
-     * Calculate total XP
+     * Проверка и разблокировка достижений
      */
-    private function calculateTotalXP(User $user): int
+    public function checkAndUnlockAchievements(User $user): array
     {
-        $xp = 0;
+        $unlocked = [];
+        $userAchievements = $user->getAchievements() ?? [];
         
-        // XP from completed tasks
-        $completedTasks = $this->taskRepository->createQueryBuilder('t')
-            ->select('COUNT(t.id)')
-            ->where('t.assignedUser = :user')
-            ->andWhere('t.status = :completed')
-            ->setParameter('user', $user)
-            ->setParameter('completed', 'completed')
-            ->getQuery()
-            ->getSingleScalarResult();
+        foreach (self::ACHIEVEMENTS as $key => $achievement) {
+            if (in_array($key, $userAchievements)) {
+                continue; // Уже разблокировано
+            }
+            
+            if ($this->checkAchievement($user, $key)) {
+                $userAchievements[] = $key;
+                $unlocked[] = $achievement;
+            }
+        }
         
-        $xp += $completedTasks * 10; // 10 XP per task
+        $user->setAchievements($userAchievements);
+        $this->em->flush();
         
-        // Bonus XP for on-time completion
-        // TODO: Calculate from database
-        
-        // Bonus XP for quality (no reopened tasks)
-        // TODO: Calculate from database
-        
-        return $xp;
+        return $unlocked;
     }
 
     /**
-     * Calculate level from XP
+     * Проверка конкретного достижения
      */
-    private function calculateLevel(int $xp): int
+    private function checkAchievement(User $user, string $key): bool
     {
-        // Level formula: level = floor(sqrt(xp / 100))
-        return (int)floor(sqrt($xp / 100));
-    }
-
-    /**
-     * Get XP required for level
-     */
-    private function getXPForLevel(int $level): int
-    {
-        // XP formula: xp = level^2 * 100
-        return $level * $level * 100;
-    }
-
-    /**
-     * Award XP for action
-     */
-    public function awardXP(User $user, string $action, ?int $amount = null): int
-    {
-        $xpAmount = $amount ?? match($action) {
-            'task_completed' => 10,
-            'task_completed_on_time' => 15,
-            'task_completed_early' => 20,
-            'comment_added' => 2,
-            'task_created' => 5,
-            'helped_teammate' => 25,
-            'streak_day' => 5,
-            'streak_week' => 50,
-            'streak_month' => 200,
-            default => 1
-        };
-
-        // TODO: Save to database
+        $conn = $this->em->getConnection();
+        $userId = $user->getId();
         
-        return $xpAmount;
+        switch ($key) {
+            case 'first_task':
+                $sql = "SELECT COUNT(*) FROM tasks WHERE user_id = ?";
+                return $conn->fetchOne($sql, [$userId]) >= 1;
+            
+            case 'task_master_10':
+                $sql = "SELECT COUNT(*) FROM tasks WHERE user_id = ? AND status = 'completed'";
+                return $conn->fetchOne($sql, [$userId]) >= 10;
+            
+            case 'task_master_50':
+                $sql = "SELECT COUNT(*) FROM tasks WHERE user_id = ? AND status = 'completed'";
+                return $conn->fetchOne($sql, [$userId]) >= 50;
+            
+            case 'task_master_100':
+                $sql = "SELECT COUNT(*) FROM tasks WHERE user_id = ? AND status = 'completed'";
+                return $conn->fetchOne($sql, [$userId]) >= 100;
+            
+            case 'streak_3':
+                return $this->calculateStreak($user) >= 3;
+            
+            case 'streak_7':
+                return $this->calculateStreak($user) >= 7;
+            
+            case 'streak_30':
+                return $this->calculateStreak($user) >= 30;
+            
+            case 'early_bird':
+                $sql = "SELECT COUNT(*) FROM tasks 
+                        WHERE user_id = ? 
+                        AND status = 'completed' 
+                        AND strftime('%H', completed_at) < '08'";
+                return $conn->fetchOne($sql, [$userId]) >= 1;
+            
+            case 'night_owl':
+                $sql = "SELECT COUNT(*) FROM tasks 
+                        WHERE user_id = ? 
+                        AND status = 'completed' 
+                        AND strftime('%H', completed_at) >= '23'";
+                return $conn->fetchOne($sql, [$userId]) >= 1;
+            
+            case 'deadline_hero':
+                $sql = "SELECT COUNT(*) FROM tasks 
+                        WHERE user_id = ? 
+                        AND status = 'completed' 
+                        AND DATE(completed_at) = DATE(due_date)";
+                return $conn->fetchOne($sql, [$userId]) >= 5;
+            
+            case 'priority_master':
+                $sql = "SELECT COUNT(*) FROM tasks 
+                        WHERE user_id = ? 
+                        AND status = 'completed' 
+                        AND priority = 'high'";
+                return $conn->fetchOne($sql, [$userId]) >= 10;
+            
+            case 'organizer':
+                $sql = "SELECT COUNT(*) FROM task_category WHERE user_id = ?";
+                return $conn->fetchOne($sql, [$userId]) >= 5;
+            
+            case 'team_player':
+                $sql = "SELECT COUNT(*) FROM tasks 
+                        WHERE user_id = ? 
+                        AND assignee_id IS NOT NULL";
+                return $conn->fetchOne($sql, [$userId]) >= 10;
+            
+            case 'completer':
+                $sql = "SELECT 
+                        SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) * 100.0 / COUNT(*) as rate
+                        FROM tasks WHERE user_id = ?";
+                $rate = (float)$conn->fetchOne($sql, [$userId]);
+                return $rate >= 100;
+            
+            case 'comeback_king':
+                $sql = "SELECT COUNT(*) FROM tasks 
+                        WHERE user_id = ? 
+                        AND status = 'completed' 
+                        AND completed_at > due_date";
+                return $conn->fetchOne($sql, [$userId]) >= 5;
+            
+            default:
+                return false;
+        }
     }
 
     /**
-     * Get user achievements
+     * Расчёт текущей серии
+     */
+    public function calculateStreak(User $user): int
+    {
+        $conn = $this->em->getConnection();
+        
+        $sql = "SELECT DATE(completed_at) as date
+                FROM tasks 
+                WHERE user_id = ? 
+                AND status = 'completed'
+                GROUP BY DATE(completed_at)
+                ORDER BY date DESC
+                LIMIT 30";
+        
+        $dates = $conn->fetchFirstColumn($sql, [$user->getId()]);
+        
+        if (empty($dates)) {
+            return 0;
+        }
+        
+        $streak = 0;
+        $expectedDate = new \DateTime();
+        
+        foreach ($dates as $dateStr) {
+            $expectedDateStr = $expectedDate->format('Y-m-d');
+            
+            if ($dateStr === $expectedDateStr) {
+                $streak++;
+                $expectedDate->modify('-1 day');
+            } elseif ($dateStr < $expectedDateStr) {
+                break;
+            }
+        }
+        
+        return $streak;
+    }
+
+    /**
+     * Получить все достижения пользователя
      */
     public function getUserAchievements(User $user): array
     {
-        $achievements = $this->getAllAchievements();
-        $userProgress = [];
-
-        foreach ($achievements as $key => $achievement) {
-            $progress = $this->checkAchievementProgress($user, $key);
-            $userProgress[$key] = [
-                'achievement' => $achievement,
-                'unlocked' => $progress['current'] >= $progress['required'],
-                'progress' => $progress['current'],
-                'required' => $progress['required'],
-                'percent' => round(($progress['current'] / $progress['required']) * 100, 2)
-            ];
+        $userAchievements = $user->getAchievements() ?? [];
+        $allAchievements = self::ACHIEVEMENTS;
+        
+        $result = [
+            'unlocked' => [],
+            'locked' => [],
+            'total' => count($allAchievements),
+            'progress' => round((count($userAchievements) / count($allAchievements)) * 100)
+        ];
+        
+        foreach ($allAchievements as $key => $achievement) {
+            $achievement['key'] = $key;
+            
+            if (in_array($key, $userAchievements)) {
+                $result['unlocked'][] = $achievement;
+            } else {
+                $result['locked'][] = $achievement;
+            }
         }
-
-        return $userProgress;
+        
+        return $result;
     }
 
     /**
-     * Get all achievements
+     * Расчёт уровня пользователя
      */
-    private function getAllAchievements(): array
+    public function calculateLevel(User $user): array
     {
+        $totalPoints = $this->calculateTotalPoints($user);
+        
+        $level = floor($totalPoints / 500) + 1;
+        $progress = $totalPoints % 500;
+        $nextLevelPoints = 500;
+        
         return [
-            'first_task' => [
-                'name' => 'Первый шаг',
-                'description' => 'Завершите первую задачу',
-                'icon' => 'fa-star',
-                'rarity' => 'common',
-                'xp_reward' => 50
-            ],
-            'task_master_10' => [
-                'name' => 'Мастер задач',
-                'description' => 'Завершите 10 задач',
-                'icon' => 'fa-trophy',
-                'rarity' => 'common',
-                'xp_reward' => 100
-            ],
-            'task_master_50' => [
-                'name' => 'Эксперт задач',
-                'description' => 'Завершите 50 задач',
-                'icon' => 'fa-trophy',
-                'rarity' => 'rare',
-                'xp_reward' => 500
-            ],
-            'task_master_100' => [
-                'name' => 'Легенда задач',
-                'description' => 'Завершите 100 задач',
-                'icon' => 'fa-crown',
-                'rarity' => 'epic',
-                'xp_reward' => 1000
-            ],
-            'speed_demon' => [
-                'name' => 'Скоростной демон',
-                'description' => 'Завершите 5 задач за один день',
-                'icon' => 'fa-bolt',
-                'rarity' => 'rare',
-                'xp_reward' => 200
-            ],
-            'early_bird' => [
-                'name' => 'Ранняя пташка',
-                'description' => 'Завершите 10 задач до дедлайна',
-                'icon' => 'fa-clock',
-                'rarity' => 'rare',
-                'xp_reward' => 300
-            ],
-            'perfectionist' => [
-                'name' => 'Перфекционист',
-                'description' => 'Завершите 20 задач без переоткрытия',
-                'icon' => 'fa-gem',
-                'rarity' => 'epic',
-                'xp_reward' => 500
-            ],
-            'team_player' => [
-                'name' => 'Командный игрок',
-                'description' => 'Помогите 10 коллегам',
-                'icon' => 'fa-users',
-                'rarity' => 'rare',
-                'xp_reward' => 400
-            ],
-            'streak_7' => [
-                'name' => 'Неделя продуктивности',
-                'description' => 'Завершайте задачи 7 дней подряд',
-                'icon' => 'fa-fire',
-                'rarity' => 'rare',
-                'xp_reward' => 350
-            ],
-            'streak_30' => [
-                'name' => 'Месяц продуктивности',
-                'description' => 'Завершайте задачи 30 дней подряд',
-                'icon' => 'fa-fire',
-                'rarity' => 'legendary',
-                'xp_reward' => 2000
-            ],
-            'commenter' => [
-                'name' => 'Коммуникатор',
-                'description' => 'Оставьте 50 комментариев',
-                'icon' => 'fa-comment',
-                'rarity' => 'common',
-                'xp_reward' => 150
-            ],
-            'organizer' => [
-                'name' => 'Организатор',
-                'description' => 'Создайте 25 задач',
-                'icon' => 'fa-tasks',
-                'rarity' => 'common',
-                'xp_reward' => 200
-            ],
-            'night_owl' => [
-                'name' => 'Ночная сова',
-                'description' => 'Завершите 10 задач после 22:00',
-                'icon' => 'fa-moon',
-                'rarity' => 'rare',
-                'xp_reward' => 250
-            ],
-            'priority_master' => [
-                'name' => 'Мастер приоритетов',
-                'description' => 'Завершите 20 срочных задач',
-                'icon' => 'fa-exclamation-circle',
-                'rarity' => 'epic',
-                'xp_reward' => 600
-            ],
-            'mentor' => [
-                'name' => 'Наставник',
-                'description' => 'Обучите 5 новых пользователей',
-                'icon' => 'fa-graduation-cap',
-                'rarity' => 'legendary',
-                'xp_reward' => 1500
-            ]
+            'level' => (int)$level,
+            'points' => $totalPoints,
+            'progress' => $progress,
+            'next_level' => $nextLevelPoints,
+            'progress_percent' => round(($progress / $nextLevelPoints) * 100)
         ];
     }
 
     /**
-     * Check achievement progress
+     * Подсчёт общего количества очков
      */
-    private function checkAchievementProgress(User $user, string $achievementKey): array
+    private function calculateTotalPoints(User $user): int
     {
-        return match($achievementKey) {
-            'first_task' => [
-                'current' => $this->getCompletedTasksCount($user),
-                'required' => 1
-            ],
-            'task_master_10' => [
-                'current' => $this->getCompletedTasksCount($user),
-                'required' => 10
-            ],
-            'task_master_50' => [
-                'current' => $this->getCompletedTasksCount($user),
-                'required' => 50
-            ],
-            'task_master_100' => [
-                'current' => $this->getCompletedTasksCount($user),
-                'required' => 100
-            ],
-            default => [
-                'current' => 0,
-                'required' => 1
-            ]
-        };
+        $achievements = $user->getAchievements() ?? [];
+        $totalPoints = 0;
+        
+        foreach ($achievements as $key) {
+            if (isset(self::ACHIEVEMENTS[$key])) {
+                $totalPoints += self::ACHIEVEMENTS[$key]['points'];
+            }
+        }
+        
+        return $totalPoints;
     }
 
     /**
-     * Get completed tasks count
+     * Получить все доступные достижения
      */
-    private function getCompletedTasksCount(User $user): int
+    public function getAllAchievements(): array
     {
-        return (int)$this->taskRepository->createQueryBuilder('t')
-            ->select('COUNT(t.id)')
-            ->where('t.assignedUser = :user')
-            ->andWhere('t.status = :completed')
-            ->setParameter('user', $user)
-            ->setParameter('completed', 'completed')
-            ->getQuery()
-            ->getSingleScalarResult();
+        return self::ACHIEVEMENTS;
     }
 
     /**
-     * Get user streak
-     */
-    public function getUserStreak(User $user): array
-    {
-        // TODO: Calculate from database
-        return [
-            'current_streak' => 0,
-            'longest_streak' => 0,
-            'last_activity' => new \DateTime()
-        ];
-    }
-
-    /**
-     * Get leaderboard
+     * Получить leaderboard (топ пользователей)
      */
     public function getLeaderboard(int $limit = 10): array
     {
-        // TODO: Get top users by XP
-        return [];
-    }
-
-    /**
-     * Get user rank
-     */
-    public function getUserRank(User $user): array
-    {
-        $level = $this->getUserLevel($user);
+        $conn = $this->em->getConnection();
         
-        $rank = match(true) {
-            $level['level'] >= 50 => ['name' => 'Легенда', 'color' => 'gold'],
-            $level['level'] >= 30 => ['name' => 'Мастер', 'color' => 'purple'],
-            $level['level'] >= 20 => ['name' => 'Эксперт', 'color' => 'blue'],
-            $level['level'] >= 10 => ['name' => 'Профессионал', 'color' => 'green'],
-            $level['level'] >= 5 => ['name' => 'Опытный', 'color' => 'teal'],
-            default => ['name' => 'Новичок', 'color' => 'gray']
-        };
-
-        return array_merge($level, $rank);
-    }
-
-    /**
-     * Get daily challenge
-     */
-    public function getDailyChallenge(User $user): array
-    {
-        $challenges = [
-            [
-                'title' => 'Завершите 5 задач',
-                'description' => 'Завершите 5 задач сегодня',
-                'reward_xp' => 50,
-                'progress' => 0,
-                'required' => 5
-            ],
-            [
-                'title' => 'Помогите коллеге',
-                'description' => 'Оставьте полезный комментарий',
-                'reward_xp' => 30,
-                'progress' => 0,
-                'required' => 1
-            ],
-            [
-                'title' => 'Срочная задача',
-                'description' => 'Завершите срочную задачу',
-                'reward_xp' => 40,
-                'progress' => 0,
-                'required' => 1
-            ]
-        ];
-
-        // Return random challenge
-        return $challenges[array_rand($challenges)];
-    }
-
-    /**
-     * Get rewards shop items
-     */
-    public function getShopItems(): array
-    {
-        return [
-            [
-                'id' => 1,
-                'name' => 'Аватар: Золотая звезда',
-                'description' => 'Эксклюзивный аватар',
-                'cost' => 500,
-                'type' => 'avatar',
-                'icon' => 'fa-star'
-            ],
-            [
-                'id' => 2,
-                'name' => 'Тема: Темный режим Pro',
-                'description' => 'Премиум темная тема',
-                'cost' => 300,
-                'type' => 'theme',
-                'icon' => 'fa-palette'
-            ],
-            [
-                'id' => 3,
-                'name' => 'Бейдж: Легенда',
-                'description' => 'Показывайте свой статус',
-                'cost' => 1000,
-                'type' => 'badge',
-                'icon' => 'fa-crown'
-            ]
-        ];
+        $sql = "SELECT 
+                u.id,
+                u.first_name,
+                u.last_name,
+                u.email,
+                COUNT(t.id) as total_tasks,
+                SUM(CASE WHEN t.status = 'completed' THEN 1 ELSE 0 END) as completed_tasks
+                FROM users u
+                LEFT JOIN tasks t ON u.id = t.user_id
+                GROUP BY u.id
+                ORDER BY completed_tasks DESC
+                LIMIT ?";
+        
+        return $conn->fetchAllAssociative($sql, [$limit]);
     }
 }

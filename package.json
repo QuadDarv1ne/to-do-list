@@ -1,21 +1,25 @@
 {
   "name": "todo-list-app",
-  "version": "1.0.0",
-  "description": "To-Do List Application with Symfony",
+  "version": "2.0.0",
+  "description": "To-Do List Application with Symfony - Enhanced Design System",
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "minify:js": "for file in public/js/*.js; do [ \"${file%.min.js}\" = \"$file\" ] && terser \"$file\" -c -m -o \"${file%.js}.min.js\"; done",
-    "minify:css": "for file in public/css/*.css; do [ \"${file%.min.css}\" = \"$file\" ] && cleancss -o \"${file%.css}.min.css\" \"$file\"; done",
-    "minify:all": "npm run minify:js && npm run minify:css",
-    "build:prod": "npm run minify:all"
+    "minify:js": "node scripts/minify.js",
+    "minify:css": "node scripts/minify.js",
+    "minify:all": "node scripts/minify.js",
+    "minify:design": "cleancss -o public/css/design-system.min.css public/css/design-system.css",
+    "build:prod": "npm run minify:all && npm run minify:design",
+    "build": "npm run minify:all",
+    "lint": "eslint assets/**/*.js",
+    "format": "prettier --write \"assets/**/*.js\""
   },
   "devDependencies": {
+    "clean-css-cli": "^5.6.3",
     "jest": "^29.0.0",
     "jest-environment-jsdom": "^29.0.0",
-    "terser": "^5.36.0",
-    "clean-css-cli": "^5.6.3"
+    "terser": "^5.36.0"
   },
   "jest": {
     "testEnvironment": "jsdom",

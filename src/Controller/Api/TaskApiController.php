@@ -3,373 +3,375 @@
 namespace App\Controller\Api;
 
 use App\Entity\Task;
-use App\Entity\User;
 use App\Repository\TaskRepository;
-use App\Service\APIOptimizationService;
+use App\Service\PerformanceOptimizerService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
+/**
+ * REST API Controller для задач
+ * 
+ * @see docs/API_DOCUMENTATION.md для полной документации
+ */
 #[Route('/api/tasks')]
+#[IsGranted('ROLE_USER')]
 class TaskApiController extends AbstractController
 {
     public function __construct(
-        private TaskRepository $taskRepository,
-        private APIOptimizationService $apiOptimizer
-    ) {}
+        private EntityManagerInterface $em,
+        private PerformanceOptimizerService $optimizer
+    ) {
+    }
 
+    /**
+     * GET /api/tasks
+     * Получить список задач с пагинацией и фильтрами
+     */
     #[Route('', name: 'api_tasks_list', methods: ['GET'])]
-    #[IsGranted('ROLE_USER')]
-    public function list(Request $request, #[CurrentUser] User $user): Response
+    public function list(Request $request, TaskRepository $taskRepo): JsonResponse
     {
-        $startTime = microtime(true);
+        $user = $this->getUser();
         
-        // Санитизация и валидация параметров
-        $params = $this->apiOptimizer->sanitizeAPIParams($request, [
-            'status' => ['type' => 'string', 'default' => null],
-            'priority' => ['type' => 'string', 'default' => null],
-            'search' => ['type' => 'string', 'max_length' => 100],
-            'category_id' => ['type' => 'int', 'default' => null],
-            'assigned_to_me' => ['type' => 'bool', 'default' => false],
-            'created_by_me' => ['type' => 'bool', 'default' => false],
-            'page' => ['type' => 'int', 'default' => 1],
-            'limit' => ['type' => 'int', 'default' => 20]
-        ]);
-
-        // Проверка ETag для условного запроса
-        $cacheKey = 'tasks_' . $user->getId() . '_' . md5(serialize($params));
+        // Параметры запроса
+        $page = (int) $request->query->get('page', 1);
+        $limit = (int) $request->query->get('limit', 20);
+        $status = $request->query->get('status');
+        $priority = $request->query->get('priority');
+        $search = $request->query->get('search');
+        $dueDate = $request->query->get('due_date');
         
-        // Кэширование с оптимизацией
-        $result = $this->apiOptimizer->cacheAPIResponse(
-            'tasks_list',
-            array_merge($params, ['user_id' => $user->getId()]),
-            function() use ($params, $user) {
-                return $this->fetchTasks($params, $user);
-            },
-            300 // 5 минут кэш
+        // Кэширование запроса
+        $cacheKey = sprintf(
+            'api_tasks_%d_%d_%s_%s_%s_%s',
+            $user->getId(),
+            $page,
+            $status ?? 'all',
+            $priority ?? 'all',
+            $search ?? '',
+            $dueDate ?? ''
         );
-
-        $executionTime = microtime(true) - $startTime;
-        $dataSize = strlen(json_encode($result['data']));
         
-        // Логирование производительности
-        $this->apiOptimizer->logAPIPerformance('tasks_list', $executionTime, $dataSize);
-
-        // Добавляем метаданные
-        $response = $this->apiOptimizer->addResponseMetadata($result['data'], [
-            'cached' => isset($result['cached_at']),
-            'execution_time' => $executionTime,
-            'cache_time' => $result['cached_at'] ?? null
-        ]);
-
-        return $this->apiOptimizer->createOptimizedResponse($response);
-    }
-
-    #[Route('/{id}', name: 'api_task_show', methods: ['GET'], requirements: ['id' => '\d+'])]
-    #[IsGranted('ROLE_USER')]
-    public function show(int $id, #[CurrentUser] User $user): Response
-    {
-        $startTime = microtime(true);
-
-        $result = $this->apiOptimizer->cacheAPIResponse(
-            'task_details',
-            ['id' => $id, 'user_id' => $user->getId()],
-            function() use ($id, $user) {
-                return $this->fetchTaskDetails($id, $user);
-            },
-            600 // 10 минут кэш для деталей
-        );
-
-        if (!$result['data']) {
-            return $this->json(['error' => 'Task not found'], 404);
-        }
-
-        $executionTime = microtime(true) - $startTime;
-        $this->apiOptimizer->logAPIPerformance('task_show', $executionTime, strlen(json_encode($result['data'])));
-
-        return $this->apiOptimizer->createOptimizedResponse($result['data']);
-    }
-
-    #[Route('/stats', name: 'api_tasks_stats', methods: ['GET'])]
-    #[IsGranted('ROLE_USER')]
-    public function stats(#[CurrentUser] User $user): Response
-    {
-        $result = $this->apiOptimizer->cacheAPIResponse(
-            'task_stats',
-            ['user_id' => $user->getId()],
-            function() use ($user) {
-                return $this->fetchTaskStats($user);
-            },
-            180 // 3 минуты кэш для статистики
-        );
-
-        return $this->apiOptimizer->createOptimizedResponse($result['data']);
-    }
-
-    #[Route('/check-duplicate', name: 'api_task_check_duplicate', methods: ['GET'])]
-    #[IsGranted('ROLE_USER')]
-    public function checkDuplicate(Request $request, #[CurrentUser] User $user): JsonResponse
-    {
-        $title = $request->query->get('title');
-        
-        if (!$title) {
-            return $this->json(['exists' => false]);
-        }
-
-        // Быстрая проверка дубликатов
-        $exists = $this->taskRepository->createQueryBuilder('t')
-            ->select('COUNT(t.id)')
-            ->where('t.user = :user')
-            ->andWhere('LOWER(t.title) = LOWER(:title)')
-            ->setParameter('user', $user)
-            ->setParameter('title', $title)
-            ->getQuery()
-            ->getSingleScalarResult() > 0;
-
-        return $this->json(['exists' => $exists]);
-    }
-
-    #[Route('/suggestions', name: 'api_task_suggestions', methods: ['GET'])]
-    #[IsGranted('ROLE_USER')]
-    public function suggestions(Request $request, #[CurrentUser] User $user): Response
-    {
-        $query = $request->query->get('q', '');
-        
-        $result = $this->apiOptimizer->cacheAPIResponse(
-            'task_suggestions',
-            ['query' => $query, 'user_id' => $user->getId()],
-            function() use ($query, $user) {
-                return $this->fetchSuggestions($query, $user);
-            },
-            900 // 15 минут кэш для предложений
-        );
-
-        return $this->apiOptimizer->createOptimizedResponse($result['data']);
-    }
-
-    /**
-     * Получение списка задач с оптимизированным запросом
-     */
-    private function fetchTasks(array $params, User $user): array
-    {
-        $pagination = $this->apiOptimizer->optimizePagination(
-            new Request(['page' => $params['page'], 'limit' => $params['limit']])
-        );
-
-        $qb = $this->taskRepository->createQueryBuilder('t')
-            ->select('t, u, au, c, tags')
-            ->leftJoin('t.user', 'u')
-            ->leftJoin('t.assignedUser', 'au')
-            ->leftJoin('t.category', 'c')
-            ->leftJoin('t.tags', 'tags');
-
-        // Фильтры доступа
-        if ($params['assigned_to_me']) {
-            $qb->andWhere('t.assignedUser = :user');
-        } elseif ($params['created_by_me']) {
-            $qb->andWhere('t.user = :user');
-        } else {
-            $qb->andWhere('t.user = :user OR t.assignedUser = :user');
-        }
-        $qb->setParameter('user', $user);
-
-        // Дополнительные фильтры
-        if ($params['status']) {
-            $qb->andWhere('t.status = :status')
-               ->setParameter('status', $params['status']);
-        }
-
-        if ($params['priority']) {
-            $qb->andWhere('t.priority = :priority')
-               ->setParameter('priority', $params['priority']);
-        }
-
-        if ($params['category_id']) {
-            $qb->andWhere('t.category = :category')
-               ->setParameter('category', $params['category_id']);
-        }
-
-        if ($params['search']) {
-            $qb->andWhere('t.title LIKE :search OR t.description LIKE :search')
-               ->setParameter('search', '%' . $params['search'] . '%');
-        }
-
-        $qb->orderBy('t.createdAt', 'DESC')
-           ->setFirstResult($pagination['offset'])
-           ->setMaxResults($pagination['limit']);
-
-        $tasks = $qb->getQuery()->getResult();
-
-        // Подсчет общего количества
-        $totalQb = clone $qb;
-        $total = $totalQb->select('COUNT(DISTINCT t.id)')
-                        ->setFirstResult(0)
-                        ->setMaxResults(null)
-                        ->getQuery()
-                        ->getSingleScalarResult();
-
-        return [
-            'tasks' => array_map([$this, 'serializeTask'], $tasks),
-            'pagination' => [
-                'page' => $pagination['page'],
-                'limit' => $pagination['limit'],
-                'total' => (int) $total,
-                'pages' => ceil($total / $pagination['limit'])
-            ]
-        ];
-    }
-
-    /**
-     * Получение деталей задачи
-     */
-    private function fetchTaskDetails(int $id, User $user): ?array
-    {
-        $task = $this->taskRepository->createQueryBuilder('t')
-            ->select('t, u, au, c, tags, comments, attachments')
-            ->leftJoin('t.user', 'u')
-            ->leftJoin('t.assignedUser', 'au')
-            ->leftJoin('t.category', 'c')
-            ->leftJoin('t.tags', 'tags')
-            ->leftJoin('t.comments', 'comments')
-            ->leftJoin('t.attachments', 'attachments')
-            ->where('t.id = :id')
-            ->andWhere('t.user = :user OR t.assignedUser = :user')
-            ->setParameter('id', $id)
-            ->setParameter('user', $user)
-            ->getQuery()
-            ->getOneOrNullResult();
-
-        return $task ? $this->serializeTaskDetails($task) : null;
-    }
-
-    /**
-     * Получение статистики задач
-     */
-    private function fetchTaskStats(User $user): array
-    {
-        $qb = $this->taskRepository->createQueryBuilder('t')
-            ->select('t.status, COUNT(t.id) as count')
-            ->where('t.user = :user OR t.assignedUser = :user')
-            ->setParameter('user', $user)
-            ->groupBy('t.status');
-
-        $results = $qb->getQuery()->getResult();
-        
-        $stats = [
-            'total' => 0,
-            'pending' => 0,
-            'in_progress' => 0,
-            'completed' => 0
-        ];
-
-        foreach ($results as $result) {
-            $stats[$result['status']] = (int) $result['count'];
-            $stats['total'] += (int) $result['count'];
-        }
-
-        return $stats;
-    }
-
-    /**
-     * Получение предложений для автодополнения
-     */
-    private function fetchSuggestions(string $query, User $user): array
-    {
-        if (strlen($query) < 2) {
-            // Возвращаем недавние задачи
-            $tasks = $this->taskRepository->createQueryBuilder('t')
-                ->select('t.id, t.title, t.priority, c.id as category_id')
-                ->leftJoin('t.category', 'c')
+        $result = $this->optimizer->cacheQuery($cacheKey, function() use (
+            $taskRepo, $user, $page, $limit, $status, $priority, $search, $dueDate
+        ) {
+            $query = $taskRepo->createQueryBuilder('t')
                 ->where('t.user = :user')
                 ->setParameter('user', $user)
-                ->orderBy('t.createdAt', 'DESC')
-                ->setMaxResults(5)
-                ->getQuery()
-                ->getResult();
-        } else {
-            // Поиск по запросу
-            $tasks = $this->taskRepository->createQueryBuilder('t')
-                ->select('t.id, t.title, t.priority, c.id as category_id')
-                ->leftJoin('t.category', 'c')
+                ->orderBy('t.createdAt', 'DESC');
+            
+            // Фильтры
+            if ($status) {
+                $query->andWhere('t.status = :status')
+                    ->setParameter('status', $status);
+            }
+            
+            if ($priority) {
+                $query->andWhere('t.priority = :priority')
+                    ->setParameter('priority', $priority);
+            }
+            
+            if ($search) {
+                $query->andWhere('t.title LIKE :search OR t.description LIKE :search')
+                    ->setParameter('search', '%' . $search . '%');
+            }
+            
+            if ($dueDate) {
+                $query->andWhere('t.dueDate = :dueDate')
+                    ->setParameter('dueDate', $dueDate);
+            }
+            
+            // Пагинация
+            $offset = ($page - 1) * $limit;
+            $query->setFirstResult($offset)
+                ->setMaxResults($limit);
+            
+            $tasks = $query->getQuery()->getResult();
+            
+            // Общее количество для пагинации
+            $totalQuery = $taskRepo->createQueryBuilder('t')
+                ->select('COUNT(t.id)')
                 ->where('t.user = :user')
-                ->andWhere('t.title LIKE :query')
-                ->setParameter('user', $user)
-                ->setParameter('query', '%' . $query . '%')
-                ->orderBy('t.createdAt', 'DESC')
-                ->setMaxResults(10)
-                ->getQuery()
-                ->getResult();
-        }
-
-        return array_map(function($task) {
+                ->setParameter('user', $user);
+            
+            if ($status) {
+                $totalQuery->andWhere('t.status = :status')
+                    ->setParameter('status', $status);
+            }
+            
+            $total = (int) $totalQuery->getQuery()->getSingleScalarResult();
+            
             return [
-                'id' => $task['id'],
-                'title' => $task['title'],
-                'priority' => $task['priority'],
-                'category' => $task['category_id']
+                'tasks' => $tasks,
+                'total' => $total,
+                'page' => $page,
+                'limit' => $limit,
+                'pages' => ceil($total / $limit)
             ];
-        }, $tasks);
-    }
-
-    /**
-     * Сериализация задачи для API
-     */
-    private function serializeTask(Task $task): array
-    {
-        return [
-            'id' => $task->getId(),
-            'title' => $task->getTitle(),
-            'description' => $task->getDescription(),
-            'status' => $task->getStatus(),
-            'priority' => $task->getPriority(),
-            'created_at' => $task->getCreatedAt()->format('c'),
-            'updated_at' => $task->getUpdatedAt()?->format('c'),
-            'due_date' => $task->getDueDate()?->format('c'),
-            'completed_at' => $task->getCompletedAt()?->format('c'),
-            'user' => $task->getUser() ? [
-                'id' => $task->getUser()->getId(),
-                'name' => $task->getUser()->getFullName()
-            ] : null,
-            'assigned_user' => $task->getAssignedUser() ? [
-                'id' => $task->getAssignedUser()->getId(),
-                'name' => $task->getAssignedUser()->getFullName()
-            ] : null,
-            'category' => $task->getCategory() ? [
-                'id' => $task->getCategory()->getId(),
-                'name' => $task->getCategory()->getName()
-            ] : null,
-            'tags' => array_map(fn($tag) => [
-                'id' => $tag->getId(),
-                'name' => $tag->getName()
-            ], $task->getTags()->toArray())
-        ];
-    }
-
-    /**
-     * Детальная сериализация задачи
-     */
-    private function serializeTaskDetails(Task $task): array
-    {
-        $basic = $this->serializeTask($task);
+        }, 60); // Кэш на 1 минуту
         
-        $basic['comments'] = array_map(fn($comment) => [
-            'id' => $comment->getId(),
-            'content' => $comment->getContent(),
-            'author' => $comment->getAuthor()->getFullName(),
-            'created_at' => $comment->getCreatedAt()->format('c')
-        ], $task->getComments()->toArray());
+        return $this->json([
+            'success' => true,
+            'data' => $result['tasks'],
+            'meta' => [
+                'total' => $result['total'],
+                'page' => $result['page'],
+                'limit' => $result['limit'],
+                'pages' => $result['pages']
+            ]
+        ]);
+    }
 
-        $basic['attachments'] = array_map(fn($attachment) => [
-            'id' => $attachment->getId(),
-            'filename' => $attachment->getFilename(),
-            'size' => $attachment->getSize(),
-            'mime_type' => $attachment->getMimeType()
-        ], $task->getAttachments()->toArray());
+    /**
+     * GET /api/tasks/{id}
+     * Получить конкретную задачу
+     */
+    #[Route('/{id}', name: 'api_tasks_get', methods: ['GET'])]
+    public function get(Task $task): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('view', $task);
+        
+        return $this->json([
+            'success' => true,
+            'data' => $task
+        ], context: ['groups' => ['task:read']]);
+    }
 
-        return $basic;
+    /**
+     * POST /api/tasks
+     * Создать новую задачу
+     */
+    #[Route('', name: 'api_tasks_create', methods: ['POST'])]
+    public function create(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        
+        if (!$data || empty($data['title'])) {
+            return $this->json([
+                'success' => false,
+                'error' => 'Title is required'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+        
+        $task = new Task();
+        $task->setTitle($data['title']);
+        $task->setDescription($data['description'] ?? null);
+        $task->setPriority($data['priority'] ?? 'medium');
+        $task->setStatus($data['status'] ?? 'pending');
+        $task->setUser($this->getUser());
+        
+        if (isset($data['due_date'])) {
+            $task->setDueDate(new \DateTimeImmutable($data['due_date']));
+        }
+        
+        $this->em->persist($task);
+        $this->em->flush();
+        
+        // Инвалидация кэша
+        $this->optimizer->invalidateByTags(['user_tasks']);
+        
+        return $this->json([
+            'success' => true,
+            'data' => $task,
+            'message' => 'Task created successfully'
+        ], Response::HTTP_CREATED, [], ['groups' => ['task:read']]);
+    }
+
+    /**
+     * PUT /api/tasks/{id}
+     * Обновить задачу
+     */
+    #[Route('/{id}', name: 'api_tasks_update', methods: ['PUT'])]
+    public function update(Request $request, Task $task): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('edit', $task);
+        
+        $data = json_decode($request->getContent(), true);
+        
+        if (!$data) {
+            return $this->json([
+                'success' => false,
+                'error' => 'Invalid JSON'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+        
+        // Обновление полей
+        if (isset($data['title'])) {
+            $task->setTitle($data['title']);
+        }
+        
+        if (isset($data['description'])) {
+            $task->setDescription($data['description']);
+        }
+        
+        if (isset($data['priority'])) {
+            $task->setPriority($data['priority']);
+        }
+        
+        if (isset($data['status'])) {
+            $task->setStatus($data['status']);
+        }
+        
+        if (isset($data['due_date'])) {
+            $task->setDueDate(new \DateTimeImmutable($data['due_date']));
+        }
+        
+        $task->setUpdatedAt(new \DateTimeImmutable());
+        
+        $this->em->flush();
+        
+        // Инвалидация кэша
+        $this->optimizer->invalidateByTags(['user_tasks', 'task_' . $task->getId()]);
+        
+        return $this->json([
+            'success' => true,
+            'data' => $task,
+            'message' => 'Task updated successfully'
+        ], context: ['groups' => ['task:read']]);
+    }
+
+    /**
+     * PATCH /api/tasks/{id}/toggle
+     * Переключить статус задачи
+     */
+    #[Route('/{id}/toggle', name: 'api_tasks_toggle', methods: ['PATCH'])]
+    public function toggle(Task $task): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('edit', $task);
+        
+        $newStatus = $task->getStatus() === 'completed' ? 'pending' : 'completed';
+        $task->setStatus($newStatus);
+        $task->setUpdatedAt(new \DateTimeImmutable());
+        
+        $this->em->flush();
+        
+        return $this->json([
+            'success' => true,
+            'data' => [
+                'id' => $task->getId(),
+                'status' => $newStatus,
+                'completed_at' => $newStatus === 'completed' ? $task->getCompletedAt() : null
+            ],
+            'message' => 'Task status toggled'
+        ]);
+    }
+
+    /**
+     * DELETE /api/tasks/{id}
+     * Удалить задачу
+     */
+    #[Route('/{id}', name: 'api_tasks_delete', methods: ['DELETE'])]
+    public function delete(Task $task): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('delete', $task);
+        
+        $taskId = $task->getId();
+        $this->em->remove($task);
+        $this->em->flush();
+        
+        // Инвалидация кэша
+        $this->optimizer->invalidateByTags(['user_tasks', 'task_' . $taskId]);
+        
+        return $this->json([
+            'success' => true,
+            'message' => 'Task deleted successfully'
+        ]);
+    }
+
+    /**
+     * GET /api/tasks/statistics
+     * Получить статистику задач
+     */
+    #[Route('/statistics', name: 'api_tasks_statistics', methods: ['GET'])]
+    public function statistics(TaskRepository $taskRepo): JsonResponse
+    {
+        $user = $this->getUser();
+        
+        $cacheKey = 'api_tasks_stats_' . $user->getId();
+        
+        $stats = $this->optimizer->cacheQuery($cacheKey, function() use ($taskRepo, $user) {
+            $qb = $taskRepo->createQueryBuilder('t')
+                ->select(
+                    'COUNT(t.id) as total',
+                    'SUM(CASE WHEN t.status = :completed THEN 1 ELSE 0 END) as completed',
+                    'SUM(CASE WHEN t.status = :pending THEN 1 ELSE 0 END) as pending',
+                    'SUM(CASE WHEN t.status = :in_progress THEN 1 ELSE 0 END) as in_progress',
+                    'SUM(CASE WHEN t.priority = :high THEN 1 ELSE 0 END) as high_priority',
+                    'SUM(CASE WHEN t.dueDate < :today AND t.status != :completed THEN 1 ELSE 0 END) as overdue'
+                )
+                ->where('t.user = :user')
+                ->setParameter('user', $user)
+                ->setParameter('completed', 'completed')
+                ->setParameter('pending', 'pending')
+                ->setParameter('in_progress', 'in_progress')
+                ->setParameter('high', 'high')
+                ->setParameter('today', new \DateTime());
+            
+            return $qb->getQuery()->getSingleResult();
+        }, 300); // 5 минут
+        
+        return $this->json([
+            'success' => true,
+            'data' => [
+                'total' => (int) ($stats['total'] ?? 0),
+                'completed' => (int) ($stats['completed'] ?? 0),
+                'pending' => (int) ($stats['pending'] ?? 0),
+                'in_progress' => (int) ($stats['in_progress'] ?? 0),
+                'high_priority' => (int) ($stats['high_priority'] ?? 0),
+                'overdue' => (int) ($stats['overdue'] ?? 0)
+            ]
+        ]);
+    }
+
+    /**
+     * POST /api/tasks/bulk-update
+     * Массовое обновление задач
+     */
+    #[Route('/bulk-update', name: 'api_tasks_bulk_update', methods: ['POST'])]
+    public function bulkUpdate(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        
+        if (!$data || empty($data['task_ids']) || empty($data['changes'])) {
+            return $this->json([
+                'success' => false,
+                'error' => 'task_ids and changes are required'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+        
+        $taskIds = $data['task_ids'];
+        $changes = $data['changes'];
+        
+        $updated = 0;
+        $tasks = $this->em->getRepository(Task::class)->findBy(['id' => $taskIds]);
+        
+        foreach ($tasks as $task) {
+            $this->denyAccessUnlessGranted('edit', $task);
+            
+            if (isset($changes['status'])) {
+                $task->setStatus($changes['status']);
+            }
+            
+            if (isset($changes['priority'])) {
+                $task->setPriority($changes['priority']);
+            }
+            
+            $updated++;
+        }
+        
+        $this->em->flush();
+        
+        // Инвалидация кэша
+        $this->optimizer->invalidateByTags(['user_tasks']);
+        
+        return $this->json([
+            'success' => true,
+            'data' => ['updated' => $updated],
+            'message' => "{$updated} tasks updated"
+        ]);
     }
 }

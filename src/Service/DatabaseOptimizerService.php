@@ -2,308 +2,433 @@
 
 namespace App\Service;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Query\QueryBuilder;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Service for monitoring and optimizing database usage
+ * Database Optimization Service
+ * 
+ * Оптимизация запросов, индексы, анализ производительности БД
  */
 class DatabaseOptimizerService
 {
-    private Connection $connection;
-    private LoggerInterface $logger;
-    private ContainerInterface $container;
+    private array $queryLog = [];
+    private array $optimizationSuggestions = [];
+    private bool $debugMode = false;
 
     public function __construct(
-        Connection $connection,
-        LoggerInterface $logger,
-        ContainerInterface $container
+        private EntityManagerInterface $em,
+        private LoggerInterface $logger
     ) {
-        $this->connection = $connection;
-        $this->logger = $logger;
-        $this->container = $container;
+        $this->debugMode = $_ENV['APP_DEBUG'] ?? false;
     }
 
     /**
-     * Analyze database performance and usage
+     * Анализ и оптимизация таблицы
      */
-    public function analyzeDatabase(): array
+    public function analyzeTable(string $tableName): array
     {
-        $this->logger->info('Starting database analysis');
-
-        $startTime = microtime(true);
-
+        $connection = $this->em->getConnection();
+        
         try {
-            // Get basic database info
-            $dbInfo = $this->getDatabaseInfo();
+            // Получаем статистику таблицы
+            $stats = $this->getTableStats($tableName, $connection);
             
-            // Analyze table sizes
-            $tableSizes = $this->getTableSizes();
+            // Проверяем индексы
+            $indexes = $this->analyzeIndexes($tableName, $connection);
             
-            // Analyze indexes
-            $indexes = $this->getIndexesInfo();
+            // Проверяем размер таблицы
+            $size = $this->getTableSize($tableName, $connection);
             
-            // Analyze slow queries (if available)
-            $slowQueries = $this->getSlowQueries();
-            
-            // Get connection info
-            $connectionInfo = $this->getConnectionInfo();
-            
-            $analysis = [
-                'database_info' => $dbInfo,
-                'table_sizes' => $tableSizes,
-                'indexes_info' => $indexes,
-                'slow_queries' => $slowQueries,
-                'connection_info' => $connectionInfo,
-                'analysis_time' => round(microtime(true) - $startTime, 4),
-                'recommendations' => $this->getRecommendations($tableSizes, $indexes)
-            ];
-
-            $this->logger->info('Database analysis completed', [
-                'analysis_time' => $analysis['analysis_time']
-            ]);
+            // Получаем рекомендации
+            $recommendations = $this->getRecommendations($stats, $indexes);
 
             return [
-                'success' => true,
-                'analysis' => $analysis
+                'table' => $tableName,
+                'stats' => $stats,
+                'indexes' => $indexes,
+                'size' => $size,
+                'recommendations' => $recommendations,
+                'optimized_at' => (new \DateTime())->format('Y-m-d H:i:s')
             ];
-
         } catch (\Exception $e) {
-            $this->logger->error('Database analysis failed', [
+            $this->logger->error('Failed to analyze table', [
+                'table' => $tableName,
                 'error' => $e->getMessage()
             ]);
-
-            return [
-                'success' => false,
-                'error' => $e->getMessage()
-            ];
+            
+            return ['error' => $e->getMessage()];
         }
     }
 
     /**
-     * Get basic database information
+     * Создание индекса для улучшения производительности
      */
-    private function getDatabaseInfo(): array
-    {
+    public function createIndex(
+        string $tableName,
+        string $indexName,
+        array $columns,
+        bool $unique = false
+    ): bool {
         try {
-            $platform = $this->connection->getDatabasePlatform();
-            $databaseName = $this->connection->getDatabase();
-
-            // Get table count
-            $statement = $this->connection->executeQuery("SELECT COUNT(*) as count FROM sqlite_master WHERE type='table'");
-            $tableCount = $statement->fetchOne();
-
-            // Determine platform name based on the platform instance type
-            $platformName = 'unknown';
-            if ($platform instanceof \Doctrine\DBAL\Platforms\MySQLPlatform) {
-                $platformName = 'mysql';
-            } elseif ($platform instanceof \Doctrine\DBAL\Platforms\SqlitePlatform) {
-                $platformName = 'sqlite';
-            } elseif ($platform instanceof \Doctrine\DBAL\Platforms\PostgreSQLPlatform) {
-                $platformName = 'postgresql';
-            } elseif ($platform instanceof \Doctrine\DBAL\Platforms\OraclePlatform) {
-                $platformName = 'oracle';
-            } elseif ($platform instanceof \Doctrine\DBAL\Platforms\SQLServerPlatform) {
-                $platformName = 'sqlserver';
-            }
-
-            return [
-                'platform' => $platformName,
-                'database_name' => $databaseName,
-                'table_count' => $tableCount,
-                'driver' => get_class($this->connection->getDriver())
-            ];
+            $connection = $this->em->getConnection();
+            
+            $sql = sprintf(
+                'CREATE %sINDEX IF NOT EXISTS %s ON %s (%s)',
+                $unique ? 'UNIQUE ' : '',
+                $indexName,
+                $tableName,
+                implode(', ', $columns)
+            );
+            
+            $connection->executeStatement($sql);
+            
+            $this->logger->info('Index created', [
+                'table' => $tableName,
+                'index' => $indexName,
+                'columns' => $columns
+            ]);
+            
+            return true;
         } catch (\Exception $e) {
-            $this->logger->error('Failed to get database info', [
+            $this->logger->error('Failed to create index', [
+                'table' => $tableName,
+                'index' => $indexName,
                 'error' => $e->getMessage()
             ]);
-            return [
-                'platform' => 'unknown',
-                'database_name' => 'unknown',
-                'table_count' => 0,
-                'driver' => 'unknown'
-            ];
+            
+            return false;
         }
     }
 
     /**
-     * Get table sizes and row counts
+     * Оптимизация медленных запросов
      */
-    private function getTableSizes(): array
+    public function optimizeQuery(string $query): array
     {
-        try {
-            $tables = [];
+        $suggestions = [];
+        $queryUpper = strtoupper($query);
+
+        // Проверка на SELECT *
+        if (strpos($queryUpper, 'SELECT *') !== false) {
+            $suggestions[] = [
+                'type' => 'warning',
+                'message' => 'Избегайте SELECT *, указывайте конкретные колонки',
+                'impact' => 'high'
+            ];
+        }
+
+        // Проверка на отсутствие WHERE
+        if (strpos($queryUpper, 'SELECT') !== false && 
+            strpos($queryUpper, 'WHERE') === false &&
+            strpos($queryUpper, 'JOIN') === false) {
+            $suggestions[] = [
+                'type' => 'warning',
+                'message' => 'Запрос без WHERE может вернуть много данных',
+                'impact' => 'medium'
+            ];
+        }
+
+        // Проверка на LIKE с ведущим %
+        if (preg_match("/LIKE\s+['\"]%/", $query)) {
+            $suggestions[] = [
+                'type' => 'warning',
+                'message' => 'LIKE с ведущим % не использует индексы',
+                'impact' => 'high'
+            ];
+        }
+
+        // Проверка на отсутствие LIMIT
+        if (strpos($queryUpper, 'SELECT') !== false && 
+            strpos($queryUpper, 'LIMIT') === false &&
+            strpos($queryUpper, 'COUNT') === false) {
+            $suggestions[] = [
+                'type' => 'info',
+                'message' => 'Рассмотрите добавление LIMIT для ограничения результатов',
+                'impact' => 'low'
+            ];
+        }
+
+        // Проверка на подзапросы в WHERE
+        if (preg_match("/WHERE\s+.*\s+IN\s*\(\s*SELECT/", $queryUpper)) {
+            $suggestions[] = [
+                'type' => 'suggestion',
+                'message' => 'Рассмотрите замену подзапроса на JOIN',
+                'impact' => 'medium'
+            ];
+        }
+
+        return [
+            'query' => $query,
+            'suggestions' => $suggestions,
+            'score' => max(0, 100 - count($suggestions) * 15)
+        ];
+    }
+
+    /**
+     * Массовое создание индексов для частых запросов
+     */
+    public function createRecommendedIndexes(): array
+    {
+        $indexes = [
+            // Tasks table
+            [
+                'table' => 'tasks',
+                'name' => 'idx_tasks_user_status',
+                'columns' => ['user_id', 'status'],
+                'unique' => false
+            ],
+            [
+                'table' => 'tasks',
+                'name' => 'idx_tasks_due_date',
+                'columns' => ['due_date'],
+                'unique' => false
+            ],
+            [
+                'table' => 'tasks',
+                'name' => 'idx_tasks_priority',
+                'columns' => ['priority'],
+                'unique' => false
+            ],
+            [
+                'table' => 'tasks',
+                'name' => 'idx_tasks_created_at',
+                'columns' => ['created_at'],
+                'unique' => false
+            ],
             
-            // Get list of tables
-            $schemaManager = $this->connection->createSchemaManager();
-            $tableNames = $schemaManager->listTableNames();
+            // Users table
+            [
+                'table' => 'users',
+                'name' => 'idx_users_email',
+                'columns' => ['email'],
+                'unique' => true
+            ],
+            
+            // Comments table
+            [
+                'table' => 'comments',
+                'name' => 'idx_comments_task',
+                'columns' => ['task_id'],
+                'unique' => false
+            ],
+            
+            // Activity logs
+            [
+                'table' => 'activity_logs',
+                'name' => 'idx_activity_user',
+                'columns' => ['user_id'],
+                'unique' => false
+            ],
+            [
+                'table' => 'activity_logs',
+                'name' => 'idx_activity_created',
+                'columns' => ['created_at'],
+                'unique' => false
+            ]
+        ];
 
-            foreach ($tableNames as $tableName) {
-                // Sanitize table name to prevent SQL injection
-                $sanitizedTableName = preg_replace('/[^a-zA-Z0-9_]/', '', $tableName);
-                
-                if ($sanitizedTableName !== $tableName) {
-                    $this->logger->warning('Skipping table with invalid name', ['table' => $tableName]);
-                    continue;
-                }
-                
-                // Get row count using parameterized query
-                $sql = sprintf('SELECT COUNT(*) FROM %s', $this->connection->quoteIdentifier($sanitizedTableName));
-                $rowCount = $this->connection->executeQuery($sql)->fetchOne();
-                
-                $tables[] = [
-                    'name' => $tableName,
-                    'row_count' => $rowCount
-                ];
-            }
+        $results = [];
+        foreach ($indexes as $index) {
+            $success = $this->createIndex(
+                $index['table'],
+                $index['name'],
+                $index['columns'],
+                $index['unique'] ?? false
+            );
+            
+            $results[] = [
+                'table' => $index['table'],
+                'index' => $index['name'],
+                'success' => $success
+            ];
+        }
 
-            // Sort by row count descending
-            usort($tables, function($a, $b) {
-                return $b['row_count'] <=> $a['row_count'];
-            });
+        return $results;
+    }
 
-            return $tables;
+    /**
+     * Очистка старых данных
+     */
+    public function cleanupOldData(
+        string $tableName,
+        string $dateColumn,
+        int $daysToKeep
+    ): int {
+        try {
+            $connection = $this->em->getConnection();
+            
+            $cutoffDate = (new \DateTime())
+                ->modify("-{$daysToKeep} days")
+                ->format('Y-m-d H:i:s');
+            
+            $sql = sprintf(
+                'DELETE FROM %s WHERE %s < :cutoff_date',
+                $tableName,
+                $dateColumn
+            );
+            
+            $deleted = $connection->executeStatement($sql, [
+                'cutoff_date' => $cutoffDate
+            ]);
+            
+            $this->logger->info('Old data cleaned up', [
+                'table' => $tableName,
+                'deleted_rows' => $deleted,
+                'cutoff_date' => $cutoffDate
+            ]);
+            
+            return $deleted;
         } catch (\Exception $e) {
-            $this->logger->error('Failed to get table sizes', [
+            $this->logger->error('Failed to cleanup old data', [
+                'table' => $tableName,
                 'error' => $e->getMessage()
             ]);
+            
+            return 0;
+        }
+    }
+
+    /**
+     * Оптимизация таблицы (VACUUM для SQLite, OPTIMIZE для MySQL)
+     */
+    public function optimizeTableStorage(string $tableName): bool
+    {
+        try {
+            $connection = $this->em->getConnection();
+            $platform = $connection->getDatabasePlatform()->getName();
+            
+            switch ($platform) {
+                case 'sqlite':
+                    $connection->executeStatement('VACUUM ' . $tableName);
+                    break;
+                    
+                case 'mysql':
+                    $connection->executeStatement('OPTIMIZE TABLE ' . $tableName);
+                    break;
+                    
+                case 'postgresql':
+                    $connection->executeStatement('VACUUM ANALYZE ' . $tableName);
+                    break;
+            }
+            
+            $this->logger->info('Table storage optimized', ['table' => $tableName]);
+            return true;
+        } catch (\Exception $e) {
+            $this->logger->error('Failed to optimize table storage', [
+                'table' => $tableName,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Получение статистики таблицы
+     */
+    private function getTableStats(string $tableName, Connection $connection): array
+    {
+        try {
+            $sql = "SELECT COUNT(*) as count FROM {$tableName}";
+            $count = $connection->fetchOne($sql);
+            
+            return [
+                'row_count' => (int)$count,
+                'last_analyzed' => (new \DateTime())->format('Y-m-d H:i:s')
+            ];
+        } catch (\Exception $e) {
+            return ['error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Анализ индексов таблицы
+     */
+    private function analyzeIndexes(string $tableName, Connection $connection): array
+    {
+        try {
+            $platform = $connection->getDatabasePlatform()->getName();
+            
+            switch ($platform) {
+                case 'sqlite':
+                    $sql = "PRAGMA index_list({$tableName})";
+                    break;
+                    
+                case 'mysql':
+                    $sql = "SHOW INDEX FROM {$tableName}";
+                    break;
+                    
+                case 'postgresql':
+                    $sql = "SELECT indexname, indexdef FROM pg_indexes WHERE tablename = '{$tableName}'";
+                    break;
+                    
+                default:
+                    return [];
+            }
+            
+            return $connection->fetchAllAssociative($sql);
+        } catch (\Exception $e) {
             return [];
         }
     }
 
     /**
-     * Get indexes information
+     * Получение размера таблицы
      */
-    private function getIndexesInfo(): array
+    private function getTableSize(string $tableName, Connection $connection): array
     {
         try {
-            $indexes = [];
+            $platform = $connection->getDatabasePlatform()->getName();
             
-            // Get list of tables
-            $schemaManager = $this->connection->createSchemaManager();
-            $tableNames = $schemaManager->listTableNames();
-
-            foreach ($tableNames as $tableName) {
-                $tableIndexes = $schemaManager->listTableIndexes($tableName);
-                
-                foreach ($tableIndexes as $indexName => $index) {
-                    $indexes[] = [
-                        'table' => $tableName,
-                        'index_name' => $indexName,
-                        'columns' => $index->getColumns(),
-                        'is_unique' => $index->isUnique(),
-                        'is_primary' => $index->isPrimary()
-                    ];
-                }
+            switch ($platform) {
+                case 'sqlite':
+                    // SQLite не предоставляет точный размер таблицы
+                    return ['size' => 'N/A', 'note' => 'Use database file size'];
+                    
+                case 'mysql':
+                    $sql = "SELECT 
+                        ROUND((data_length + index_length) / 1024 / 1024, 2) AS size_mb
+                        FROM information_schema.tables 
+                        WHERE table_name = '{$tableName}'";
+                    $size = $connection->fetchOne($sql);
+                    return ['size_mb' => (float)$size];
+                    
+                case 'postgresql':
+                    $sql = "SELECT pg_size_pretty(pg_total_relation_size('{$tableName}')) as size";
+                    $size = $connection->fetchOne($sql);
+                    return ['size' => $size];
+                    
+                default:
+                    return [];
             }
-
-            return $indexes;
         } catch (\Exception $e) {
-            $this->logger->error('Failed to get indexes info', [
-                'error' => $e->getMessage()
-            ]);
-            return [];
+            return ['error' => $e->getMessage()];
         }
     }
 
     /**
-     * Get slow queries information (placeholder for now)
+     * Получение рекомендаций на основе анализа
      */
-    private function getSlowQueries(): array
-    {
-        // This would typically require query logging or profiling
-        // For now, we return an empty array as a placeholder
-        return [];
-    }
-
-    /**
-     * Get connection information
-     */
-    private function getConnectionInfo(): array
-    {
-        try {
-            $params = $this->connection->getParams();
-            
-            return [
-                'host' => $params['host'] ?? 'localhost',
-                'port' => $params['port'] ?? 3306,
-                'database' => $params['dbname'] ?? 'unknown',
-                'charset' => $params['charset'] ?? 'utf8',
-                'active' => $this->connection->isConnected()
-            ];
-        } catch (\Exception $e) {
-            $this->logger->error('Failed to get connection info', [
-                'error' => $e->getMessage()
-            ]);
-            return [
-                'host' => 'unknown',
-                'port' => 'unknown',
-                'database' => 'unknown',
-                'charset' => 'unknown',
-                'active' => false
-            ];
-        }
-    }
-
-    /**
-     * Get recommendations based on analysis
-     */
-    private function getRecommendations(array $tableSizes, array $indexes): array
+    private function getRecommendations(array $stats, array $indexes): array
     {
         $recommendations = [];
 
-        // Check for large tables without proper indexing
-        foreach ($tableSizes as $table) {
-            if ($table['row_count'] > 10000) { // Large table threshold
-                $hasIndexOnCommonFields = false;
-                
-                foreach ($indexes as $index) {
-                    if ($index['table'] === $table['name']) {
-                        // Check if index covers common query fields
-                        $commonFields = ['created_at', 'updated_at', 'status', 'user_id'];
-                        $indexCols = array_map('strtolower', $index['columns']);
-                        
-                        if (count(array_intersect($commonFields, $indexCols)) > 0) {
-                            $hasIndexOnCommonFields = true;
-                            break;
-                        }
-                    }
-                }
-                
-                if (!$hasIndexOnCommonFields) {
-                    $recommendations[] = [
-                        'level' => 'WARNING',
-                        'message' => "Table {$table['name']} has {$table['row_count']} rows but lacks indexes on common query fields",
-                        'suggestion' => "Consider adding indexes on frequently queried columns like created_at, status, or user_id"
-                    ];
-                }
-            }
-        }
-
-        // Check for missing primary keys
-        foreach ($indexes as $index) {
-            if ($index['is_primary']) {
-                // Primary key exists for this table
-                continue;
-            }
-        }
-
-        // Check for tables that might benefit from optimization
-        $largeTables = array_filter($tableSizes, function($table) {
-            return $table['row_count'] > 50000;
-        });
-
-        if (!empty($largeTables)) {
-            $tableNames = array_map(function($table) {
-                return $table['name'];
-            }, $largeTables);
-            
+        // Если нет индексов
+        if (empty($indexes)) {
             $recommendations[] = [
-                'level' => 'INFO',
-                'message' => 'Large tables detected: ' . implode(', ', $tableNames),
-                'suggestion' => 'Consider partitioning or archiving old data in these tables'
+                'type' => 'critical',
+                'message' => 'Отсутствуют индексы. Создайте индексы для часто используемых колонок.',
+                'action' => 'create_indexes'
+            ];
+        }
+
+        // Если много записей но мало индексов
+        if (($stats['row_count'] ?? 0) > 10000 && count($indexes) < 3) {
+            $recommendations[] = [
+                'type' => 'warning',
+                'message' => 'Большая таблица с малым количеством индексов',
+                'action' => 'add_indexes'
             ];
         }
 
@@ -311,205 +436,46 @@ class DatabaseOptimizerService
     }
 
     /**
-     * Optimize a specific table
+     * Логирование запроса для анализа
      */
-    public function optimizeTable(string $tableName): array
+    public function logQuery(string $query, float $executionTime): void
     {
-        $this->logger->info('Starting table optimization', [
-            'table' => $tableName
-        ]);
-
-        try {
-            // Sanitize table name to prevent SQL injection
-            $sanitizedTableName = preg_replace('/[^a-zA-Z0-9_]/', '', $tableName);
-            
-            if ($sanitizedTableName !== $tableName) {
-                throw new \InvalidArgumentException('Invalid table name');
-            }
-            
-            // For SQLite, VACUUM doesn't support table-specific optimization
-            $result = $this->connection->executeStatement("VACUUM");
-            
-            $this->logger->info('Database optimized successfully');
-
-            return [
-                'success' => true,
-                'table' => $tableName,
-                'message' => "Database optimized successfully"
-            ];
-        } catch (\Exception $e) {
-            $this->logger->error('Database optimization failed', [
-                'table' => $tableName,
-                'error' => $e->getMessage()
-            ]);
-
-            return [
-                'success' => false,
-                'table' => $tableName,
-                'error' => $e->getMessage()
-            ];
+        if (!$this->debugMode) {
+            return;
         }
-    }
 
-    /**
-     * Optimize all tables in the database
-     */
-    public function optimizeAllTables(): array
-    {
-        $this->logger->info('Starting optimization of all tables');
-
-        $schemaManager = $this->connection->createSchemaManager();
-        $tableNames = $schemaManager->listTableNames();
-
-        $results = [
-            'optimized_tables' => [],
-            'failed_tables' => [],
-            'total_tables' => count($tableNames)
+        $this->queryLog[] = [
+            'query' => $query,
+            'time' => $executionTime,
+            'timestamp' => microtime(true)
         ];
 
-        foreach ($tableNames as $tableName) {
-            $result = $this->optimizeTable($tableName);
-            
-            if ($result['success']) {
-                $results['optimized_tables'][] = $result;
-            } else {
-                $results['failed_tables'][] = $result;
-            }
-        }
-
-        $this->logger->info('All tables optimization completed', [
-            'optimized_count' => count($results['optimized_tables']),
-            'failed_count' => count($results['failed_tables'])
-        ]);
-
-        return $results;
-    }
-
-    /**
-     * Get database statistics
-     */
-    public function getDatabaseStats(): array
-    {
-        $this->logger->info('Getting database statistics');
-
-        try {
-            // Get total number of records across all tables
-            $schemaManager = $this->connection->createSchemaManager();
-            $tableNames = $schemaManager->listTableNames();
-            
-            $totalRecords = 0;
-            $tableRecordCounts = [];
-            
-            foreach ($tableNames as $tableName) {
-                // Sanitize table name
-                $sanitizedTableName = preg_replace('/[^a-zA-Z0-9_]/', '', $tableName);
-                
-                if ($sanitizedTableName !== $tableName) {
-                    $this->logger->warning('Skipping table with invalid name', ['table' => $tableName]);
-                    continue;
-                }
-                
-                $sql = sprintf('SELECT COUNT(*) FROM %s', $this->connection->quoteIdentifier($sanitizedTableName));
-                $recordCount = $this->connection->executeQuery($sql)->fetchOne();
-                $totalRecords += $recordCount;
-                
-                $tableRecordCounts[] = [
-                    'table' => $tableName,
-                    'records' => $recordCount
-                ];
-            }
-            
-            // Sort by record count descending
-            usort($tableRecordCounts, function($a, $b) {
-                return $b['records'] <=> $a['records'];
-            });
-            
-            $stats = [
-                'total_records' => $totalRecords,
-                'table_count' => count($tableNames),
-                'largest_table' => !empty($tableRecordCounts) ? $tableRecordCounts[0] : null,
-                'table_record_counts' => $tableRecordCounts
-            ];
-            
-            $this->logger->info('Database statistics collected', [
-                'total_records' => $totalRecords,
-                'table_count' => $stats['table_count']
+        // Логгируем медленные запросы
+        if ($executionTime > 1.0) {
+            $this->logger->warning('Slow query detected', [
+                'query' => substr($query, 0, 200),
+                'time' => $executionTime . 's'
             ]);
-            
-            return [
-                'success' => true,
-                'stats' => $stats
-            ];
-            
-        } catch (\Exception $e) {
-            $this->logger->error('Failed to get database statistics', [
-                'error' => $e->getMessage()
-            ]);
-            
-            return [
-                'success' => false,
-                'error' => $e->getMessage()
-            ];
         }
     }
 
     /**
-     * Clean up old records based on retention policy
+     * Получение статистики запросов
      */
-    public function cleanupOldRecords(string $tableName, string $dateField, int $retentionDays): array
+    public function getQueryStats(): array
     {
-        $this->logger->info('Starting cleanup of old records', [
-            'table' => $tableName,
-            'date_field' => $dateField,
-            'retention_days' => $retentionDays
-        ]);
-
-        try {
-            $cutoffDate = new \DateTime("-{$retentionDays} days");
-            $cutoffDateString = $cutoffDate->format('Y-m-d H:i:s');
-            
-            // Sanitize table and field names
-            $sanitizedTableName = preg_replace('/[^a-zA-Z0-9_]/', '', $tableName);
-            $sanitizedDateField = preg_replace('/[^a-zA-Z0-9_]/', '', $dateField);
-            
-            if ($sanitizedTableName !== $tableName || $sanitizedDateField !== $dateField) {
-                throw new \InvalidArgumentException('Invalid table or field name');
-            }
-            
-            $sql = sprintf(
-                'DELETE FROM %s WHERE %s < ?',
-                $this->connection->quoteIdentifier($sanitizedTableName),
-                $this->connection->quoteIdentifier($sanitizedDateField)
-            );
-            $deletedCount = $this->connection->executeStatement($sql, [$cutoffDateString]);
-            
-            $this->logger->info('Old records cleanup completed', [
-                'table' => $tableName,
-                'date_field' => $dateField,
-                'retention_days' => $retentionDays,
-                'records_deleted' => $deletedCount
-            ]);
-            
-            return [
-                'success' => true,
-                'table' => $tableName,
-                'date_field' => $dateField,
-                'retention_days' => $retentionDays,
-                'records_deleted' => $deletedCount
-            ];
-            
-        } catch (\Exception $e) {
-            $this->logger->error('Failed to cleanup old records', [
-                'table' => $tableName,
-                'date_field' => $dateField,
-                'retention_days' => $retentionDays,
-                'error' => $e->getMessage()
-            ]);
-            
-            return [
-                'success' => false,
-                'error' => $e->getMessage()
-            ];
+        if (empty($this->queryLog)) {
+            return ['total_queries' => 0];
         }
+
+        $times = array_column($this->queryLog, 'time');
+        
+        return [
+            'total_queries' => count($this->queryLog),
+            'avg_time' => round(array_sum($times) / count($times), 4),
+            'max_time' => round(max($times), 4),
+            'min_time' => round(min($times), 4),
+            'slow_queries' => count(array_filter($times, fn($t) => $t > 1.0))
+        ];
     }
 }

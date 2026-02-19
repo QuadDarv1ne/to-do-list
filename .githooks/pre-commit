@@ -1,34 +1,63 @@
-#!/bin/sh
+#!/bin/bash
 
-# Pre-commit hook для проверки кода перед коммитом
+# Pre-commit hook for code quality
+# Automatically runs checks before each commit
 
-echo "Running pre-commit checks..."
+echo "🔍 Running pre-commit checks..."
 
-# Проверка PHP CS Fixer
-echo "Checking code style..."
-vendor/bin/php-cs-fixer fix --dry-run --diff --using-cache=yes
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
 
-if [ $? -ne 0 ]; then
-    echo ""
-    echo "❌ Code style check failed!"
-    echo "Run 'composer cs:fix' to automatically fix issues."
-    exit 1
+ERRORS=0
+
+# PHP CS Fixer (dry run)
+echo -e "\n${YELLOW}Checking PHP code style...${NC}"
+if ! composer cs --quiet; then
+    echo -e "${RED}✗ PHP CS Fixer failed${NC}"
+    echo "Run 'composer cs:fix' to automatically fix issues"
+    ERRORS=$((ERRORS + 1))
+else
+    echo -e "${GREEN}✓ PHP CS Fixer passed${NC}"
 fi
 
-echo "✅ Code style check passed!"
-
-# Проверка PHPStan (только изменённые файлы)
-echo "Running static analysis..."
-vendor/bin/phpstan analyse --memory-limit=1G --error-format=table
-
-if [ $? -ne 0 ]; then
-    echo ""
-    echo "❌ Static analysis failed!"
-    exit 1
+# PHPStan
+echo -e "\n${YELLOW}Running static analysis...${NC}"
+if ! composer phpstan --quiet; then
+    echo -e "${RED}✗ PHPStan found errors${NC}"
+    ERRORS=$((ERRORS + 1))
+else
+    echo -e "${GREEN}✓ PHPStan passed${NC}"
 fi
 
-echo "✅ Static analysis passed!"
+# PHPUnit (quick test)
+echo -e "\n${YELLOW}Running tests...${NC}"
+if ! composer test --quiet; then
+    echo -e "${RED}✗ Tests failed${NC}"
+    ERRORS=$((ERRORS + 1))
+else
+    echo -e "${GREEN}✓ Tests passed${NC}"
+fi
 
+# Check for debug statements
+echo -e "\n${YELLOW}Checking for debug statements...${NC}"
+DEBUG_FOUND=$(grep -r "dump\|dd\|var_dump\|print_r\|console.log" src/ --include="*.php" --include="*.js" 2>/dev/null | grep -v ".git" || true)
+if [ -n "$DEBUG_FOUND" ]; then
+    echo -e "${RED}✗ Debug statements found:${NC}"
+    echo "$DEBUG_FOUND"
+    ERRORS=$((ERRORS + 1))
+else
+    echo -e "${GREEN}✓ No debug statements found${NC}"
+fi
+
+# Final result
 echo ""
-echo "✅ All pre-commit checks passed!"
-exit 0
+if [ $ERRORS -eq 0 ]; then
+    echo -e "${GREEN}✅ All pre-commit checks passed!${NC}"
+    exit 0
+else
+    echo -e "${RED}❌ $ERRORS check(s) failed. Please fix before committing.${NC}"
+    exit 1
+fi

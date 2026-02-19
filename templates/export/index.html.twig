@@ -1,0 +1,194 @@
+{# templates/export/index.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Экспорт данных | CRM{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Заголовок -->
+            <div class="text-center mb-5">
+                <h1 class="display-5 fw-bold mb-3">
+                    <i class="fas fa-download me-2"></i>
+                    Экспорт данных
+                </h1>
+                <p class="text-muted">
+                    Экспортируйте ваши задачи в удобном формате
+                </p>
+            </div>
+
+            <!-- Карточки форматов экспорта -->
+            <div class="row g-4 mb-5">
+                <!-- CSV -->
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm hover-lift">
+                        <div class="card-body text-center">
+                            <div class="export-icon mb-3">
+                                <i class="fas fa-file-csv fa-3x text-success"></i>
+                            </div>
+                            <h5 class="card-title">CSV</h5>
+                            <p class="card-text text-muted small">
+                                Универсальный формат для импорта в Excel, Google Sheets
+                            </p>
+                            <a href="{{ path('app_export_tasks_csv') }}" class="btn btn-outline-success">
+                                <i class="fas fa-download me-2"></i>
+                                Скачать CSV
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Excel -->
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm hover-lift">
+                        <div class="card-body text-center">
+                            <div class="export-icon mb-3">
+                                <i class="fas fa-file-excel fa-3x text-success"></i>
+                            </div>
+                            <h5 class="card-title">Excel</h5>
+                            <p class="card-text text-muted small">
+                                Формат XLSX для работы в Microsoft Excel
+                            </p>
+                            <a href="{{ path('app_export_tasks_excel') }}" class="btn btn-outline-success">
+                                <i class="fas fa-download me-2"></i>
+                                Скачать Excel
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PDF -->
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm hover-lift">
+                        <div class="card-body text-center">
+                            <div class="export-icon mb-3">
+                                <i class="fas fa-file-pdf fa-3x text-danger"></i>
+                            </div>
+                            <h5 class="card-title">PDF</h5>
+                            <p class="card-text text-muted small">
+                                Документ для печати и отправки
+                            </p>
+                            <a href="{{ path('app_export_tasks_pdf') }}" class="btn btn-outline-danger">
+                                <i class="fas fa-download me-2"></i>
+                                Скачать PDF
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Информация -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Информация об экспорте
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Экспортируются все ваши задачи (макс. 1000)
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Файлы сохраняются в кодировке UTF-8
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Старые экспорты автоматически удаляются через 7 дней
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Список доступных экспортов -->
+            {% if exports is defined and exports|length > 0 %}
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-folder-open me-2"></i>
+                        Доступные экспорты
+                    </h5>
+                    <form action="{{ path('app_export_cleanup') }}" method="POST" 
+                          onsubmit="return confirm('Удалить старые экспорты?')">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="fas fa-trash me-1"></i>
+                            Очистить
+                        </button>
+                    </form>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Файл</th>
+                                    <th>Тип</th>
+                                    <th>Размер</th>
+                                    <th>Дата</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for export in exports %}
+                                <tr>
+                                    <td>
+                                        <i class="fas fa-file me-2"></i>
+                                        {{ export.filename }}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ export.type == 'csv' ? 'success' : (export.type == 'xlsx' ? 'success' : 'danger') }}">
+                                            {{ export.type|upper }}
+                                        </span>
+                                    </td>
+                                    <td>{{ (export.size / 1024)|number_format(2) }} KB</td>
+                                    <td>{{ export.created }}</td>
+                                    <td>
+                                        <a href="{{ path('app_export_download', {filename: export.filename}) }}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Кнопка назад -->
+            <div class="text-center mt-4">
+                <a href="{{ path('app_task_index') }}" class="btn btn-link">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Вернуться к задачам
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+    }
+    
+    .export-icon i {
+        transition: transform 0.3s ease;
+    }
+    
+    .card:hover .export-icon i {
+        transform: scale(1.2);
+    }
+</style>
+{% endblock %}

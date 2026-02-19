@@ -2,10 +2,12 @@ includes:
     - phpstan-baseline.neon
 
 parameters:
-    level: 5
+    level: 6
     paths:
         - src/
         - tests/
     excludePaths:
         - src/Kernel.php
         - migrations/*
+    checkMissingIterableValueType: false
+    checkGenericClassInNonGenericContext: false
