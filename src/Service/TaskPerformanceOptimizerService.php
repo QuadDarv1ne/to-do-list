@@ -107,11 +107,20 @@ class TaskPerformanceOptimizerService
         return $this->cache->get($cacheKey, function (ItemInterface $item) use ($user) {
             $item->expiresAfter(1800); // 30 minutes cache
             
-            $assignedTasks = $this->taskRepository->findBy(['assignedUser' => $user], null, 20);
+            // Оптимизированный запрос с JOIN для избежания N+1 проблемы
+            $assignedTasks = $this->taskRepository->createQueryBuilder('t')
+                ->select('t, u')
+                ->leftJoin('t.user', 'u')
+                ->where('t.assignedUser = :user')
+                ->setParameter('user', $user)
+                ->setMaxResults(20)
+                ->getQuery()
+                ->getResult();
+            
             $collaborators = [];
             
             foreach ($assignedTasks as $task) {
-                $owner = $task->getUser();
+                $owner = $task->getUser(); // Уже загружен через JOIN
                 if ($owner && $owner->getId() !== $user->getId()) {
                     $collaborators[$owner->getId()] = $owner;
                 }

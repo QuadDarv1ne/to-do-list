@@ -3,7 +3,6 @@
 namespace App\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\DBAL\Connection;
 use Psr\Log\LoggerInterface;
 
 class DatabaseOptimizationService
@@ -14,194 +13,113 @@ class DatabaseOptimizationService
     ) {}
 
     /**
-     * Оптимизация запросов с батчингом
+     * Анализ и оптимизация запросов к базе данных
      */
-    public function batchProcess(array $entities, int $batchSize = 100): void
-    {
-        $count = 0;
-        
-        foreach ($entities as $entity) {
-            $this->entityManager->persist($entity);
-            
-            if (++$count % $batchSize === 0) {
-                $this->entityManager->flush();
-                $this->entityManager->clear(); // Освобождаем память
-            }
-        }
-        
-        // Обрабатываем оставшиеся сущности
-        if ($count % $batchSize !== 0) {
-            $this->entityManager->flush();
-            $this->entityManager->clear();
-        }
-    }
-
-    /**
-     * Массовое обновление через DQL
-     */
-    public function bulkUpdate(string $entityClass, array $criteria, array $updates): int
-    {
-        $qb = $this->entityManager->createQueryBuilder();
-        $qb->update($entityClass, 'e');
-        
-        foreach ($updates as $field => $value) {
-            $qb->set("e.{$field}", $qb->expr()->literal($value));
-        }
-        
-        $whereConditions = [];
-        foreach ($criteria as $field => $value) {
-            $paramName = "param_{$field}";
-            $whereConditions[] = $qb->expr()->eq("e.{$field}", ":{$paramName}");
-            $qb->setParameter($paramName, $value);
-        }
-        
-        if (!empty($whereConditions)) {
-            $qb->where($qb->expr()->andX(...$whereConditions));
-        }
-        
-        return $qb->getQuery()->execute();
-    }
-
-    /**
-     * Массовое удаление через DQL
-     */
-    public function bulkDelete(string $entityClass, array $criteria): int
-    {
-        $qb = $this->entityManager->createQueryBuilder();
-        $qb->delete($entityClass, 'e');
-        
-        $whereConditions = [];
-        foreach ($criteria as $field => $value) {
-            $paramName = "param_{$field}";
-            $whereConditions[] = $qb->expr()->eq("e.{$field}", ":{$paramName}");
-            $qb->setParameter($paramName, $value);
-        }
-        
-        if (!empty($whereConditions)) {
-            $qb->where($qb->expr()->andX(...$whereConditions));
-        }
-        
-        return $qb->getQuery()->execute();
-    }
-
-    /**
-     * Анализ медленных запросов
-     */
-    public function analyzeSlowQueries(): array
+    public function analyzeQueryPerformance(): array
     {
         $connection = $this->entityManager->getConnection();
-        
-        try {
-            // Для PostgreSQL
-            $sql = "
-                SELECT query, mean_time, calls, total_time
-                FROM pg_stat_statements 
-                WHERE mean_time > 100 
-                ORDER BY mean_time DESC 
-                LIMIT 10
-            ";
-            
-            $result = $connection->executeQuery($sql);
-            return $result->fetchAllAssociative();
-            
-        } catch (\Exception $e) {
-            $this->logger->warning('Не удалось получить статистику запросов: ' . $e->getMessage());
-            return [];
-        }
-    }
-
-    /**
-     * Оптимизация индексов
-     */
-    public function suggestIndexes(): array
-    {
-        $connection = $this->entityManager->getConnection();
-        $suggestions = [];
-        
-        try {
-            // Анализ неиспользуемых индексов
-            $sql = "
-                SELECT schemaname, tablename, indexname, idx_tup_read, idx_tup_fetch
-                FROM pg_stat_user_indexes 
-                WHERE idx_tup_read = 0 AND idx_tup_fetch = 0
-            ";
-            
-            $unusedIndexes = $connection->executeQuery($sql)->fetchAllAssociative();
-            
-            if (!empty($unusedIndexes)) {
-                $suggestions['unused_indexes'] = $unusedIndexes;
-            }
-            
-            // Анализ таблиц без индексов на часто используемых полях
-            $sql = "
-                SELECT tablename, attname, n_distinct, correlation
-                FROM pg_stats 
-                WHERE schemaname = 'public' 
-                AND n_distinct > 100 
-                AND correlation < 0.1
-            ";
-            
-            $candidatesForIndex = $connection->executeQuery($sql)->fetchAllAssociative();
-            
-            if (!empty($candidatesForIndex)) {
-                $suggestions['index_candidates'] = $candidatesForIndex;
-            }
-            
-        } catch (\Exception $e) {
-            $this->logger->warning('Не удалось проанализировать индексы: ' . $e->getMessage());
-        }
-        
-        return $suggestions;
-    }
-
-    /**
-     * Очистка старых данных
-     */
-    public function cleanupOldData(): array
-    {
         $results = [];
-        
-        // Очистка старых логов активности (старше 90 дней)
-        $count = $this->bulkDelete(
-            'App\Entity\ActivityLog',
-            ['createdAt' => new \DateTime('-90 days')]
-        );
-        $results['activity_logs'] = $count;
-        
-        // Очистка завершенных задач старше года
-        $count = $this->bulkDelete(
-            'App\Entity\Task',
-            [
-                'status' => 'completed',
-                'completedAt' => new \DateTime('-1 year')
-            ]
-        );
-        $results['old_completed_tasks'] = $count;
-        
-        // Очистка неактивных уведомлений старше 30 дней
-        $count = $this->bulkDelete(
-            'App\Entity\Notification',
-            [
-                'isRead' => true,
-                'createdAt' => new \DateTime('-30 days')
-            ]
-        );
-        $results['old_notifications'] = $count;
-        
+
+        try {
+            // Получаем статистику медленных запросов (PostgreSQL)
+            if ($connection->getDatabasePlatform()->getName() === 'postgresql') {
+                $results['slow_queries'] = $this->getSlowQueriesPostgreSQL();
+                $results['index_usage'] = $this->getIndexUsagePostgreSQL();
+                $results['table_sizes'] = $this->getTableSizesPostgreSQL();
+            }
+
+            $results['connection_stats'] = $this->getConnectionStats();
+            $results['recommendations'] = $this->generateRecommendations($results);
+
+        } catch (\Exception $e) {
+            $this->logger->error('Database analysis failed: ' . $e->getMessage());
+            $results['error'] = $e->getMessage();
+        }
+
         return $results;
     }
 
     /**
-     * Статистика использования БД
+     * Получение медленных запросов для PostgreSQL
      */
-    public function getDatabaseStats(): array
+    private function getSlowQueriesPostgreSQL(): array
     {
         $connection = $this->entityManager->getConnection();
-        $stats = [];
         
         try {
-            // Размер таблиц
-            $sql = "
+            // Проверяем, включен ли pg_stat_statements
+            $stmt = $connection->prepare("
+                SELECT EXISTS (
+                    SELECT 1 FROM pg_extension WHERE extname = 'pg_stat_statements'
+                ) as enabled
+            ");
+            $result = $stmt->executeQuery();
+            $enabled = $result->fetchAssociative()['enabled'];
+
+            if (!$enabled) {
+                return ['error' => 'pg_stat_statements extension not enabled'];
+            }
+
+            // Получаем топ медленных запросов
+            $stmt = $connection->prepare("
+                SELECT 
+                    query,
+                    calls,
+                    total_exec_time,
+                    mean_exec_time,
+                    rows
+                FROM pg_stat_statements 
+                WHERE query NOT LIKE '%pg_stat_statements%'
+                ORDER BY mean_exec_time DESC 
+                LIMIT 10
+            ");
+            
+            $result = $stmt->executeQuery();
+            return $result->fetchAllAssociative();
+
+        } catch (\Exception $e) {
+            return ['error' => 'Could not fetch slow queries: ' . $e->getMessage()];
+        }
+    }
+
+    /**
+     * Анализ использования индексов
+     */
+    private function getIndexUsagePostgreSQL(): array
+    {
+        $connection = $this->entityManager->getConnection();
+        
+        try {
+            $stmt = $connection->prepare("
+                SELECT 
+                    schemaname,
+                    tablename,
+                    indexname,
+                    idx_tup_read,
+                    idx_tup_fetch,
+                    idx_scan
+                FROM pg_stat_user_indexes 
+                WHERE idx_scan = 0
+                ORDER BY schemaname, tablename
+            ");
+            
+            $result = $stmt->executeQuery();
+            return $result->fetchAllAssociative();
+
+        } catch (\Exception $e) {
+            return ['error' => 'Could not fetch index usage: ' . $e->getMessage()];
+        }
+    }
+
+    /**
+     * Получение размеров таблиц
+     */
+    private function getTableSizesPostgreSQL(): array
+    {
+        $connection = $this->entityManager->getConnection();
+        
+        try {
+            $stmt = $connection->prepare("
                 SELECT 
                     schemaname,
                     tablename,
@@ -210,104 +128,225 @@ class DatabaseOptimizationService
                 FROM pg_tables 
                 WHERE schemaname = 'public'
                 ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC
-            ";
+            ");
             
-            $stats['table_sizes'] = $connection->executeQuery($sql)->fetchAllAssociative();
-            
-            // Статистика подключений
-            $sql = "
-                SELECT 
-                    state,
-                    count(*) as connections
-                FROM pg_stat_activity 
-                WHERE datname = current_database()
-                GROUP BY state
-            ";
-            
-            $stats['connections'] = $connection->executeQuery($sql)->fetchAllAssociative();
-            
-            // Статистика кэша
-            $sql = "
-                SELECT 
-                    sum(heap_blks_read) as heap_read,
-                    sum(heap_blks_hit) as heap_hit,
-                    sum(heap_blks_hit) / (sum(heap_blks_hit) + sum(heap_blks_read)) as cache_hit_ratio
-                FROM pg_statio_user_tables
-            ";
-            
-            $cacheStats = $connection->executeQuery($sql)->fetchAssociative();
-            $stats['cache_hit_ratio'] = round($cacheStats['cache_hit_ratio'] * 100, 2);
-            
+            $result = $stmt->executeQuery();
+            return $result->fetchAllAssociative();
+
         } catch (\Exception $e) {
-            $this->logger->error('Ошибка получения статистики БД: ' . $e->getMessage());
+            return ['error' => 'Could not fetch table sizes: ' . $e->getMessage()];
         }
-        
-        return $stats;
     }
 
     /**
-     * Оптимизация таблиц
+     * Статистика подключений
      */
-    public function optimizeTables(): void
+    private function getConnectionStats(): array
     {
         $connection = $this->entityManager->getConnection();
         
         try {
-            // Для PostgreSQL - VACUUM ANALYZE
-            $sql = "
-                SELECT tablename 
-                FROM pg_tables 
-                WHERE schemaname = 'public'
-            ";
+            $stmt = $connection->prepare("
+                SELECT 
+                    count(*) as total_connections,
+                    count(*) FILTER (WHERE state = 'active') as active_connections,
+                    count(*) FILTER (WHERE state = 'idle') as idle_connections
+                FROM pg_stat_activity
+            ");
             
-            $tables = $connection->executeQuery($sql)->fetchFirstColumn();
-            
-            foreach ($tables as $table) {
-                $connection->executeStatement("VACUUM ANALYZE {$table}");
-                $this->logger->info("Оптимизирована таблица: {$table}");
-            }
-            
+            $result = $stmt->executeQuery();
+            return $result->fetchAssociative();
+
         } catch (\Exception $e) {
-            $this->logger->error('Ошибка оптимизации таблиц: ' . $e->getMessage());
+            return ['error' => 'Could not fetch connection stats: ' . $e->getMessage()];
         }
     }
 
     /**
-     * Проверка целостности данных
+     * Генерация рекомендаций по оптимизации
      */
-    public function checkDataIntegrity(): array
+    private function generateRecommendations(array $analysisResults): array
     {
-        $issues = [];
-        
-        try {
-            // Проверка задач без пользователей
-            $qb = $this->entityManager->createQueryBuilder();
-            $orphanedTasks = $qb->select('COUNT(t.id)')
-                ->from('App\Entity\Task', 't')
-                ->where('t.user IS NULL')
-                ->getQuery()
-                ->getSingleScalarResult();
-            
-            if ($orphanedTasks > 0) {
-                $issues[] = "Найдено {$orphanedTasks} задач без пользователей";
+        $recommendations = [];
+
+        // Рекомендации по медленным запросам
+        if (isset($analysisResults['slow_queries']) && is_array($analysisResults['slow_queries'])) {
+            foreach ($analysisResults['slow_queries'] as $query) {
+                if (isset($query['mean_exec_time']) && $query['mean_exec_time'] > 1000) {
+                    $recommendations[] = [
+                        'type' => 'slow_query',
+                        'priority' => 'high',
+                        'message' => 'Запрос выполняется более 1 секунды в среднем',
+                        'suggestion' => 'Рассмотрите добавление индексов или оптимизацию запроса'
+                    ];
+                }
             }
-            
-            // Проверка комментариев без задач
-            $qb = $this->entityManager->createQueryBuilder();
-            $orphanedComments = $qb->select('COUNT(c.id)')
-                ->from('App\Entity\Comment', 'c')
-                ->where('c.task IS NULL')
-                ->getQuery()
-                ->getSingleScalarResult();
-            
-            if ($orphanedComments > 0) {
-                $issues[] = "Найдено {$orphanedComments} комментариев без задач";
-            }
-            
-        } catch (\Exception $e) {
-            $issues[] = 'Ошибка проверки целостности: ' . $e->getMessage();
         }
-        
-        return $issues;
+
+        // Рекомендации по неиспользуемым индексам
+        if (isset($analysisResults['index_usage']) && is_array($analysisResults['index_usage'])) {
+            if (count($analysisResults['index_usage']) > 0) {
+                $recommendations[] = [
+                    'type' => 'unused_indexes',
+                    'priority' => 'medium',
+                    'message' => 'Найдены неиспользуемые индексы: ' . count($analysisResults['index_usage']),
+                    'suggestion' => 'Рассмотрите удаление неиспользуемых индексов для экономии места'
+                ];
+            }
+        }
+
+        // Рекомендации по размерам таблиц
+        if (isset($analysisResults['table_sizes']) && is_array($analysisResults['table_sizes'])) {
+            foreach ($analysisResults['table_sizes'] as $table) {
+                if (isset($table['size_bytes']) && $table['size_bytes'] > 100 * 1024 * 1024) { // > 100MB
+                    $recommendations[] = [
+                        'type' => 'large_table',
+                        'priority' => 'medium',
+                        'message' => "Таблица {$table['tablename']} занимает {$table['size']}",
+                        'suggestion' => 'Рассмотрите архивирование старых данных или партиционирование'
+                    ];
+                }
+            }
+        }
+
+        return $recommendations;
+    }
+
+    /**
+     * Оптимизация таблиц (VACUUM и ANALYZE)
+     */
+    public function optimizeTables(): array
+    {
+        $connection = $this->entityManager->getConnection();
+        $results = [];
+
+        try {
+            // Получаем список всех таблиц
+            $stmt = $connection->prepare("
+                SELECT tablename 
+                FROM pg_tables 
+                WHERE schemaname = 'public'
+            ");
+            
+            $tablesResult = $stmt->executeQuery();
+            $tables = $tablesResult->fetchAllAssociative();
+
+            foreach ($tables as $table) {
+                $tableName = $table['tablename'];
+                
+                try {
+                    // VACUUM ANALYZE для каждой таблицы
+                    $connection->executeStatement("VACUUM ANALYZE {$tableName}");
+                    $results[$tableName] = 'optimized';
+                    
+                } catch (\Exception $e) {
+                    $results[$tableName] = 'error: ' . $e->getMessage();
+                    $this->logger->warning("Failed to optimize table {$tableName}: " . $e->getMessage());
+                }
+            }
+
+        } catch (\Exception $e) {
+            $this->logger->error('Table optimization failed: ' . $e->getMessage());
+            $results['error'] = $e->getMessage();
+        }
+
+        return $results;
+    }
+
+    /**
+     * Создание недостающих индексов для часто используемых запросов
+     */
+    public function createOptimalIndexes(): array
+    {
+        $connection = $this->entityManager->getConnection();
+        $results = [];
+
+        $indexes = [
+            // Индексы для задач
+            'idx_task_user_status' => 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_task_user_status ON task (user_id, status)',
+            'idx_task_assigned_status' => 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_task_assigned_status ON task (assigned_user_id, status)',
+            'idx_task_deadline' => 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_task_deadline ON task (deadline) WHERE deadline IS NOT NULL',
+            'idx_task_priority_status' => 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_task_priority_status ON task (priority, status)',
+            'idx_task_created_at' => 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_task_created_at ON task (created_at DESC)',
+            
+            // Индексы для комментариев
+            'idx_comment_task_created' => 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_comment_task_created ON comment (task_id, created_at DESC)',
+            
+            // Индексы для уведомлений
+            'idx_notification_user_read' => 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_notification_user_read ON notification (user_id, is_read, created_at DESC)',
+            
+            // Индексы для активности
+            'idx_activity_user_created' => 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_activity_user_created ON activity_log (user_id, created_at DESC)',
+        ];
+
+        foreach ($indexes as $indexName => $sql) {
+            try {
+                $connection->executeStatement($sql);
+                $results[$indexName] = 'created';
+                $this->logger->info("Created index: {$indexName}");
+                
+            } catch (\Exception $e) {
+                $results[$indexName] = 'error: ' . $e->getMessage();
+                $this->logger->warning("Failed to create index {$indexName}: " . $e->getMessage());
+            }
+        }
+
+        return $results;
+    }
+
+    /**
+     * Очистка старых данных
+     */
+    public function cleanupOldData(int $daysToKeep = 365): array
+    {
+        $connection = $this->entityManager->getConnection();
+        $results = [];
+        $cutoffDate = new \DateTime("-{$daysToKeep} days");
+
+        try {
+            // Очистка старых логов активности
+            $stmt = $connection->prepare("
+                DELETE FROM activity_log 
+                WHERE created_at < :cutoff_date
+            ");
+            $stmt->bindValue('cutoff_date', $cutoffDate->format('Y-m-d H:i:s'));
+            $deletedLogs = $stmt->executeStatement();
+            $results['activity_logs_deleted'] = $deletedLogs;
+
+            // Очистка прочитанных уведомлений старше 90 дней
+            $notificationCutoff = new \DateTime('-90 days');
+            $stmt = $connection->prepare("
+                DELETE FROM notification 
+                WHERE is_read = true AND created_at < :cutoff_date
+            ");
+            $stmt->bindValue('cutoff_date', $notificationCutoff->format('Y-m-d H:i:s'));
+            $deletedNotifications = $stmt->executeStatement();
+            $results['notifications_deleted'] = $deletedNotifications;
+
+            $this->logger->info("Cleanup completed: {$deletedLogs} logs, {$deletedNotifications} notifications deleted");
+
+        } catch (\Exception $e) {
+            $this->logger->error('Data cleanup failed: ' . $e->getMessage());
+            $results['error'] = $e->getMessage();
+        }
+
+        return $results;
+    }
+
+    /**
+     * Полная оптимизация базы данных
+     */
+    public function performFullOptimization(): array
+    {
+        $results = [
+            'analysis' => $this->analyzeQueryPerformance(),
+            'table_optimization' => $this->optimizeTables(),
+            'index_creation' => $this->createOptimalIndexes(),
+            'data_cleanup' => $this->cleanupOldData(),
+            'timestamp' => date('Y-m-d H:i:s')
+        ];
+
+        $this->logger->info('Full database optimization completed');
+        return $results;
     }
 }

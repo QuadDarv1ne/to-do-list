@@ -173,7 +173,17 @@ class MobileAPIService
      */
     public function quickUpdateStatus(int $taskId, string $status): array
     {
-        $task = $this->taskRepository->find($taskId);
+        // Оптимизированный запрос с предзагрузкой связанных данных
+        $task = $this->taskRepository->createQueryBuilder('t')
+            ->select('t, u, au, c')
+            ->leftJoin('t.user', 'u')
+            ->leftJoin('t.assignedUser', 'au')
+            ->leftJoin('t.category', 'c')
+            ->where('t.id = :taskId')
+            ->setParameter('taskId', $taskId)
+            ->getQuery()
+            ->getOneOrNullResult();
+            
         if (!$task) {
             return ['error' => 'Task not found'];
         }
@@ -193,18 +203,52 @@ class MobileAPIService
      */
     public function getTaskDetails(int $taskId): array
     {
-        $task = $this->taskRepository->find($taskId);
+        // Оптимизированный запрос с предзагрузкой всех связанных данных
+        $task = $this->taskRepository->createQueryBuilder('t')
+            ->select('t, u, au, c, tags, comments, attachments')
+            ->leftJoin('t.user', 'u')
+            ->leftJoin('t.assignedUser', 'au')
+            ->leftJoin('t.category', 'c')
+            ->leftJoin('t.tags', 'tags')
+            ->leftJoin('t.comments', 'comments')
+            ->leftJoin('t.attachments', 'attachments')
+            ->where('t.id = :taskId')
+            ->setParameter('taskId', $taskId)
+            ->getQuery()
+            ->getOneOrNullResult();
+            
         if (!$task) {
             return ['error' => 'Task not found'];
         }
 
         $details = $this->formatTaskForMobile($task);
         
-        // Add extra details
-        $details['comments'] = []; // TODO: Get comments
-        $details['attachments'] = []; // TODO: Get attachments
-        $details['history'] = []; // TODO: Get history
-        $details['time_entries'] = []; // TODO: Get time entries
+        // Добавляем детали (уже загружены через JOIN)
+        $details['comments'] = array_map(function($comment) {
+            return [
+                'id' => $comment->getId(),
+                'content' => $comment->getContent(),
+                'author' => $comment->getAuthor()->getUsername(),
+                'created_at' => $comment->getCreatedAt()->format('Y-m-d H:i:s')
+            ];
+        }, $task->getComments()->toArray());
+        
+        $details['attachments'] = array_map(function($attachment) {
+            return [
+                'id' => $attachment->getId(),
+                'filename' => $attachment->getFilename(),
+                'size' => $attachment->getSize(),
+                'mime_type' => $attachment->getMimeType()
+            ];
+        }, $task->getAttachments()->toArray());
+        
+        $details['tags'] = array_map(function($tag) {
+            return [
+                'id' => $tag->getId(),
+                'name' => $tag->getName(),
+                'color' => $tag->getColor()
+            ];
+        }, $task->getTags()->toArray());
 
         return $details;
     }

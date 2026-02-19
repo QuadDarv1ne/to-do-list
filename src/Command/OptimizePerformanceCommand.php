@@ -5,6 +5,7 @@ namespace App\Command;
 use App\Service\AssetOptimizationService;
 use App\Service\CacheOptimizationService;
 use App\Service\ThemeOptimizationService;
+use App\Service\DatabaseOptimizationService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -20,7 +21,8 @@ class OptimizePerformanceCommand extends Command
     public function __construct(
         private AssetOptimizationService $assetOptimizer,
         private CacheOptimizationService $cacheOptimizer,
-        private ThemeOptimizationService $themeOptimizer
+        private ThemeOptimizationService $themeOptimizer,
+        private DatabaseOptimizationService $dbOptimizer
     ) {
         parent::__construct();
     }
@@ -56,6 +58,20 @@ class OptimizePerformanceCommand extends Command
             $io->success('Темы оптимизированы');
         } catch (\Exception $e) {
             $io->error('Ошибка оптимизации тем: ' . $e->getMessage());
+        }
+
+        // Быстрая оптимизация БД (только таблицы и индексы)
+        $io->section('Оптимизация базы данных');
+        try {
+            $tableResults = $this->dbOptimizer->optimizeTables();
+            $indexResults = $this->dbOptimizer->createOptimalIndexes();
+            
+            $optimizedTables = count(array_filter($tableResults, fn($r) => $r === 'optimized'));
+            $createdIndexes = count(array_filter($indexResults, fn($r) => $r === 'created'));
+            
+            $io->success("БД оптимизирована: {$optimizedTables} таблиц, {$createdIndexes} индексов");
+        } catch (\Exception $e) {
+            $io->error('Ошибка оптимизации БД: ' . $e->getMessage());
         }
 
         $io->success('Оптимизация завершена!');
