@@ -18,9 +18,14 @@
 - Конечная новая строка: `да`
 - Удаление пробелов в конце строк: `да`
 
+**Установка плагина для редактора:**
+- **VS Code**: [EditorConfig for VS Code](https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig)
+- **PhpStorm**: Встроено (Settings → Editor → Code Style → EditorConfig)
+- **Sublime Text**: [EditorConfig пакет](https://packagecontrol.io/packages/EditorConfig)
+
 ### PHP CS Fixer
 
-Автоматическое форматирование кода по стандарту PSR-12 + Symfony.
+Автоматическое форматирование кода по стандарту PSR-12.
 
 **Установка:**
 ```bash
@@ -31,16 +36,23 @@ composer install
 ```bash
 # Проверка (dry-run)
 composer cs
+# или
+php vendor/bin/php-cs-fixer fix --dry-run --diff
 
 # Автоматическое исправление
 composer cs:fix
-
-# Прямой вызов
-vendor/bin/php-cs-fixer fix
-vendor/bin/php-cs-fixer fix --dry-run --diff
+# или
+php vendor/bin/php-cs-fixer fix
 ```
 
 **Конфигурация:** `.php-cs-fixer.dist.php`
+
+**Основные правила:**
+- PSR-12 coding standard
+- Короткий синтаксис массивов `[]`
+- Одинарные кавычки для строк
+- Сортировка импортов по алфавиту
+- Разделение методов пустой строкой
 
 ### PHPStan
 
@@ -55,16 +67,33 @@ composer install
 ```bash
 # Запуск анализа
 composer phpstan
+# или
+php vendor/bin/phpstan analyse --memory-limit=1G
 
-# Прямой вызов
-vendor/bin/phpstan analyse
+# Проверка конкретного файла
+php vendor/bin/phpstan analyse src/Controller/TaskController.php
 
-# С генерацией baseline
-vendor/bin/phpstan analyse --generate-baseline
+# С генерацией baseline (для существующего проекта)
+php vendor/bin/phpstan analyse --generate-baseline
 ```
 
 **Конфигурация:** `phpstan.neon`
-**Уровень:** 8 (максимальный)
+**Уровень:** 5 (рекомендуется для начала, можно повысить до 8)
+
+### PHPUnit
+
+Запуск тестов.
+
+```bash
+# Все тесты
+composer test
+
+# С покрытием
+composer test:coverage
+
+# Конкретный тест
+php bin/phpunit tests/Controller/TaskControllerTest.php
+```
 
 ## 📜 Правила кода
 
@@ -272,8 +301,29 @@ composer test
 # Тесты с покрытием
 composer test:coverage
 
-# Все проверки
+# Все проверки (cs + phpstan + test)
 composer check
+```
+
+## 🔧 Настройка Git Hooks
+
+Для автоматической проверки кода перед коммитом:
+
+```bash
+# Windows (Git Bash)
+git config core.hooksPath .githooks
+
+# Linux/Mac
+git config core.hooksPath .githooks
+```
+
+**Pre-commit hook проверяет:**
+1. PHP CS Fixer (стиль кода)
+2. PHPStan (статический анализ)
+
+**Пропуск проверки (не рекомендуется):**
+```bash
+git commit --no-verify
 ```
 
 ## 🎯 Рекомендации

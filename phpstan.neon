@@ -6,9 +6,3 @@ parameters:
     excludePaths:
         - src/Kernel.php
         - migrations/*
-    checkGenericClassInNonGenericObjectType: false
-
-ignoreErrors:
-    # Исключения для легаси кода
-    - '#Unsafe usage of new static\(\)#'
-    - '#Access to private property#'

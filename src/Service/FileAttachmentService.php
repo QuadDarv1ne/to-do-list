@@ -13,6 +13,18 @@ class FileAttachmentService
 {
     private const MAX_FILE_SIZE = 10485760; // 10MB
     private const ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'jpg', 'jpeg', 'png', 'gif'];
+    private const ALLOWED_MIME_TYPES = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'text/plain',
+        'image/jpeg',
+        'image/png',
+        'image/gif'
+    ];
+    private const DANGEROUS_EXTENSIONS = ['php', 'phtml', 'php3', 'php4', 'php5', 'exe', 'bat', 'cmd', 'sh', 'js', 'html', 'htm'];
 
     public function __construct(
         private TaskAttachmentRepository $attachmentRepository,
@@ -84,10 +96,27 @@ class FileAttachmentService
             throw new \Exception('Файл слишком большой. Максимальный размер: 10MB');
         }
 
-        // Check extension
+        // Check extension from filename
+        $originalExtension = strtolower(pathinfo($file->getClientOriginalName(), PATHINFO_EXTENSION));
+        if (in_array($originalExtension, self::DANGEROUS_EXTENSIONS)) {
+            throw new \Exception('Опасный тип файла запрещен');
+        }
+
+        // Check guessed extension
         $extension = $file->guessExtension();
         if (!in_array($extension, self::ALLOWED_EXTENSIONS)) {
             throw new \Exception('Недопустимый тип файла. Разрешены: ' . implode(', ', self::ALLOWED_EXTENSIONS));
+        }
+
+        // Check MIME type
+        $mimeType = $file->getMimeType();
+        if (!in_array($mimeType, self::ALLOWED_MIME_TYPES)) {
+            throw new \Exception('Недопустимый MIME тип файла');
+        }
+
+        // Additional security: check for double extensions
+        if (substr_count($file->getClientOriginalName(), '.') > 1) {
+            throw new \Exception('Файлы с двойным расширением запрещены');
         }
     }
 

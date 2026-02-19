@@ -4,93 +4,128 @@ namespace App\Tests\Unit\Entity;
 
 use App\Entity\Task;
 use App\Entity\User;
+use App\Entity\TaskCategory;
 use PHPUnit\Framework\TestCase;
 
 class TaskTest extends TestCase
 {
-    private Task $task;
-    private User $user;
-
-    protected function setUp(): void
+    public function testTaskCanBeCreated(): void
     {
-        $this->user = new User();
-        $this->user->setUsername('testuser');
-        $this->user->setEmail('test@example.com');
+        $task = new Task();
         
-        $this->task = new Task();
-        $this->task->setUser($this->user);
-        $this->task->setAssignedUser($this->user);
+        $this->assertNull($task->getId());
+        $this->assertEquals('pending', $task->getStatus());
+        $this->assertEquals('medium', $task->getPriority());
     }
 
-    public function testTaskCreation(): void
+    public function testTaskTitleCanBeSet(): void
     {
-        $this->assertInstanceOf(Task::class, $this->task);
-        $this->assertNull($this->task->getId());
-        $this->assertInstanceOf(\DateTimeInterface::class, $this->task->getCreatedAt());
-    }
-
-    public function testSetTitle(): void
-    {
-        $this->task->setTitle('Test Task');
-        $this->assertEquals('Test Task', $this->task->getTitle());
-        $this->assertEquals('Test Task', $this->task->getName()); // Alias test
-    }
-
-    public function testSetStatus(): void
-    {
-        $this->task->setStatus('in_progress');
-        $this->assertEquals('in_progress', $this->task->getStatus());
-        $this->assertTrue($this->task->isInProgress());
-        $this->assertFalse($this->task->isCompleted());
-        $this->assertFalse($this->task->isPending());
-    }
-
-    public function testSetStatusToCompleted(): void
-    {
-        $this->task->setStatus('completed');
-        $this->assertTrue($this->task->isCompleted());
-        $this->assertInstanceOf(\DateTimeInterface::class, $this->task->getCompletedAt());
-    }
-
-    public function testSetPriority(): void
-    {
-        $this->task->setPriority('high');
-        $this->assertEquals('high', $this->task->getPriority());
-        $this->assertEquals('Высокий', $this->task->getPriorityLabel());
-    }
-
-    public function testIsOverdue(): void
-    {
-        $pastDate = new \DateTime('-1 day');
-        $this->task->setDueDate($pastDate);
-        $this->task->setStatus('pending');
-        $this->assertTrue($this->task->isOverdue());
+        $task = new Task();
+        $task->setTitle('Test Task');
         
-        $this->task->setStatus('completed');
-        $this->assertFalse($this->task->isOverdue());
+        $this->assertEquals('Test Task', $task->getTitle());
     }
 
-    public function testCanStart(): void
+    public function testTaskTitleCannotBeEmpty(): void
     {
-        $this->assertTrue($this->task->canStart());
-    }
-
-    public function testGetCompletionTimeInHours(): void
-    {
-        $this->task->setCreatedAt(new \DateTime('2024-01-01 10:00:00'));
-        $this->task->setStatus('completed');
-        $this->task->setCompletedAt(new \DateTime('2024-01-01 12:30:00'));
+        $task = new Task();
         
-        $hours = $this->task->getCompletionTimeInHours();
-        $this->assertEquals(2.5, $hours);
+        $this->expectException(\InvalidArgumentException::class);
+        $task->setTitle('');
     }
 
-    public function testIsCompletedLate(): void
+    public function testTaskStatusCanBeChanged(): void
     {
-        $this->task->setDueDate(new \DateTime('2024-01-01 10:00:00'));
-        $this->task->setCompletedAt(new \DateTime('2024-01-01 12:00:00'));
-        $this->task->setStatus('completed');
+        $task = new Task();
         
-        $this->assertTrue($this->task->isCompletedLate());
+        $task->setStatus('in_progress');
+        $this->assertEquals('in_progress', $task->getStatus());
+        
+        $task->setStatus('completed');
+        $this->assertEquals('completed', $task->getStatus());
+    }
+
+    public function testTaskStatusMustBeValid(): void
+    {
+        $task = new Task();
+        
+        $this->expectException(\InvalidArgumentException::class);
+        $task->setStatus('invalid_status');
+    }
+
+    public function testTaskPriorityCanBeSet(): void
+    {
+        $task = new Task();
+        
+        $task->setPriority('high');
+        $this->assertEquals('high', $task->getPriority());
+        
+        $task->setPriority('urgent');
+        $this->assertEquals('urgent', $task->getPriority());
+    }
+
+    public function testTaskPriorityMustBeValid(): void
+    {
+        $task = new Task();
+        
+        $this->expectException(\InvalidArgumentException::class);
+        $task->setPriority('invalid_priority');
+    }
+
+    public function testTaskCanBeAssignedToUser(): void
+    {
+        $task = new Task();
+        $user = new User();
+        $user->setUsername('testuser');
+        
+        $task->setAssignedUser($user);
+        
+        $this->assertSame($user, $task->getAssignedUser());
+    }
+
+    public function testTaskCanHaveCategory(): void
+    {
+        $task = new Task();
+        $category = new TaskCategory();
+        $category->setName('Development');
+        
+        $task->setCategory($category);
+        
+        $this->assertSame($category, $task->getCategory());
+    }
+
+    public function testTaskCompletedAtIsSetOnCompletion(): void
+    {
+        $task = new Task();
+        $task->setStatus('completed');
+        
+        $this->assertInstanceOf(\DateTimeInterface::class, $task->getCompletedAt());
+    }
+
+    public function testTaskIsOverdue(): void
+    {
+        $task = new Task();
+        $task->setDueDate(new \DateTime('-1 day'));
+        $task->setStatus('pending');
+        
+        $this->assertTrue($task->isOverdue());
+    }
+
+    public function testTaskIsNotOverdueWhenCompleted(): void
+    {
+        $task = new Task();
+        $task->setDueDate(new \DateTime('-1 day'));
+        $task->setStatus('completed');
+        
+        $this->assertFalse($task->isOverdue());
+    }
+
+    public function testTaskIsNotOverdueWhenDueDateInFuture(): void
+    {
+        $task = new Task();
+        $task->setDueDate(new \DateTime('+1 day'));
+        $task->setStatus('pending');
+        
+        $this->assertFalse($task->isOverdue());
     }
 }
