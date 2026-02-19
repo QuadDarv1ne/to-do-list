@@ -15,10 +15,42 @@ class BackupService
         string $projectDir
     ) {
         $this->backupDir = $projectDir . '/var/backups';
-        
+
         if (!$this->filesystem->exists($this->backupDir)) {
             $this->filesystem->mkdir($this->backupDir);
         }
+    }
+
+    /**
+     * Создать бэкап (алиас для createFullBackup)
+     */
+    public function createBackup(): array
+    {
+        return $this->createFullBackup();
+    }
+
+    /**
+     * Получить список бэкапов (алиас для listBackups)
+     */
+    public function getBackups(): array
+    {
+        return $this->listBackups();
+    }
+
+    /**
+     * Восстановить из бэкапа (алиас для restore)
+     */
+    public function restoreFromBackup(string $filename): array
+    {
+        return $this->restore($filename);
+    }
+
+    /**
+     * Очистить старые бэкапы (алиас для cleanOldBackups)
+     */
+    public function cleanupOldBackups(int $keepDays = 30): int
+    {
+        return $this->cleanOldBackups($keepDays);
     }
 
     /**

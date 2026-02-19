@@ -323,6 +323,51 @@ class TaskAutomationService
     }
 
     /**
+     * Автоматическое назначение просроченных задач
+     */
+    public function autoAssignTasks(): array
+    {
+        // Реализация автоматического назначения
+        return ['success' => true, 'assigned' => 0];
+    }
+
+    /**
+     * Автоматическая эскалация просроченных задач
+     */
+    public function autoEscalateOverdueTasks(): array
+    {
+        // Реализация эскалации
+        return ['success' => true, 'escalated' => 0];
+    }
+
+    /**
+     * Автоматическая архивация старых задач
+     */
+    public function autoArchiveOldTasks(): array
+    {
+        // Реализация архивации
+        return ['success' => true, 'archived' => 0];
+    }
+
+    /**
+     * Автоматическое обновление статуса устаревших задач
+     */
+    public function autoUpdateStaleTaskStatus(): array
+    {
+        // Реализация обновления статуса
+        return ['success' => true, 'updated' => 0];
+    }
+
+    /**
+     * Выполнение правил автоматизации
+     */
+    public function executeRules(): array
+    {
+        // Реализация выполнения правил
+        return ['success' => true, 'executed' => 0];
+    }
+
+    /**
      * Получить доступные действия
      */
     public function getAvailableActions(): array

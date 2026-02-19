@@ -10,11 +10,12 @@
         constructor(options = {}) {
             this.options = {
                 endpoint: '/api/notifications/stream',
-                reconnectDelay: 3000,
-                maxReconnectDelay: 30000,
-                heartbeatTimeout: 60000,
+                reconnectDelay: 5000,
+                maxReconnectDelay: 60000,
+                heartbeatTimeout: 90000,
                 enableBrowserNotifications: true,
                 soundEnabled: true,
+                maxReconnectAttempts: 5,
                 ...options
             };
 
@@ -23,9 +24,11 @@
             this.heartbeatTimer = null;
             this.lastEventId = null;
             this.reconnectDelay = this.options.reconnectDelay;
+            this.reconnectAttempts = 0;
             this.isConnected = false;
             this.notifications = [];
             this.unreadCount = 0;
+            this.isDestroyed = false;
 
             this.init();
         }
@@ -43,6 +46,13 @@
          * Initialize real-time notifications
          */
         init() {
+            // Prevent multiple instances
+            if (window.__rtnInstance) {
+                console.log('[RTN] Instance already exists, destroying old one');
+                window.__rtnInstance.destroy();
+            }
+            window.__rtnInstance = this;
+
             // Check if user is logged in
             if (!document.querySelector('meta[name="csrf-token"]')) {
                 console.log('[RTN] User not logged in, skipping initialization');
@@ -54,20 +64,30 @@
                 this.requestNotificationPermission();
             }
 
-            // Connect to SSE stream
-            this.connect();
+            // Connect to SSE stream only if tab is visible
+            if (!document.hidden) {
+                this.connect();
+            }
 
             // Setup visibility change handler
-            document.addEventListener('visibilitychange', () => {
+            this.visibilityHandler = () => {
                 if (document.hidden) {
                     this.pause();
                 } else {
                     this.resume();
                 }
-            });
+            };
+            document.addEventListener('visibilitychange', this.visibilityHandler);
 
             // Setup online/offline handlers
-            window.addEventListener('online', () => this.reconnect());
+            this.onlineHandler = () => this.reconnect();
+            this.offlineHandler = () => this.disconnect();
+            window.addEventListener('online', this.onlineHandler);
+            window.addEventListener('offline', this.offlineHandler);
+
+            // Load initial unread count
+            this.loadUnreadCount();
+        }
             window.addEventListener('offline', () => this.disconnect());
 
             // Load initial unread count
@@ -78,11 +98,23 @@
          * Connect to SSE stream
          */
         connect() {
+            if (this.isDestroyed) {
+                console.log('[RTN] Instance destroyed, skipping connect');
+                return;
+            }
+
             if (this.eventSource) {
                 this.disconnect();
             }
 
-            console.log('[RTN] Connecting to SSE stream...');
+            // Check reconnect attempts limit
+            if (this.reconnectAttempts >= this.options.maxReconnectAttempts) {
+                console.log('[RTN] Max reconnect attempts reached, stopping');
+                this.updateConnectionStatus('disconnected');
+                return;
+            }
+
+            console.log('[RTN] Connecting to SSE stream... (attempt', this.reconnectAttempts + 1, ')');
 
             try {
                 const url = new URL(this.options.endpoint, window.location.origin);
@@ -101,6 +133,7 @@
                     console.log('[RTN] Connected to SSE stream');
                     this.isConnected = true;
                     this.reconnectDelay = this.options.reconnectDelay;
+                    this.reconnectAttempts = 0;
                     this.updateConnectionStatus('connected');
                     this.startHeartbeat();
                 });
@@ -166,6 +199,20 @@
          * Handle connection error with reconnection
          */
         handleConnectionError() {
+            if (this.isDestroyed) {
+                return;
+            }
+
+            this.reconnectAttempts++;
+            
+            if (this.reconnectAttempts >= this.options.maxReconnectAttempts) {
+                console.log('[RTN] Max reconnect attempts reached');
+                this.isConnected = false;
+                this.updateConnectionStatus('disconnected');
+                this.stopHeartbeat();
+                return;
+            }
+
             console.log('[RTN] Connection error, will reconnect in', this.reconnectDelay, 'ms');
             
             this.isConnected = false;
@@ -186,8 +233,12 @@
          * Reconnect immediately
          */
         reconnect() {
+            if (this.isDestroyed) {
+                return;
+            }
             this.clearReconnectTimer();
             this.reconnectDelay = this.options.reconnectDelay;
+            this.reconnectAttempts = 0;
             this.connect();
         }
 
@@ -195,15 +246,17 @@
          * Pause notifications (when tab is hidden)
          */
         pause() {
-            console.log('[RTN] Pausing notifications');
-            // Could implement pause logic here
+            console.log('[RTN] Pausing notifications - disconnecting SSE');
+            this.disconnect();
         }
 
         /**
          * Resume notifications (when tab becomes visible)
          */
         resume() {
-            console.log('[RTN] Resuming notifications');
+            console.log('[RTN] Resuming notifications - reconnecting SSE');
+            this.reconnectAttempts = 0;
+            this.reconnect();
             this.loadUnreadCount();
         }
 
@@ -630,10 +683,22 @@
          * Destroy instance and cleanup
          */
         destroy() {
+            this.isDestroyed = true;
             this.disconnect();
-            document.removeEventListener('visibilitychange', this);
-            window.removeEventListener('online', this);
-            window.removeEventListener('offline', this);
+            
+            if (this.visibilityHandler) {
+                document.removeEventListener('visibilitychange', this.visibilityHandler);
+            }
+            if (this.onlineHandler) {
+                window.removeEventListener('online', this.onlineHandler);
+            }
+            if (this.offlineHandler) {
+                window.removeEventListener('offline', this.offlineHandler);
+            }
+            
+            if (window.__rtnInstance === this) {
+                window.__rtnInstance = null;
+            }
         }
     }
 

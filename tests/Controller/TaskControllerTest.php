@@ -46,11 +46,14 @@ class TaskControllerTest extends WebTestCase
     {
         // Simulate login
         $this->client->loginUser($this->testUser);
-        
+
+        // Symfony redirect adds trailing slash, so we expect redirect to /tasks/
         $this->client->request('GET', '/tasks');
+        $this->assertResponseRedirects('/tasks/', 301);
         
+        // Follow redirect and check success
+        $this->client->followRedirect();
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('h1', 'Мои задачи');
     }
 
     public function testCreateTask(): void

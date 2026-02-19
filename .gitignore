@@ -23,6 +23,7 @@
 /.vscode
 /.kiro
 /.qoder
+/.qwen
 *.sublime-*
 ###< Редакторы кода (IDE) ###
 
@@ -42,6 +43,7 @@ Thumbs.db
 /.php_cs.cache
 /.phpstan.cache
 /.psalm.cache
+/.php-cs-fixer.dist.php.cache
 ###< Кеш инструментов ###
 
 ###> Инструменты тестирования ###
@@ -49,6 +51,8 @@ Thumbs.db
 /phpunit.xml
 /behat.yml
 /.phpunit.result.cache
+/phpunit.coverage.xml
+/coverage/
 /tools/
 ###< Инструменты тестирования ###
 
@@ -68,6 +72,10 @@ Thumbs.db
 /.env.test.local
 /.env.test
 ###< Специфичные для окружения ###
+
+###> Git hooks ###
+/.githooks/
+###< Git hooks ###
 ###> friendsofphp/php-cs-fixer ###
 /.php-cs-fixer.php
 /.php-cs-fixer.cache

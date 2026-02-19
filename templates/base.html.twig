@@ -43,10 +43,10 @@
 
     {% block stylesheets %}
         <!-- Minified CSS - оптимизированные файлы -->
-        <link rel="stylesheet" href="{{ asset('css/app-bundle.min.css') }}">
-        <link rel="stylesheet" href="{{ asset('css/themes-bundle.min.css') }}">
-        <link rel="stylesheet" href="{{ asset('css/components-bundle.min.css') }}">
-        <link rel="stylesheet" href="{{ asset('css/navbar-enhanced.min.css') }}">
+        <link rel="stylesheet" href="/css/app-bundle.min.css">
+        <link rel="stylesheet" href="/css/themes-bundle.min.css">
+        <link rel="stylesheet" href="/css/components-bundle.min.css">
+        <link rel="stylesheet" href="/css/navbar-enhanced.min.css">
     {% endblock %}
 </head>
 <body>
@@ -369,12 +369,12 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
     
     <!-- Preload critical JS -->
-    <link rel="preload" href="{{ asset('js/logger.js') }}" as="script">
-    <link rel="preload" href="{{ asset('js/timer-manager.js') }}" as="script">
-    <link rel="preload" href="{{ asset('js/event-manager.js') }}" as="script">
-    <link rel="preload" href="{{ asset('js/core-bundle.min.js') }}" as="script">
+    <link rel="preload" href="/js/logger.js" as="script">
+    <link rel="preload" href="/js/timer-manager.js" as="script">
+    <link rel="preload" href="/js/event-manager.js" as="script">
+    <link rel="preload" href="/js/core-bundle.min.js" as="script">
     {% if app.user %}
-        <link rel="preload" href="{{ asset('js/common-bundle.min.js') }}" as="script">
+        <link rel="preload" href="/js/common-bundle.min.js" as="script">
     {% endif %}
     
     <!-- Service Worker Registration -->
@@ -441,40 +441,43 @@
         {# Environment flag for JS #}
         <meta name="environment" content="{{ app.environment }}" data-environment="{{ app.environment }}">
 
+        {# Console wrapper - disable logs in production #}
+        <script src="/js/console-wrapper.js"></script>
+
         {# Utility scripts - load first #}
-        <script src="{{ asset('js/logger.js') }}" defer></script>
-        <script src="{{ asset('js/timer-manager.js') }}" defer></script>
-        <script src="{{ asset('js/event-manager.js') }}" defer></script>
+        <script src="/js/logger.js" defer></script>
+        <script src="/js/timer-manager.js" defer></script>
+        <script src="/js/event-manager.js" defer></script>
 
         {# Core scripts - always loaded #}
-        <script src="{{ asset('js/core-bundle.min.js') }}" defer></script>
-        <script src="{{ asset('js/navbar-enhanced.js') }}" defer></script>
+        <script src="/js/core-bundle.min.js" defer></script>
+        <script src="/js/navbar-enhanced.js" defer></script>
         
         {# Common features - for authenticated users #}
         {% if app.user %}
-            <script src="{{ asset('js/common-bundle.min.js') }}" defer></script>
+            <script src="/js/common-bundle.min.js" defer></script>
         {% endif %}
         
         {# Page-specific scripts - loaded conditionally #}
         {% if app.request.attributes.get('_route') starts with 'app_task' %}
-            <script src="{{ asset('js/table-enhancements.js') }}" defer></script>
+            <script src="/js/table-enhancements.js" defer></script>
         {% endif %}
 
         {% if app.request.attributes.get('_route') == 'app_kanban_board' %}
-            <script src="{{ asset('js/kanban-enhanced.js') }}" defer></script>
+            <script src="/js/kanban-enhanced.js" defer></script>
         {% endif %}
 
         {% if app.request.attributes.get('_route') == 'app_calendar' %}
-            <script src="{{ asset('js/calendar-enhanced.js') }}" defer></script>
+            <script src="/js/calendar-enhanced.js" defer></script>
         {% endif %}
 
         {% if app.request.attributes.get('_route') starts with 'app_dashboard' or app.request.attributes.get('_route') starts with 'app_analytics' %}
-            <script src="{{ asset('js/dashboard-widgets.js') }}" defer></script>
+            <script src="/js/dashboard-widgets.js" defer></script>
         {% endif %}
 
         {# Performance monitoring - only in dev mode #}
         {% if app.environment == 'dev' %}
-            <script src="{{ asset('js/performance-monitor.js') }}" defer></script>
+            <script src="/js/performance-monitor.js" defer></script>
         {% endif %}
     {% endblock %}
     

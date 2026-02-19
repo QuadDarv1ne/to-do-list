@@ -83,4 +83,13 @@ class TimeTrackingServiceTest extends TestCase
         
         $this->assertEquals('1д 1ч 1м 5с', $result);
     }
+
+    public function testFormatDurationZero(): void
+    {
+        $seconds = 0;
+        
+        $result = $this->service->formatDuration($seconds);
+        
+        $this->assertEquals('0с', $result);
+    }
 }

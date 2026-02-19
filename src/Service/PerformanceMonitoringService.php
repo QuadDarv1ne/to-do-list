@@ -177,7 +177,7 @@ class PerformanceMonitoringService
     /**
      * Get detailed metrics
      */
-    private function getDetailedMetrics(): array
+    public function getDetailedMetrics(): array
     {
         $detailedMetrics = [];
 
@@ -204,6 +204,36 @@ class PerformanceMonitoringService
         }
 
         return $detailedMetrics;
+    }
+
+    /**
+     * Get slow queries
+     */
+    public function getSlowQueries(int $thresholdMs = 1000): array
+    {
+        $slowQueries = [];
+        
+        foreach ($this->metrics as $operation => $operationMetrics) {
+            if (!str_contains($operation, 'SQL:')) {
+                continue;
+            }
+            
+            $executionTimes = array_filter(
+                array_column($operationMetrics, 'execution_time_ms'),
+                fn($time) => $time !== null && $time > $thresholdMs
+            );
+            
+            if (!empty($executionTimes)) {
+                $slowQueries[] = [
+                    'query' => $operation,
+                    'count' => count($executionTimes),
+                    'max_time_ms' => max($executionTimes),
+                    'avg_time_ms' => round(array_sum($executionTimes) / count($executionTimes), 2)
+                ];
+            }
+        }
+        
+        return $slowQueries;
     }
 
     /**

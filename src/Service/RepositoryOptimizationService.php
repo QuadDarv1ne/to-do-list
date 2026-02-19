@@ -94,13 +94,25 @@ class RepositoryOptimizationService
         $alias = 'e';
         $qb = $this->entityManager->createQueryBuilder();
         
+        // Валидация полей - только буквы, цифры и подчеркивания
+        $validFields = array_filter($fields, fn($field) => preg_match('/^[a-zA-Z0-9_]+$/', $field));
+        
+        if (empty($validFields)) {
+            throw new \InvalidArgumentException('No valid fields provided');
+        }
+        
         // Формируем SELECT с нужными полями
-        $selectFields = array_map(fn($field) => "{$alias}.{$field}", $fields);
+        $selectFields = array_map(fn($field) => "{$alias}.{$field}", $validFields);
         $qb->select(implode(', ', $selectFields))
            ->from($entityClass, $alias);
         
-        // Добавляем критерии
+        // Добавляем критерии с валидацией
         foreach ($criteria as $field => $value) {
+            // Валидация имени поля
+            if (!preg_match('/^[a-zA-Z0-9_]+$/', $field)) {
+                continue;
+            }
+            
             if (is_array($value)) {
                 $qb->andWhere("{$alias}.{$field} IN (:{$field})")
                    ->setParameter($field, $value);
@@ -174,6 +186,11 @@ class RepositoryOptimizationService
            ->from($entityClass, $alias);
         
         foreach ($criteria as $field => $value) {
+            // Валидация имени поля
+            if (!preg_match('/^[a-zA-Z0-9_]+$/', $field)) {
+                continue;
+            }
+            
             $qb->andWhere("{$alias}.{$field} = :{$field}")
                ->setParameter($field, $value);
         }
@@ -290,9 +307,14 @@ class RepositoryOptimizationService
         $qb->select($alias)
            ->from($entityClass, $alias);
         
-        // Добавляем условия поиска
+        // Валидация и добавление условий поиска
         $searchConditions = [];
         foreach ($searchFields as $field) {
+            // Валидация имени поля
+            if (!preg_match('/^[a-zA-Z0-9_]+$/', $field)) {
+                continue;
+            }
+            
             $searchConditions[] = $qb->expr()->like(
                 "LOWER({$alias}.{$field})",
                 $qb->expr()->literal('%' . strtolower($searchTerm) . '%')
@@ -303,8 +325,13 @@ class RepositoryOptimizationService
             $qb->andWhere($qb->expr()->orX(...$searchConditions));
         }
         
-        // Добавляем дополнительные критерии
+        // Добавляем дополнительные критерии с валидацией
         foreach ($additionalCriteria as $field => $value) {
+            // Валидация имени поля
+            if (!preg_match('/^[a-zA-Z0-9_]+$/', $field)) {
+                continue;
+            }
+            
             $qb->andWhere("{$alias}.{$field} = :{$field}")
                ->setParameter($field, $value);
         }
@@ -355,15 +382,25 @@ class RepositoryOptimizationService
         $qb->select($alias)
            ->from($entityClass, $alias);
         
-        // Добавляем все связи
+        // Добавляем все связи с валидацией
         foreach ($relations as $relation) {
+            // Валидация имени связи
+            if (!preg_match('/^[a-zA-Z0-9_]+$/', $relation)) {
+                continue;
+            }
+            
             $relationAlias = $this->generateJoinAlias($relation);
             $qb->leftJoin("{$alias}.{$relation}", $relationAlias)
                ->addSelect($relationAlias);
         }
         
-        // Добавляем критерии
+        // Добавляем критерии с валидацией
         foreach ($criteria as $field => $value) {
+            // Валидация имени поля
+            if (!preg_match('/^[a-zA-Z0-9_]+$/', $field)) {
+                continue;
+            }
+            
             $qb->andWhere("{$alias}.{$field} = :{$field}")
                ->setParameter($field, $value);
         }

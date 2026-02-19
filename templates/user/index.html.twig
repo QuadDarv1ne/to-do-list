@@ -6,50 +6,8 @@
 
 {% block stylesheets %}
     {{ parent() }}
+    <link rel="stylesheet" href="/css/users-enhanced.css">
     <script src="/js/table-enhancements.js" defer></script>
-    <style>
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-        .user-status {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-        .status-active {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .status-inactive {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        .status-locked {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-        .role-badge {
-            font-size: 0.75rem;
-            padding: 3px 8px;
-            margin: 2px;
-        }
-        .role-admin {
-            background-color: #dc3545;
-            color: white;
-        }
-        .role-manager {
-            background-color: #fd7e14;
-            color: white;
-        }
-        .role-user {
-            background-color: #6c757d;
-            color: white;
-        }
-    </style>
 {% endblock %}
 
 {% block body %}

@@ -80,17 +80,27 @@ class TimeTrackingService
      */
     public function formatDuration(int $seconds): string
     {
-        $hours = floor($seconds / 3600);
+        $days = floor($seconds / 86400);
+        $hours = floor(($seconds % 86400) / 3600);
         $minutes = floor(($seconds % 3600) / 60);
         $secs = $seconds % 60;
 
-        if ($hours > 0) {
-            return sprintf('%dч %dм', $hours, $minutes);
-        } elseif ($minutes > 0) {
-            return sprintf('%dм %dс', $minutes, $secs);
-        } else {
-            return sprintf('%dс', $secs);
+        $parts = [];
+        
+        if ($days > 0) {
+            $parts[] = "{$days}д";
         }
+        if ($hours > 0) {
+            $parts[] = "{$hours}ч";
+        }
+        if ($minutes > 0) {
+            $parts[] = "{$minutes}м";
+        }
+        if ($secs > 0 || empty($parts)) {
+            $parts[] = "{$secs}с";
+        }
+
+        return implode(' ', $parts);
     }
 
     /**

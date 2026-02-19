@@ -1,0 +1,2299 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Property App\\CacheWarmer\\DataCacheWarmer\:\:\$cacheService is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/CacheWarmer/DataCacheWarmer.php
+
+		-
+			message: '#^Call to an undefined method App\\Command\\AnalyzeCodeCommand\:\:findUnusedImports\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Command/AnalyzeCodeCommand.php
+
+		-
+			message: '#^Parameter \#1 \$array of function usort contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 2
+			path: src/Command/AnalyzeCodeCommand.php
+
+		-
+			message: '#^Parameter \#2 \$callback of function usort contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 2
+			path: src/Command/AnalyzeCodeCommand.php
+
+		-
+			message: '#^Method App\\Service\\TaskAutomationService\:\:autoArchiveOldTasks\(\) invoked with 1 parameter, 0 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: src/Command/AutomateTasksCommand.php
+
+		-
+			message: '#^Parameter \#2 \.\.\.\$values of function sprintf expects bool\|float\|int\|string\|null, array given\.$#'
+			identifier: argument.type
+			count: 5
+			path: src/Command/AutomateTasksCommand.php
+
+		-
+			message: '#^Cannot access offset ''deleted'' on int\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Command/BackupCommand.php
+
+		-
+			message: '#^Cannot access offset ''kept'' on int\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Command/BackupCommand.php
+
+		-
+			message: '#^Method App\\Service\\BackupService\:\:createBackup\(\) invoked with 1 parameter, 0 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: src/Command/BackupCommand.php
+
+		-
+			message: '#^Method App\\Service\\BackupService\:\:restoreFromBackup\(\) invoked with 2 parameters, 1 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: src/Command/BackupCommand.php
+
+		-
+			message: '#^Negated boolean expression is always true\.$#'
+			identifier: booleanNot.alwaysTrue
+			count: 1
+			path: src/Command/BackupCommand.php
+
+		-
+			message: '#^Parameter \#1 \$daysToCheck of method App\\Service\\DataCleanupService\:\:getOldDataStatistics\(\) expects int, array\<string, int\> given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Command/DataCleanupCommand.php
+
+		-
+			message: '#^Binary operation "\-" between ''1''\|''10''\|''11''\|''12''\|''2''\|''3''\|''4''\|''5''\|''6''\|''7''\|''8''\|''9'' and ''1''\|''10''\|''11''\|''12''\|''2''\|''3''\|''4''\|''5''\|''6''\|''7''\|''8''\|''9'' results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: src/Command/GenerateRecurringTasksCommand.php
+
+		-
+			message: '#^Call to an undefined method App\\Entity\\Task\:\:setName\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Command/GenerateRecurringTasksCommand.php
+
+		-
+			message: '#^Method App\\Command\\GenerateRecurringTasksCommand\:\:createNewRecurringTask\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: src/Command/GenerateRecurringTasksCommand.php
+
+		-
+			message: '#^Call to sprintf contains 4 placeholders, 5 values given\.$#'
+			identifier: argument.sprintf
+			count: 1
+			path: src/Command/MemoryUsageMonitorCommand.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: src/Command/MonitorPerformanceCommand.php
+
+		-
+			message: '#^While loop condition is always true\.$#'
+			identifier: while.alwaysTrue
+			count: 1
+			path: src/Command/MonitorPerformanceCommand.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\TaskAutomationService\:\:autoCloseCompletedTasks\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Command/RunTaskAutomationCommand.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\TaskAutomationService\:\:autoTagTasks\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Command/RunTaskAutomationCommand.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\TaskAutomationService\:\:autoUpdateStatus\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Command/RunTaskAutomationCommand.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\TaskAutomationService\:\:runAllAutomations\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Command/RunTaskAutomationCommand.php
+
+		-
+			message: '#^Attribute class Symfony\\Component\\Routing\\Annotation\\Route does not exist\.$#'
+			identifier: attribute.notFound
+			count: 9
+			path: src/Controller/AIAssistantController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\ActivityFeedService\:\:getActivityStats\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/ActivityFeedController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\ActivityFeedService\:\:getUserFeed\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/ActivityFeedController.php
+
+		-
+			message: '#^Method App\\Service\\AdvancedAnalyticsService\:\:predictCompletionTime\(\) invoked with 2 parameters, 1 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: src/Controller/AdvancedAnalyticsController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\AdvancedAnalyticsService\:\:analyzeProductivityTrends\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/AdvancedAnalyticsController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\AdvancedAnalyticsService\:\:analyzeTaskPatterns\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/AdvancedAnalyticsController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\AdvancedAnalyticsService\:\:calculateBurnoutRisk\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/AdvancedAnalyticsController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\AdvancedAnalyticsService\:\:getPerformanceInsights\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/AdvancedAnalyticsController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\AdvancedAnalyticsService\:\:predictCompletionTime\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/AdvancedAnalyticsController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\AnalyticsService\:\:exportAnalyticsToCsv\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/AnalyticsController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\AnalyticsService\:\:getPeriodComparison\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/AnalyticsController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\AnalyticsService\:\:getUserTaskAnalytics\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 5
+			path: src/Controller/AnalyticsController.php
+
+		-
+			message: '#^Parameter \#1 \$manager of method App\\Repository\\ClientRepository\:\:findByManager\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/Api/ClientApiController.php
+
+		-
+			message: '#^Parameter \#2 \$manager of method App\\Repository\\ClientRepository\:\:findByCategory\(\) expects App\\Entity\\User\|null, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/Api/ClientApiController.php
+
+		-
+			message: '#^Parameter \#2 \$manager of method App\\Repository\\ClientRepository\:\:findBySegment\(\) expects App\\Entity\\User\|null, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/Api/ClientApiController.php
+
+		-
+			message: '#^Parameter \#2 \$manager of method App\\Repository\\ClientRepository\:\:searchByName\(\) expects App\\Entity\\User\|null, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/Api/ClientApiController.php
+
+		-
+			message: '#^Call to an undefined method Symfony\\Component\\Security\\Core\\User\\UserInterface\:\:getId\(\)\.$#'
+			identifier: method.notFound
+			count: 6
+			path: src/Controller/Api/DashboardApiController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Repository\\TaskRepository\:\:getQuickStats\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/Api/DashboardApiController.php
+
+		-
+			message: '#^Parameter \#1 \$manager of method App\\Repository\\DealRepository\:\:findByManager\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/Api/DealApiController.php
+
+		-
+			message: '#^Parameter \#1 \$manager of method App\\Repository\\DealRepository\:\:getDealsByStage\(\) expects App\\Entity\\User\|null, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/Api/DealApiController.php
+
+		-
+			message: '#^Parameter \#1 \$manager of method App\\Repository\\DealRepository\:\:getDealsCountByStatus\(\) expects App\\Entity\\User\|null, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/Api/DealApiController.php
+
+		-
+			message: '#^Parameter \#3 \$manager of method App\\Repository\\DealRepository\:\:getTotalRevenue\(\) expects App\\Entity\\User\|null, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/Api/DealApiController.php
+
+		-
+			message: '#^Call to an undefined method App\\Entity\\TaskAttachment\:\:getSize\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Controller/Api/TaskApiController.php
+
+		-
+			message: '#^Attribute class Symfony\\Component\\Routing\\Annotation\\Route does not exist\.$#'
+			identifier: attribute.notFound
+			count: 6
+			path: src/Controller/BackupController.php
+
+		-
+			message: '#^Parameter \#1 \$endDate of method App\\Entity\\Budget\:\:setEndDate\(\) expects DateTimeImmutable\|null, DateTime given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/BudgetController.php
+
+		-
+			message: '#^Parameter \#1 \$startDate of method App\\Entity\\Budget\:\:setStartDate\(\) expects DateTimeImmutable, DateTime given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/BudgetController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\CalendarService\:\:exportToICal\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/CalendarController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\CalendarService\:\:getCalendarEvents\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/CalendarController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\CalendarService\:\:getDayView\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/CalendarController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\CalendarService\:\:getMonthView\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/CalendarController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\CalendarService\:\:getUpcomingDeadlines\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/CalendarController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\CalendarService\:\:getWeekView\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/CalendarController.php
+
+		-
+			message: '#^Parameter \#1 \$manager of method App\\Entity\\Client\:\:setManager\(\) expects App\\Entity\\User\|null, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/ClientController.php
+
+		-
+			message: '#^Parameter \#1 \$manager of method App\\Repository\\ClientRepository\:\:findByManager\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/ClientController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\CollaborationService\:\:getCollaborationStats\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/CollaborationController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\CollaborationService\:\:getMostFrequentCollaborators\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/CollaborationController.php
+
+		-
+			message: '#^Parameter \#1 \$user1 of method App\\Service\\CollaborationService\:\:getSharedTasks\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/CollaborationController.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\NotificationService\:\:notifyTaskComment\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Controller/CommentController.php
+
+		-
+			message: '#^Parameter \#1 \$author of method App\\Entity\\Comment\:\:setAuthor\(\) expects App\\Entity\\User\|null, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/CommentController.php
+
+		-
+			message: '#^Call to an undefined method Symfony\\Component\\Security\\Core\\User\\UserInterface\:\:getId\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Controller/DashboardController.php
+
+		-
+			message: '#^Parameter \#1 \$manager of method App\\Entity\\Deal\:\:setManager\(\) expects App\\Entity\\User\|null, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/DealController.php
+
+		-
+			message: '#^Parameter \#1 \$manager of method App\\Repository\\ClientRepository\:\:findByManager\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/DealController.php
+
+		-
+			message: '#^Parameter \#1 \$manager of method App\\Repository\\DealRepository\:\:findByManager\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/DealController.php
+
+		-
+			message: '#^Parameter \#1 \$manager of method App\\Repository\\DealRepository\:\:getDealsByStage\(\) expects App\\Entity\\User\|null, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/DealController.php
+
+		-
+			message: '#^Call to an undefined method App\\Repository\\TaskRepository\:\:findWithCriteria\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Controller/DocumentController.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\TaskFilterService\:\:applyFilter\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Controller/FilterController.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\TaskFilterService\:\:createCustomFilter\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Controller/FilterController.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\TaskFilterService\:\:getAllFilterCounts\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: src/Controller/FilterController.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\TaskFilterService\:\:getFilterCount\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Controller/FilterController.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\TaskFilterService\:\:getPredefinedFilters\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: src/Controller/FilterController.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\TaskFilterService\:\:getUserCustomFilters\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Controller/FilterController.php
+
+		-
+			message: '#^Attribute class Symfony\\Component\\Routing\\Annotation\\Route does not exist\.$#'
+			identifier: attribute.notFound
+			count: 8
+			path: src/Controller/GamificationController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\GamificationService\:\:getDailyChallenge\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/GamificationController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\GamificationService\:\:getUserAchievements\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/GamificationController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\GamificationService\:\:getUserLevel\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 3
+			path: src/Controller/GamificationController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\GamificationService\:\:getUserRank\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/GamificationController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\GamificationService\:\:getUserStreak\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/GamificationController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Repository\\GoalRepository\:\:findActiveGoalsByUser\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/GoalController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Repository\\HabitRepository\:\:findActiveByUser\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/HabitController.php
+
+		-
+			message: '#^Parameter \#2 \$x1 of function imageline expects int, float given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/IconController.php
+
+		-
+			message: '#^Parameter \#3 \$y1 of function imageline expects int, float given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/IconController.php
+
+		-
+			message: '#^Parameter \#4 \$x2 of function imageline expects int, float given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/IconController.php
+
+		-
+			message: '#^Parameter \#5 \$y2 of function imageline expects int, float given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/IconController.php
+
+		-
+			message: '#^Negated boolean expression is always false\.$#'
+			identifier: booleanNot.alwaysFalse
+			count: 1
+			path: src/Controller/ImportController.php
+
+		-
+			message: '#^Parameter \#2 \$creator of method App\\Service\\TaskImportService\:\:importFromCSV\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/ImportController.php
+
+		-
+			message: '#^Attribute class Symfony\\Component\\Routing\\Annotation\\Route does not exist\.$#'
+			identifier: attribute.notFound
+			count: 7
+			path: src/Controller/IntegrationController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\IntegrationService\:\:connectGitHub\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/IntegrationController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\IntegrationService\:\:connectJira\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/IntegrationController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\IntegrationService\:\:connectSlack\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/IntegrationController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\IntegrationService\:\:disconnectIntegration\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/IntegrationController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\IntegrationService\:\:getIntegrationStats\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/IntegrationController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\IntegrationService\:\:getUserIntegrations\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/IntegrationController.php
+
+		-
+			message: '#^Call to an undefined method App\\Entity\\Task\:\:setPosition\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Controller/KanbanController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\AuditLogService\:\:logTaskStatusChanged\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/KanbanController.php
+
+		-
+			message: '#^Attribute class Symfony\\Component\\Routing\\Annotation\\Route does not exist\.$#'
+			identifier: attribute.notFound
+			count: 11
+			path: src/Controller/MobileAPIController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\MobileAPIService\:\:getFilteredTasks\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/MobileAPIController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\MobileAPIService\:\:getMobileDashboard\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/MobileAPIController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\MobileAPIService\:\:getWidgetData\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/MobileAPIController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\MobileAPIService\:\:quickCreateTask\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/MobileAPIController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\MobileAPIService\:\:registerDevice\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/MobileAPIController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\MobileAPIService\:\:searchTasks\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/MobileAPIController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\MobileAPIService\:\:syncOfflineChanges\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/MobileAPIController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\NotificationPreferenceService\:\:getPreferences\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/NotificationPreferenceController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\NotificationPreferenceService\:\:getStatistics\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/NotificationPreferenceController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\NotificationPreferenceService\:\:sendTestNotification\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/NotificationPreferenceController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\NotificationPreferenceService\:\:updatePreferences\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/NotificationPreferenceController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\PerformanceMetricsService\:\:getPerformanceTrend\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/PerformanceController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\PerformanceMetricsService\:\:getUserMetrics\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 3
+			path: src/Controller/PerformanceController.php
+
+		-
+			message: '#^Call to an undefined method Symfony\\Component\\Security\\Core\\User\\UserInterface\:\:getEmail\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: src/Controller/ProfileController.php
+
+		-
+			message: '#^Call to an undefined method Symfony\\Component\\Security\\Core\\User\\UserInterface\:\:getId\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Controller/ProfileController.php
+
+		-
+			message: '#^Call to an undefined method Symfony\\Component\\Security\\Core\\User\\UserInterface\:\:setPassword\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Controller/ProfileController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method Symfony\\Component\\PasswordHasher\\Hasher\\UserPasswordHasherInterface\:\:hashPassword\(\) expects Symfony\\Component\\Security\\Core\\User\\PasswordAuthenticatedUserInterface, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/ProfileController.php
+
+		-
+			message: '#^Parameter \#2 \$user of method App\\Service\\QuickActionsService\:\:quickCreateTask\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/QuickActionsController.php
+
+		-
+			message: '#^Parameter \#2 \$currentUser of method App\\Service\\QuickSearchService\:\:search\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/QuickSearchController.php
+
+		-
+			message: '#^Parameter \#2 \$user of method App\\Service\\QuickSearchService\:\:getSuggestions\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/QuickSearchController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\NotificationService\:\:createNotificationStream\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/RealTimeNotificationController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\NotificationService\:\:getNotificationStats\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/RealTimeNotificationController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\NotificationService\:\:getUnreadNotifications\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/RealTimeNotificationController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\NotificationService\:\:markAllAsRead\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/RealTimeNotificationController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\ReportGeneratorService\:\:generateProductivityReport\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/ReportController.php
+
+		-
+			message: '#^Attribute class Symfony\\Component\\Routing\\Annotation\\Route does not exist\.$#'
+			identifier: attribute.notFound
+			count: 7
+			path: src/Controller/ReportingController.php
+
+		-
+			message: '#^Parameter \#1 \$config of method App\\Service\\AdvancedReportingService\:\:scheduleReport\(\) expects array, bool\|float\|int\|string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/ReportingController.php
+
+		-
+			message: '#^Parameter \#2 \$user of method App\\Service\\AdvancedReportingService\:\:generateCustomReport\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 4
+			path: src/Controller/ReportingController.php
+
+		-
+			message: '#^Parameter \#2 \$user of method App\\Service\\AdvancedReportingService\:\:scheduleReport\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/ReportingController.php
+
+		-
+			message: '#^Call to an undefined method App\\Entity\\User\:\:setResetPasswordRequestedAt\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: src/Controller/ResetPasswordController.php
+
+		-
+			message: '#^Call to an undefined method App\\Entity\\User\:\:setResetPasswordToken\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: src/Controller/ResetPasswordController.php
+
+		-
+			message: '#^Comparison operation "\>" between int\<1, max\> and 0 is always true\.$#'
+			identifier: greater.alwaysTrue
+			count: 1
+			path: src/Controller/SalesAnalyticsController.php
+
+		-
+			message: '#^Parameter \#3 \$managerId of method App\\Controller\\SalesAnalyticsController\:\:getSalesData\(\) expects int\|null, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/SalesAnalyticsController.php
+
+		-
+			message: '#^Parameter \#4 \$categoryId of method App\\Controller\\SalesAnalyticsController\:\:getSalesData\(\) expects int\|null, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/SalesAnalyticsController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\SmartSearchService\:\:getSavedSearches\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/SearchController.php
+
+		-
+			message: '#^Parameter \#2 \$user of method App\\Service\\SmartSearchService\:\:advancedSearch\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/SearchController.php
+
+		-
+			message: '#^Parameter \#2 \$user of method App\\Service\\SmartSearchService\:\:getSuggestions\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/SearchController.php
+
+		-
+			message: '#^Parameter \#2 \$user of method App\\Service\\SmartSearchService\:\:search\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/SearchController.php
+
+		-
+			message: '#^Parameter \#3 \$user of method App\\Service\\SmartSearchService\:\:saveSearch\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/SearchController.php
+
+		-
+			message: '#^Call to an undefined method Symfony\\Component\\Security\\Core\\User\\UserInterface\:\:getCreatedAt\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Controller/SettingsController.php
+
+		-
+			message: '#^Call to an undefined method Symfony\\Component\\Security\\Core\\User\\UserInterface\:\:getEmail\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Controller/SettingsController.php
+
+		-
+			message: '#^Call to an undefined method Symfony\\Component\\Security\\Core\\User\\UserInterface\:\:getFullName\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Controller/SettingsController.php
+
+		-
+			message: '#^Call to an undefined method Symfony\\Component\\Security\\Core\\User\\UserInterface\:\:getId\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: src/Controller/SettingsController.php
+
+		-
+			message: '#^Call to an undefined method Symfony\\Component\\Security\\Core\\User\\UserInterface\:\:getUsername\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Controller/SettingsController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\DashboardWidgetService\:\:getUserWidgets\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/SettingsController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\DashboardWidgetService\:\:saveUserWidgets\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/SettingsController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\TaskStatisticsService\:\:comparePeriods\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/StatisticsController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\TaskStatisticsService\:\:getComprehensiveStats\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 3
+			path: src/Controller/StatisticsController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Entity\\Tag\:\:setUser\(\) expects App\\Entity\\User\|null, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/TagController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Entity\\TaskCategory\:\:setUser\(\) expects App\\Entity\\User\|null, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/TaskCategoryController.php
+
+		-
+			message: '#^Call to an undefined method Symfony\\Component\\Security\\Core\\User\\UserInterface\:\:getId\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Controller/TaskController.php
+
+		-
+			message: '#^Call to function is_array\(\) with float\|int\<min, \-1\>\|int\<1, max\>\|non\-falsy\-string\|true will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 2
+			path: src/Controller/TaskController.php
+
+		-
+			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Controller/TaskController.php
+
+		-
+			message: '#^Call to method sanitizeInput\(\) on an unknown class App\\Controller\\SanitizationService\.$#'
+			identifier: class.notFound
+			count: 2
+			path: src/Controller/TaskController.php
+
+		-
+			message: '#^Method App\\Controller\\TaskController\:\:handleBulkTagAssignment\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: src/Controller/TaskController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Entity\\Task\:\:setUser\(\) expects App\\Entity\\User\|null, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 3
+			path: src/Controller/TaskController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Entity\\TaskRecurrence\:\:setUser\(\) expects App\\Entity\\User\|null, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/TaskController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Repository\\TaskRepository\:\:getQuickStats\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/TaskController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\TaskInsightsService\:\:getDashboardInsights\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/TaskController.php
+
+		-
+			message: '#^Parameter \#2 \$assigner of method App\\Service\\NotificationService\:\:sendTaskAssignmentNotification\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/TaskController.php
+
+		-
+			message: '#^Parameter \#2 \$completer of method App\\Service\\NotificationService\:\:sendTaskCompletionNotification\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/TaskController.php
+
+		-
+			message: '#^Parameter \#2 \$default of method Symfony\\Component\\HttpFoundation\\InputBag\<bool\|float\|int\|string\|null\>\:\:get\(\) expects bool\|float\|int\|string\|null, array given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/TaskController.php
+
+		-
+			message: '#^Parameter \$sanitizationService of method App\\Controller\\TaskController\:\:quickCreate\(\) has invalid type App\\Controller\\SanitizationService\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Controller/TaskController.php
+
+		-
+			message: '#^Result of \|\| is always true\.$#'
+			identifier: booleanOr.alwaysTrue
+			count: 2
+			path: src/Controller/TaskController.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 2
+			path: src/Controller/TaskController.php
+
+		-
+			message: '#^Call to an undefined method App\\Entity\\Task\:\:getAssignedTo\(\)\.$#'
+			identifier: method.notFound
+			count: 6
+			path: src/Controller/TaskDependencyController.php
+
+		-
+			message: '#^Attribute class Symfony\\Component\\Routing\\Annotation\\Route does not exist\.$#'
+			identifier: attribute.notFound
+			count: 6
+			path: src/Controller/TaskHistoryController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\TaskHistoryService\:\:getUserActivity\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/TaskHistoryController.php
+
+		-
+			message: '#^Parameter \#1 \$sender of method App\\Entity\\TaskNotification\:\:setSender\(\) expects App\\Entity\\User\|null, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/TaskNotificationController.php
+
+		-
+			message: '#^Offset ''description'' on array\{title\: ''Изучить новую…'', priority\: ''medium'', description\: ''Погрузиться в…''\}\|array\{title\: ''Назначить сроки'', priority\: ''medium'', description\: ''Установить…''\}\|array\{title\: ''Обзор целей на…'', priority\: ''high'', description\: ''Определить ключевые…''\}\|array\{title\: ''Обновить статус…'', priority\: ''high'', description\: ''Обновить прогресс…''\}\|array\{title\: ''Определить цели…'', priority\: ''high'', description\: ''Четко…''\}\|array\{title\: ''План на день'', priority\: ''medium'', description\: ''Составить список…''\}\|array\{title\: ''Планирование встреч'', priority\: ''medium'', description\: ''Запланировать…''\}\|array\{title\: ''Подготовка отчетов'', priority\: ''medium'', description\: ''Подготовить…''\}\|array\{title\: ''Практические…'', priority\: ''low'', description\: ''Выполнить…''\}\|array\{title\: ''Проверить почту'', priority\: ''medium'', description\: ''Проверить рабочую и…''\}\|array\{title\: ''Пройти онлайн\-курс'', priority\: ''medium'', description\: ''Зарегистрироваться…''\}\|array\{title\: ''Собрать команду'', priority\: ''high'', description\: ''Определить состав…''\}\|array\{title\: ''Создать план…'', priority\: ''high'', description\: ''Разработать…''\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Controller/TaskTemplateController.php
+
+		-
+			message: '#^Parameter \#1 \$assignedUser of method App\\Entity\\Task\:\:setAssignedUser\(\) expects App\\Entity\\User\|null, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/TaskTemplateController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Entity\\Task\:\:setCreatedBy\(\) expects App\\Entity\\User\|null, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/TaskTemplateController.php
+
+		-
+			message: '#^Attribute class Symfony\\Component\\Routing\\Annotation\\Route does not exist\.$#'
+			identifier: attribute.notFound
+			count: 9
+			path: src/Controller/TemplateController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\TaskTemplateLibraryService\:\:getUserCustomTemplates\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/TemplateController.php
+
+		-
+			message: '#^Parameter \#2 \$template of method App\\Service\\TaskTemplateLibraryService\:\:createCustomTemplate\(\) expects array, bool\|float\|int\|string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/TemplateController.php
+
+		-
+			message: '#^Parameter \#2 \$user of method App\\Service\\TaskTemplateLibraryService\:\:createFromTemplate\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/TemplateController.php
+
+		-
+			message: '#^Parameter \#3 \$user of method App\\Service\\TaskTemplateLibraryService\:\:createCustomTemplate\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/TemplateController.php
+
+		-
+			message: '#^Method App\\Service\\TimeTrackingService\:\:getActiveSession\(\) invoked with 0 parameters, 1 required\.$#'
+			identifier: arguments.count
+			count: 2
+			path: src/Controller/TimeTrackingController.php
+
+		-
+			message: '#^Method App\\Service\\TimeTrackingService\:\:stopTracking\(\) invoked with 0 parameters, 2 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: src/Controller/TimeTrackingController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\TimeTrackingService\:\:getReport\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/TimeTrackingController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\TimeTrackingService\:\:getStatistics\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/TimeTrackingController.php
+
+		-
+			message: '#^Parameter \#2 \$user of method App\\Service\\TimeTrackingService\:\:startTracking\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/TimeTrackingController.php
+
+		-
+			message: '#^Trait App\\Controller\\Trait\\TaskAccessTrait is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: src/Controller/Trait/TaskAccessTrait.php
+
+		-
+			message: '#^Trait App\\Controller\\Traits\\ApiResponseTrait is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: src/Controller/Traits/ApiResponseTrait.php
+
+		-
+			message: '#^Call to an undefined method Symfony\\Component\\Security\\Core\\User\\UserInterface\:\:getBackupCodes\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Controller/TwoFactorController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\TwoFactorAuthService\:\:disableTwoFactor\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/TwoFactorController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\TwoFactorAuthService\:\:enableTwoFactor\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/TwoFactorController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\TwoFactorAuthService\:\:generateBackupCodes\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/TwoFactorController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\TwoFactorAuthService\:\:getTwoFactorStatus\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 3
+			path: src/Controller/TwoFactorController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\TwoFactorAuthService\:\:isTwoFactorEnabled\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 4
+			path: src/Controller/TwoFactorController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\TwoFactorAuthService\:\:regenerateBackupCodes\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/TwoFactorController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\TwoFactorAuthService\:\:verifyAndActivate\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/TwoFactorController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\TwoFactorAuthService\:\:verifyBackupCode\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/TwoFactorController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\TwoFactorAuthService\:\:verifyCode\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/TwoFactorController.php
+
+		-
+			message: '#^Attribute class Symfony\\Component\\Routing\\Annotation\\Route does not exist\.$#'
+			identifier: attribute.notFound
+			count: 10
+			path: src/Controller/ViewsController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\AdvancedFilterViewService\:\:getDefaultView\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/ViewsController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Service\\AdvancedFilterViewService\:\:getUserViews\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/ViewsController.php
+
+		-
+			message: '#^Parameter \#2 \$default of method Symfony\\Component\\HttpFoundation\\InputBag\<bool\|float\|int\|string\|null\>\:\:get\(\) expects bool\|float\|int\|string\|null, array given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/ViewsController.php
+
+		-
+			message: '#^Parameter \#2 \$filters of method App\\Service\\AdvancedFilterViewService\:\:createCustomView\(\) expects array, bool\|float\|int\|string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/ViewsController.php
+
+		-
+			message: '#^Parameter \#2 \$user of method App\\Service\\AdvancedFilterViewService\:\:applyView\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/ViewsController.php
+
+		-
+			message: '#^Parameter \#2 \$user of method App\\Service\\AdvancedFilterViewService\:\:duplicateView\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/ViewsController.php
+
+		-
+			message: '#^Parameter \#2 \$user of method App\\Service\\AdvancedFilterViewService\:\:exportView\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/ViewsController.php
+
+		-
+			message: '#^Parameter \#2 \$user of method App\\Service\\AdvancedFilterViewService\:\:setDefaultView\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/ViewsController.php
+
+		-
+			message: '#^Parameter \#3 \$columns of method App\\Service\\AdvancedFilterViewService\:\:createCustomView\(\) expects array, bool\|float\|int\|string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/ViewsController.php
+
+		-
+			message: '#^Parameter \#4 \$user of method App\\Service\\AdvancedFilterViewService\:\:createCustomView\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/ViewsController.php
+
+		-
+			message: '#^Property App\\Entity\\ActivityLog\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/ActivityLog.php
+
+		-
+			message: '#^Property App\\Entity\\Budget\:\:\$createdBy is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Entity/Budget.php
+
+		-
+			message: '#^Property App\\Entity\\Budget\:\:\$currency \(string\|null\) is never assigned null so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/Budget.php
+
+		-
+			message: '#^Property App\\Entity\\Budget\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/Budget.php
+
+		-
+			message: '#^Property App\\Entity\\Budget\:\:\$name is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Entity/Budget.php
+
+		-
+			message: '#^Property App\\Entity\\Budget\:\:\$spentAmount is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Entity/Budget.php
+
+		-
+			message: '#^Property App\\Entity\\Budget\:\:\$totalAmount is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Entity/Budget.php
+
+		-
+			message: '#^Property App\\Entity\\Category\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/Category.php
+
+		-
+			message: '#^Property App\\Entity\\Client\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/Client.php
+
+		-
+			message: '#^Property App\\Entity\\ClientInteraction\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/ClientInteraction.php
+
+		-
+			message: '#^Property App\\Entity\\Comment\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/Comment.php
+
+		-
+			message: '#^Property App\\Entity\\Deal\:\:\$amount \(string\|null\) is never assigned null so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/Deal.php
+
+		-
+			message: '#^Property App\\Entity\\Deal\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/Deal.php
+
+		-
+			message: '#^Property App\\Entity\\DealHistory\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/DealHistory.php
+
+		-
+			message: '#^Property App\\Entity\\Document\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/Document.php
+
+		-
+			message: '#^Binary operation "/" between string\|null and string results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: src/Entity/Goal.php
+
+		-
+			message: '#^Property App\\Entity\\Goal\:\:\$currentValue \(string\|null\) is never assigned null so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/Goal.php
+
+		-
+			message: '#^Property App\\Entity\\Goal\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/Goal.php
+
+		-
+			message: '#^Property App\\Entity\\Goal\:\:\$priority \(string\|null\) is never assigned null so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/Goal.php
+
+		-
+			message: '#^Property App\\Entity\\Goal\:\:\$status \(string\|null\) is never assigned null so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/Goal.php
+
+		-
+			message: '#^Property App\\Entity\\GoalMilestone\:\:\$completed \(bool\|null\) is never assigned null so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/GoalMilestone.php
+
+		-
+			message: '#^Property App\\Entity\\GoalMilestone\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/GoalMilestone.php
+
+		-
+			message: '#^Property App\\Entity\\Habit\:\:\$active \(bool\|null\) is never assigned null so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/Habit.php
+
+		-
+			message: '#^Property App\\Entity\\Habit\:\:\$category \(string\|null\) is never assigned null so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/Habit.php
+
+		-
+			message: '#^Property App\\Entity\\Habit\:\:\$color \(string\|null\) is never assigned null so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/Habit.php
+
+		-
+			message: '#^Property App\\Entity\\Habit\:\:\$frequency \(string\|null\) is never assigned null so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/Habit.php
+
+		-
+			message: '#^Property App\\Entity\\Habit\:\:\$icon \(string\|null\) is never assigned null so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/Habit.php
+
+		-
+			message: '#^Property App\\Entity\\Habit\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/Habit.php
+
+		-
+			message: '#^Property App\\Entity\\Habit\:\:\$targetCount \(int\|null\) is never assigned null so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/Habit.php
+
+		-
+			message: '#^Property App\\Entity\\HabitLog\:\:\$count \(int\|null\) is never assigned null so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/HabitLog.php
+
+		-
+			message: '#^Property App\\Entity\\HabitLog\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/HabitLog.php
+
+		-
+			message: '#^Property App\\Entity\\Notification\:\:\$id is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: src/Entity/Notification.php
+
+		-
+			message: '#^Parameter \#1 \$expiresAt of method App\\Entity\\ResetPasswordRequest\:\:initialize\(\) expects DateTimeInterface, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Entity/ResetPasswordRequest.php
+
+		-
+			message: '#^Parameter \#3 \$hashedToken of method App\\Entity\\ResetPasswordRequest\:\:initialize\(\) expects string, DateTimeImmutable given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Entity/ResetPasswordRequest.php
+
+		-
+			message: '#^Property App\\Entity\\ResetPasswordRequest\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/ResetPasswordRequest.php
+
+		-
+			message: '#^Property App\\Entity\\Tag\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/Tag.php
+
+		-
+			message: '#^Parameter \#1 \$dependencyTask of method App\\Entity\\TaskDependency\:\:setDependencyTask\(\) expects App\\Entity\\Task, null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Entity/Task.php
+
+		-
+			message: '#^Parameter \#1 \$dependentTask of method App\\Entity\\TaskDependency\:\:setDependentTask\(\) expects App\\Entity\\Task, null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Entity/Task.php
+
+		-
+			message: '#^Parameter \#1 \$task of method App\\Entity\\TaskRecurrence\:\:setTask\(\) expects App\\Entity\\Task, null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Entity/Task.php
+
+		-
+			message: '#^Property App\\Entity\\Task\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/Task.php
+
+		-
+			message: '#^Property App\\Entity\\TaskAttachment\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/TaskAttachment.php
+
+		-
+			message: '#^Property App\\Entity\\TaskAutomation\:\:\$executionCount \(int\|null\) is never assigned null so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/TaskAutomation.php
+
+		-
+			message: '#^Property App\\Entity\\TaskAutomation\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/TaskAutomation.php
+
+		-
+			message: '#^Property App\\Entity\\TaskAutomation\:\:\$isActive \(bool\|null\) is never assigned null so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/TaskAutomation.php
+
+		-
+			message: '#^Property App\\Entity\\TaskCategory\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/TaskCategory.php
+
+		-
+			message: '#^Property App\\Entity\\TaskDependency\:\:\$id is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: src/Entity/TaskDependency.php
+
+		-
+			message: '#^Property App\\Entity\\TaskHistory\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/TaskHistory.php
+
+		-
+			message: '#^Property App\\Entity\\TaskNotification\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/TaskNotification.php
+
+		-
+			message: '#^Property App\\Entity\\TaskNotification\:\:\$isRead \(bool\|null\) is never assigned null so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/TaskNotification.php
+
+		-
+			message: '#^Property App\\Entity\\TaskNotification\:\:\$isSent \(bool\|null\) is never assigned null so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/TaskNotification.php
+
+		-
+			message: '#^Property App\\Entity\\TaskRecurrence\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/TaskRecurrence.php
+
+		-
+			message: '#^Property App\\Entity\\TaskTimeTracking\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/TaskTimeTracking.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Entity\\Notification\:\:setUser\(\) expects App\\Entity\\User, null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Entity/User.php
+
+		-
+			message: '#^Property App\\Entity\\User\:\:\$activityLogs is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Entity/User.php
+
+		-
+			message: '#^Property App\\Entity\\User\:\:\$comments is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Entity/User.php
+
+		-
+			message: '#^Property App\\Entity\\User\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/User.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Repository\\TaskRepository\:\:getQuickStats\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/EventListener/TwigGlobalListener.php
+
+		-
+			message: '#^Call to function is_object\(\) with Symfony\\Component\\Security\\Core\\User\\UserInterface will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/EventSubscriber/SecurityEventSubscriber.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Repository\\ActivityLogRepository\:\:logLoginEvent\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/EventSubscriber/SecurityEventSubscriber.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Repository\\ActivityLogRepository\:\:logLogoutEvent\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/EventSubscriber/SecurityEventSubscriber.php
+
+		-
+			message: '#^Property App\\Form\\TaskType\:\:\$categoryRepository is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Form/TaskType.php
+
+		-
+			message: '#^Property App\\Form\\TaskType\:\:\$tagRepository is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Form/TaskType.php
+
+		-
+			message: '#^Property App\\Form\\TaskType\:\:\$userRepository is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Form/TaskType.php
+
+		-
+			message: '#^Instantiated class App\\Validator\\Constraints\\PasswordStrength not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Form/UserType.php
+
+		-
+			message: '#^Deprecated in PHP 8\.4\: Parameter \#1 \$eventName \(string\) is implicitly nullable via default value null\.$#'
+			identifier: parameter.implicitlyNullable
+			count: 1
+			path: src/Infrastructure/EventStore/EventStore.php
+
+		-
+			message: '#^Deprecated in PHP 8\.4\: Parameter \#2 \$since \(DateTimeImmutable\) is implicitly nullable via default value null\.$#'
+			identifier: parameter.implicitlyNullable
+			count: 1
+			path: src/Infrastructure/EventStore/EventStore.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\QueryCacheService\:\:cacheDashboardStats\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Repository/ActivityLogRepository.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\QueryCacheService\:\:invalidateUserCache\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Repository/ActivityLogRepository.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\QueryCacheService\:\:cacheDashboardStats\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Repository/CommentRepository.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\QueryCacheService\:\:invalidateUserCache\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Repository/CommentRepository.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: src/Repository/DealRepository.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\QueryCacheService\:\:cacheDashboardStats\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Repository/NotificationRepository.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\QueryCacheService\:\:invalidateUserCache\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Repository/NotificationRepository.php
+
+		-
+			message: '#^Parameter \#4 \$expiresAt of class App\\Entity\\ResetPasswordRequest constructor expects DateTimeImmutable, DateTimeInterface given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Repository/ResetPasswordRequestRepository.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\QueryCacheService\:\:cacheDashboardStats\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Repository/TagRepository.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\QueryCacheService\:\:invalidateUserCache\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Repository/TagRepository.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\QueryCacheService\:\:cacheDashboardStats\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Repository/TaskCategoryRepository.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\QueryCacheService\:\:invalidateUserCache\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Repository/TaskCategoryRepository.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\QueryCacheService\:\:cacheDashboardStats\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Repository/TaskDependencyRepository.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\QueryCacheService\:\:invalidateUserCache\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Repository/TaskDependencyRepository.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\QueryCacheService\:\:cacheDashboardStats\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Repository/TaskNotificationRepository.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\QueryCacheService\:\:invalidateUserCache\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Repository/TaskNotificationRepository.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\QueryCacheService\:\:cacheDashboardStats\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Repository/TaskRecurrenceRepository.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\QueryCacheService\:\:invalidateUserCache\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Repository/TaskRecurrenceRepository.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\QueryCacheService\:\:cacheDashboardStats\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Repository/TaskRepository.php
+
+		-
+			message: '#^Comparison operation "\>" between int\<1, max\> and 0 is always true\.$#'
+			identifier: greater.alwaysTrue
+			count: 1
+			path: src/Repository/TaskRepository.php
+
+		-
+			message: '#^Right side of && is always true\.$#'
+			identifier: booleanAnd.rightAlwaysTrue
+			count: 12
+			path: src/Repository/TaskRepository.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\QueryCacheService\:\:cacheDashboardStats\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Repository/TaskTimeTrackingRepository.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\QueryCacheService\:\:invalidateUserCache\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Repository/TaskTimeTrackingRepository.php
+
+		-
+			message: '#^Trait App\\Repository\\Traits\\QueryBuilderTrait is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: src/Repository/Traits/QueryBuilderTrait.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\QueryCacheService\:\:cacheDashboardStats\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Repository/UserRepository.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\QueryCacheService\:\:invalidateUserCache\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Repository/UserRepository.php
+
+		-
+			message: '#^Call to function is_array\(\) with array will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 2
+			path: src/Service/APIOptimizationService.php
+
+		-
+			message: '#^Property App\\Service\\ActivityFeedService\:\:\$commentRepository is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/ActivityFeedService.php
+
+		-
+			message: '#^Property App\\Service\\ActivityFeedService\:\:\$entityManager is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/ActivityFeedService.php
+
+		-
+			message: '#^Property App\\Service\\ActivityFeedService\:\:\$taskRepository is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/ActivityFeedService.php
+
+		-
+			message: '#^Property App\\Service\\AdvancedAnalyticsService\:\:\$taskRepository is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/AdvancedAnalyticsService.php
+
+		-
+			message: '#^Property App\\Service\\AdvancedCacheService\:\:\$cachePool is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/AdvancedCacheService.php
+
+		-
+			message: '#^Property App\\Service\\AdvancedReportingService\:\:\$entityManager is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/AdvancedReportingService.php
+
+		-
+			message: '#^Property App\\Service\\AdvancedTimeTrackingService\:\:\$entityManager is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/AdvancedTimeTrackingService.php
+
+		-
+			message: '#^Offset ''tag_completion_rates'' on array\{tag_distribution\: array\{\}, tag_completion_rates\: array\{\}\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Service/AnalyticsService.php
+
+		-
+			message: '#^Offset ''tag_distribution'' on array\{tag_distribution\: array\{\}, tag_completion_rates\: array\{\}\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Service/AnalyticsService.php
+
+		-
+			message: '#^Property App\\Service\\AnalyticsService\:\:\$logger is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/AnalyticsService.php
+
+		-
+			message: '#^Property App\\Service\\ApiPerformanceMonitorService\:\:\$connection is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/ApiPerformanceMonitorService.php
+
+		-
+			message: '#^Property App\\Service\\ApiPerformanceMonitorService\:\:\$container is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/ApiPerformanceMonitorService.php
+
+		-
+			message: '#^Access to undefined constant Symfony\\Component\\Serializer\\Normalizer\\AbstractNormalizer\:\:SKIP_NULL_VALUES\.$#'
+			identifier: classConstant.notFound
+			count: 1
+			path: src/Service/ApiResponseOptimizer.php
+
+		-
+			message: '#^Property App\\Service\\AssetOptimizationService\:\:\$filesystem is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/AssetOptimizationService.php
+
+		-
+			message: '#^Call to an undefined method App\\Entity\\ActivityLog\:\:setEntityId\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Service/AuditLogService.php
+
+		-
+			message: '#^Call to an undefined method App\\Entity\\ActivityLog\:\:setEntityType\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Service/AuditLogService.php
+
+		-
+			message: '#^Call to an undefined method App\\Entity\\ActivityLog\:\:setMetadata\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Service/AuditLogService.php
+
+		-
+			message: '#^Parameter \#1 \$createdAt of method App\\Entity\\ActivityLog\:\:setCreatedAt\(\) expects DateTimeImmutable, DateTime given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/AuditLogService.php
+
+		-
+			message: '#^Property App\\Service\\BudgetService\:\:\$entityManager is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/BudgetService.php
+
+		-
+			message: '#^Call to an undefined method Symfony\\Contracts\\Cache\\CacheInterface\:\:clear\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Service/CacheOptimizationService.php
+
+		-
+			message: '#^Call to an undefined method App\\Repository\\TaskRepository\:\:save\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Service/CalendarService.php
+
+		-
+			message: '#^Parameter \#1 \$array of function usort contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: src/Service/CollaborationService.php
+
+		-
+			message: '#^Parameter \#2 \$callback of function usort contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: src/Service/CollaborationService.php
+
+		-
+			message: '#^Property App\\Service\\CollaborationService\:\:\$entityManager is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/CollaborationService.php
+
+		-
+			message: '#^Undefined variable\: \$user$#'
+			identifier: variable.undefined
+			count: 2
+			path: src/Service/CollaborationService.php
+
+		-
+			message: '#^Parameter \#1 \$array of function usort contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: src/Service/CssOptimizerService.php
+
+		-
+			message: '#^Parameter \#2 \$callback of function usort contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: src/Service/CssOptimizerService.php
+
+		-
+			message: '#^Property App\\Service\\CssOptimizerService\:\:\$filesystem is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/CssOptimizerService.php
+
+		-
+			message: '#^Call to an undefined method Symfony\\Contracts\\Cache\\CacheInterface\:\:clear\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Service/DataCacheWarmer.php
+
+		-
+			message: '#^Call to protected method getEntityManager\(\) of class Doctrine\\Bundle\\DoctrineBundle\\Repository\\ServiceEntityRepository\<App\\Entity\\User\>\.$#'
+			identifier: method.protected
+			count: 1
+			path: src/Service/DataCacheWarmer.php
+
+		-
+			message: '#^Call to an undefined method Doctrine\\DBAL\\Platforms\\AbstractPlatform\:\:getName\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Service/DatabaseOptimizationService.php
+
+		-
+			message: '#^Class Doctrine\\DBAL\\Platforms\\SQLitePlatform referenced with incorrect case\: Doctrine\\DBAL\\Platforms\\SqlitePlatform\.$#'
+			identifier: class.nameCase
+			count: 1
+			path: src/Service/DatabaseOptimizerService.php
+
+		-
+			message: '#^Property App\\Service\\DatabaseOptimizerService\:\:\$container is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/DatabaseOptimizerService.php
+
+		-
+			message: '#^Call to an undefined method App\\Entity\\User\:\:getPhoneNumber\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Service/DeadlineNotificationService.php
+
+		-
+			message: '#^Property App\\Service\\EmailNotificationService\:\:\$urlGenerator is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/EmailNotificationService.php
+
+		-
+			message: '#^Property App\\Service\\EventStreamManager\:\:\$entityManager is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/EventStreamManager.php
+
+		-
+			message: '#^Property App\\Service\\EventStreamManager\:\:\$logger is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/EventStreamManager.php
+
+		-
+			message: '#^Deprecated in PHP 8\.4\: Parameter \#3 \$amount \(int\) is implicitly nullable via default value null\.$#'
+			identifier: parameter.implicitlyNullable
+			count: 1
+			path: src/Service/GamificationService.php
+
+		-
+			message: '#^Dead catch \- Exception is never thrown in the try block\.$#'
+			identifier: catch.neverThrown
+			count: 2
+			path: src/Service/HealthCheckService.php
+
+		-
+			message: '#^If condition is always true\.$#'
+			identifier: if.alwaysTrue
+			count: 1
+			path: src/Service/HealthCheckService.php
+
+		-
+			message: '#^Parameter \#1 \$bytes of method App\\Service\\HealthCheckService\:\:formatBytes\(\) expects int, float given\.$#'
+			identifier: argument.type
+			count: 3
+			path: src/Service/HealthCheckService.php
+
+		-
+			message: '#^Property App\\Service\\HealthCheckService\:\:\$requestStack is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/HealthCheckService.php
+
+		-
+			message: '#^Deprecated in PHP 8\.4\: Parameter \#2 \$min \(int\) is implicitly nullable via default value null\.$#'
+			identifier: parameter.implicitlyNullable
+			count: 1
+			path: src/Service/InputValidationService.php
+
+		-
+			message: '#^Deprecated in PHP 8\.4\: Parameter \#3 \$max \(int\) is implicitly nullable via default value null\.$#'
+			identifier: parameter.implicitlyNullable
+			count: 1
+			path: src/Service/InputValidationService.php
+
+		-
+			message: '#^Property App\\Service\\MemoryUsageMonitorService\:\:\$container is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/MemoryUsageMonitorService.php
+
+		-
+			message: '#^Call to an undefined method App\\Service\\NotificationService\:\:notifyMention\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Service/MentionService.php
+
+		-
+			message: '#^Access to an undefined property App\\Service\\MobileAPIService\:\:\$entityManager\.$#'
+			identifier: property.notFound
+			count: 1
+			path: src/Service/MobileAPIService.php
+
+		-
+			message: '#^Property App\\Service\\PerformanceAuditService\:\:\$entityManager is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/PerformanceAuditService.php
+
+		-
+			message: '#^Property App\\Service\\QueryPerformanceMonitor\:\:\$profiler is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/QueryPerformanceMonitor.php
+
+		-
+			message: '#^Call to an undefined method App\\Entity\\Notification\:\:setCreatedAt\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Service/RealTimeNotificationService.php
+
+		-
+			message: '#^Call to an undefined method App\\Entity\\Notification\:\:setMetadata\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Service/RealTimeNotificationService.php
+
+		-
+			message: '#^Call to an undefined method App\\Entity\\Notification\:\:setType\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Service/RealTimeNotificationService.php
+
+		-
+			message: '#^Empty array passed to foreach\.$#'
+			identifier: foreach.emptyArray
+			count: 1
+			path: src/Service/RecurringTaskService.php
+
+		-
+			message: '#^Call to an undefined method App\\Entity\\TaskNotification\:\:getUser\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Service/ReminderService.php
+
+		-
+			message: '#^Call to an undefined method App\\Entity\\TaskNotification\:\:setScheduledFor\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: src/Service/ReminderService.php
+
+		-
+			message: '#^Call to an undefined method App\\Entity\\TaskNotification\:\:setSentAt\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Service/ReminderService.php
+
+		-
+			message: '#^Call to an undefined method App\\Entity\\TaskNotification\:\:setUser\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Service/ReminderService.php
+
+		-
+			message: '#^Call to an undefined method DateTimeInterface\:\:modify\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: src/Service/ReminderService.php
+
+		-
+			message: '#^Call to an undefined method Doctrine\\ORM\\Query\:\:useResultCache\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Service/RepositoryOptimizationService.php
+
+		-
+			message: '#^Call to an undefined method App\\Entity\\Tag\:\:setSlug\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Service/TagManagementService.php
+
+		-
+			message: '#^Property App\\Service\\TaskDependencyService\:\:\$taskRepository is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/TaskDependencyService.php
+
+		-
+			message: '#^If condition is always true\.$#'
+			identifier: if.alwaysTrue
+			count: 1
+			path: src/Service/TaskExportService.php
+
+		-
+			message: '#^Parameter \#2 \$value of method SimpleXMLElement\:\:addAttribute\(\) expects string, int\<0, max\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/TaskExportService.php
+
+		-
+			message: '#^Property App\\Service\\TaskExportService\:\:\$taskRepository is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/TaskExportService.php
+
+		-
+			message: '#^Right side of && is always true\.$#'
+			identifier: booleanAnd.rightAlwaysTrue
+			count: 1
+			path: src/Service/TaskExportService.php
+
+		-
+			message: '#^Variable \$data in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
+			count: 1
+			path: src/Service/TaskImportService.php
+
+		-
+			message: '#^Property App\\Service\\TaskInsightsService\:\:\$userRepository is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/TaskInsightsService.php
+
+		-
+			message: '#^Method App\\Repository\\TaskCategoryRepository\:\:findByUser\(\) invoked with 2 parameters, 1 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: src/Service/TaskPerformanceOptimizerService.php
+
+		-
+			message: '#^Method App\\Repository\\TaskRepository\:\:searchTasks\(\) invoked with 2 parameters, 0\-1 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: src/Service/TaskPerformanceOptimizerService.php
+
+		-
+			message: '#^Property App\\Service\\TaskPerformanceOptimizerService\:\:\$queryCacheService is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/TaskPerformanceOptimizerService.php
+
+		-
+			message: '#^Property App\\Service\\TaskPerformanceOptimizerService\:\:\$userRepository is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/TaskPerformanceOptimizerService.php
+
+		-
+			message: '#^Method App\\Service\\TaskVersioningService\:\:getPreviousVersion\(\) never returns array so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: src/Service/TaskVersioningService.php
+
+		-
+			message: '#^Property App\\Service\\TeamCollaborationService\:\:\$entityManager is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/TeamCollaborationService.php
+
+		-
+			message: '#^Property App\\Service\\TemplateService\:\:\$taskRepository is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/TemplateService.php
+
+		-
+			message: '#^Match expression does not handle remaining value\: string$#'
+			identifier: match.unhandled
+			count: 1
+			path: src/Service/ThemeOptimizationService.php
+
+		-
+			message: '#^Property App\\Service\\ThemeOptimizationService\:\:\$filesystem is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/ThemeOptimizationService.php
+
+		-
+			message: '#^Property App\\Service\\TimeTrackingService\:\:\$entityManager is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/TimeTrackingService.php
+
+		-
+			message: '#^Property App\\Service\\TwigOptimizationService\:\:\$filesystem is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/TwigOptimizationService.php
+
+		-
+			message: '#^Parameter \#1 \$totpEnabledAt of method App\\Entity\\User\:\:setTotpEnabledAt\(\) expects DateTimeImmutable, DateTime given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/TwoFactorAuthService.php
+
+		-
+			message: '#^Parameter \#1 \$totpEnabledAt of method App\\Entity\\User\:\:setTotpEnabledAt\(\) expects DateTimeImmutable, null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/TwoFactorAuthService.php
+
+		-
+			message: '#^Method Doctrine\\Persistence\\ObjectManager\:\:flush\(\) invoked with 1 parameter, 0 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: src/Service/UserLastLoginService.php
+
+		-
+			message: '#^Deprecated in PHP 8\.4\: Parameter \#1 \$options \(array\) is implicitly nullable via default value null\.$#'
+			identifier: parameter.implicitlyNullable
+			count: 1
+			path: src/Validator/Constraints/EmailDomain.php
+
+		-
+			message: '#^Deprecated in PHP 8\.4\: Parameter \#2 \$groups \(array\) is implicitly nullable via default value null\.$#'
+			identifier: parameter.implicitlyNullable
+			count: 1
+			path: src/Validator/Constraints/EmailDomain.php
+
+		-
+			message: '#^Deprecated in PHP 8\.4\: Parameter \#6 \$message \(string\) is implicitly nullable via default value null\.$#'
+			identifier: parameter.implicitlyNullable
+			count: 1
+			path: src/Validator/Constraints/EmailDomain.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsArray\(\) with array will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Unit/Service/TimeTrackingServiceTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsInt\(\) with int will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Unit/Service/TimeTrackingServiceTest.php
+
+		-
+			message: '#^Property App\\Tests\\Unit\\Service\\TimeTrackingServiceTest\:\:\$repository is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: tests/Unit/Service/TimeTrackingServiceTest.php
+
+		-
+			message: '#^Call to function method_exists\(\) with ''Symfony\\\\Component\\\\Dotenv\\\\Dotenv'' and ''bootEnv'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: tests/bootstrap.php

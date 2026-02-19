@@ -51,6 +51,11 @@ class DoctrineBatchProcessor
         $qb = $repository->createQueryBuilder('e');
         
         foreach ($criteria as $field => $value) {
+            // Валидация имени поля
+            if (!preg_match('/^[a-zA-Z0-9_]+$/', $field)) {
+                continue;
+            }
+            
             $qb->andWhere("e.$field = :$field")
                ->setParameter($field, $value);
         }
@@ -108,6 +113,11 @@ class DoctrineBatchProcessor
         $qb = $repository->createQueryBuilder('e');
         
         foreach ($criteria as $field => $value) {
+            // Валидация имени поля
+            if (!preg_match('/^[a-zA-Z0-9_]+$/', $field)) {
+                continue;
+            }
+            
             $qb->andWhere("e.$field = :$field")
                ->setParameter($field, $value);
         }

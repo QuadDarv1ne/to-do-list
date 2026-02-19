@@ -177,9 +177,9 @@ class NotificationService
                 flush();
 
                 $lastCheck = new \DateTime();
-                $heartbeatInterval = 30; // seconds
-                $checkInterval = 10; // seconds
-                $maxDuration = 600; // 10 minutes maximum connection time
+                $heartbeatInterval = 45; // seconds
+                $checkInterval = 15; // seconds
+                $maxDuration = 900; // 15 minutes maximum connection time
                 $startTime = time();
                 
                 while ((time() - $startTime) < $maxDuration && !connection_aborted()) {

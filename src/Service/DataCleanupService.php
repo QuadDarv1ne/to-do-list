@@ -16,6 +16,90 @@ class DataCleanupService
     ) {}
 
     /**
+     * Получить статистику старых данных
+     */
+    public function getOldDataStatistics(int $daysToCheck = 90): array
+    {
+        $cutoffDate = new \DateTime("-{$daysToCheck} days");
+
+        return [
+            'activity_logs_old' => $this->countOldActivityLogs($daysToCheck),
+            'notifications_read_old' => $this->countOldReadNotifications($daysToCheck),
+            'tasks_completed_old' => $this->countOldCompletedTasks($daysToCheck),
+            'cutoff_date' => $cutoffDate->format('Y-m-d H:i:s'),
+            'estimated_cleanup_time' => '5-10 минут'
+        ];
+    }
+
+    /**
+     * Выполнить полную очистку данных
+     */
+    public function performComprehensiveCleanup(array $options = []): array
+    {
+        $results = [
+            'activity_logs_deleted' => $this->cleanupActivityLogs($options['activity_logs_days'] ?? 90),
+            'notifications_deleted' => $this->cleanupReadNotifications($options['notifications_days'] ?? 30),
+            'tasks_archived' => $this->archiveCompletedTasks($options['tasks_days'] ?? 365),
+            'success' => true,
+            'timestamp' => (new \DateTime())->format('Y-m-d H:i:s')
+        ];
+
+        return $results;
+    }
+
+    /**
+     * Подсчитать старые логи активности
+     */
+    private function countOldActivityLogs(int $days): int
+    {
+        $cutoffDate = new \DateTime("-{$days} days");
+        $qb = $this->entityManager->createQueryBuilder();
+        
+        return (int) $qb->select('COUNT(a.id)')
+            ->from('App\Entity\ActivityLog', 'a')
+            ->where('a.createdAt < :cutoff')
+            ->setParameter('cutoff', $cutoffDate)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * Подсчитать старые прочитанные уведомления
+     */
+    private function countOldReadNotifications(int $days): int
+    {
+        $cutoffDate = new \DateTime("-{$days} days");
+        $qb = $this->entityManager->createQueryBuilder();
+        
+        return (int) $qb->select('COUNT(n.id)')
+            ->from('App\Entity\Notification', 'n')
+            ->where('n.isRead = :read')
+            ->andWhere('n.createdAt < :cutoff')
+            ->setParameter('read', true)
+            ->setParameter('cutoff', $cutoffDate)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * Подсчитать старые завершенные задачи
+     */
+    private function countOldCompletedTasks(int $days): int
+    {
+        $cutoffDate = new \DateTime("-{$days} days");
+        $qb = $this->entityManager->createQueryBuilder();
+        
+        return (int) $qb->select('COUNT(t.id)')
+            ->from('App\Entity\Task', 't')
+            ->where('t.status = :status')
+            ->andWhere('t.completedAt < :cutoff')
+            ->setParameter('status', 'completed')
+            ->setParameter('cutoff', $cutoffDate)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
      * Очистка старых логов активности
      */
     public function cleanupActivityLogs(int $daysToKeep = 90): int
