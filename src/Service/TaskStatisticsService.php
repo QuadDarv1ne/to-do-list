@@ -177,8 +177,30 @@ class TaskStatisticsService
      */
     private function getStatsByWeek(User $user, \DateTime $from, \DateTime $to): array
     {
-        // TODO: Implement weekly statistics
-        return [];
+        $stats = [];
+        $current = clone $from;
+        $current->modify('monday this week');
+
+        while ($current <= $to) {
+            $weekEnd = (clone $current)->modify('+6 days');
+            
+            $count = (int)$this->taskRepository->createQueryBuilder('t')
+                ->select('COUNT(t.id)')
+                ->where('t.user = :user OR t.assignedUser = :user')
+                ->andWhere('t.createdAt BETWEEN :start AND :end')
+                ->setParameter('user', $user)
+                ->setParameter('start', $current)
+                ->setParameter('end', $weekEnd)
+                ->getQuery()
+                ->getSingleScalarResult();
+
+            $weekKey = $current->format('Y-W');
+            $stats[$weekKey] = $count;
+            
+            $current->modify('+7 days');
+        }
+
+        return $stats;
     }
 
     /**
@@ -186,8 +208,30 @@ class TaskStatisticsService
      */
     private function getStatsByMonth(User $user, \DateTime $from, \DateTime $to): array
     {
-        // TODO: Implement monthly statistics
-        return [];
+        $stats = [];
+        $current = clone $from;
+        $current->modify('first day of this month');
+
+        while ($current <= $to) {
+            $monthEnd = (clone $current)->modify('last day of this month');
+            
+            $count = (int)$this->taskRepository->createQueryBuilder('t')
+                ->select('COUNT(t.id)')
+                ->where('t.user = :user OR t.assignedUser = :user')
+                ->andWhere('t.createdAt BETWEEN :start AND :end')
+                ->setParameter('user', $user)
+                ->setParameter('start', $current)
+                ->setParameter('end', $monthEnd)
+                ->getQuery()
+                ->getSingleScalarResult();
+
+            $monthKey = $current->format('Y-m');
+            $stats[$monthKey] = $count;
+            
+            $current->modify('first day of next month');
+        }
+
+        return $stats;
     }
 
     /**

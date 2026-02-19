@@ -213,7 +213,8 @@ class BulkTaskOperationService
                     $assignedUser,
                     $currentUser,
                     $task->getId(),
-                    $task->getTitle()
+                    $task->getTitle(),
+                    $task->getPriority()
                 );
             }
         }

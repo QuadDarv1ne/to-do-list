@@ -38,3 +38,8 @@ services:
             $environment: '%kernel.environment%'
         tags:
             - { name: 'kernel.event_listener', event: 'kernel.exception', priority: 0 }
+    
+    # Security Validation Listener
+    App\EventListener\SecurityValidationListener:
+        tags:
+            - { name: 'kernel.event_subscriber' }

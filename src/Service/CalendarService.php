@@ -17,6 +17,7 @@ class CalendarService
     public function getCalendarEvents(User $user, \DateTime $start, \DateTime $end): array
     {
         $tasks = $this->taskRepository->createQueryBuilder('t')
+            ->leftJoin('t.category', 'c')->addSelect('c')
             ->where('t.user = :user OR t.assignedUser = :user')
             ->andWhere('t.deadline BETWEEN :start AND :end')
             ->setParameter('user', $user)
@@ -55,6 +56,8 @@ class CalendarService
         $end = (clone $start)->modify('last day of this month');
 
         $tasks = $this->taskRepository->createQueryBuilder('t')
+            ->leftJoin('t.category', 'c')->addSelect('c')
+            ->leftJoin('t.assignedUser', 'au')->addSelect('au')
             ->where('t.user = :user OR t.assignedUser = :user')
             ->andWhere('t.deadline BETWEEN :start AND :end')
             ->setParameter('user', $user)
@@ -92,6 +95,8 @@ class CalendarService
         $weekEnd = (clone $weekStart)->modify('+6 days');
 
         $tasks = $this->taskRepository->createQueryBuilder('t')
+            ->leftJoin('t.category', 'c')->addSelect('c')
+            ->leftJoin('t.assignedUser', 'au')->addSelect('au')
             ->where('t.user = :user OR t.assignedUser = :user')
             ->andWhere('t.deadline BETWEEN :start AND :end')
             ->setParameter('user', $user)
@@ -137,6 +142,8 @@ class CalendarService
         $end = (clone $date)->setTime(23, 59, 59);
 
         $tasks = $this->taskRepository->createQueryBuilder('t')
+            ->leftJoin('t.category', 'c')->addSelect('c')
+            ->leftJoin('t.assignedUser', 'au')->addSelect('au')
             ->where('t.user = :user OR t.assignedUser = :user')
             ->andWhere('t.deadline BETWEEN :start AND :end')
             ->setParameter('user', $user)
@@ -165,6 +172,8 @@ class CalendarService
         $future = (clone $now)->modify("+{$days} days");
 
         $tasks = $this->taskRepository->createQueryBuilder('t')
+            ->leftJoin('t.category', 'c')->addSelect('c')
+            ->leftJoin('t.assignedUser', 'au')->addSelect('au')
             ->where('t.user = :user OR t.assignedUser = :user')
             ->andWhere('t.deadline BETWEEN :now AND :future')
             ->andWhere('t.status != :completed')

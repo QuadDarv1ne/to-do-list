@@ -10,6 +10,7 @@ use App\Repository\TaskRepository;
 use App\Repository\TaskCategoryRepository;
 use App\Repository\TagRepository;
 use App\Repository\UserRepository;
+use App\Service\InputValidationService;
 use App\Service\NotificationService;
 use App\Service\PerformanceMonitorService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -215,7 +216,7 @@ class TaskController extends AbstractController
             
             // Send notification to assigned user
             if ($task->getAssignedUser() && $task->getAssignedUser() !== $this->getUser()) {
-                $notificationService->sendTaskAssignmentNotification($task->getAssignedUser(), $this->getUser(), $task->getId(), $task->getName());
+                $notificationService->sendTaskAssignmentNotification($task->getAssignedUser(), $this->getUser(), $task->getId(), $task->getName(), $task->getPriority());
             }
 
             $this->flashCreated('Задача успешно создана');
@@ -304,7 +305,7 @@ class TaskController extends AbstractController
             if ($originalAssignedUser !== $task->getAssignedUser() && 
                 $task->getAssignedUser() && 
                 $task->getAssignedUser() !== $this->getUser()) {
-                $notificationService->sendTaskAssignmentNotification($task->getAssignedUser(), $this->getUser(), $task->getId(), $task->getName());
+                $notificationService->sendTaskAssignmentNotification($task->getAssignedUser(), $this->getUser(), $task->getId(), $task->getName(), $task->getPriority());
             }
             
             // Send notification if status changed
@@ -462,7 +463,7 @@ class TaskController extends AbstractController
         }
     }
         
-    #[Route('/{id}', name: 'app_task_delete', methods: ['POST'])]
+    #[Route('/{id}/delete', name: 'app_task_delete', methods: ['POST'])]
     public function delete(Request $request, Task $task, EntityManagerInterface $entityManager, ?PerformanceMonitorService $performanceMonitor = null): Response
     {
         if ($performanceMonitor) {
@@ -511,16 +512,17 @@ class TaskController extends AbstractController
         TaskRepository $taskRepository, 
         TaskCategoryRepository $categoryRepository,
         TagRepository $tagRepository,
-        ?PerformanceMonitorService $performanceMonitor = null
+        ?PerformanceMonitorService $performanceMonitor = null,
+        ?InputValidationService $inputValidationService = null
     ): Response {
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('task_controller_search');
         }
         $user = $this->getUser();
         
-        // Get search parameters with validation
+        // Get search parameters with validation and sanitization
         $search = $request->query->get('q', '');
-        $search = is_string($search) ? trim($search) : '';
+        $search = is_string($search) ? $inputValidationService?->validateSearchQuery($search, 500) ?? trim($search) : '';
         $status = $request->query->get('status');
         $priority = $request->query->get('priority');
         $categoryId = $request->query->get('category');
@@ -744,22 +746,22 @@ class TaskController extends AbstractController
             // Since we eager-loaded the tags, we can directly access them
             $tagNames = [];
             foreach ($task->getTags() as $tag) {
-                $tagNames[] = $tag->getName();
+                $tagNames[] = htmlspecialchars($tag->getName(), ENT_QUOTES, 'UTF-8');
             }
             $tagsString = implode(', ', $tagNames);
             
             $csvContent .= sprintf(
                 '"%s","%s","%s","%s","%s","%s","%s","%s","%s","%s"' . "\n",
                 $task->getId(),
-                str_replace('"', '""', $task->getTitle()),
-                str_replace('"', '""', strip_tags($task->getDescription() ?? '')),
+                str_replace('"', '""', htmlspecialchars($task->getTitle(), ENT_QUOTES, 'UTF-8')),
+                str_replace('"', '""', htmlspecialchars(strip_tags($task->getDescription() ?? ''), ENT_QUOTES, 'UTF-8')),
                 $task->getStatus(),
                 $task->getPriority(),
                 $task->getCreatedAt()->format('d.m.Y H:i'),
                 $task->getDueDate() ? $task->getDueDate()->format('d.m.Y') : '',
-                $task->getCategory() ? $task->getCategory()->getName() : '',
-                $task->getAssignedUser() ? $task->getAssignedUser()->getFullName() : '',
-                str_replace('"', '""', $tagsString)
+                $task->getCategory() ? htmlspecialchars($task->getCategory()->getName(), ENT_QUOTES, 'UTF-8') : '',
+                $task->getAssignedUser() ? htmlspecialchars($task->getAssignedUser()->getFullName(), ENT_QUOTES, 'UTF-8') : '',
+                str_replace('"', '""', htmlspecialchars($tagsString, ENT_QUOTES, 'UTF-8'))
             );
         }
         
@@ -831,22 +833,22 @@ class TaskController extends AbstractController
             // Collect tag names
             $tagNames = [];
             foreach ($task->getTags() as $tag) {
-                $tagNames[] = $tag->getName();
+                $tagNames[] = htmlspecialchars($tag->getName(), ENT_QUOTES, 'UTF-8');
             }
             $tagsString = implode(', ', $tagNames);
             
             $csvContent .= sprintf(
                 '"%s","%s","%s","%s","%s","%s","%s","%s","%s","%s"' . "\n",
                 $task->getId(),
-                str_replace('"', '""', $task->getTitle()),
-                str_replace('"', '""', strip_tags($task->getDescription() ?? '')),
+                str_replace('"', '""', htmlspecialchars($task->getTitle(), ENT_QUOTES, 'UTF-8')),
+                str_replace('"', '""', htmlspecialchars(strip_tags($task->getDescription() ?? ''), ENT_QUOTES, 'UTF-8')),
                 $task->getStatus(),
                 $task->getPriority(),
                 $task->getCreatedAt()->format('d.m.Y H:i'),
                 $task->getDueDate() ? $task->getDueDate()->format('d.m.Y') : '',
-                $task->getCategory() ? $task->getCategory()->getName() : '',
-                $task->getAssignedUser() ? $task->getAssignedUser()->getFullName() : '',
-                str_replace('"', '""', $tagsString)
+                $task->getCategory() ? htmlspecialchars($task->getCategory()->getName(), ENT_QUOTES, 'UTF-8') : '',
+                $task->getAssignedUser() ? htmlspecialchars($task->getAssignedUser()->getFullName(), ENT_QUOTES, 'UTF-8') : '',
+                str_replace('"', '""', htmlspecialchars($tagsString, ENT_QUOTES, 'UTF-8'))
             );
         }
         
@@ -880,9 +882,14 @@ class TaskController extends AbstractController
         $task = new Task();
         $task->setTitle($title);
         
-        // Sanitize description
+        // Sanitize description - use rich text sanitization if needed for formatted content
         $rawDescription = $data['description'] ?? '';
-        $description = $sanitizationService ? $sanitizationService->sanitizeInput($rawDescription) : htmlspecialchars($rawDescription, ENT_QUOTES, 'UTF-8');
+        if ($sanitizationService) {
+            // Use rich text sanitization for formatted content, or basic sanitization for plain text
+            $description = $sanitizationService->sanitizeRichText($rawDescription);
+        } else {
+            $description = htmlspecialchars(strip_tags($rawDescription), ENT_QUOTES, 'UTF-8');
+        }
         $task->setDescription($description);
         
         $task->setUser($this->getUser());
@@ -1034,20 +1041,7 @@ class TaskController extends AbstractController
             return $this->redirectToRoute('app_task_index');
         }
             
-        // Use the new BulkTaskOperationService for better performance
-        $bulkTaskOperationService = $this->container->get(BulkTaskOperationService::class);
-            
-        $result = match($action) {
-            'delete' => $bulkTaskOperationService->bulkDelete($taskIds, $currentUser),
-            'mark_completed' => $bulkTaskOperationService->bulkUpdateStatus($taskIds, 'completed', $currentUser),
-            'mark_in_progress' => $bulkTaskOperationService->bulkUpdateStatus($taskIds, 'in_progress', $currentUser),
-            'mark_pending' => $bulkTaskOperationService->bulkUpdateStatus($taskIds, 'pending', $currentUser),
-            'set_priority_high' => $bulkTaskOperationService->bulkUpdatePriority($taskIds, 'high', $currentUser),
-            'set_priority_medium' => $bulkTaskOperationService->bulkUpdatePriority($taskIds, 'medium', $currentUser),
-            'set_priority_low' => $bulkTaskOperationService->bulkUpdatePriority($taskIds, 'low', $currentUser),
-            'assign_tag' => $this->handleBulkTagAssignment($taskIds, $request, $entityManager, $currentUser),
-            default => ['success' => false, 'updated_count' => 0, 'failed_tasks' => []]
-        };
+        $result = $this->performBulkAction($action, $taskIds, $currentUser, $entityManager, $request);
             
         // Handle results
         $updatedCount = $result['updated_count'] ?? 0;
@@ -1102,15 +1096,47 @@ class TaskController extends AbstractController
     private function handleBulkTagAssignment(array $taskIds, Request $request, EntityManagerInterface $entityManager, \App\Entity\User $currentUser): array
     {
         $tagIds = $request->request->get('tag_ids', []);
-            
+
         if (empty($tagIds) || !is_array($tagIds)) {
             return ['success' => true, 'updated_count' => 0, 'failed_tasks' => []];
         }
-            
-        // Get the BulkTaskOperationService
-        $bulkTaskOperationService = $this->container->get(BulkTaskOperationService::class);
-            
-        return $bulkTaskOperationService->bulkAddTags($taskIds, $tagIds, $currentUser);
+
+        // Get tasks that belong to the current user
+        $tasks = $entityManager->getRepository(Task::class)
+            ->createQueryBuilder('t')
+            ->where('t.id IN (:ids)')
+            ->andWhere('t.user = :user OR t.assignedUser = :user')
+            ->setParameter('ids', $taskIds)
+            ->setParameter('user', $currentUser)
+            ->getQuery()
+            ->getResult();
+
+        // Get tags that belong to the current user
+        $tags = $entityManager->getRepository(\App\Entity\Tag::class)
+            ->createQueryBuilder('tag')
+            ->where('tag.id IN (:tagIds)')
+            ->andWhere('tag.user = :user')
+            ->setParameter('tagIds', $tagIds)
+            ->setParameter('user', $currentUser)
+            ->getQuery()
+            ->getResult();
+
+        $updatedCount = 0;
+
+        foreach ($tasks as $task) {
+            foreach ($tags as $tag) {
+                $task->addTag($tag);
+            }
+            $updatedCount++;
+        }
+
+        $entityManager->flush();
+
+        return [
+            'success' => true,
+            'updated_count' => $updatedCount,
+            'failed_tasks' => []
+        ];
     }
     
     #[Route('/api/stats', name: 'app_task_stats', methods: ['GET'])]
@@ -1155,5 +1181,70 @@ class TaskController extends AbstractController
                 $performanceMonitor->stopTiming('task_controller_api_insights');
             }
         }
+    }
+
+    private function performBulkAction(string $action, array $taskIds, \App\Entity\User $currentUser, EntityManagerInterface $entityManager, Request $request): array
+    {
+        $tasks = $entityManager->getRepository(Task::class)
+            ->createQueryBuilder('t')
+            ->where('t.id IN (:ids)')
+            ->andWhere('t.user = :user OR t.assignedUser = :user')
+            ->setParameter('ids', $taskIds)
+            ->setParameter('user', $currentUser)
+            ->getQuery()
+            ->getResult();
+
+        $updatedCount = 0;
+        $failedTasks = [];
+
+        foreach ($tasks as $task) {
+            try {
+                switch ($action) {
+                    case 'delete':
+                        $entityManager->remove($task);
+                        break;
+                    case 'mark_completed':
+                        $task->setStatus('completed');
+                        $task->setCompletedAt(new \DateTime());
+                        break;
+                    case 'mark_in_progress':
+                        $task->setStatus('in_progress');
+                        break;
+                    case 'mark_pending':
+                        $task->setStatus('pending');
+                        break;
+                    case 'set_priority_high':
+                        $task->setPriority('high');
+                        break;
+                    case 'set_priority_medium':
+                        $task->setPriority('medium');
+                        break;
+                    case 'set_priority_low':
+                        $task->setPriority('low');
+                        break;
+                    case 'assign_tag':
+                        // Handled separately
+                        break;
+                    default:
+                        $failedTasks[] = $task->getId();
+                        continue 2;
+                }
+                $updatedCount++;
+            } catch (\Exception $e) {
+                $failedTasks[] = $task->getId();
+            }
+        }
+
+        if ($action === 'assign_tag') {
+            return $this->handleBulkTagAssignment($taskIds, $request, $entityManager, $currentUser);
+        }
+
+        $entityManager->flush();
+
+        return [
+            'success' => true,
+            'updated_count' => $updatedCount,
+            'failed_tasks' => $failedTasks
+        ];
     }
 }

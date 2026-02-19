@@ -49,14 +49,30 @@ class SanitizationService
         }
         try {
             // Use HTML Purifier or similar library in production
-            // This is a basic example
-            $allowedTags = '<p><br><strong><em><u><ol><ul><li><h1><h2><h3><h4><h5><h6>';
+            // This is an improved example with more comprehensive sanitization
+            $allowedTags = '<p><br><strong><em><u><ol><ul><li><h1><h2><h3><h4><h5><h6><blockquote><code><pre><small><sub><sup><ins><del><mark>';
             $sanitized = strip_tags($html, $allowedTags);
             
-            // Remove dangerous attributes
-            $sanitized = preg_replace('/(<[^>]+) on[a-z]+\s*=\s*"[^"]*"/i', '$1', $sanitized);
-            $sanitized = preg_replace("/(<[^>]+) on[a-z]+\s*=\s*'[^']*'/i", '$1', $sanitized);
-            $sanitized = preg_replace('/(<[^>]+) javascript:/i', '$1', $sanitized);
+            // Remove dangerous attributes and patterns
+            $patterns = [
+                '/(<[^>]+) on[a-z]+\s*=\s*["\'][^"\']*["\']/i',  // Event handlers
+                '/(<[^>]+) href\s*=\s*["\']javascript:[^"\']*["\']/i',  // JavaScript in href
+                '/(<[^>]+) src\s*=\s*["\']javascript:[^"\']*["\']/i',  // JavaScript in src
+                '/(<[^>]+) data\s*=\s*["\']javascript:[^"\']*["\']/i',  // JavaScript in data
+                '/(<[^>]+) formaction\s*=\s*["\']javascript:[^"\']*["\']/i',  // Form actions
+                '/javascript:/i',  // Direct javascript: protocol
+                '/vbscript:/i',  // VBScript
+                '/data:/i',  // Data URIs
+                '/about:/i',  // About URIs
+                '/(<[^>]+) style\s*=\s*["\'][^"\']*["\']/i',  // Inline styles (potential CSS injection)
+            ];
+            
+            foreach ($patterns as $pattern) {
+                $sanitized = preg_replace($pattern, '$1', $sanitized);
+            }
+            
+            // Additional sanitization: remove any remaining script tags (case insensitive)
+            $sanitized = preg_replace('/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/mi', '', $sanitized);
             
             return $sanitized;
         } finally {

@@ -923,4 +923,158 @@ class TaskRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+    
+    /**
+     * Get optimized task data for dashboard with all necessary relations
+     */
+    public function findDashboardTasks($user, array $options = []): array
+    {
+        $qb = $this->createQueryBuilder('t')
+            ->select('t.id, t.title, t.description, t.status, t.priority, t.createdAt, t.updatedAt, t.dueDate, t.completedAt')
+            ->leftJoin('t.user', 'u')
+            ->addSelect('u.id as userId, u.firstName, u.lastName')
+            ->leftJoin('t.assignedUser', 'au')
+            ->addSelect('au.id as assignedUserId, au.firstName as assignedFirstName, au.lastName as assignedLastName')
+            ->leftJoin('t.category', 'c')
+            ->addSelect('c.id as categoryId, c.name as categoryName')
+            ->leftJoin('t.tags', 'tg')
+            ->addSelect('tg.id as tagId, tg.name as tagName');
+
+        $qb->andWhere('t.user = :user OR t.assignedUser = :user')
+           ->setParameter('user', $user);
+
+        // Apply additional filters from options
+        if (isset($options['status']) && !empty($options['status'])) {
+            $qb->andWhere('t.status = :status')
+               ->setParameter('status', $options['status']);
+        }
+
+        if (isset($options['priority']) && !empty($options['priority'])) {
+            $qb->andWhere('t.priority = :priority')
+               ->setParameter('priority', $options['priority']);
+        }
+
+        if (isset($options['limit']) && !empty($options['limit'])) {
+            $qb->setMaxResults($options['limit']);
+        }
+
+        $qb->orderBy('t.createdAt', 'DESC');
+
+        // Execute query and process results to reconstruct objects properly
+        $results = $qb->getQuery()->getArrayResult();
+        
+        // Group tags by task for reconstruction
+        $groupedResults = [];
+        foreach ($results as $row) {
+            $taskId = $row['id'];
+            
+            if (!isset($groupedResults[$taskId])) {
+                $groupedResults[$taskId] = [
+                    'task' => [
+                        'id' => $row['id'],
+                        'title' => $row['title'],
+                        'description' => $row['description'],
+                        'status' => $row['status'],
+                        'priority' => $row['priority'],
+                        'createdAt' => $row['createdAt'],
+                        'updatedAt' => $row['updatedAt'],
+                        'dueDate' => $row['dueDate'],
+                        'completedAt' => $row['completedAt'],
+                        'user' => [
+                            'id' => $row['userId'],
+                            'firstName' => $row['firstName'],
+                            'lastName' => $row['lastName']
+                        ],
+                        'assignedUser' => $row['assignedUserId'] ? [
+                            'id' => $row['assignedUserId'],
+                            'firstName' => $row['assignedFirstName'],
+                            'lastName' => $row['assignedLastName']
+                        ] : null,
+                        'category' => $row['categoryId'] ? [
+                            'id' => $row['categoryId'],
+                            'name' => $row['categoryName']
+                        ] : null,
+                    ],
+                    'tags' => []
+                ];
+            }
+            
+            if ($row['tagId']) {
+                $groupedResults[$taskId]['tags'][$row['tagId']] = [
+                    'id' => $row['tagId'],
+                    'name' => $row['tagName']
+                ];
+            }
+        }
+        
+        // Final result with properly structured data
+        $finalResults = [];
+        foreach ($groupedResults as $groupedResult) {
+            $taskData = $groupedResult['task'];
+            $taskData['tags'] = array_values($groupedResult['tags']); // Convert to indexed array
+            $finalResults[] = $taskData;
+        }
+        
+        return $finalResults;
+    }
+    
+    /**
+     * Get optimized dashboard statistics for a user in a single query
+     */
+    public function getDashboardStats(User $user): array
+    {
+        // Use cache if available
+        $cacheKey = "dashboard_stats_user_{$user->getId()}";
+        
+        if ($this->cacheService) {
+            return $this->cachedQuery(
+                $cacheKey,
+                function() use ($user) {
+                    return $this->performGetDashboardStats($user);
+                },
+                ['user_id' => $user->getId()],
+                300 // 5 minutes cache
+            );
+        }
+        
+        return $this->performGetDashboardStats($user);
+    }
+    
+    /**
+     * Internal method to get dashboard stats
+     */
+    private function performGetDashboardStats(User $user): array
+    {
+        $results = $this->createQueryBuilder('t')
+            ->select(
+                'COUNT(t.id) as total_tasks',
+                'SUM(CASE WHEN t.status = :completed_status THEN 1 ELSE 0 END) as completed_tasks',
+                'SUM(CASE WHEN t.status = :pending_status THEN 1 ELSE 0 END) as pending_tasks',
+                'SUM(CASE WHEN t.status = :in_progress_status THEN 1 ELSE 0 END) as in_progress_tasks',
+                'SUM(CASE WHEN t.priority = :urgent_priority THEN 1 ELSE 0 END) as urgent_tasks',
+                'SUM(CASE WHEN t.priority = :high_priority THEN 1 ELSE 0 END) as high_priority_tasks',
+                'SUM(CASE WHEN t.dueDate IS NOT NULL AND t.dueDate < :now AND t.status != :completed_status THEN 1 ELSE 0 END) as overdue_tasks'
+            )
+            ->where('t.user = :user OR t.assignedUser = :user')
+            ->setParameter('user', $user)
+            ->setParameter('completed_status', 'completed')
+            ->setParameter('pending_status', 'pending')
+            ->setParameter('in_progress_status', 'in_progress')
+            ->setParameter('urgent_priority', 'urgent')
+            ->setParameter('high_priority', 'high')
+            ->setParameter('now', new \DateTime())
+            ->getQuery()
+            ->getSingleResult();
+
+        // Ensure numeric values
+        return [
+            'total_tasks' => (int)($results['total_tasks'] ?? 0),
+            'completed_tasks' => (int)($results['completed_tasks'] ?? 0),
+            'pending_tasks' => (int)($results['pending_tasks'] ?? 0),
+            'in_progress_tasks' => (int)($results['in_progress_tasks'] ?? 0),
+            'urgent_tasks' => (int)($results['urgent_tasks'] ?? 0),
+            'high_priority_tasks' => (int)($results['high_priority_tasks'] ?? 0),
+            'overdue_tasks' => (int)($results['overdue_tasks'] ?? 0),
+        ];
+    }
 }

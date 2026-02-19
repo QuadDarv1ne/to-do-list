@@ -141,7 +141,7 @@ class CollaborationService
      */
     public function getTeamWorkload(): array
     {
-        // Оптимизация: один запрос вместо N+1
+        // First get users with their active task counts (optimized query to avoid N+1)
         $qb = $this->userRepository->createQueryBuilder('u')
             ->select('u.id, u.fullName, u.email, COUNT(t.id) as activeTasksCount')
             ->leftJoin('u.assignedTasks', 't', 'WITH', 't.status != :completed')
@@ -152,27 +152,66 @@ class CollaborationService
             ->setMaxResults(100);
         
         $results = $qb->getQuery()->getResult();
+        
+        if (empty($results)) {
+            return [];
+        }
+        
+        // Get user IDs for the next query
+        $userIds = array_column($results, 'id');
+        
+        // Now get urgent task counts for all users in one query
+        $urgentTasksData = $this->taskRepository->createQueryBuilder('t')
+            ->select('COALESCE(IDENTITY(t.assignedUser), IDENTITY(t.user)) as userId, COUNT(t.id) as urgentCount')
+            ->leftJoin('t.assignedUser', 'au')
+            ->leftJoin('t.user', 'u')
+            ->where('(t.assignedUser IN (:userIds) OR t.user IN (:userIds))')
+            ->andWhere('t.status != :completed')
+            ->andWhere('t.priority = :urgent')
+            ->setParameter('userIds', $userIds)
+            ->setParameter('completed', 'completed')
+            ->setParameter('urgent', 'urgent')
+            ->groupBy('userId')
+            ->getQuery()
+            ->getResult();
+        
+        // Convert urgent tasks data to associative array for quick lookup
+        $urgentTasksMap = [];
+        foreach ($urgentTasksData as $data) {
+            $userId = $data['userId'];
+            $urgentTasksMap[$userId] = (int)$data['urgentCount'];
+        }
+        
+        // Get all users in one query
+        $users = $this->userRepository->createQueryBuilder('u')
+            ->where('u.id IN (:userIds)')
+            ->setParameter('userIds', $userIds)
+            ->getQuery()
+            ->getResult();
+        
+        // Create user map for quick lookup
+        $userMap = [];
+        foreach ($users as $user) {
+            $userMap[$user->getId()] = $user;
+        }
+        
         $workload = [];
-
         foreach ($results as $result) {
+            $userId = $result['id'];
+            $user = $userMap[$userId] ?? null;
+            
+            if (!$user) {
+                continue; // Skip if user not found
+            }
+            
             $activeTasks = (int)($result['activeTasksCount'] ?? 0);
-
-            $urgentTasks = $this->taskRepository->createQueryBuilder('t')
-                ->select('COUNT(t.id)')
-                ->where('t.assignedUser = :user OR t.user = :user')
-                ->andWhere('t.status != :completed')
-                ->andWhere('t.priority = :urgent')
-                ->setParameter('user', $user)
-                ->setParameter('completed', 'completed')
-                ->setParameter('urgent', 'urgent')
-                ->getQuery()
-                ->getSingleScalarResult();
+            $urgentTasks = $urgentTasksMap[$userId] ?? 0;
 
             $workload[] = [
                 'user' => $user,
-                'active_tasks' => (int)$activeTasks,
-                'urgent_tasks' => (int)$urgentTasks,
-                'workload_level' => $this->calculateWorkloadLevel((int)$activeTasks)
+                'active_tasks' => $activeTasks,
+                'urgent_tasks' => $urgentTasks,
+                'workload_level' => $this->calculateWorkloadLevel($activeTasks)
             ];
         }
 

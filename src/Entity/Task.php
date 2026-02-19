@@ -17,10 +17,12 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(columns: ['user_id', 'status'], name: 'idx_task_user_status')]
 #[ORM\Index(columns: ['assigned_user_id', 'status'], name: 'idx_task_assigned_user_status')]
 #[ORM\Index(columns: ['due_date', 'status'], name: 'idx_task_due_date_status')]
+#[ORM\Index(columns: ['due_date', 'status', 'priority'], name: 'idx_task_due_date_status_priority')]
+#[ORM\Index(columns: ['user_id', 'status', 'priority'], name: 'idx_task_user_status_priority')]
+#[ORM\Index(columns: ['assigned_user_id', 'status', 'priority'], name: 'idx_task_assigned_user_status_priority')]
 #[ORM\Index(columns: ['category_id'], name: 'idx_task_category')]
 #[ORM\Index(columns: ['created_at'], name: 'idx_task_created_at')]
 #[ORM\Index(columns: ['priority'], name: 'idx_task_priority')]
-#[ORM\Index(columns: ['due_date', 'status'], name: 'idx_task_due_date_status')]
 class Task
 {
     #[ORM\Id]
@@ -78,7 +80,7 @@ class Task
     private ?User $user = null;
 
     #[ORM\ManyToOne(inversedBy: 'assignedTasks', cascade: ['persist'])]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?User $assignedUser = null;
 
     #[ORM\ManyToOne(targetEntity: TaskCategory::class, inversedBy: 'tasks')]

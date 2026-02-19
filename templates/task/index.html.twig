@@ -5,6 +5,7 @@
 {% block stylesheets %}
 {{ parent() }}
 <link rel="stylesheet" href="/css/tasks-enhanced.min.css">
+<link rel="stylesheet" href="/css/task-design-enhancements.css">
 <script src="/js/table-enhancements.js" defer></script>
 {% endblock %}
 
@@ -28,78 +29,82 @@
     </div>
 
     <!-- Simple Filters -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-            <form method="get" class="row g-3">
-                <div class="col-md-4">
-                    <input type="text" 
-                           class="form-control" 
-                           name="search" 
-                           value="{{ app.request.query.get('search') }}" 
-                           placeholder="Поиск...">
+    <div class="filter-panel-modern animate-fade-in">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <input type="text" 
+                       class="form-control-modern" 
+                       name="search" 
+                       value="{{ app.request.query.get('search') }}" 
+                       placeholder="Поиск задач...">
+            </div>
+            
+            <div class="col-md-2">
+                <select class="form-select-modern" name="status">
+                    <option value="">Все статусы</option>
+                    <option value="pending" {{ app.request.query.get('status') == 'pending' ? 'selected' : '' }}>В ожидании</option>
+                    <option value="in_progress" {{ app.request.query.get('status') == 'in_progress' ? 'selected' : '' }}>В процессе</option>
+                    <option value="completed" {{ app.request.query.get('status') == 'completed' ? 'selected' : '' }}>Завершено</option>
+                </select>
+            </div>
+            
+            <div class="col-md-2">
+                <select class="form-select-modern" name="priority">
+                    <option value="">Все приоритеты</option>
+                    <option value="low" {{ app.request.query.get('priority') == 'low' ? 'selected' : '' }}>Низкий</option>
+                    <option value="medium" {{ app.request.query.get('priority') == 'medium' ? 'selected' : '' }}>Средний</option>
+                    <option value="high" {{ app.request.query.get('priority') == 'high' ? 'selected' : '' }}>Высокий</option>
+                </select>
+            </div>
+            
+            <div class="col-md-2">
+                <select class="form-select-modern" name="category">
+                    <option value="">Все категории</option>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}" {{ app.request.query.get('category') == category.id ? 'selected' : '' }}>
+                            {{ category.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-md-2">
+                <select class="form-select-modern" name="tag">
+                    <option value="">Все теги</option>
+                    {% for tag in tags %}
+                        <option value="{{ tag.id }}" {{ app.request.query.get('tag') == tag.id ? 'selected' : '' }}>
+                            {{ tag.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-md-2 d-flex align-items-end">
+                <div class="btn-group w-100" role="group">
+                    <button type="submit" class="btn-modern btn-primary-modern">
+                        <i class="fas fa-filter me-2"></i>
+                        Фильтровать
+                    </button>
+                    <a href="{{ path('app_task_index') }}" class="btn-modern btn-outline-modern">
+                        <i class="fas fa-times"></i>
+                    </a>
                 </div>
-                
-                <div class="col-md-2">
-                    <select class="form-select" name="status">
-                        <option value="">Все статусы</option>
-                        <option value="pending" {{ app.request.query.get('status') == 'pending' ? 'selected' : '' }}>В ожидании</option>
-                        <option value="in_progress" {{ app.request.query.get('status') == 'in_progress' ? 'selected' : '' }}>В процессе</option>
-                        <option value="completed" {{ app.request.query.get('status') == 'completed' ? 'selected' : '' }}>Завершено</option>
-                    </select>
-                </div>
-                
-                <div class="col-md-2">
-                    <select class="form-select" name="priority">
-                        <option value="">Все приоритеты</option>
-                        <option value="low" {{ app.request.query.get('priority') == 'low' ? 'selected' : '' }}>Низкий</option>
-                        <option value="medium" {{ app.request.query.get('priority') == 'medium' ? 'selected' : '' }}>Средний</option>
-                        <option value="high" {{ app.request.query.get('priority') == 'high' ? 'selected' : '' }}>Высокий</option>
-                    </select>
-                </div>
-                
-                <div class="col-md-2">
-                    <select class="form-select" name="category">
-                        <option value="">Все категории</option>
-                        {% for category in categories %}
-                            <option value="{{ category.id }}" {{ app.request.query.get('category') == category.id ? 'selected' : '' }}>
-                                {{ category.name }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                
-                <div class="col-md-2">
-                    <select class="form-select" name="tag">
-                        <option value="">Все теги</option>
-                        {% for tag in tags %}
-                            <option value="{{ tag.id }}" {{ app.request.query.get('tag') == tag.id ? 'selected' : '' }}>
-                                {{ tag.name }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                
-                <div class="col-md-2 d-flex align-items-end">
-                    <div class="btn-group w-100" role="group">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-filter me-1"></i>
-                            Фильтровать
-                        </button>
-                        <a href="{{ path('app_task_index') }}" class="btn btn-outline-secondary">
-                            <i class="fas fa-times"></i>
-                        </a>
-                        <a href="{{ path('app_task_export', app.request.query.all) }}" class="btn btn-success">
-                            <i class="fas fa-download me-1"></i>
-                            Экспорт
-                        </a>
-                        <a href="{{ path('app_task_export_with_tags', app.request.query.all) }}" class="btn btn-info">
-                            <i class="fas fa-tags me-1"></i>
-                            Экспорт с тегами
-                        </a>
-                    </div>
-                </div>
-            </form>
-        </div>
+            </div>
+            
+            <div class="col-md-2 d-flex align-items-end">
+                <a href="{{ path('app_task_export', app.request.query.all) }}" class="btn-modern btn-success-modern w-100">
+                    <i class="fas fa-download me-2"></i>
+                    Экспорт
+                </a>
+            </div>
+            
+            <div class="col-md-2 d-flex align-items-end">
+                <a href="{{ path('app_task_export_with_tags', app.request.query.all) }}" class="btn-modern btn-modern w-100" style="background: var(--gradient-info); color: white;">
+                    <i class="fas fa-tags me-2"></i>
+                    Экспорт с тегами
+                </a>
+            </div>
+        </form>
     </div>
     
     <!-- Advanced Filters -->
@@ -349,19 +354,16 @@
         
         <div class="card-body p-0">
             {% if tasks is not empty %}
-                <div class="list-group list-group-flush sortable-list data-table" 
+                <div class="sortable-list data-table" 
                      data-drag-drop-target="container"
                      data-export-filename="tasks"
                      data-print-title="Список задач">
                     {% for task in tasks %}
-                        <div class="list-group-item task-item task-item-enhanced drag-drop-item border-0 px-4 py-3 priority-{{ task.priority }} {% if task.priority == 'high' %}priority-high-glow{% elseif task.priority == 'medium' %}priority-medium-glow{% else %}priority-low-glow{% endif %}" 
+                        <div class="task-card-modern animate-slide-up" 
                              data-drag-drop-target="item" 
                              data-id="{{ task.id }}"
                              draggable="false"
                              data-action="dragstart->drag-drop#handleDragStart dragover->drag-drop#handleDragOver dragleave->drag-drop#handleDragLeave drop->drag-drop#handleDrop dragend->drag-drop#handleDragEnd">
-                            <div class="drag-handle" data-drag-drop-target="handle">
-                                <i class="fas fa-grip-lines text-muted"></i>
-                            </div>
                             <div class="d-flex justify-content-between align-items-start">
                                 <div class="form-check me-3">
                                     <input type="checkbox" class="form-check-input task-checkbox" name="task_ids[]" value="{{ task.id }}" id="task-{{ task.id }}">
@@ -376,33 +378,18 @@
                                         </h5>
                                         
                                         <div class="d-flex gap-2">
-                                            <span class="badge badge-{{ task.status|lower }} badge-animated" data-bs-toggle="tooltip" title="Статус задачи">
-                                                {{ task.status|trans }}
-                                            </span>
+                                            <span class="status-indicator status-{{ task.status|lower }}" data-bs-toggle="tooltip" title="Статус задачи"></span>
                                             
-                                            {% if task.priority == 'high' %}
-                                                <span class="badge bg-danger badge-animated" data-bs-toggle="tooltip" title="Высокий приоритет">
-                                                    <i class="fas fa-exclamation-triangle me-1"></i>
-                                                    Высокий
-                                                </span>
-                                            {% elseif task.priority == 'medium' %}
-                                                <span class="badge bg-warning text-dark badge-animated" data-bs-toggle="tooltip" title="Средний приоритет">
-                                                    <i class="fas fa-exclamation me-1"></i>
-                                                    Средний
-                                                </span>
-                                            {% else %}
-                                                <span class="badge bg-success badge-animated" data-bs-toggle="tooltip" title="Низкий приоритет">
-                                                    <i class="fas fa-arrow-down me-1"></i>
-                                                    Низкий
-                                                </span>
-                                            {% endif %}
+                                            <span class="priority-badge priority-{{ task.priority }}" data-bs-toggle="tooltip" title="Приоритет задачи">
+                                                {{ task.priority|trans }}
+                                            </span>
                                         </div>
                                     </div>
                                     
                                     <div class="task-meta mb-2">
                                         <i class="fas fa-folder me-1"></i>
                                         {% if task.category %}
-                                            <span class="badge bg-light text-dark me-2">{{ task.category.name }}</span>
+                                            <span class="badge-modern badge-primary-modern me-2">{{ task.category.name }}</span>
                                         {% else %}
                                             <span class="text-muted me-2">Без категории</span>
                                         {% endif %}
@@ -415,7 +402,7 @@
                                             <i class="fas fa-clock me-1"></i>
                                             Срок: {{ task.dueDate|date('d.m.Y') }}
                                             {% if task.isOverdue %}
-                                                <span class="badge bg-danger ms-1">
+                                                <span class="badge-modern badge-danger-modern ms-1">
                                                     <i class="fas fa-exclamation-circle me-1"></i>
                                                     Просрочено
                                                 </span>
@@ -429,12 +416,12 @@
                                             <span class="mx-2">•</span>
                                             <i class="fas fa-code-branch text-info" data-bs-toggle="tooltip" title="Зависимости: {{ dependencies|length }}, Блокирует: {{ dependents|length }}"></i>
                                             {% if dependencies|length > 0 %}
-                                                <span class="badge bg-info" data-bs-toggle="tooltip" title="Зависит от {{ dependencies|length }} задач(и)">
+                                                <span class="badge-modern badge-info" data-bs-toggle="tooltip" title="Зависит от {{ dependencies|length }} задач(и)">
                                                     <i class="fas fa-arrow-up"></i>{{ dependencies|length }}
                                                 </span>
                                             {% endif %}
                                             {% if dependents|length > 0 %}
-                                                <span class="badge bg-warning text-dark" data-bs-toggle="tooltip" title="Блокирует {{ dependents|length }} задач(и)">
+                                                <span class="badge-modern badge-warning-modern" data-bs-toggle="tooltip" title="Блокирует {{ dependents|length }} задач(и)">
                                                     <i class="fas fa-arrow-down"></i>{{ dependents|length }}
                                                 </span>
                                             {% endif %}
@@ -450,24 +437,24 @@
                                     {% if task.tags is not empty %}
                                     <div class="mt-2">
                                         {% for tag in task.tags %}
-                                            <span class="badge me-1" style="background-color: {{ tag.color }}; color: white; font-size: 0.75em;">{{ tag.name }}</span>
+                                            <span class="tag-modern" style="background-color: {{ tag.color }}; color: white;">{{ tag.name }}</span>
                                         {% endfor %}
                                     </div>
                                     {% endif %}
                                 </div>
                                 
                                 <div class="dropdown">
-                                    <button class="btn btn-light" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="fas fa-ellipsis-v"></i>
+                                    <button class="btn btn-outline-modern" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-h"></i>
                                     </button>
-                                    <ul class="dropdown-menu">
+                                    <ul class="dropdown-menu dropdown-menu-enhanced">
                                         <li>
-                                            <a class="dropdown-item" href="{{ path('app_task_show', {'id': task.id}) }}">
+                                            <a class="dropdown-item dropdown-item-enhanced" href="{{ path('app_task_show', {'id': task.id}) }}">
                                                 <i class="fas fa-eye me-2"></i>Просмотр
                                             </a>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item" href="{{ path('app_task_edit', {'id': task.id}) }}">
+                                            <a class="dropdown-item dropdown-item-enhanced" href="{{ path('app_task_edit', {'id': task.id}) }}">
                                                 <i class="fas fa-edit me-2"></i>Редактировать
                                             </a>
                                         </li>
@@ -475,7 +462,7 @@
                                         <li>
                                             <form method="post" action="{{ path('app_task_delete', {'id': task.id}) }}" class="d-inline" onsubmit="return confirm('Удалить задачу?')">
                                                 <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ task.id) }}">
-                                                <button type="submit" class="dropdown-item text-danger">
+                                                <button type="submit" class="dropdown-item dropdown-item-enhanced text-danger">
                                                     <i class="fas fa-trash me-2"></i>Удалить
                                                 </button>
                                             </form>

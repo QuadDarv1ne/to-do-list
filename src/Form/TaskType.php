@@ -132,9 +132,6 @@ class TaskType extends AbstractType
                     'data-controller' => 'user-select'
                 ],
                 'placeholder' => 'Выберите исполнителя',
-                'constraints' => [
-                    new NotBlank()
-                ]
             ])
             ->add('tags', EntityType::class, [
                 'label' => 'Теги',

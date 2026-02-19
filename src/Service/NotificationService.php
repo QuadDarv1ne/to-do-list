@@ -293,17 +293,28 @@ class NotificationService
         User $assignedUser,
         User $assigner,
         int $taskId,
-        string $taskTitle
+        string $taskTitle,
+        string $priority = 'medium'
     ): void {
         if ($this->performanceMonitor) {
             $this->performanceMonitor->startTiming('notification_service_send_task_assignment_notification');
         }
         try {
             $title = 'Новая задача назначена';
+            
+            // Include priority in message if urgent
+            $priorityLabel = '';
+            if ($priority === 'urgent') {
+                $priorityLabel = ' (срочная)';
+            } elseif ($priority === 'high') {
+                $priorityLabel = ' (высокий приоритет)';
+            }
+            
             $message = sprintf(
-                'Пользователь %s назначил вам задачу "%s"',
+                'Пользователь %s назначил вам задачу "%s"%s',
                 $assigner->getFullName(),
-                $taskTitle
+                $taskTitle,
+                $priorityLabel
             );
 
             $this->createTaskNotification($assignedUser, $title, $message, $taskId, $taskTitle);

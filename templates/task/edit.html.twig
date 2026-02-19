@@ -17,7 +17,7 @@
         }
         
         .edit-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--gradient-primary);
             color: white;
             padding: 2rem;
             border-radius: 16px 16px 0 0;
@@ -25,41 +25,41 @@
         }
         
         .form-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
             padding: 1.5rem;
-            border-bottom: 1px solid #e9ecef;
-        }
-        
-        .form-section:last-child {
-            border-bottom: none;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
         
         .form-section-title {
             font-size: 1.1rem;
             font-weight: 600;
-            color: #495057;
+            color: var(--text-primary);
             margin-bottom: 1rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
         
-        .form-control:focus, .form-select:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        .form-control-modern:focus, .form-select-modern:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
         }
         
         .tag-creator {
-            background: #f8f9fa;
-            border: 2px dashed #dee2e6;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-top: 0.75rem;
+            background: var(--bg-card);
+            border: 2px dashed var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-top: 1rem;
             transition: all 0.3s;
         }
         
         .tag-creator:hover {
-            border-color: #667eea;
-            background: #f8f9ff;
+            border-color: var(--primary);
+            background: var(--bg-hover);
         }
     </style>
 {% endblock %}

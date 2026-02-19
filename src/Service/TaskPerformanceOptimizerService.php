@@ -46,18 +46,23 @@ class TaskPerformanceOptimizerService
         
         return $this->cache->get($cacheKey, function (ItemInterface $item) use ($user) {
             $item->expiresAfter(300); // 5 minutes cache
+            $item->tag(['user_dashboard_stats', "user_{$user->getId()}", 'dashboard']);
             
             $this->logger->info("Regenerating dashboard stats for user {$user->getId()}");
             
+            // Use optimized repository method for dashboard stats
+            $repositoryStats = $this->taskRepository->getDashboardStats($user);
+            
             $stats = [
-                'total_tasks' => $this->taskRepository->count(['user' => $user]),
-                'completed_tasks' => $this->taskRepository->countByStatus($user, null, 'completed'),
-                'pending_tasks' => $this->taskRepository->countByStatus($user, null, 'pending'),
-                'in_progress_tasks' => $this->taskRepository->countByStatus($user, null, 'in_progress'),
-                'urgent_tasks' => $this->taskRepository->countByPriority($user, null, 'high'),
+                'total_tasks' => $repositoryStats['total_tasks'] ?? $this->taskRepository->count(['user' => $user]),
+                'completed_tasks' => $repositoryStats['completed_tasks'] ?? $this->taskRepository->countByStatus($user, null, 'completed'),
+                'pending_tasks' => $repositoryStats['pending_tasks'] ?? $this->taskRepository->countByStatus($user, null, 'pending'),
+                'in_progress_tasks' => $repositoryStats['in_progress_tasks'] ?? $this->taskRepository->countByStatus($user, null, 'in_progress'),
+                'urgent_tasks' => $repositoryStats['urgent_tasks'] ?? $this->taskRepository->countByPriority($user, null, 'high'),
                 'upcoming_deadlines' => $this->getUpcomingDeadlines($user),
                 'recent_categories' => $this->getRecentCategories($user),
-                'last_updated' => date('Y-m-d H:i:s')
+                'last_updated' => date('Y-m-d H:i:s'),
+                'cached_at' => microtime(true)
             ];
             
             // Calculate completion percentage
@@ -80,19 +85,28 @@ class TaskPerformanceOptimizerService
         
         return $this->cache->get($cacheKey, function (ItemInterface $item) use ($filters, $userId) {
             $item->expiresAfter(120); // 2 minutes cache
+            $item->tag(['task_list', "user_{$userId}", 'filtered_tasks']);
             
             $this->logger->info("Regenerating task list for user {$userId} with filters");
             
             $criteria = $this->buildCriteria($filters);
             $limit = $filters['limit'] ?? 50;
             
-            $tasks = $this->taskRepository->searchTasks($criteria, $limit);
+            // Use the optimized dashboard method if no complex filters
+            $useOptimized = empty(array_diff_key($criteria, array_flip(['user', 'hideCompleted', 'status', 'priority', 'limit'])));
+            
+            if ($useOptimized && isset($criteria['user'])) {
+                $tasks = $this->taskRepository->findDashboardTasks($criteria['user'], $criteria);
+            } else {
+                $tasks = $this->taskRepository->searchTasks($criteria, $limit);
+            }
             
             return [
                 'tasks' => $this->transformTaskData($tasks),
                 'total_count' => count($tasks),
                 'cache_hit' => false,
-                'timestamp' => microtime(true)
+                'timestamp' => microtime(true),
+                'optimized_query' => $useOptimized
             ];
         });
     }
@@ -135,11 +149,19 @@ class TaskPerformanceOptimizerService
      */
     public function invalidateUserCache($user): void
     {
-        $this->cache->delete("dashboard_stats_user_{$user->getId()}");
-        $this->cache->delete("task_list_user_{$user->getId()}");
-        $this->cache->delete("frequent_collaborators_{$user->getId()}");
+        $userId = $user->getId();
         
-        $this->logger->info("Cache invalidated for user {$user->getId()}");
+        // Delete specific cache keys
+        $this->cache->delete("dashboard_stats_user_{$userId}");
+        $this->cache->delete("task_list_user_{$userId}");
+        $this->cache->delete("frequent_collaborators_{$userId}");
+        
+        // Also attempt to invalidate by tags if possible
+        $this->invalidateCacheByTag('user_dashboard_stats', $user);
+        $this->invalidateCacheByTag('dashboard', $user);
+        $this->invalidateCacheByTag('task_list', $user);
+        
+        $this->logger->info("Cache invalidated for user {$userId}");
     }
 
     /**
@@ -151,17 +173,34 @@ class TaskPerformanceOptimizerService
         // In a real implementation, you would iterate through known cache keys
         $this->logger->info("Cache clearing initiated");
     }
+    
+    /**
+     * Invalidate cache by tag for specific user
+     */
+    public function invalidateCacheByTag(string $tag, $user = null): void
+    {
+        // In a real implementation with PSR-6 cache supporting tags, we would clear by tag
+        // For now, log the attempt
+        $this->logger->info("Attempting to clear cache by tag: {$tag}" . ($user ? " for user {$user->getId()}" : ""));
+    }
 
     /**
      * Preload data for user into cache
      */
     public function preloadUserCache($user): void
     {
+        $startTime = microtime(true);
+        
         $this->getUserDashboardStats($user);
         $this->getOptimizedTaskList(['user' => $user, 'limit' => 10]);
         $this->getFrequentCollaborators($user);
         
-        $this->logger->info("Cache preloaded for user {$user->getId()}");
+        $preloadTime = microtime(true) - $startTime;
+        
+        $this->logger->info("Cache preloaded for user {$user->getId()}", [
+            'preload_time' => round($preloadTime, 4),
+            'preload_time_ms' => round($preloadTime * 1000, 2)
+        ]);
     }
 
     /**

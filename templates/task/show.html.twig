@@ -21,7 +21,7 @@
 }
 
 .task-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--gradient-primary);
     color: white;
     padding: 2rem;
     border-radius: 16px 16px 0 0;
@@ -29,22 +29,24 @@
 }
 
 .task-content {
-    background: white;
+    background: var(--bg-card);
     border-radius: 0 0 16px 16px;
     box-shadow: 0 10px 40px rgba(0,0,0,0.1);
 }
 
 .info-card {
-    background: #f8f9fa;
-    border-radius: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
     padding: 1.5rem;
     margin-bottom: 1.5rem;
     transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .info-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
 }
 
 .info-row {
@@ -52,7 +54,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 0.75rem 0;
-    border-bottom: 1px solid #e9ecef;
+    border-bottom: 1px solid var(--border);
 }
 
 .info-row:last-child {
@@ -61,7 +63,7 @@
 
 .info-label {
     font-weight: 600;
-    color: #6c757d;
+    color: var(--text-secondary);
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -69,14 +71,16 @@
 
 .info-value {
     font-weight: 500;
+    color: var(--text-primary);
 }
 
 .description-box {
-    background: #f8f9fa;
-    border-left: 4px solid #667eea;
+    background: var(--bg-card);
+    border-left: 4px solid var(--primary);
     padding: 1.5rem;
     border-radius: 8px;
     margin: 1.5rem 0;
+    border: 1px solid var(--border);
 }
 
 .action-buttons {
@@ -98,7 +102,7 @@
     top: 0;
     bottom: 0;
     width: 2px;
-    background: #e9ecef;
+    background: var(--border);
 }
 
 .timeline-item::after {
@@ -109,7 +113,7 @@
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: #667eea;
+    background: var(--primary);
 }
 
 .timeline-item:last-child::before {
@@ -138,24 +142,12 @@
                                 <i class="fas fa-tasks me-2"></i>{{ task.title }}
                             </h1>
                             <div class="d-flex gap-2 flex-wrap">
-                                <span class="badge badge-{{ task.status|lower }} badge-animated">
-                                    {{ task.status|trans }}
+                                <span class="status-indicator status-{{ task.status|lower }}" data-bs-toggle="tooltip" title="Статус задачи"></span>
+                                <span class="priority-badge priority-{{ task.priority }}" data-bs-toggle="tooltip" title="Приоритет задачи">
+                                    {{ task.priority|trans }}
                                 </span>
-                                {% if task.priority == 'high' %}
-                                    <span class="badge bg-danger badge-animated">
-                                        <i class="fas fa-exclamation-triangle me-1"></i>Высокий приоритет
-                                    </span>
-                                {% elseif task.priority == 'medium' %}
-                                    <span class="badge bg-warning text-dark badge-animated">
-                                        <i class="fas fa-exclamation me-1"></i>Средний приоритет
-                                    </span>
-                                {% else %}
-                                    <span class="badge bg-success badge-animated">
-                                        <i class="fas fa-arrow-down me-1"></i>Низкий приоритет
-                                    </span>
-                                {% endif %}
                                 {% if task.isOverdue %}
-                                    <span class="badge bg-danger badge-animated">
+                                    <span class="badge-modern badge-danger-modern">
                                         <i class="fas fa-exclamation-circle me-1"></i>Просрочено
                                     </span>
                                 {% endif %}
@@ -191,7 +183,7 @@
                                 </h5>
                                 <div class="d-flex gap-2 flex-wrap">
                                     {% for tag in task.tags %}
-                                        <span class="badge" style="background-color: {{ tag.color }}; color: white; font-size: 0.875rem; padding: 0.5rem 1rem;">
+                                        <span class="tag-modern" style="background-color: {{ tag.color }}; color: white;">
                                             {{ tag.name }}
                                         </span>
                                     {% endfor %}

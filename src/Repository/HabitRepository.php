@@ -17,6 +17,8 @@ class HabitRepository extends ServiceEntityRepository
     public function findActiveByUser(User $user): array
     {
         return $this->createQueryBuilder('h')
+            ->leftJoin('h.logs', 'l')
+            ->addSelect('l')
             ->where('h.user = :user')
             ->andWhere('h.active = :active')
             ->setParameter('user', $user)

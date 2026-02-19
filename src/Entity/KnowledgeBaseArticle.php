@@ -10,10 +10,10 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: KnowledgeBaseArticleRepository::class)]
 #[ORM\Table(name: 'knowledge_base_articles')]
-#[ORM\Index(columns: ['author_id'], name: 'idx_author')]
-#[ORM\Index(columns: ['status'], name: 'idx_status')]
-#[ORM\Index(columns: ['created_at'], name: 'idx_created')]
-#[ORM\Index(columns: ['slug'], name: 'idx_slug')]
+#[ORM\Index(name: 'idx_author', columns: ['author_id'])]
+#[ORM\Index(name: 'idx_slug', columns: ['slug'])]
+#[ORM\Index(name: 'idx_created', columns: ['created_at'])]
+#[ORM\Index(name: 'idx_article_status', columns: ['status'])]
 class KnowledgeBaseArticle
 {
     #[ORM\Id]

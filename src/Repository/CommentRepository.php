@@ -52,6 +52,7 @@ class CommentRepository extends ServiceEntityRepository
             ->andWhere('c.author = :author')
             ->setParameter('author', $author)
             ->orderBy('c.createdAt', 'DESC')
+            ->setMaxResults(100)
             ->getQuery()
             ->getResult();
     }

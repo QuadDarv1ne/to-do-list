@@ -148,4 +148,93 @@ class InputValidationService
             'direction' => $validDirection,
         ];
     }
+    
+    /**
+     * Validate and sanitize search query to prevent injection
+     */
+    public function validateSearchQuery(?string $query, int $maxLength = 100): ?string
+    {
+        if ($query === null || $query === '') {
+            return null;
+        }
+        
+        // Remove potentially dangerous characters
+        $query = trim($query);
+        
+        // Remove SQL injection patterns
+        $query = preg_replace('/(\'|";|--|\/\*|\*\/|xp_|sp_|exec|union|select|insert|drop|update|delete|create|alter|grant|revoke|call|declare|open|fetch|fetch next|fetch prior|fetch absolute|fetch relative|fetch first|fetch last|fetch prior|fetch next|fetch first|fetch last|order by|group by|having|exists|between|like|in|any|some|all|case|when|then|else|end|begin|end|commit|rollback|savepoint|lock|unlock|truncate|replace|merge|intersect|minus|except|connect by|start with|prior|level|connect|dual|rownum|rowid|uid|user|sysdate|systimestamp|current_timestamp|current_date|current_time|timestamp|date|time|interval|extract|to_char|to_date|to_timestamp|to_number|cast|convert|substr|substring|length|char_length|character_length|upper|lower|initcap|ltrim|rtrim|trim|replace|translate|regexp_like|regexp_replace|instr|position|concat|lpad|rpad|ascii|chr|reverse|soundex|to_multi_byte|to_single_byte|quote_ident|format_type|pg_typeof|obj_description|current_schema|current_database|current_user|session_user|has_table_privilege|has_database_privilege|has_schema_privilege|has_sequence_privilege|has_function_privilege|has_language_privilege|has_tablespace_privilege|has_type_privilege|pg_get_keywords|pg_get_constraintdef|pg_get_expr|pg_get_function_arguments|pg_get_function_identity_arguments|pg_get_function_result|pg_get_indexdef|pg_get_ruledef|pg_get_serial_sequence|pg_get_triggerdef|pg_get_viewdef|pg_table_is_visible|pg_type_is_visible|pg_function_is_visible|pg_operator_is_visible|pg_opclass_is_visible|pg_conversion_is_visible|pg_language_is_visible|pg_ts_config_is_visible|pg_ts_dict_is_visible|pg_ts_parser_is_visible|pg_ts_template_is_visible|pg_table_size|pg_indexes_size|pg_total_relation_size|pg_size_pretty|pg_column_size|pg_relation_size|pgstattuple|pgstatindex|pg_tablespace_size|pg_database_size|pg_cancel_backend|pg_terminate_backend|pg_reload_conf|pg_rotate_logfile|pg_postmaster_start_time|pg_conf_load_time|pg_is_in_recovery|pg_is_in_backup|pg_backup_start_time|pg_current_xlog_location|pg_current_xlog_insert_location|pg_last_xlog_receive_location|pg_last_xlog_replay_location|pg_last_xact_replay_timestamp|pg_xlog_location_diff|pg_create_restore_point|pg_stat_get_bgwriter_timed_checkpoints|pg_stat_get_bgwriter_requested_checkpoints|pg_stat_get_bgwriter_checkpoint_write_time|pg_stat_get_bgwriter_buffer_write_time|pg_stat_get_buf_alloc|pg_stat_get_buf_read|pg_stat_get_buf_written_backend|pg_stat_get_blocks_fetched|pg_stat_get_blocks_hit|pg_stat_get_tuples_returned|pg_stat_get_tuples_fetched|pg_stat_get_tuples_inserted|pg_stat_get_tuples_updated|pg_stat_get_tuples_deleted|pg_stat_get_tuples_hot_updated|pg_stat_get_live_tuples|pg_stat_get_dead_tuples|pg_stat_get_mod_since_analyze|pg_stat_get_last_vacuum_time|pg_stat_get_last_autovacuum_time|pg_stat_get_last_analyze_time|pg_stat_get_last_autoanalyze_time|pg_stat_get_vacuum_count|pg_stat_get_autovacuum_count|pg_stat_get_analyze_count|pg_stat_get_autoanalyze_count|pg_stat_get_numscans|pg_stat_get_tuples_returned|pg_stat_get_tuples_fetched|pg_stat_get_tuples_inserted|pg_stat_get_tuples_updated|pg_stat_get_tuples_deleted|pg_stat_get_blocks_fetched|pg_stat_get_blocks_hit|pg_stat_get_tuples_hot_updated|pg_stat_get_dead_tuples|pg_stat_get_mod_since_analyze|pg_stat_get_last_vacuum_time|pg_stat_get_last_autovacuum_time|pg_stat_get_last_analyze_time|pg_stat_get_last_autoanalyze_time|pg_stat_get_vacuum_count|pg_stat_get_autovacuum_count|pg_stat_get_analyze_count|pg_stat_get_autoanalyze_count|pg_stat_get_numscans|pg_stat_get_tuples_returned|pg_stat_get_tuples_fetched|pg_stat_get_tuples_inserted|pg_stat_get_tuples_updated|pg_stat_get_tuples_deleted|pg_stat_get_blocks_fetched|pg_stat_get_blocks_hit|pg_stat_get_tuples_hot_updated|pg_stat_get_dead_tuples|pg_stat_get_mod_since_analyze|pg_stat_get_last_vacuum_time|pg_stat_get_last_autovacuum_time|pg_stat_get_last_analyze_time|pg_stat_get_last_autoanalyze_time|pg_stat_get_vacuum_count|pg_stat_get_autovacuum_count|pg_stat_get_analyze_count|pg_stat_get_autoanalyze_count|pg_stat_get_numscans)/i', '', $query);
+        
+        // Remove XSS patterns
+        $query = preg_replace('/<script[^>]*>.*?<\/script>/is', '', $query);
+        $query = preg_replace('/javascript:/i', '', $query);
+        $query = preg_replace('/on\w+\s*=/i', '', $query);
+        
+        // Limit length
+        if (strlen($query) > $maxLength) {
+            $query = substr($query, 0, $maxLength);
+        }
+        
+        return $query;
+    }
+    
+    /**
+     * Validate URL input
+     */
+    public function validateUrl(?string $url): ?string
+    {
+        if ($url === null || $url === '') {
+            return null;
+        }
+        
+        // Basic sanitization
+        $url = trim($url);
+        
+        // Validate URL format
+        if (filter_var($url, FILTER_VALIDATE_URL) === false) {
+            return null;
+        }
+        
+        // Only allow http/https
+        if (!preg_match('/^https?:\/\//', $url)) {
+            return null;
+        }
+        
+        return $url;
+    }
+    
+    /**
+     * Validate email input
+     */
+    public function validateEmail(?string $email): ?string
+    {
+        if ($email === null || $email === '') {
+            return null;
+        }
+        
+        $email = trim($email);
+        
+        if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+            return null;
+        }
+        
+        return $email;
+    }
+    
+    /**
+     * Validate JSON input
+     */
+    public function validateJson(?string $json): ?array
+    {
+        if ($json === null || $json === '') {
+            return null;
+        }
+        
+        $decoded = json_decode($json, true);
+        
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return null;
+        }
+        
+        return $decoded;
+    }
 }

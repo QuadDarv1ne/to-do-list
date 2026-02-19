@@ -33,7 +33,10 @@ class TimeTrackingService
     /**
      * Stop time tracking
      */
-    public function stopTracking(int $taskId, int $userId): ?array
+    /**
+     * Stop time tracking
+     */
+    public function stopTracking(): ?array
     {
         // TODO: Implement database-based tracking
         // This is a placeholder implementation
@@ -44,7 +47,10 @@ class TimeTrackingService
     /**
      * Get active tracking session
      */
-    public function getActiveSession(int $userId): ?array
+    /**
+     * Get active tracking session
+     */
+    public function getActiveSession(): ?array
     {
         // TODO: Get from database
         return null;
