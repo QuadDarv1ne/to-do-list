@@ -11,6 +11,10 @@ use App\Entity\Task;
 
 #[ORM\Entity(repositoryClass: ActivityLogRepository::class)]
 #[ORM\Table(name: 'activity_logs')]
+#[ORM\Index(columns: ['user_id', 'created_at'], name: 'idx_activity_user_date')]
+#[ORM\Index(columns: ['task_id'], name: 'idx_activity_task')]
+#[ORM\Index(columns: ['event_type'], name: 'idx_activity_event_type')]
+#[ORM\Index(columns: ['created_at'], name: 'idx_activity_created')]
 class ActivityLog
 {
     #[ORM\Id]

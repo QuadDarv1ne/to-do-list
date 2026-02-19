@@ -39,13 +39,6 @@ doctrine:
                 dir: '%kernel.project_dir%/src/Entity'
                 prefix: 'App\Entity'
                 alias: App
-        
-        metadata_cache_driver:
-            type: pool
-            pool: doctrine.system_cache_pool
-        query_cache_driver:
-            type: pool
-            pool: doctrine.system_cache_pool
 
 
 when@test:
@@ -69,29 +62,3 @@ when@dev:
             pools:
                 doctrine.system_cache_pool:
                     adapter: cache.app
-
-when@prod:
-    doctrine:
-        orm:
-            metadata_cache_driver:
-                type: pool
-                pool: doctrine.system_cache_pool
-            query_cache_driver:
-                type: pool
-                pool: doctrine.system_cache_pool
-            result_cache_driver:
-                type: pool
-                pool: doctrine.result_cache_pool
-
-    framework:
-        cache:
-            pools:
-                doctrine.result_cache_pool:
-                    adapter: cache.app
-                    default_lifetime: 3600
-                doctrine.system_cache_pool:
-                    adapter: cache.system
-                    default_lifetime: 86400
-                doctrine.second_level_cache_pool:
-                    adapter: cache.app
-                    default_lifetime: 3600

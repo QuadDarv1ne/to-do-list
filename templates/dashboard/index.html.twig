@@ -10,8 +10,8 @@
 {% block body %}
 <div class="container-fluid page-transition">
     <!-- Enhanced Welcome Header -->
-    <div class="dashboard-welcome mb-4">
-        <div class="dashboard-welcome-content">
+    <div class="card-modern mb-4">
+        <div class="card-header-modern bg-gradient-primary text-white rounded-top-4 p-4">
             <div class="row align-items-center">
                 <div class="col-lg-8">
                     <h2 class="mb-2">
@@ -25,10 +25,10 @@
                 </div>
                 <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
                     <div class="d-flex gap-2 justify-content-lg-end">
-                        <a href="{{ path('app_task_new') }}" class="btn btn-light">
+                        <a href="{{ path('app_task_new') }}" class="btn btn-primary-modern">
                             <i class="fas fa-plus me-2"></i>Новая задача
                         </a>
-                        <a href="{{ path('app_analytics_dashboard') }}" class="btn btn-outline-light">
+                        <a href="{{ path('app_analytics_dashboard') }}" class="btn btn-outline-light-modern">
                             <i class="fas fa-chart-line me-2"></i>Аналитика
                         </a>
                     </div>
@@ -40,8 +40,8 @@
     <!-- Statistics Cards -->
     <div class="row mb-4" id="stats-row">
         <div class="col-md-3 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-4 position-relative">
+            <div class="card-modern h-100 text-center">
+                <div class="card-body-modern py-4 position-relative">
                     <i class="fas fa-tasks stat-icon"></i>
                     <h2 class="mb-1">{{ task_stats.total|default(0) }}</h2>
                     <p class="text-muted mb-0 small">Всего задач</p>
@@ -50,8 +50,8 @@
         </div>
         
         <div class="col-md-3 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-4 position-relative">
+            <div class="card-modern h-100 text-center">
+                <div class="card-body-modern py-4 position-relative">
                     <i class="fas fa-clock stat-icon"></i>
                     <h2 class="mb-1">{{ task_stats.pending|default(0) }}</h2>
                     <p class="text-muted mb-0 small">В ожидании</p>
@@ -60,8 +60,8 @@
         </div>
         
         <div class="col-md-3 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-4 position-relative">
+            <div class="card-modern h-100 text-center">
+                <div class="card-body-modern py-4 position-relative">
                     <i class="fas fa-spinner stat-icon"></i>
                     <h2 class="mb-1">{{ task_stats.in_progress|default(0) }}</h2>
                     <p class="text-muted mb-0 small">В процессе</p>
@@ -70,8 +70,8 @@
         </div>
         
         <div class="col-md-3 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-4 position-relative">
+            <div class="card-modern h-100 text-center">
+                <div class="card-body-modern py-4 position-relative">
                     <i class="fas fa-check-circle stat-icon"></i>
                     <h2 class="mb-1">{{ task_stats.completed|default(0) }}</h2>
                     <p class="text-muted mb-0 small">Завершено</p>
@@ -84,19 +84,19 @@
     <div class="row mb-4">
         <!-- Goals Widget -->
         <div class="col-lg-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-0">
+            <div class="card-modern h-100">
+                <div class="card-header-modern">
                     <div class="d-flex justify-content-between align-items-center">
                         <h6 class="mb-0">
                             <i class="fas fa-bullseye me-2 text-danger"></i>
                             Мои цели
                         </h6>
-                        <a href="{{ path('app_goals_index') }}" class="btn btn-sm btn-link">
+                        <a href="{{ path('app_goals_index') }}" class="btn btn-sm btn-outline-primary-modern">
                             Все цели
                         </a>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body-modern">
                     {% if goals_stats.total|default(0) > 0 %}
                         <div class="row mb-3">
                             <div class="col-4 text-center">
@@ -123,9 +123,9 @@
                             <div class="goal-mini-card mb-2">
                                 <div class="d-flex justify-content-between align-items-center mb-1">
                                     <span class="fw-medium">{{ goal.title }}</span>
-                                    <span class="badge bg-primary">{{ goal.progress|number_format(0) }}%</span>
+                                    <span class="badge-modern badge-primary-modern">{{ goal.progress|number_format(0) }}%</span>
                                 </div>
-                                <div class="progress" style="height: 6px;">
+                                <div class="progress-modern" style="height: 6px;">
                                     <div class="progress-bar" role="progressbar" 
                                          style="width: {{ goal.progress }}%; background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);"
                                          aria-valuenow="{{ goal.progress }}" aria-valuemin="0" aria-valuemax="100"></div>
@@ -140,7 +140,7 @@
                         <div class="text-center py-4">
                             <i class="fas fa-bullseye fa-3x text-muted mb-3" style="opacity: 0.3;"></i>
                             <p class="text-muted mb-2">Нет активных целей</p>
-                            <a href="{{ path('app_goals_index') }}" class="btn btn-sm btn-primary">
+                            <a href="{{ path('app_goals_index') }}" class="btn btn-primary-modern">
                                 <i class="fas fa-plus me-1"></i>Создать цель
                             </a>
                         </div>
@@ -151,19 +151,19 @@
 
         <!-- Habits Widget -->
         <div class="col-lg-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-0">
+            <div class="card-modern h-100">
+                <div class="card-header-modern">
                     <div class="d-flex justify-content-between align-items-center">
                         <h6 class="mb-0">
                             <i class="fas fa-fire me-2 text-warning"></i>
                             Мои привычки
                         </h6>
-                        <a href="{{ path('app_habits_index') }}" class="btn btn-sm btn-link">
+                        <a href="{{ path('app_habits_index') }}" class="btn btn-sm btn-outline-primary-modern">
                             Все привычки
                         </a>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body-modern">
                     {% if habits_stats.total|default(0) > 0 %}
                         <div class="row mb-3">
                             <div class="col-4 text-center">
@@ -188,7 +188,7 @@
                         
                         <div class="habits-grid">
                             {% for habit in active_habits %}
-                                <div class="habit-mini-card" style="border-left: 3px solid {{ habit.color }};">
+                                <div class="habit-mini-card card-modern p-3 mb-2" style="border-left: 3px solid {{ habit.color }};">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
                                             <div class="habit-icon-mini" style="background: {{ habit.color }};">
@@ -210,7 +210,7 @@
                         <div class="text-center py-4">
                             <i class="fas fa-seedling fa-3x text-muted mb-3" style="opacity: 0.3;"></i>
                             <p class="text-muted mb-2">Нет активных привычек</p>
-                            <a href="{{ path('app_habits_index') }}" class="btn btn-sm btn-success">
+                            <a href="{{ path('app_habits_index') }}" class="btn btn-success-modern">
                                 <i class="fas fa-plus me-1"></i>Создать привычку
                             </a>
                         </div>
@@ -223,20 +223,20 @@
     {# Weekly Activity Widget #}
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-0">
+            <div class="card-modern">
+                <div class="card-header-modern">
                     <div class="d-flex justify-content-between align-items-center">
                         <h6 class="mb-0">
                             <i class="fas fa-chart-line me-2 text-primary"></i>
                             Активность за неделю
                         </h6>
                         <div class="btn-group btn-group-sm" role="group">
-                            <button type="button" class="btn btn-outline-primary active" data-period="week">Неделя</button>
-                            <button type="button" class="btn btn-outline-primary" data-period="month">Месяц</button>
+                            <button type="button" class="btn btn-outline-primary-modern active" data-period="week">Неделя</button>
+                            <button type="button" class="btn btn-outline-primary-modern" data-period="month">Месяц</button>
                         </div>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body-modern">
                     <div class="row">
                         <div class="col-lg-8">
                             <canvas id="activityChart" height="80"></canvas>
@@ -304,16 +304,16 @@
     <div class="row">
         <!-- Recent Tasks -->
         <div class="col-lg-8">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-0">
+            <div class="card-modern">
+                <div class="card-header-modern">
                     <div class="d-flex justify-content-between align-items-center">
                         <h6 class="mb-0">Последние задачи</h6>
-                        <a href="{{ path('app_task_index') }}" class="btn btn-sm btn-link">
+                        <a href="{{ path('app_task_index') }}" class="btn btn-sm btn-outline-primary-modern">
                             Все задачи
                         </a>
                     </div>
                 </div>
-                <div class="card-body p-0">
+                <div class="card-body-modern p-0">
                     <div id="recent-tasks-loading" class="p-4">
                         <div class="skeleton skeleton-text" style="width: 85%;"></div>
                         <div class="skeleton skeleton-text" style="width: 65%;"></div>
@@ -326,7 +326,7 @@
                     {% if recent_tasks is defined and recent_tasks is not empty %}
                         <div class="list-group list-group-flush">
                             {% for task in recent_tasks %}
-                                <div class="list-group-item task-item task-item-enhanced border-0 px-4 py-3 priority-{{ task.priority }} {% if task.priority == 'high' %}priority-high-glow{% elseif task.priority == 'medium' %}priority-medium-glow{% else %}priority-low-glow{% endif %} stats-card-enhanced">
+                                <div class="list-group-item task-item task-item-enhanced border-0 px-4 py-3 priority-{{ task.priority }} {% if task.priority == 'high' %}priority-high-glow{% elseif task.priority == 'medium' %}priority-medium-glow{% else %}priority-low-glow{% endif %} stats-card-enhanced card-modern mb-2 mx-3 mt-3">
                                     <div class="d-flex justify-content-between align-items-start">
                                         <div class="flex-grow-1">
                                             <div class="d-flex align-items-center mb-1">
@@ -335,19 +335,19 @@
                                                         {{ task.title }}
                                                     </a>
                                                 </h6>
-                                                <span class="badge badge-{{ task.status|lower }} badge-animated me-2">
+                                                <span class="badge-modern badge-{{ task.status|lower }} badge-animated me-2">
                                                     {{ task.status|trans }}
                                                 </span>
                                                 {% if task.priority == 'high' %}
-                                                    <span class="badge bg-danger badge-animated">
+                                                    <span class="badge-modern badge-danger-modern badge-animated">
                                                         <i class="fas fa-exclamation-triangle me-1"></i>Высокий приоритет
                                                     </span>
                                                 {% elseif task.priority == 'medium' %}
-                                                    <span class="badge bg-warning text-dark badge-animated">
+                                                    <span class="badge-modern badge-warning-modern badge-animated">
                                                         <i class="fas fa-exclamation me-1"></i>Средний приоритет
                                                     </span>
                                                 {% else %}
-                                                    <span class="badge bg-success badge-animated">
+                                                    <span class="badge-modern badge-success-modern badge-animated">
                                                         <i class="fas fa-arrow-down me-1"></i>Низкий приоритет
                                                     </span>
                                                 {% endif %}
@@ -370,7 +370,7 @@
                                             {% endif %}
                                         </div>
                                         <div class="dropdown">
-                                            <button class="btn btn-light btn-sm" type="button" data-bs-toggle="dropdown">
+                                            <button class="btn btn-light-modern btn-sm" type="button" data-bs-toggle="dropdown">
                                                 <i class="fas fa-ellipsis-v"></i>
                                             </button>
                                             <ul class="dropdown-menu">
@@ -391,7 +391,7 @@
                             <i class="fas fa-tasks"></i>
                             <h5>Нет задач</h5>
                             <p class="mb-0">Создайте свою первую задачу, чтобы начать</p>
-                            <a href="{{ path('app_task_new') }}" class="btn btn-primary mt-3">
+                            <a href="{{ path('app_task_new') }}" class="btn btn-primary-modern mt-3">
                                 <i class="fas fa-plus me-2"></i>Создать задачу
                             </a>
                         </div>
@@ -403,20 +403,20 @@
 
         <!-- Categories -->
         <div class="col-lg-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-0">
+            <div class="card-modern">
+                <div class="card-header-modern">
                     <div class="d-flex justify-content-between align-items-center">
                         <h6 class="mb-0">Категории</h6>
-                        <a href="{{ path('app_task_category_new') }}" class="btn btn-sm btn-link">
+                        <a href="{{ path('app_task_category_new') }}" class="btn btn-sm btn-outline-primary-modern">
                             <i class="fas fa-plus"></i>
                         </a>
                     </div>
                 </div>
-                <div class="card-body p-0">
+                <div class="card-body-modern p-0">
                     {% if categories is defined and categories is not empty %}
                         <div class="list-group list-group-flush">
                             {% for category in categories|slice(0, 5) %}
-                                <div class="list-group-item border-0 px-3 py-2">
+                                <div class="list-group-item card-modern border-0 px-3 py-2 mb-2">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
                                             <div class="fw-medium">{{ category.name }}</div>
@@ -442,31 +442,31 @@
     {% if app.user.hasRole('ROLE_ADMIN') and platform_activity_stats is defined %}
     <div class="row mb-4">
         <div class="col-lg-12">
-            <div class="card border-0 shadow-sm card-enhanced">
-                <div class="card-header bg-white">
+            <div class="card-modern">
+                <div class="card-header-modern">
                     <h5 class="mb-0">
                         <i class="fas fa-users-cog me-2 text-info"></i>
                         Активность платформы
                     </h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body-modern">
                     <div class="row">
                         <div class="col-md-4">
-                            <div class="text-center p-3 bg-light rounded">
+                            <div class="card-modern text-center p-3">
                                 <i class="fas fa-users fa-2x text-info mb-2"></i>
                                 <h4 class="mb-1">{{ platform_activity_stats.active_today }}</h4>
                                 <p class="mb-0">Активных сегодня</p>
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <div class="text-center p-3 bg-light rounded">
+                            <div class="card-modern text-center p-3">
                                 <i class="fas fa-user-check fa-2x text-success mb-2"></i>
                                 <h4 class="mb-1">{{ platform_activity_stats.total_users }}</h4>
                                 <p class="mb-0">Всего пользователей</p>
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <div class="text-center p-3 bg-light rounded">
+                            <div class="card-modern text-center p-3">
                                 <i class="fas fa-user-tag fa-2x text-warning mb-2"></i>
                                 <h4 class="mb-1">{{ platform_activity_stats.active_today }}</h4>
                                 <p class="mb-0">Активных</p>
@@ -483,31 +483,31 @@
 
 <!-- Quick Actions Menu -->
 <div class="quick-actions">
-    <button class="quick-action-btn" id="quickActionsBtn">
+    <button class="btn btn-primary-modern btn-lg rounded-circle shadow-lg" id="quickActionsBtn" style="width: 60px; height: 60px; position: fixed; bottom: 30px; right: 30px; z-index: 1000; display: flex; align-items: center; justify-content: center;">
         <i class="fas fa-plus"></i>
     </button>
     <div class="quick-actions-menu" id="quickActionsMenu">
-        <a href="{{ path('app_task_new') }}" class="quick-action-item">
-            <div class="quick-action-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-                <i class="fas fa-tasks"></i>
+        <a href="{{ path('app_task_new') }}" class="quick-action-item card-modern p-3">
+            <div class="quick-action-icon d-flex align-items-center justify-content-center rounded-circle" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; width: 50px; height: 50px;">
+                <i class="fas fa-tasks fs-5"></i>
             </div>
             <span>Новая задача</span>
         </a>
-        <a href="{{ path('app_goals_index') }}" class="quick-action-item">
-            <div class="quick-action-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
-                <i class="fas fa-bullseye"></i>
+        <a href="{{ path('app_goals_index') }}" class="quick-action-item card-modern p-3">
+            <div class="quick-action-icon d-flex align-items-center justify-content-center rounded-circle" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; width: 50px; height: 50px;">
+                <i class="fas fa-bullseye fs-5"></i>
             </div>
             <span>Новая цель</span>
         </a>
-        <a href="{{ path('app_habits_index') }}" class="quick-action-item">
-            <div class="quick-action-icon" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white;">
-                <i class="fas fa-fire"></i>
+        <a href="{{ path('app_habits_index') }}" class="quick-action-item card-modern p-3">
+            <div class="quick-action-icon d-flex align-items-center justify-content-center rounded-circle" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; width: 50px; height: 50px;">
+                <i class="fas fa-fire fs-5"></i>
             </div>
             <span>Новая привычка</span>
         </a>
-        <a href="{{ path('app_task_category_new') }}" class="quick-action-item">
-            <div class="quick-action-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
-                <i class="fas fa-folder"></i>
+        <a href="{{ path('app_task_category_new') }}" class="quick-action-item card-modern p-3">
+            <div class="quick-action-icon d-flex align-items-center justify-content-center rounded-circle" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; width: 50px; height: 50px;">
+                <i class="fas fa-folder fs-5"></i>
             </div>
             <span>Новая категория</span>
         </a>

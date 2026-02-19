@@ -16,12 +16,12 @@ class EmailDomain extends Constraint
     public array $blockedDomains = [];
     
     public function __construct(
-        array $options = null,
-        array $groups = null,
+        ?array $options = null,
+        ?array $groups = null,
         mixed $payload = null,
         array $allowedDomains = [],
         array $blockedDomains = [],
-        string $message = null
+        ?string $message = null
     ) {
         parent::__construct($options ?? [], $groups, $payload);
         

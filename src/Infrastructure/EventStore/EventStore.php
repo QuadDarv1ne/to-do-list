@@ -30,7 +30,7 @@ final readonly class EventStore
         ]);
     }
 
-    public function getEvents(string $eventName = null, \DateTimeImmutable $since = null): array
+    public function getEvents(?string $eventName = null, ?\DateTimeImmutable $since = null): array
     {
         $qb = $this->connection->createQueryBuilder()
             ->select('*')

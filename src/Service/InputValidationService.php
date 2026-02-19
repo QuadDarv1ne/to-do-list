@@ -28,7 +28,7 @@ class InputValidationService
     /**
      * Validate integer input
      */
-    public function validateInt($value, int $min = null, int $max = null): ?int
+    public function validateInt($value, ?int $min = null, ?int $max = null): ?int
     {
         if ($value === null || $value === '') {
             return null;

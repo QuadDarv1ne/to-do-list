@@ -76,8 +76,8 @@
 <div class="container py-4 task-edit-container">
     <div class="row justify-content-center">
         <div class="col-lg-10">
-            <div class="card border-0 shadow-sm">
-                <div class="edit-header">
+            <div class="card-modern shadow-lg">
+                <div class="card-header-modern bg-gradient-primary text-white rounded-top-4 p-4">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h2 class="mb-1">
@@ -86,153 +86,167 @@
                             </h2>
                             <p class="mb-0 opacity-75">Обновите информацию о задаче</p>
                         </div>
-                        <a href="{{ path('app_task_show', {'id': task.id}) }}" class="btn btn-light">
+                        <a href="{{ path('app_task_show', {'id': task.id}) }}" class="btn btn-outline-light-modern">
                             <i class="fas fa-arrow-left me-2"></i>Назад
                         </a>
                     </div>
                 </div>
                 
-                <div class="card-body p-0">
+                <div class="card-body-modern p-0">
                     {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
                     
                     <!-- Basic Information -->
-                    <div class="form-section">
-                        <div class="form-section-title">
-                            <i class="fas fa-info-circle text-primary"></i>
-                            Основная информация
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-12 mb-3">
-                                <label class="form-label fw-bold">
-                                    <i class="fas fa-heading me-2"></i>Название задачи
-                                </label>
-                                {{ form_widget(form.title, {
-                                    'attr': {
-                                        'class': 'form-control form-control-lg',
-                                        'placeholder': 'Введите название задачи...'
-                                    }
-                                }) }}
-                                {{ form_errors(form.title) }}
+                    <div class="card-modern mb-4">
+                        <div class="card-header-modern">
+                            <div class="form-section-title">
+                                <i class="fas fa-info-circle text-primary"></i>
+                                Основная информация
                             </div>
-                            
-                            <div class="col-12 mb-3">
-                                <label class="form-label fw-bold">
-                                    <i class="fas fa-align-left me-2"></i>Описание
-                                </label>
-                                {{ form_widget(form.description, {
-                                    'attr': {
-                                        'class': 'form-control',
-                                        'rows': '5',
-                                        'placeholder': 'Подробное описание задачи...'
-                                    }
-                                }) }}
-                                {{ form_errors(form.description) }}
+                        </div>
+                        <div class="card-body-modern">
+                            <div class="row">
+                                <div class="col-12 mb-3">
+                                    <label class="form-label fw-bold">
+                                        <i class="fas fa-heading me-2"></i>Название задачи
+                                    </label>
+                                    {{ form_widget(form.title, {
+                                        'attr': {
+                                            'class': 'form-control-modern form-control-lg',
+                                            'placeholder': 'Введите название задачи...'
+                                        }
+                                    }) }}
+                                    {{ form_errors(form.title) }}
+                                </div>
+                                
+                                <div class="col-12 mb-3">
+                                    <label class="form-label fw-bold">
+                                        <i class="fas fa-align-left me-2"></i>Описание
+                                    </label>
+                                    {{ form_widget(form.description, {
+                                        'attr': {
+                                            'class': 'form-control-modern',
+                                            'rows': '5',
+                                            'placeholder': 'Подробное описание задачи...'
+                                        }
+                                    }) }}
+                                    {{ form_errors(form.description) }}
+                                </div>
                             </div>
                         </div>
                     </div>
                     
                     <!-- Status and Priority -->
-                    <div class="form-section">
-                        <div class="form-section-title">
-                            <i class="fas fa-sliders-h text-info"></i>
-                            Статус и приоритет
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">
-                                    <i class="fas fa-tasks me-2"></i>Статус
-                                </label>
-                                {{ form_widget(form.status, {'attr': {'class': 'form-select'}}) }}
-                                {{ form_errors(form.status) }}
+                    <div class="card-modern mb-4">
+                        <div class="card-header-modern">
+                            <div class="form-section-title">
+                                <i class="fas fa-sliders-h text-info"></i>
+                                Статус и приоритет
                             </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">
-                                    <i class="fas fa-exclamation-triangle me-2"></i>Приоритет
-                                </label>
-                                {{ form_widget(form.priority, {'attr': {'class': 'form-select'}}) }}
-                                {{ form_errors(form.priority) }}
+                        </div>
+                        <div class="card-body-modern">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">
+                                        <i class="fas fa-tasks me-2"></i>Статус
+                                    </label>
+                                    {{ form_widget(form.status, {'attr': {'class': 'form-select-modern'}}) }}
+                                    {{ form_errors(form.status) }}
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>Приоритет
+                                    </label>
+                                    {{ form_widget(form.priority, {'attr': {'class': 'form-select-modern'}}) }}
+                                    {{ form_errors(form.priority) }}
+                                </div>
                             </div>
                         </div>
                     </div>
                     
                     <!-- Category and Due Date -->
-                    <div class="form-section">
-                        <div class="form-section-title">
-                            <i class="fas fa-calendar-alt text-warning"></i>
-                            Категория и сроки
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">
-                                    <i class="fas fa-folder me-2"></i>Категория
-                                </label>
-                                {{ form_widget(form.category, {'attr': {'class': 'form-select'}}) }}
-                                {{ form_errors(form.category) }}
+                    <div class="card-modern mb-4">
+                        <div class="card-header-modern">
+                            <div class="form-section-title">
+                                <i class="fas fa-calendar-alt text-warning"></i>
+                                Категория и сроки
                             </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">
-                                    <i class="fas fa-clock me-2"></i>Срок выполнения
-                                </label>
-                                {{ form_widget(form.dueDate, {'attr': {'class': 'form-control'}}) }}
-                                {{ form_errors(form.dueDate) }}
+                        </div>
+                        <div class="card-body-modern">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">
+                                        <i class="fas fa-folder me-2"></i>Категория
+                                    </label>
+                                    {{ form_widget(form.category, {'attr': {'class': 'form-select-modern'}}) }}
+                                    {{ form_errors(form.category) }}
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">
+                                        <i class="fas fa-clock me-2"></i>Срок выполнения
+                                    </label>
+                                    {{ form_widget(form.dueDate, {'attr': {'class': 'form-control-modern'}}) }}
+                                    {{ form_errors(form.dueDate) }}
+                                </div>
                             </div>
                         </div>
                     </div>
                     
                     <!-- Assignment and Tags -->
-                    <div class="form-section">
-                        <div class="form-section-title">
-                            <i class="fas fa-user-tag text-success"></i>
-                            Назначение и теги
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-12 mb-3">
-                                <label class="form-label fw-bold">
-                                    <i class="fas fa-user me-2"></i>Исполнитель
-                                </label>
-                                {{ form_widget(form.assignedUser, {'attr': {'class': 'form-select'}}) }}
-                                {{ form_errors(form.assignedUser) }}
+                    <div class="card-modern mb-4">
+                        <div class="card-header-modern">
+                            <div class="form-section-title">
+                                <i class="fas fa-user-tag text-success"></i>
+                                Назначение и теги
                             </div>
-                            
-                            <div class="col-12 mb-3">
-                                <label class="form-label fw-bold">
-                                    <i class="fas fa-tags me-2"></i>Теги
-                                </label>
-                                {{ form_widget(form.tags, {'attr': {'class': 'form-select', 'multiple': 'multiple'}}) }}
-                                {{ form_errors(form.tags) }}
+                        </div>
+                        <div class="card-body-modern">
+                            <div class="row">
+                                <div class="col-12 mb-3">
+                                    <label class="form-label fw-bold">
+                                        <i class="fas fa-user me-2"></i>Исполнитель
+                                    </label>
+                                    {{ form_widget(form.assignedUser, {'attr': {'class': 'form-select-modern'}}) }}
+                                    {{ form_errors(form.assignedUser) }}
+                                </div>
                                 
-                                <div class="tag-creator">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <input type="text" id="quick-tag-input" class="form-control" placeholder="Создать новый тег...">
-                                        <input type="color" id="quick-tag-color" class="form-control form-control-color" value="#667eea" title="Цвет тега">
-                                        <button type="button" class="btn btn-primary" id="create-quick-tag-btn">
-                                            <i class="fas fa-plus me-1"></i>Создать
-                                        </button>
+                                <div class="col-12 mb-3">
+                                    <label class="form-label fw-bold">
+                                        <i class="fas fa-tags me-2"></i>Теги
+                                    </label>
+                                    {{ form_widget(form.tags, {'attr': {'class': 'form-select-enhanced', 'multiple': 'multiple'}}) }}
+                                    {{ form_errors(form.tags) }}
+                                    
+                                    <div class="card-modern p-3 mt-3">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <input type="text" id="quick-tag-input" class="form-control-modern" placeholder="Создать новый тег...">
+                                            <input type="color" id="quick-tag-color" class="form-control form-control-color" value="#667eea" title="Цвет тега">
+                                            <button type="button" class="btn btn-primary-modern" id="create-quick-tag-btn">
+                                                <i class="fas fa-plus me-1"></i>Создать
+                                            </button>
+                                        </div>
+                                        <small class="text-muted mt-2 d-block">
+                                            <i class="fas fa-lightbulb me-1"></i>
+                                            Выберите существующие теги или создайте новые
+                                        </small>
                                     </div>
-                                    <small class="text-muted mt-2 d-block">
-                                        <i class="fas fa-lightbulb me-1"></i>
-                                        Выберите существующие теги или создайте новые
-                                    </small>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
                     <!-- Actions -->
-                    <div class="form-section">
-                        <div class="d-flex gap-2 justify-content-end">
-                            <a href="{{ path('app_task_show', {'id': task.id}) }}" class="btn btn-outline-secondary">
-                                <i class="fas fa-times me-2"></i>Отмена
-                            </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save me-2"></i>Сохранить изменения
-                            </button>
+                    <div class="card-modern">
+                        <div class="card-body-modern">
+                            <div class="d-flex gap-2 justify-content-end">
+                                <a href="{{ path('app_task_show', {'id': task.id}) }}" class="btn btn-outline-secondary-modern">
+                                    <i class="fas fa-times me-2"></i>Отмена
+                                </a>
+                                <button type="submit" class="btn btn-primary-modern">
+                                    <i class="fas fa-save me-2"></i>Сохранить изменения
+                                </button>
+                            </div>
                         </div>
                     </div>
                     

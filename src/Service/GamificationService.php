@@ -80,7 +80,7 @@ class GamificationService
     /**
      * Award XP for action
      */
-    public function awardXP(User $user, string $action, int $amount = null): int
+    public function awardXP(User $user, string $action, ?int $amount = null): int
     {
         $xpAmount = $amount ?? match($action) {
             'task_completed' => 10,

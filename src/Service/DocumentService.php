@@ -164,7 +164,7 @@ class DocumentService
     /**
      * Get documents by user
      */
-    public function getDocumentsByUser(User $user, int $limit = null, int $offset = 0): array
+    public function getDocumentsByUser(User $user, ?int $limit = null, int $offset = 0): array
     {
         $qb = $this->documentRepository->createQueryBuilder('d')
             ->where('d.createdBy = :userId')
@@ -185,7 +185,7 @@ class DocumentService
     /**
      * Get documents by status
      */
-    public function getDocumentsByStatus(string $status, int $limit = null, int $offset = 0): array
+    public function getDocumentsByStatus(string $status, ?int $limit = null, int $offset = 0): array
     {
         $qb = $this->documentRepository->createQueryBuilder('d')
             ->where('d.status = :status')
@@ -206,7 +206,7 @@ class DocumentService
     /**
      * Search documents
      */
-    public function searchDocuments(string $query, User $user = null, int $limit = 10, int $offset = 0): array
+    public function searchDocuments(string $query, ?User $user = null, int $limit = 10, int $offset = 0): array
     {
         $qb = $this->documentRepository->createQueryBuilder('d')
             ->where('d.title LIKE :query OR d.content LIKE :query OR d.description LIKE :query')
@@ -302,7 +302,7 @@ class DocumentService
     /**
      * Get documents by tags
      */
-    public function getDocumentsByTags(array $tags, User $user = null): array
+    public function getDocumentsByTags(array $tags, ?User $user = null): array
     {
         $tagString = '%' . implode('%', $tags) . '%';
         
@@ -335,7 +335,7 @@ class DocumentService
     /**
      * Get recent documents
      */
-    public function getRecentDocuments(int $limit = 10, User $user = null): array
+    public function getRecentDocuments(int $limit = 10, ?User $user = null): array
     {
         $qb = $this->documentRepository->createQueryBuilder('d')
             ->orderBy('d.createdAt', 'DESC')
@@ -352,7 +352,7 @@ class DocumentService
     /**
      * Duplicate a document
      */
-    public function duplicateDocument(Document $document, User $user, string $newTitle = null): Document
+    public function duplicateDocument(Document $document, User $user, ?string $newTitle = null): Document
     {
         $newDocument = new Document();
         $newDocument->setTitle($newTitle ?: $document->getTitle() . ' (Copy)');
