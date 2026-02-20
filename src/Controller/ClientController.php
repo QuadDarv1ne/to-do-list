@@ -113,4 +113,30 @@ class ClientController extends AbstractController
 
         return $this->redirectToRoute('app_clients_index');
     }
+
+    #[Route('/{id}/interaction/new', name: 'app_client_interaction_new', methods: ['POST'])]
+    public function addInteraction(Client $client, Request $request, EntityManagerInterface $em): Response
+    {
+        $this->denyAccessUnlessGranted('edit', $client);
+
+        $interaction = new \App\Entity\ClientInteraction();
+        $interaction->setClient($client);
+        $interaction->setUser($this->getUser());
+        $interaction->setInteractionType($request->request->get('interaction_type', 'call'));
+        $interaction->setDescription($request->request->get('description'));
+
+        $interactionDate = $request->request->get('interaction_date');
+        if ($interactionDate) {
+            $interaction->setInteractionDate(new \DateTime($interactionDate));
+        }
+
+        $client->setLastContactAt(new \DateTime());
+
+        $em->persist($interaction);
+        $em->flush();
+
+        $this->addFlash('success', 'Взаимодействие успешно добавлено');
+
+        return $this->redirectToRoute('app_clients_show', ['id' => $client->getId()]);
+    }
 }

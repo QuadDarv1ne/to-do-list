@@ -1,84 +1,106 @@
-{% extends 'base.html.twig' %}
+{% extends 'base_sidebar.html.twig' %}
 
-{% block title %}Редактировать клиента{% endblock %}
+{% block title %}Редактирование клиента{% endblock %}
 
 {% block body %}
-<div class="container">
-    <h1 class="mb-4">Редактировать клиента</h1>
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex align-items-center mb-4">
+                <a href="{{ path('app_clients_show', {id: client.id}) }}" class="btn btn-outline-secondary me-3">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-user-edit me-2"></i>Редактирование клиента
+                </h1>
+            </div>
 
-    <div class="card">
-        <div class="card-body">
-            <form method="post">
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="company_name" class="form-label">Название организации *</label>
-                        <input type="text" class="form-control" id="company_name" name="company_name" 
-                               value="{{ client.companyName }}" required>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <label for="inn" class="form-label">ИНН</label>
-                        <input type="text" class="form-control" id="inn" name="inn" 
-                               value="{{ client.inn }}" maxlength="12">
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <label for="kpp" class="form-label">КПП</label>
-                        <input type="text" class="form-control" id="kpp" name="kpp" 
-                               value="{{ client.kpp }}" maxlength="9">
-                    </div>
-                </div>
+            <div class="card-modern">
+                <div class="card-body-modern">
+                    <form method="post">
+                        <h5 class="mb-3">Основная информация</h5>
+                        
+                        <div class="mb-3">
+                            <label for="company_name" class="form-label">Название организации *</label>
+                            <input type="text" class="form-control" id="company_name" name="company_name" value="{{ client.companyName }}" required>
+                        </div>
 
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label for="contact_person" class="form-label">Контактное лицо</label>
-                        <input type="text" class="form-control" id="contact_person" name="contact_person"
-                               value="{{ client.contactPerson }}">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label for="phone" class="form-label">Телефон</label>
-                        <input type="tel" class="form-control" id="phone" name="phone" 
-                               value="{{ client.phone }}" placeholder="+79991234567">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email"
-                               value="{{ client.email }}">
-                    </div>
-                </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="inn" class="form-label">ИНН</label>
+                                <input type="text" class="form-control" id="inn" name="inn" value="{{ client.inn }}" pattern="\d{10}|\d{12}" placeholder="10 или 12 цифр">
+                            </div>
 
-                <div class="mb-3">
-                    <label for="address" class="form-label">Адрес</label>
-                    <textarea class="form-control" id="address" name="address" rows="2">{{ client.address }}</textarea>
-                </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="kpp" class="form-label">КПП</label>
+                                <input type="text" class="form-control" id="kpp" name="kpp" value="{{ client.kpp }}" pattern="\d{9}" placeholder="9 цифр">
+                            </div>
+                        </div>
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="segment" class="form-label">Сегмент</label>
-                        <select class="form-select" id="segment" name="segment">
-                            <option value="retail" {{ client.segment == 'retail' ? 'selected' : '' }}>Розница</option>
-                            <option value="wholesale" {{ client.segment == 'wholesale' ? 'selected' : '' }}>Опт</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="category" class="form-label">Категория</label>
-                        <select class="form-select" id="category" name="category">
-                            <option value="new" {{ client.category == 'new' ? 'selected' : '' }}>Новый</option>
-                            <option value="regular" {{ client.category == 'regular' ? 'selected' : '' }}>Постоянный</option>
-                            <option value="vip" {{ client.category == 'vip' ? 'selected' : '' }}>VIP</option>
-                            <option value="potential" {{ client.category == 'potential' ? 'selected' : '' }}>Потенциальный</option>
-                        </select>
-                    </div>
-                </div>
+                        <hr class="my-4">
+                        <h5 class="mb-3">Контактная информация</h5>
 
-                <div class="mb-3">
-                    <label for="notes" class="form-label">Заметки</label>
-                    <textarea class="form-control" id="notes" name="notes" rows="3">{{ client.notes }}</textarea>
-                </div>
+                        <div class="mb-3">
+                            <label for="contact_person" class="form-label">Контактное лицо</label>
+                            <input type="text" class="form-control" id="contact_person" name="contact_person" value="{{ client.contactPerson }}">
+                        </div>
 
-                <div class="d-flex justify-content-between">
-                    <a href="{{ path('app_clients_show', {id: client.id}) }}" class="btn btn-secondary">Отмена</a>
-                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label">Телефон</label>
+                                <input type="tel" class="form-control" id="phone" name="phone" value="{{ client.phone }}" pattern="\+7\d{10}" placeholder="+79991234567">
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" value="{{ client.email }}">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Адрес</label>
+                            <textarea class="form-control" id="address" name="address" rows="2">{{ client.address }}</textarea>
+                        </div>
+
+                        <hr class="my-4">
+                        <h5 class="mb-3">Классификация</h5>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="segment" class="form-label">Сегмент *</label>
+                                <select class="form-select" id="segment" name="segment" required>
+                                    <option value="retail" {% if client.segment == 'retail' %}selected{% endif %}>Розница</option>
+                                    <option value="wholesale" {% if client.segment == 'wholesale' %}selected{% endif %}>Опт</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="category" class="form-label">Категория *</label>
+                                <select class="form-select" id="category" name="category" required>
+                                    <option value="new" {% if client.category == 'new' %}selected{% endif %}>Новый</option>
+                                    <option value="regular" {% if client.category == 'regular' %}selected{% endif %}>Постоянный</option>
+                                    <option value="vip" {% if client.category == 'vip' %}selected{% endif %}>VIP</option>
+                                    <option value="potential" {% if client.category == 'potential' %}selected{% endif %}>Потенциальный</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Заметки</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3">{{ client.notes }}</textarea>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Сохранить изменения
+                            </button>
+                            <a href="{{ path('app_clients_show', {id: client.id}) }}" class="btn btn-outline-secondary">
+                                Отмена
+                            </a>
+                        </div>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>

@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="{{ asset('css/advanced-animations.css') }}">
     <link rel="stylesheet" href="{{ asset('css/fab-menu.css') }}">
     <link rel="stylesheet" href="{{ asset('css/modern-dashboard.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/pipeline-view.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/enhanced-cards.css') }}">
     
     <style>
         /* Дополнительные стили для sidebar layout */
@@ -362,6 +364,30 @@
                 </a>
             </div>
             <div class="nav-item">
+                <a href="{{ path('app_crm_dashboard') }}" class="nav-link {{ app.request.attributes.get('_route') starts with 'app_crm' ? 'active' : '' }}">
+                    <i class="nav-icon fas fa-chart-line"></i>
+                    <span class="nav-text">CRM</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="{{ path('app_clients_index') }}" class="nav-link {{ app.request.attributes.get('_route') starts with 'app_clients' ? 'active' : '' }}">
+                    <i class="nav-icon fas fa-building"></i>
+                    <span class="nav-text">Клиенты</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="{{ path('app_deals_index') }}" class="nav-link {{ app.request.attributes.get('_route') starts with 'app_deals' ? 'active' : '' }}">
+                    <i class="nav-icon fas fa-handshake"></i>
+                    <span class="nav-text">Сделки</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="{{ path('app_products_index') }}" class="nav-link {{ app.request.attributes.get('_route') starts with 'app_products' ? 'active' : '' }}">
+                    <i class="nav-icon fas fa-box"></i>
+                    <span class="nav-text">Товары</span>
+                </a>
+            </div>
+            <div class="nav-item">
                 <a href="{{ path('app_user_index') }}" class="nav-link {{ app.request.attributes.get('_route') starts with 'app_user' ? 'active' : '' }}">
                     <i class="nav-icon fas fa-users"></i>
                     <span class="nav-text">Пользователи</span>
@@ -436,9 +462,9 @@
                 </a>
             </div>
             <div class="fab-item">
-                <span class="fab-label">Новый проект</span>
-                <a href="{{ path('app_project_new') }}" class="fab-button success">
-                    <i class="fas fa-folder-plus"></i>
+                <span class="fab-label">Канбан доска</span>
+                <a href="{{ path('app_kanban_board') }}" class="fab-button success">
+                    <i class="fas fa-columns"></i>
                 </a>
             </div>
             <div class="fab-item">
@@ -448,9 +474,9 @@
                 </a>
             </div>
             <div class="fab-item">
-                <span class="fab-label">Настройки</span>
-                <a href="{{ path('app_settings') }}" class="fab-button warning">
-                    <i class="fas fa-cog"></i>
+                <span class="fab-label">Календарь</span>
+                <a href="{{ path('app_calendar') }}" class="fab-button warning">
+                    <i class="fas fa-calendar"></i>
                 </a>
             </div>
         </div>
@@ -462,6 +488,9 @@
     <script src="{{ asset('js/unified-theme-system.js') }}"></script>
     <script src="{{ asset('js/micro-interactions.js') }}"></script>
     <script src="{{ asset('js/advanced-widgets.js') }}"></script>
+    <script src="{{ asset('js/real-time-updates.js') }}"></script>
+    <script src="{{ asset('js/advanced-filters.js') }}"></script>
+    <script src="{{ asset('js/smooth-animations.js') }}"></script>
     <script>
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('collapsed');

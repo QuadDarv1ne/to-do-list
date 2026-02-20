@@ -1,0 +1,171 @@
+{% extends 'base_sidebar.html.twig' %}
+
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <div class="d-flex align-items-center mb-4">
+        <a href="{{ path('app_products_index') }}" class="btn btn-outline-secondary me-3">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <h1 class="h3 mb-0">
+            <i class="fas fa-box me-2"></i>{{ product.name }}
+        </h1>
+        {% if is_granted('ROLE_ADMIN') %}
+            <div class="ms-auto d-flex gap-2">
+                <a href="{{ path('app_products_edit', {id: product.id}) }}" class="btn btn-primary">
+                    <i class="fas fa-edit me-2"></i>Редактировать
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card-modern mb-4">
+                <div class="card-body-modern">
+                    <h5 class="mb-3"><i class="fas fa-info-circle me-2"></i>Основная информация</h5>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="text-muted small">Название</label>
+                            <div class="fs-5">{{ product.name }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Артикул</label>
+                            <div class="fs-5"><code>{{ product.sku }}</code></div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="text-muted small">Категория</label>
+                            <div>
+                                <span class="badge bg-info fs-6">{{ product.categoryDisplayName }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Единица измерения</label>
+                            <div>
+                                {% if product.unit %}
+                                    <span class="badge bg-secondary fs-6">{{ product.unit }}</span>
+                                {% else %}
+                                    <span class="text-muted">Не указано</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="text-muted small">Статус</label>
+                            <div>
+                                {% if product.isActive %}
+                                    <span class="badge bg-success fs-6">Активен</span>
+                                {% else %}
+                                    <span class="badge bg-secondary fs-6">Неактивен</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if product.description %}
+                        <div class="mb-3">
+                            <label class="text-muted small">Описание</label>
+                            <div class="p-3 bg-light rounded">
+                                {{ product.description|nl2br }}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card-modern mb-4">
+                <div class="card-body-modern">
+                    <h5 class="mb-3"><i class="fas fa-ruble-sign me-2"></i>Ценообразование</h5>
+                    
+                    <div class="mb-3">
+                        <label class="text-muted small">Цена продажи</label>
+                        <div class="fs-3 text-success">
+                            {{ product.price|number_format(2, '.', ' ') }} ₽
+                        </div>
+                    </div>
+
+                    {% if product.cost %}
+                        <div class="mb-3">
+                            <label class="text-muted small">Себестоимость</label>
+                            <div class="fs-5">
+                                {{ product.cost|number_format(2, '.', ' ') }} ₽
+                            </div>
+                        </div>
+
+                        {% if product.margin %}
+                            <div class="mb-3">
+                                <label class="text-muted small">Наценка</label>
+                                <div>
+                                    <span class="badge bg-success fs-5">{{ product.margin|number_format(1) }}%</span>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-info">
+                                <small>
+                                    <strong>Прибыль с единицы:</strong><br>
+                                    {{ (product.price - product.cost)|number_format(2, '.', ' ') }} ₽
+                                </small>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card-modern mb-4">
+                <div class="card-body-modern">
+                    <h5 class="mb-3"><i class="fas fa-calendar me-2"></i>Даты</h5>
+                    
+                    <div class="mb-3">
+                        <label class="text-muted small">Создан</label>
+                        <div>{{ product.createdAt|date('d.m.Y H:i') }}</div>
+                    </div>
+
+                    {% if product.updatedAt %}
+                        <div class="mb-3">
+                            <label class="text-muted small">Обновлён</label>
+                            <div>{{ product.updatedAt|date('d.m.Y H:i') }}</div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if is_granted('ROLE_ADMIN') %}
+                <div class="card-modern">
+                    <div class="card-body-modern">
+                        <h5 class="mb-3"><i class="fas fa-cog me-2"></i>Действия</h5>
+                        
+                        <div class="d-grid gap-2">
+                            <a href="{{ path('app_products_edit', {id: product.id}) }}" class="btn btn-primary">
+                                <i class="fas fa-edit me-2"></i>Редактировать
+                            </a>
+                            
+                            <form method="post" action="{{ path('app_products_delete', {id: product.id}) }}" 
+                                  onsubmit="return confirm('Вы уверены, что хотите удалить этот товар?');">
+                                <button type="submit" class="btn btn-danger w-100">
+                                    <i class="fas fa-trash me-2"></i>Удалить
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

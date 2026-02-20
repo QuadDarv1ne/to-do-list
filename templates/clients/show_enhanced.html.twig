@@ -1,0 +1,365 @@
+{% extends 'base_sidebar.html.twig' %}
+
+{% block page_title %}{{ client.companyName }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/enhanced-cards.css') }}">
+{% endblock %}
+
+{% block body %}
+<div class="animate-fade-in">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 stagger-item">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item"><a href="{{ path('app_clients_index') }}">Клиенты</a></li>
+                    <li class="breadcrumb-item active">{{ client.companyName }}</li>
+                </ol>
+            </nav>
+            <h2 style="margin: 0; font-size: 28px; font-weight: 600;">
+                {{ client.companyName }}
+            </h2>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ path('app_clients_edit', {id: client.id}) }}" class="btn btn-outline-primary">
+                <i class="fas fa-edit me-2"></i>Редактировать
+            </a>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newInteractionModal">
+                <i class="fas fa-plus me-2"></i>Добавить взаимодействие
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column - Main Info -->
+        <div class="col-lg-8">
+            <!-- Client Info Card -->
+            <div class="card-enhanced mb-4 stagger-item delay-100" data-animate-on-scroll>
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Информация о клиенте
+                    </h5>
+                    <div>
+                        <span class="badge" style="
+                            background: {{ client.category == 'vip' ? 'rgba(139, 92, 246, 0.1)' : 
+                                          (client.category == 'regular' ? 'rgba(16, 185, 129, 0.1)' : 
+                                          (client.category == 'new' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(99, 102, 241, 0.1)')) }};
+                            color: {{ client.category == 'vip' ? '#8b5cf6' : 
+                                     (client.category == 'regular' ? '#10b981' : 
+                                     (client.category == 'new' ? '#f59e0b' : '#6366f1')) }};
+                            padding: 8px 16px;
+                            border-radius: 20px;
+                            font-size: 14px;
+                            font-weight: 600;">
+                            {% if client.category == 'vip' %}
+                                <i class="fas fa-star me-1"></i>VIP клиент
+                            {% elseif client.category == 'regular' %}
+                                <i class="fas fa-check-circle me-1"></i>Постоянный
+                            {% elseif client.category == 'new' %}
+                                <i class="fas fa-user-plus me-1"></i>Новый
+                            {% else %}
+                                <i class="fas fa-user me-1"></i>Потенциальный
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="text-muted small mb-1">ИНН</label>
+                        <div class="fw-semibold">{{ client.inn ?? '—' }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small mb-1">КПП</label>
+                        <div class="fw-semibold">{{ client.kpp ?? '—' }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small mb-1">Контактное лицо</label>
+                        <div class="fw-semibold">{{ client.contactPerson ?? '—' }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small mb-1">Телефон</label>
+                        <div class="fw-semibold">
+                            {% if client.phone %}
+                                <a href="tel:{{ client.phone }}">{{ client.phone }}</a>
+                            {% else %}
+                                —
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small mb-1">Email</label>
+                        <div class="fw-semibold">
+                            {% if client.email %}
+                                <a href="mailto:{{ client.email }}">{{ client.email }}</a>
+                            {% else %}
+                                —
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small mb-1">Сегмент</label>
+                        <div class="fw-semibold">{{ client.segment == 'retail' ? 'Розница' : 'Опт' }}</div>
+                    </div>
+                    <div class="col-12">
+                        <label class="text-muted small mb-1">Адрес</label>
+                        <div class="fw-semibold">{{ client.address ?? '—' }}</div>
+                    </div>
+                    {% if client.notes %}
+                    <div class="col-12">
+                        <label class="text-muted small mb-1">Заметки</label>
+                        <div class="p-3 bg-light rounded">{{ client.notes }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Deals History -->
+            <div class="card-enhanced mb-4 stagger-item delay-200" data-animate-on-scroll>
+                <h5 class="mb-4">
+                    <i class="fas fa-handshake me-2"></i>История сделок
+                </h5>
+
+                {% if client.deals|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Название</th>
+                                <th>Сумма</th>
+                                <th>Статус</th>
+                                <th>Дата</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for deal in client.deals %}
+                            <tr>
+                                <td>{{ deal.title }}</td>
+                                <td class="fw-bold">₽ {{ deal.amount|number_format(0, '.', ' ') }}</td>
+                                <td>
+                                    <span class="badge bg-{{ deal.status == 'won' ? 'success' : (deal.status == 'lost' ? 'danger' : 'warning') }}">
+                                        {{ deal.status }}
+                                    </span>
+                                </td>
+                                <td>{{ deal.createdAt|date('d.m.Y') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-handshake fa-3x mb-3 opacity-25"></i>
+                    <p>Нет сделок</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Interactions Timeline -->
+            <div class="card-enhanced stagger-item delay-300" data-animate-on-scroll>
+                <h5 class="mb-4">
+                    <i class="fas fa-history me-2"></i>История взаимодействий
+                </h5>
+
+                {% if client.interactions|length > 0 %}
+                <div class="timeline">
+                    {% for interaction in client.interactions|slice(0, 10) %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker" style="
+                            background: {{ interaction.interactionType == 'call' ? '#6366f1' : 
+                                         (interaction.interactionType == 'meeting' ? '#10b981' : 
+                                         (interaction.interactionType == 'email' ? '#f59e0b' : '#8b5cf6')) }};
+                        "></div>
+                        <div class="timeline-content">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <strong>
+                                        {% if interaction.interactionType == 'call' %}
+                                            <i class="fas fa-phone me-1"></i>Звонок
+                                        {% elseif interaction.interactionType == 'meeting' %}
+                                            <i class="fas fa-users me-1"></i>Встреча
+                                        {% elseif interaction.interactionType == 'email' %}
+                                            <i class="fas fa-envelope me-1"></i>Email
+                                        {% else %}
+                                            <i class="fas fa-comment me-1"></i>Другое
+                                        {% endif %}
+                                    </strong>
+                                </div>
+                                <small class="text-muted">{{ interaction.interactionDate|date('d.m.Y H:i') }}</small>
+                            </div>
+                            <p class="mb-0">{{ interaction.notes }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-history fa-3x mb-3 opacity-25"></i>
+                    <p>Нет взаимодействий</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right Column - Stats & Actions -->
+        <div class="col-lg-4">
+            <!-- Stats Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-12">
+                    <div class="stat-card-modern stagger-item delay-150" data-animate-on-scroll>
+                        <div class="stat-card-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
+                            <i class="fas fa-ruble-sign"></i>
+                        </div>
+                        <div class="stat-card-value" data-counter="{{ client.totalRevenue|round }}">0</div>
+                        <div class="stat-card-label">Общая выручка</div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="stat-card-modern stagger-item delay-200" data-animate-on-scroll>
+                        <div class="stat-card-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-card-value" data-counter="{{ client.averageCheck|round }}">0</div>
+                        <div class="stat-card-label">Средний чек</div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="stat-card-modern stagger-item delay-250" data-animate-on-scroll>
+                        <div class="stat-card-icon" style="background: rgba(99, 102, 241, 0.1); color: #6366f1;">
+                            <i class="fas fa-handshake"></i>
+                        </div>
+                        <div class="stat-card-value" data-counter="{{ client.completedDealsCount }}">0</div>
+                        <div class="stat-card-label">Завершённых сделок</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Manager Card -->
+            {% if client.manager %}
+            <div class="card-enhanced mb-4 stagger-item delay-300" data-animate-on-scroll>
+                <h6 class="mb-3">
+                    <i class="fas fa-user-tie me-2"></i>Менеджер
+                </h6>
+                <div class="d-flex align-items-center gap-3">
+                    <div style="
+                        width: 56px;
+                        height: 56px;
+                        border-radius: 50%;
+                        background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+                        color: white;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 20px;
+                        font-weight: 600;">
+                        {{ client.manager.firstName|slice(0, 1) }}{{ client.manager.lastName|slice(0, 1) }}
+                    </div>
+                    <div>
+                        <div class="fw-semibold">{{ client.manager.fullName }}</div>
+                        <small class="text-muted">{{ client.manager.email }}</small>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Quick Actions -->
+            <div class="card-enhanced stagger-item delay-350" data-animate-on-scroll>
+                <h6 class="mb-3">
+                    <i class="fas fa-bolt me-2"></i>Быстрые действия
+                </h6>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#newInteractionModal">
+                        <i class="fas fa-phone me-2"></i>Записать звонок
+                    </button>
+                    <button class="btn btn-outline-success">
+                        <i class="fas fa-calendar me-2"></i>Назначить встречу
+                    </button>
+                    <button class="btn btn-outline-info">
+                        <i class="fas fa-envelope me-2"></i>Отправить email
+                    </button>
+                    <button class="btn btn-outline-warning">
+                        <i class="fas fa-file-invoice me-2"></i>Создать счёт
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Interaction Modal -->
+<div class="modal fade" id="newInteractionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Новое взаимодействие</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{{ path('app_client_interaction_new', {id: client.id}) }}">
+                    <div class="mb-3">
+                        <label class="form-label">Тип</label>
+                        <select class="form-select" name="interaction_type" required>
+                            <option value="call">Звонок</option>
+                            <option value="meeting">Встреча</option>
+                            <option value="email">Email</option>
+                            <option value="other">Другое</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Дата и время</label>
+                        <input type="datetime-local" class="form-control" name="interaction_date" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Заметки</label>
+                        <textarea class="form-control" name="notes" rows="4" required></textarea>
+                    </div>
+                    <div class="d-flex gap-2 justify-content-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--border-color);
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 24px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -26px;
+    top: 4px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 3px solid var(--card-bg);
+}
+
+.timeline-content {
+    background: var(--bg-secondary);
+    padding: 16px;
+    border-radius: 12px;
+}
+</style>
+{% endblock %}

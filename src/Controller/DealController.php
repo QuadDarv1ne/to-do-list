@@ -21,7 +21,6 @@ class DealController extends AbstractController
     {
         $user = $this->getUser();
 
-        // Менеджеры видят только свои сделки, админы - все (с оптимизированными запросами)
         $deals = $this->isGranted('ROLE_ADMIN')
             ? $dealRepository->findAllWithRelations()
             : $dealRepository->findByManager($user);
@@ -36,12 +35,36 @@ class DealController extends AbstractController
     {
         $user = $this->getUser();
 
-        $funnelData = $this->isGranted('ROLE_ADMIN')
-            ? $dealRepository->getDealsByStage()
-            : $dealRepository->getDealsByStage($user);
+        $deals = $this->isGranted('ROLE_ADMIN')
+            ? $dealRepository->findAllWithRelations()
+            : $dealRepository->findByManager($user);
+
+        // Группируем сделки по этапам
+        $dealsByStage = [
+            'lead' => [],
+            'qualification' => [],
+            'proposal' => [],
+            'negotiation' => [],
+            'closing' => [],
+        ];
+
+        foreach ($deals as $deal) {
+            if ($deal->getStatus() === 'in_progress') {
+                $dealsByStage[$deal->getStage()][] = $deal;
+            }
+        }
+
+        // Считаем статистику
+        $stats = [
+            'total' => count($deals),
+            'in_progress' => count(array_filter($deals, fn($d) => $d->getStatus() === 'in_progress')),
+            'won' => count(array_filter($deals, fn($d) => $d->getStatus() === 'won')),
+            'lost' => count(array_filter($deals, fn($d) => $d->getStatus() === 'lost')),
+        ];
 
         return $this->render('deals/funnel.html.twig', [
-            'funnel_data' => $funnelData,
+            'dealsByStage' => $dealsByStage,
+            'stats' => $stats,
         ]);
     }
 
@@ -57,19 +80,18 @@ class DealController extends AbstractController
 
             if (!$client) {
                 $this->addFlash('error', 'Клиент не найден');
-
                 return $this->redirectToRoute('app_deals_new');
             }
 
             $deal->setTitle($request->request->get('title'));
             $deal->setClient($client);
-            $deal->setAmount($request->request->get('amount'));
+            $deal->setAmount($request->request->get('amount', '0.00'));
             $deal->setStage($request->request->get('stage', 'lead'));
             $deal->setDescription($request->request->get('description'));
 
-            $expectedDate = $request->request->get('expected_close_date');
-            if ($expectedDate) {
-                $deal->setExpectedCloseDate(new \DateTime($expectedDate));
+            $expectedCloseDate = $request->request->get('expected_close_date');
+            if ($expectedCloseDate) {
+                $deal->setExpectedCloseDate(new \DateTime($expectedCloseDate));
             }
 
             $em->persist($deal);
@@ -81,7 +103,7 @@ class DealController extends AbstractController
         }
 
         $clients = $this->isGranted('ROLE_ADMIN')
-            ? $clientRepository->findAllWithRelations()
+            ? $clientRepository->findAll()
             : $clientRepository->findByManager($this->getUser());
 
         return $this->render('deals/new.html.twig', [
@@ -112,9 +134,9 @@ class DealController extends AbstractController
             $deal->setStatus($request->request->get('status'));
             $deal->setDescription($request->request->get('description'));
 
-            $expectedDate = $request->request->get('expected_close_date');
-            if ($expectedDate) {
-                $deal->setExpectedCloseDate(new \DateTime($expectedDate));
+            $expectedCloseDate = $request->request->get('expected_close_date');
+            if ($expectedCloseDate) {
+                $deal->setExpectedCloseDate(new \DateTime($expectedCloseDate));
             }
 
             if ($request->request->get('status') === 'lost') {

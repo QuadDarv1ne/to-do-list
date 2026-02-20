@@ -1,74 +1,85 @@
-{% extends 'base.html.twig' %}
+{% extends 'base_sidebar.html.twig' %}
 
-{% block title %}Редактировать сделку{% endblock %}
+{% block title %}Редактирование сделки{% endblock %}
 
 {% block body %}
-<div class="container">
-    <h1 class="mb-4">Редактировать сделку</h1>
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex align-items-center mb-4">
+                <a href="{{ path('app_deals_show', {id: deal.id}) }}" class="btn btn-outline-secondary me-3">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-edit me-2"></i>Редактирование сделки
+                </h1>
+            </div>
 
-    <div class="card">
-        <div class="card-body">
-            <form method="post">
-                <div class="mb-3">
-                    <label for="title" class="form-label">Название сделки *</label>
-                    <input type="text" class="form-control" id="title" name="title" 
-                           value="{{ deal.title }}" required>
-                </div>
+            <div class="card-modern">
+                <div class="card-body-modern">
+                    <form method="post">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Название сделки *</label>
+                            <input type="text" class="form-control" id="title" name="title" value="{{ deal.title }}" required>
+                        </div>
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Клиент</label>
-                        <input type="text" class="form-control" value="{{ deal.client.companyName }}" disabled>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="amount" class="form-label">Сумма *</label>
-                        <input type="number" class="form-control" id="amount" name="amount" 
-                               value="{{ deal.amount }}" step="0.01" required>
-                    </div>
-                </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="amount" class="form-label">Сумма (₽) *</label>
+                                <input type="number" step="0.01" class="form-control" id="amount" name="amount" value="{{ deal.amount }}" required>
+                            </div>
 
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label for="stage" class="form-label">Этап</label>
-                        <select class="form-select" id="stage" name="stage">
-                            <option value="lead" {{ deal.stage == 'lead' ? 'selected' : '' }}>Лид</option>
-                            <option value="qualification" {{ deal.stage == 'qualification' ? 'selected' : '' }}>Квалификация</option>
-                            <option value="proposal" {{ deal.stage == 'proposal' ? 'selected' : '' }}>Предложение</option>
-                            <option value="negotiation" {{ deal.stage == 'negotiation' ? 'selected' : '' }}>Переговоры</option>
-                            <option value="closing" {{ deal.stage == 'closing' ? 'selected' : '' }}>Закрытие</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label for="status" class="form-label">Статус</label>
-                        <select class="form-select" id="status" name="status">
-                            <option value="in_progress" {{ deal.status == 'in_progress' ? 'selected' : '' }}>В работе</option>
-                            <option value="won" {{ deal.status == 'won' ? 'selected' : '' }}>Успешно завершена</option>
-                            <option value="lost" {{ deal.status == 'lost' ? 'selected' : '' }}>Проиграна</option>
-                            <option value="postponed" {{ deal.status == 'postponed' ? 'selected' : '' }}>Отложена</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label for="expected_close_date" class="form-label">Ожидаемая дата закрытия</label>
-                        <input type="date" class="form-control" id="expected_close_date" name="expected_close_date"
-                               value="{{ deal.expectedCloseDate ? deal.expectedCloseDate|date('Y-m-d') : '' }}">
-                    </div>
-                </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="stage" class="form-label">Этап *</label>
+                                <select class="form-select" id="stage" name="stage" required>
+                                    <option value="lead" {% if deal.stage == 'lead' %}selected{% endif %}>Лид</option>
+                                    <option value="qualification" {% if deal.stage == 'qualification' %}selected{% endif %}>Квалификация</option>
+                                    <option value="proposal" {% if deal.stage == 'proposal' %}selected{% endif %}>Предложение</option>
+                                    <option value="negotiation" {% if deal.stage == 'negotiation' %}selected{% endif %}>Переговоры</option>
+                                    <option value="closing" {% if deal.stage == 'closing' %}selected{% endif %}>Закрытие</option>
+                                </select>
+                            </div>
+                        </div>
 
-                <div class="mb-3">
-                    <label for="description" class="form-label">Описание</label>
-                    <textarea class="form-control" id="description" name="description" rows="4">{{ deal.description }}</textarea>
-                </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="status" class="form-label">Статус *</label>
+                                <select class="form-select" id="status" name="status" required>
+                                    <option value="in_progress" {% if deal.status == 'in_progress' %}selected{% endif %}>В работе</option>
+                                    <option value="won" {% if deal.status == 'won' %}selected{% endif %}>Успешно завершена</option>
+                                    <option value="lost" {% if deal.status == 'lost' %}selected{% endif %}>Проиграна</option>
+                                    <option value="postponed" {% if deal.status == 'postponed' %}selected{% endif %}>Отложена</option>
+                                </select>
+                            </div>
 
-                <div class="mb-3" id="lost-reason-block" style="display: {{ deal.status == 'lost' ? 'block' : 'none' }};">
-                    <label for="lost_reason" class="form-label">Причина проигрыша</label>
-                    <textarea class="form-control" id="lost_reason" name="lost_reason" rows="3">{{ deal.lostReason }}</textarea>
-                </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="expected_close_date" class="form-label">Ожидаемая дата закрытия</label>
+                                <input type="date" class="form-control" id="expected_close_date" name="expected_close_date" 
+                                       value="{% if deal.expectedCloseDate %}{{ deal.expectedCloseDate|date('Y-m-d') }}{% endif %}">
+                            </div>
+                        </div>
 
-                <div class="d-flex justify-content-between">
-                    <a href="{{ path('app_deals_show', {id: deal.id}) }}" class="btn btn-secondary">Отмена</a>
-                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Описание</label>
+                            <textarea class="form-control" id="description" name="description" rows="4">{{ deal.description }}</textarea>
+                        </div>
+
+                        <div class="mb-3" id="lost-reason-block" style="display: {% if deal.status == 'lost' %}block{% else %}none{% endif %};">
+                            <label for="lost_reason" class="form-label">Причина проигрыша</label>
+                            <textarea class="form-control" id="lost_reason" name="lost_reason" rows="3">{{ deal.lostReason }}</textarea>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Сохранить изменения
+                            </button>
+                            <a href="{{ path('app_deals_show', {id: deal.id}) }}" class="btn btn-outline-secondary">
+                                Отмена
+                            </a>
+                        </div>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
