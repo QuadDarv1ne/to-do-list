@@ -94,6 +94,36 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 strengthBar.style.backgroundColor = '#28a745';
             }
+            
+            // Валидация в реальном времени
+            if (password.length > 0 && password.length < 8) {
+                passwordInput.classList.add('is-invalid');
+                passwordInput.classList.remove('is-valid');
+            } else if (password.length >= 8) {
+                passwordInput.classList.remove('is-invalid');
+                passwordInput.classList.add('is-valid');
+            }
+        });
+        
+        // Auto-focus
+        passwordInput.focus();
+    }
+    
+    // Password confirmation validation
+    const passwordInputs = document.querySelectorAll('input[type="password"]');
+    if (passwordInputs.length === 2) {
+        const [first, second] = passwordInputs;
+        
+        second.addEventListener('input', function() {
+            if (this.value) {
+                if (first.value !== this.value) {
+                    this.classList.add('is-invalid');
+                    this.classList.remove('is-valid');
+                } else {
+                    this.classList.add('is-valid');
+                    this.classList.remove('is-invalid');
+                }
+            }
         });
     }
     
@@ -102,7 +132,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const submitBtn = form?.querySelector('button[type="submit"]');
     
     if (form && submitBtn) {
-        form.addEventListener('submit', function() {
+        form.addEventListener('submit', function(e) {
+            // Проверяем валидность паролей
+            const invalidInputs = form.querySelectorAll('.form-control.is-invalid');
+            if (invalidInputs.length > 0) {
+                e.preventDefault();
+                invalidInputs[0].focus();
+                return;
+            }
+            
             submitBtn.disabled = true;
             submitBtn.style.opacity = '0.7';
             
@@ -112,6 +150,15 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    
+    // Keyboard shortcut: Ctrl/Cmd + Enter
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            if (form) {
+                form.dispatchEvent(new Event('submit', { cancelable: true }));
+            }
+        }
+    });
 });
 </script>
 {% endblock %}

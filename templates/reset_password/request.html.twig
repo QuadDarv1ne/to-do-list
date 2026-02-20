@@ -58,9 +58,46 @@
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.querySelector('form');
     const submitBtn = form?.querySelector('button[type="submit"]');
+    const emailInput = form?.querySelector('input[type="email"]');
     
+    // Email validation
+    if (emailInput) {
+        emailInput.addEventListener('blur', function() {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (this.value && !emailRegex.test(this.value)) {
+                this.classList.add('is-invalid');
+                this.classList.remove('is-valid');
+            } else if (this.value) {
+                this.classList.add('is-valid');
+                this.classList.remove('is-invalid');
+            }
+        });
+        
+        emailInput.addEventListener('input', function() {
+            if (this.classList.contains('is-invalid')) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (emailRegex.test(this.value)) {
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                }
+            }
+        });
+        
+        // Auto-focus
+        emailInput.focus();
+    }
+    
+    // Form submission
     if (form && submitBtn) {
-        form.addEventListener('submit', function() {
+        form.addEventListener('submit', function(e) {
+            // Проверяем валидность email
+            if (emailInput && !emailInput.value.trim()) {
+                e.preventDefault();
+                emailInput.classList.add('is-invalid');
+                emailInput.focus();
+                return;
+            }
+            
             submitBtn.disabled = true;
             submitBtn.style.opacity = '0.7';
             
@@ -71,11 +108,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Auto-focus email input
-    const emailInput = form?.querySelector('input[type="email"]');
-    if (emailInput) {
-        emailInput.focus();
-    }
+    // Keyboard shortcut: Ctrl/Cmd + Enter
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            if (form) {
+                form.dispatchEvent(new Event('submit', { cancelable: true }));
+            }
+        }
+    });
 });
 </script>
 {% endblock %}

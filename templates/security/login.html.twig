@@ -47,7 +47,11 @@
                        placeholder="user@example.com"
                        autocomplete="email"
                        required 
-                       autofocus>
+                       autofocus
+                       aria-describedby="emailHelp">
+                <small id="emailHelp" class="form-text text-muted" style="display: none;">
+                    <i class="fas fa-info-circle me-1"></i>Введите корректный email адрес
+                </small>
             </div>
             
             <div class="mb-4">
@@ -61,9 +65,15 @@
                            class="form-control" 
                            placeholder="Введите пароль"
                            autocomplete="current-password"
-                           required>
-                    <i class="fas fa-eye password-toggle" id="togglePassword"></i>
+                           required
+                           aria-describedby="passwordHelp">
+                    <button type="button" class="password-toggle" id="togglePassword" title="Показать пароль" aria-label="Показать пароль">
+                        <i class="fas fa-eye"></i>
+                    </button>
                 </div>
+                <small id="passwordHelp" class="form-text text-muted" style="display: none;">
+                    <i class="fas fa-info-circle me-1"></i>Минимум 8 символов
+                </small>
             </div>
             
             <div class="mb-4 d-flex justify-content-between align-items-center">
@@ -107,17 +117,42 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Password toggle
+    // Password toggle with better error handling
     const togglePassword = document.getElementById('togglePassword');
     const passwordInput = document.getElementById('inputPassword');
     
     if (togglePassword && passwordInput) {
-        togglePassword.addEventListener('click', function() {
-            const type = passwordInput.type === 'password' ? 'text' : 'password';
-            passwordInput.type = type;
-            this.classList.toggle('fa-eye');
-            this.classList.toggle('fa-eye-slash');
+        togglePassword.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Toggle password visibility
+            const currentType = passwordInput.getAttribute('type');
+            if (currentType === 'password') {
+                passwordInput.setAttribute('type', 'text');
+                this.classList.remove('fa-eye');
+                this.classList.add('fa-eye-slash');
+                this.setAttribute('title', 'Скрыть пароль');
+                this.setAttribute('aria-label', 'Скрыть пароль');
+            } else {
+                passwordInput.setAttribute('type', 'password');
+                this.classList.remove('fa-eye-slash');
+                this.classList.add('fa-eye');
+                this.setAttribute('title', 'Показать пароль');
+                this.setAttribute('aria-label', 'Показать пароль');
+            }
         });
+        
+        // Keyboard support for password toggle
+        togglePassword.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                this.click();
+            }
+        });
+        
+        // Add cursor pointer
+        togglePassword.style.cursor = 'pointer';
     }
     
     // Form submission with loading state
@@ -125,20 +160,89 @@ document.addEventListener('DOMContentLoaded', function() {
     const loginBtn = document.getElementById('loginBtn');
     
     if (loginForm && loginBtn) {
-        loginForm.addEventListener('submit', function() {
+        loginForm.addEventListener('submit', function(e) {
+            // Проверяем валидность полей
+            const emailInput = document.getElementById('inputEmail');
+            const passwordInput = document.getElementById('inputPassword');
+            
+            let isValid = true;
+            
+            if (emailInput && !emailInput.value.trim()) {
+                emailInput.classList.add('is-invalid');
+                isValid = false;
+            }
+            
+            if (passwordInput && !passwordInput.value) {
+                passwordInput.classList.add('is-invalid');
+                isValid = false;
+            }
+            
+            if (!isValid) {
+                e.preventDefault();
+                return;
+            }
+            
             const btnText = loginBtn.querySelector('.btn-text');
             const spinner = loginBtn.querySelector('.loading-spinner');
             if (btnText) btnText.style.display = 'none';
             if (spinner) spinner.style.display = 'inline-block';
             loginBtn.disabled = true;
+            loginBtn.style.opacity = '0.7';
         });
     }
     
-    // Auto-focus on email input
+    // Auto-focus on email input if empty
     const emailInput = document.getElementById('inputEmail');
     if (emailInput && !emailInput.value) {
-        emailInput.focus();
+        setTimeout(() => emailInput.focus(), 100);
     }
+    
+    // Add input validation feedback
+    const inputs = document.querySelectorAll('.form-control');
+    inputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            if (this.value && this.checkValidity()) {
+                this.classList.add('is-valid');
+                this.classList.remove('is-invalid');
+            } else if (this.value && !this.checkValidity()) {
+                this.classList.add('is-invalid');
+                this.classList.remove('is-valid');
+            }
+        });
+        
+        input.addEventListener('input', function() {
+            if (this.classList.contains('is-invalid')) {
+                if (this.value && this.checkValidity()) {
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                }
+            }
+        });
+    });
+    
+    // Email validation
+    if (emailInput) {
+        emailInput.addEventListener('blur', function() {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (this.value && !emailRegex.test(this.value)) {
+                this.classList.add('is-invalid');
+                this.classList.remove('is-valid');
+            } else if (this.value) {
+                this.classList.add('is-valid');
+                this.classList.remove('is-invalid');
+            }
+        });
+    }
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Ctrl/Cmd + Enter для отправки формы
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            if (loginForm) {
+                loginForm.dispatchEvent(new Event('submit', { cancelable: true }));
+            }
+        }
+    });
 });
 </script>
 {% endblock %}

@@ -1,0 +1,164 @@
+/**
+ * Animated Gradient Background
+ * Полосатый радужный градиент с анимацией
+ */
+
+@keyframes jumbo {
+    from {
+        background-position: 50% 50%, 50% 50%;
+    }
+    to {
+        background-position: 350% 50%, 350% 50%;
+    }
+}
+
+.animated-gradient-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.animated-gradient-bg::before {
+    content: '';
+    position: absolute;
+    inset: -10px;
+    opacity: 0.15;
+    
+    /* Полосатый паттерн */
+    --stripes: repeating-linear-gradient(
+        100deg,
+        #fff 0%,
+        #fff 7%,
+        transparent 10%,
+        transparent 12%,
+        #fff 16%
+    );
+    
+    /* Мягкий радужный градиент */
+    --rainbow: repeating-linear-gradient(
+        100deg,
+        #93c5fd 10%,
+        #ddd6fe 15%,
+        #bfdbfe 20%,
+        #a5f3fc 25%,
+        #93c5fd 30%
+    );
+    
+    background-image: var(--stripes), var(--rainbow);
+    background-size: 300%, 200%;
+    background-position: 50% 50%, 50% 50%;
+    filter: blur(15px) invert(100%);
+    mask-image: radial-gradient(ellipse at 100% 0%, black 40%, transparent 70%);
+    pointer-events: none;
+}
+
+.animated-gradient-bg::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    
+    --stripes: repeating-linear-gradient(
+        100deg,
+        #fff 0%,
+        #fff 7%,
+        transparent 10%,
+        transparent 12%,
+        #fff 16%
+    );
+    
+    --rainbow: repeating-linear-gradient(
+        100deg,
+        #93c5fd 10%,
+        #ddd6fe 15%,
+        #bfdbfe 20%,
+        #a5f3fc 25%,
+        #93c5fd 30%
+    );
+    
+    background-image: var(--stripes), var(--rainbow);
+    background-size: 200%, 100%;
+    animation: jumbo 60s linear infinite;
+    background-attachment: fixed;
+    mix-blend-mode: difference;
+    opacity: 0.3;
+}
+
+/* Темная тема */
+[data-theme="dark"] .animated-gradient-bg::before,
+[data-mode="dark"] .animated-gradient-bg::before {
+    --stripes: repeating-linear-gradient(
+        100deg,
+        #000 0%,
+        #000 7%,
+        transparent 10%,
+        transparent 12%,
+        #000 16%
+    );
+    
+    filter: blur(15px) opacity(25%) saturate(150%);
+}
+
+[data-theme="dark"] .animated-gradient-bg::after,
+[data-mode="dark"] .animated-gradient-bg::after {
+    --stripes: repeating-linear-gradient(
+        100deg,
+        #000 0%,
+        #000 7%,
+        transparent 10%,
+        transparent 12%,
+        #000 16%
+    );
+    
+    opacity: 0.2;
+}
+
+/* Оранжевая тема */
+[data-theme="orange"] .animated-gradient-bg::before,
+[data-theme="orange"] .animated-gradient-bg::after {
+    --rainbow: repeating-linear-gradient(
+        100deg,
+        #fed7aa 10%,
+        #fde68a 15%,
+        #fef3c7 20%,
+        #fde047 25%,
+        #fed7aa 30%
+    );
+}
+
+/* Фиолетовая тема */
+[data-theme="purple"] .animated-gradient-bg::before,
+[data-theme="purple"] .animated-gradient-bg::after {
+    --rainbow: repeating-linear-gradient(
+        100deg,
+        #e9d5ff 10%,
+        #f3e8ff 15%,
+        #fae8ff 20%,
+        #f5d0fe 25%,
+        #e9d5ff 30%
+    );
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .animated-gradient-bg::before {
+        inset: -5px;
+        filter: blur(12px) invert(100%);
+        opacity: 0.12;
+    }
+    
+    .animated-gradient-bg::after {
+        animation: jumbo 45s linear infinite;
+        opacity: 0.25;
+    }
+}
+
+/* Уменьшение движения для пользователей с настройками доступности */
+@media (prefers-reduced-motion: reduce) {
+    .animated-gradient-bg::after {
+        animation: jumbo 120s linear infinite;
+    }
+}

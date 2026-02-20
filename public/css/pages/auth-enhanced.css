@@ -5,13 +5,14 @@
 
 /* === Общие стили для body === */
 body {
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+    background: transparent;
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 40px 20px;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    position: relative;
 }
 
 /* === Карточки === */
@@ -20,23 +21,27 @@ body {
 .reset-card,
 .success-card {
     width: 100%;
-    max-width: 480px;
+    max-width: 540px;
     background: var(--bg-card);
     border-radius: 24px;
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
     overflow: hidden;
     animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    z-index: 10;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
 }
 
 .reset-card,
 .success-card {
-    max-width: 450px;
+    max-width: 500px;
     border-radius: 15px;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
 }
 
 .success-card {
-    max-width: 500px;
+    max-width: 540px;
 }
 
 @keyframes slideUp {
@@ -57,18 +62,18 @@ body {
 .success-header {
     background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
     color: white;
-    padding: 3rem 2rem;
+    padding: 2.5rem 2rem;
     text-align: center;
     position: relative;
     overflow: hidden;
 }
 
 .reset-header {
-    padding: 2.5rem;
+    padding: 2rem;
 }
 
 .success-header {
-    padding: 3rem 2rem;
+    padding: 2.5rem 2rem;
 }
 
 /* Специальные цвета для reset password */
@@ -105,19 +110,19 @@ body {
 .register-icon,
 .reset-icon,
 .success-icon {
-    font-size: 3.5rem;
-    margin-bottom: 1rem;
+    font-size: 3rem;
+    margin-bottom: 0.75rem;
     position: relative;
     z-index: 1;
     animation: bounce 2s ease-in-out infinite;
 }
 
 .reset-icon {
-    font-size: 3rem;
+    font-size: 2.5rem;
 }
 
 .success-icon {
-    font-size: 4rem;
+    font-size: 3.5rem;
     animation: checkmark 0.5s ease-in-out;
 }
 
@@ -136,16 +141,16 @@ body {
 .register-header h2,
 .reset-logo,
 .success-title {
-    font-size: 2rem;
+    font-size: 1.75rem;
     font-weight: 700;
-    margin: 0 0 0.5rem 0;
+    margin: 0 0 0.4rem 0;
     position: relative;
     z-index: 1;
 }
 
 .reset-logo,
 .success-title {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
 }
 
 .auth-header p,
@@ -153,7 +158,7 @@ body {
 .reset-subtitle,
 .success-subtitle {
     opacity: 0.95;
-    font-size: 1rem;
+    font-size: 0.9rem;
     margin: 0;
     position: relative;
     z-index: 1;
@@ -161,7 +166,7 @@ body {
 
 .reset-subtitle,
 .success-subtitle {
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     opacity: 0.9;
 }
 
@@ -170,12 +175,12 @@ body {
 .register-body,
 .reset-body,
 .success-body {
-    padding: 2.5rem;
+    padding: 2rem 1.75rem;
 }
 
 /* === Формы === */
 .form-group {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.25rem;
     animation: fadeIn 0.6s ease-out backwards;
 }
 
@@ -270,15 +275,82 @@ body {
     color: var(--text-muted);
     transition: all 0.3s ease;
     font-size: 1.1rem;
+    z-index: 10;
+    user-select: none;
+    outline: none;
+    border: none;
+    background: none;
+    padding: 5px;
+    -webkit-tap-highlight-color: transparent;
+    border-radius: 4px;
+}
+
+.password-toggle:focus {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    box-shadow: none;
+}
+
+.password-toggle:focus:not(:focus-visible) {
+    outline: none;
 }
 
 .password-toggle:hover {
     color: var(--color-primary);
-    transform: translateY(-50%) scale(1.1);
+    transform: translateY(-50%) scale(1.15);
 }
 
 .password-toggle:active {
     transform: translateY(-50%) scale(0.95);
+}
+
+.password-wrapper .form-control {
+    padding-right: 45px;
+}
+
+/* Убираем outline у иконок Font Awesome */
+.fas, .far, .fab {
+    outline: none;
+}
+
+.fas:focus, .far:focus, .fab:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+/* === Form Validation === */
+.form-control.is-valid {
+    border-color: var(--color-success);
+    background-image: none;
+    animation: validPulse 0.5s ease-out;
+}
+
+.form-control.is-invalid {
+    border-color: var(--color-danger);
+    background-image: none;
+    animation: shake 0.5s;
+}
+
+@keyframes validPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(var(--color-success-rgb), 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(var(--color-success-rgb), 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(var(--color-success-rgb), 0);
+    }
+}
+
+.form-control:focus.is-valid {
+    border-color: var(--color-success);
+    box-shadow: 0 0 0 4px rgba(var(--color-success-rgb), 0.1);
+}
+
+.form-control:focus.is-invalid {
+    border-color: var(--color-danger);
+    box-shadow: 0 0 0 4px rgba(var(--color-danger-rgb), 0.1);
 }
 
 /* === Rows === */
@@ -396,6 +468,17 @@ body {
     color: var(--text-muted);
     margin-bottom: 0.75rem;
     font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.auth-footer p i,
+.register-footer p i,
+.reset-footer p i {
+    color: var(--color-primary);
+    font-size: 1.1rem;
 }
 
 .reset-footer p {
@@ -458,17 +541,29 @@ body {
 }
 
 /* === Password Strength === */
-.password-strength {
+.password-strength-container {
     height: 5px;
     border-radius: 3px;
     margin-top: 8px;
     background: var(--bg-secondary);
     overflow: hidden;
+    position: relative;
 }
 
 .password-strength-bar {
     height: 100%;
-    transition: all 0.3s;
+    width: 0%;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 3px;
+}
+
+.password-strength-text {
+    display: block;
+    margin-top: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    min-height: 20px;
 }
 
 /* === Help Text === */
@@ -478,6 +573,25 @@ body {
     border-top: 1px solid var(--border-color);
     color: var(--text-muted);
     font-size: 0.9rem;
+}
+
+.form-text {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* === Form Check (Checkbox) === */
@@ -516,6 +630,26 @@ a {
 
 a:hover {
     color: var(--color-secondary);
+}
+
+/* === Icon Fallback === */
+.fas, .far, .fab {
+    font-family: 'Font Awesome 6 Free', 'Font Awesome 6 Brands', sans-serif;
+    font-weight: 900;
+    font-style: normal;
+    font-variant: normal;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Fallback если иконки не загрузились */
+@supports not (font-family: 'Font Awesome 6 Free') {
+    .fas::before,
+    .far::before,
+    .fab::before {
+        content: '•';
+        font-family: Arial, sans-serif;
+    }
 }
 
 /* === Text Utilities === */
