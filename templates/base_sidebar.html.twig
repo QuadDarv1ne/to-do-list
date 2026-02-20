@@ -19,6 +19,11 @@
 
     {# ~ Preconnect ~ #}
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    
+    {# ~ Preload Critical Resources ~ #}
+    <link rel="preload" href="{{ asset('css/vendor/bootstrap.min.css') }}" as="style">
+    <link rel="preload" href="{{ asset('css/themes/sidebar-layout.css') }}" as="style">
+    <link rel="preload" href="{{ asset('js/core/theme-manager-enhanced.js') }}" as="script">
 
     {# ~ Vendor CSS ~ #}
     <link rel="stylesheet" href="{{ asset('css/vendor/bootstrap.min.css') }}">

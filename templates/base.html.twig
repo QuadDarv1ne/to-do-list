@@ -32,6 +32,11 @@
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    
+    <!-- Preload Critical Resources -->
+    <link rel="preload" href="{{ asset('css/vendor/bootstrap.min.css') }}" as="style">
+    <link rel="preload" href="{{ asset('css/themes/topbar-layout.css') }}" as="style">
+    <link rel="preload" href="{{ asset('js/core/theme-manager-enhanced.js') }}" as="script">
 
     <!-- Critical CSS Inline - Design System v2.0 -->
     <style>

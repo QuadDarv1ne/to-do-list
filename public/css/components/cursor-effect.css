@@ -1,0 +1,66 @@
+/**
+ * Cursor Effect - Красивый эффект круга за курсором
+ */
+
+/* Курсор - внешний круг */
+.cursor-circle {
+    position: fixed;
+    width: 40px;
+    height: 40px;
+    border: 2px solid var(--color-primary, #6366f1);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transition: transform 0.15s ease-out, opacity 0.15s ease-out;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1);
+    mix-blend-mode: difference;
+}
+
+.cursor-circle.active {
+    opacity: 0.6;
+}
+
+.cursor-circle.clicking {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 1;
+}
+
+/* Курсор - внутренняя точка */
+.cursor-dot {
+    position: fixed;
+    width: 8px;
+    height: 8px;
+    background: var(--color-primary, #6366f1);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 10000;
+    transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+    opacity: 0;
+    transform: translate(-50%, -50%);
+}
+
+.cursor-dot.active {
+    opacity: 1;
+}
+
+.cursor-dot.clicking {
+    transform: translate(-50%, -50%) scale(1.5);
+}
+
+/* Скрыть на мобильных устройствах */
+@media (max-width: 768px), (hover: none) {
+    .cursor-circle,
+    .cursor-dot {
+        display: none;
+    }
+}
+
+/* Эффект при наведении на интерактивные элементы */
+body.cursor-active a:hover ~ .cursor-circle,
+body.cursor-active button:hover ~ .cursor-circle,
+body.cursor-active input:hover ~ .cursor-circle,
+body.cursor-active [role="button"]:hover ~ .cursor-circle {
+    transform: translate(-50%, -50%) scale(1.5);
+    border-color: var(--color-success, #10b981);
+}
