@@ -63,6 +63,9 @@
     {# ~ Animated Gradient Background ~ #}
     <link rel="stylesheet" href="{{ asset('css/components/animated-gradient.css') }}">
 
+    {# ~ Notification System ~ #}
+    <link rel="stylesheet" href="{{ asset('css/components/notification-system.css') }}">
+
     {# ~ Тема подключается динамически через theme-manager-enhanced.js ~ #}
 
     {# ~ Стили дочерних шаблонов ~ #}
@@ -102,16 +105,21 @@
     {# ~ Основной контент ~ #}
     <main id="main-content" role="main" tabindex="-1">
 
-        {# ~ Flash-сообщения ~ #}
+        {# ~ Flash-сообщения (через notification system) ~ #}
         {% block flash_messages %}
-            {% for type, messages in app.flashes %}
-                {% for message in messages %}
-                    <div class="alert alert-{{ type == 'error' ? 'danger' : type }} alert-dismissible fade show m-2" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
-                    </div>
-                {% endfor %}
-            {% endfor %}
+            <script nonce="{{ csp_nonce('script') }}">
+                document.addEventListener('DOMContentLoaded', function() {
+                    {% for type, messages in app.flashes %}
+                        {% for message in messages %}
+                            setTimeout(() => {
+                                if (window.notify) {
+                                    window.notify.{{ type == 'error' ? 'error' : type }}('{{ message|e('js') }}');
+                                }
+                            }, 100);
+                        {% endfor %}
+                    {% endfor %}
+                });
+            </script>
         {% endblock %}
 
         {% block body %}{% endblock %}
@@ -145,6 +153,9 @@
 
     {# ~ Cursor Effect ~ #}
     <script src="{{ asset('js/components/cursor-effect.js') }}" defer></script>
+
+    {# ~ Notification System ~ #}
+    <script src="{{ asset('js/components/notification-system.js') }}" defer></script>
 
     {# ~ Скрипты дочерних шаблонов ~ #}
     {% block javascripts %}{% endblock %}

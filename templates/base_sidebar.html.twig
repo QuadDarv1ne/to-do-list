@@ -45,6 +45,7 @@
     <link rel="stylesheet" href="{{ asset('css/components/modern-dashboard.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components/pipeline-view.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components/enhanced-cards.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/components/notification-system.css') }}">
 
     {# ~ Тема подключается динамически через theme-manager-enhanced.js ~ #}
 
@@ -131,6 +132,7 @@
                     <button class="theme-option" data-theme-option="dark"   title="Тёмная"        aria-label="Тёмная тема"><i class="fas fa-moon" aria-hidden="true"></i></button>
                     <button class="theme-option" data-theme-option="orange" title="Оранжевая"     aria-label="Оранжевая тема"><i class="fas fa-fire" aria-hidden="true"></i></button>
                     <button class="theme-option" data-theme-option="purple" title="Фиолетовая"    aria-label="Фиолетовая тема"><i class="fas fa-palette" aria-hidden="true"></i></button>
+                    <button class="theme-option" data-theme-option="green"  title="Зелёная"       aria-label="Зелёная тема"><i class="fas fa-leaf" aria-hidden="true"></i></button>
                     <button class="theme-option" data-theme-option="custom" title="Настраиваемая" aria-label="Настраиваемая тема"><i class="fas fa-sliders-h" aria-hidden="true"></i></button>
                 </div>
             </div>
@@ -184,16 +186,21 @@
             </div>
         </div>
 
-        {# ~ Flash-сообщения ~ #}
+        {# ~ Flash-сообщения (через notification system) ~ #}
         {% block flash_messages %}
-            {% for type, messages in app.flashes %}
-                {% for message in messages %}
-                    <div class="alert alert-{{ type == 'error' ? 'danger' : type }} alert-dismissible fade show m-2" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
-                    </div>
-                {% endfor %}
-            {% endfor %}
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    {% for type, messages in app.flashes %}
+                        {% for message in messages %}
+                            setTimeout(() => {
+                                if (window.notify) {
+                                    window.notify.{{ type == 'error' ? 'error' : type }}('{{ message|e('js') }}');
+                                }
+                            }, 100);
+                        {% endfor %}
+                    {% endfor %}
+                });
+            </script>
         {% endblock %}
 
         {% block body %}{% endblock %}
@@ -256,6 +263,7 @@
             defer></script>
 
     {# ~ Components JS ~ #}
+    <script src="{{ asset('js/components/notification-system.js') }}"  defer></script>
     <script src="{{ asset('js/components/global-interactions.js') }}"  defer></script>
     <script src="{{ asset('js/components/mobile-interactions.js') }}"  defer></script>
     <script src="{{ asset('js/components/advanced-widgets.js') }}"     defer></script>

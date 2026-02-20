@@ -1,0 +1,296 @@
+/**
+ * Notification System - Стили для системы уведомлений
+ */
+
+.notification-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 400px;
+    pointer-events: none;
+}
+
+.notification {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background: var(--bg-card, #ffffff);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    border-left: 4px solid var(--notification-color);
+    opacity: 0;
+    transform: translateX(400px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: auto;
+    overflow: hidden;
+}
+
+.notification.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.notification.hide {
+    opacity: 0;
+    transform: translateX(400px) scale(0.9);
+}
+
+.notification-icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: var(--notification-color);
+}
+
+.notification-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.notification-title {
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.notification-message {
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    word-wrap: break-word;
+}
+
+.notification-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.notification-action-btn {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.notification-action-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+    transform: translateY(-1px);
+}
+
+.notification-action-btn.primary {
+    background: var(--notification-color);
+    color: white;
+    border-color: var(--notification-color);
+}
+
+.notification-action-btn.primary:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.notification-close {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    padding: 0;
+}
+
+.notification-close:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--text-primary);
+}
+
+.notification-close:active {
+    transform: scale(0.9);
+}
+
+.notification-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--notification-color);
+    opacity: 0.3;
+    animation: progressBar 5s linear forwards;
+}
+
+@keyframes progressBar {
+    from {
+        width: 100%;
+    }
+    to {
+        width: 0%;
+    }
+}
+
+/* Типы уведомлений */
+.notification-success {
+    --notification-color: #10b981;
+}
+
+.notification-error {
+    --notification-color: #ef4444;
+}
+
+.notification-warning {
+    --notification-color: #f59e0b;
+}
+
+.notification-info {
+    --notification-color: #3b82f6;
+}
+
+/* Темная тема */
+[data-theme="dark"] .notification,
+[data-mode="dark"] .notification {
+    background: var(--bg-elevated, #1e293b);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .notification-close:hover,
+[data-mode="dark"] .notification-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .notification-actions,
+[data-mode="dark"] .notification-actions {
+    border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .notification-action-btn,
+[data-mode="dark"] .notification-action-btn {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .notification-action-btn:hover,
+[data-mode="dark"] .notification-action-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .notification-container {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+    
+    .notification {
+        padding: 12px;
+    }
+    
+    .notification-message {
+        font-size: 0.85rem;
+    }
+}
+
+/* Анимация для множественных уведомлений */
+.notification:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.notification:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.notification:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.notification:nth-child(4) {
+    animation-delay: 0.3s;
+}
+
+.notification:nth-child(5) {
+    animation-delay: 0.4s;
+}
+
+/* Hover эффект */
+.notification:hover {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+}
+
+.notification:hover .notification-progress {
+    animation-play-state: paused;
+}
+
+/* Уменьшение движения для доступности */
+@media (prefers-reduced-motion: reduce) {
+    .notification {
+        transition: opacity 0.2s ease;
+        transform: none !important;
+    }
+    
+    .notification.show {
+        opacity: 1;
+    }
+    
+    .notification.hide {
+        opacity: 0;
+    }
+    
+    .notification-progress {
+        animation: none;
+    }
+}
+
+/* Дополнительные стили для разных состояний */
+.notification-success .notification-icon {
+    animation: successPulse 0.5s ease-out;
+}
+
+.notification-error .notification-icon {
+    animation: errorShake 0.5s ease-out;
+}
+
+@keyframes successPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+}
+
+@keyframes errorShake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-5px);
+    }
+    75% {
+        transform: translateX(5px);
+    }
+}
