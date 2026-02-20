@@ -12,6 +12,22 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" crossorigin="anonymous">
     
+    <!-- Theme System -->
+    <script>
+        // Load theme immediately to prevent flash
+        (function() {
+            const theme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+            
+            // Load theme CSS
+            const themeLink = document.createElement('link');
+            themeLink.rel = 'stylesheet';
+            themeLink.href = '/css/themes/topbar-theme-' + theme + '.css';
+            themeLink.setAttribute('data-theme-css', 'true');
+            document.head.appendChild(themeLink);
+        })();
+    </script>
+    
     {% block stylesheets %}{% endblock %}
 </head>
 <body>
