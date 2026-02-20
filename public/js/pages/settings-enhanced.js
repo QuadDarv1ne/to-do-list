@@ -202,15 +202,15 @@ function initThemeSettings() {
     
     themeRadios.forEach(radio => {
         radio.addEventListener('change', function() {
-            if (this.checked && window.themeSwitcher) {
-                window.themeSwitcher.applyTheme(this.value, true);
+            if (this.checked && window.themeLoader) {
+                window.themeLoader.setTheme(this.value);
             }
         });
     });
     
     // Set current theme
-    if (window.themeSwitcher) {
-        const currentTheme = window.themeSwitcher.getTheme();
+    if (window.themeLoader) {
+        const currentTheme = window.themeLoader.getCurrentTheme();
         const radio = document.querySelector(`input[name="theme"][value="${currentTheme}"]`);
         if (radio) radio.checked = true;
     }

@@ -453,8 +453,7 @@ class ScrollManager {
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize theme switcher
-    window.themeSwitcher = new ThemeSwitcher();
+    // Theme management handled by core/theme-loader.js
     
     // Initialize toast manager
     window.toastManager = new ToastManager();
@@ -476,5 +475,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Export for module systems
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { ThemeSwitcher, ToastManager, PageLoader, ScrollManager };
+    module.exports = { ToastManager, PageLoader, ScrollManager };
 }
