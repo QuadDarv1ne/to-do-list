@@ -1,6 +1,6 @@
-{% extends 'base_modern.html.twig' %}
+{% extends 'base_sidebar.html.twig' %}
 
-{% block title %}Панель управления{% endblock %}
+{% block page_title %}Панель управления{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -233,38 +233,69 @@
 
 <!-- Theme Switcher -->
 <div class="theme-switcher-modern">
-    <button class="theme-toggle-btn" onclick="toggleThemeOptions()">
+    <button class="theme-toggle-btn">
         <i class="fas fa-palette"></i>
     </button>
     <div class="theme-options" id="themeOptions">
-        <div class="theme-option light" onclick="switchTheme('light')" title="Светлая"></div>
-        <div class="theme-option dark" onclick="switchTheme('dark')" title="Темная"></div>
-        <div class="theme-option orange" onclick="switchTheme('orange')" title="Оранжевая"></div>
-        <div class="theme-option purple" onclick="switchTheme('purple')" title="Фиолетовая"></div>
-        <div class="theme-option custom" onclick="switchTheme('custom')" title="Кастомная"></div>
+        <div class="theme-option light" data-theme="light" title="Светлая"></div>
+        <div class="theme-option dark" data-theme="dark" title="Темная"></div>
+        <div class="theme-option orange" data-theme="orange" title="Оранжевая"></div>
+        <div class="theme-option purple" data-theme="purple" title="Фиолетовая"></div>
+        <div class="theme-option custom" data-theme="custom" title="Кастомная"></div>
     </div>
 </div>
+
+<script>
+// Theme switcher для dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    const themeToggleBtn = document.querySelector('.theme-toggle-btn');
+    const themeOptions = document.getElementById('themeOptions');
+    const themeOptionElements = document.querySelectorAll('.theme-option');
+    
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            themeOptions.classList.toggle('active');
+        });
+    }
+    
+    themeOptionElements.forEach(option => {
+        option.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const theme = this.getAttribute('data-theme');
+            if (window.unifiedThemeSystem) {
+                window.unifiedThemeSystem.setTheme(theme);
+            }
+            themeOptions.classList.remove('active');
+        });
+    });
+    
+    // Закрытие при клике вне
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.theme-switcher-modern')) {
+            themeOptions.classList.remove('active');
+        }
+    });
+    
+    // Обновление активной темы
+    if (window.unifiedThemeSystem) {
+        const currentTheme = window.unifiedThemeSystem.getCurrentTheme();
+        themeOptionElements.forEach(option => {
+            if (option.getAttribute('data-theme') === currentTheme) {
+                option.classList.add('active');
+            } else {
+                option.classList.remove('active');
+            }
+        });
+    }
+});
+</script>
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
-        // Theme Switcher
-        function toggleThemeOptions() {
-            document.getElementById('themeOptions').classList.toggle('active');
-        }
-
-        function switchTheme(theme) {
-            document.body.className = 'theme-' + theme;
-            localStorage.setItem('theme', theme);
-            toggleThemeOptions();
-        }
-
-        // Load saved theme
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        document.body.className = 'theme-' + savedTheme;
-
         // Orders Chart
         const ordersCtx = document.getElementById('ordersChart').getContext('2d');
         new Chart(ordersCtx, {

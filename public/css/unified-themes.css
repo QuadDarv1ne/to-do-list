@@ -1,0 +1,506 @@
+/**
+ * Unified Theme System CSS
+ * Поддержка 5 тем для обоих layout
+ */
+
+/* ============================================
+   LIGHT THEME
+   ============================================ */
+body.theme-light,
+[data-theme="light"] {
+    --bg-dark: #f8fafc;
+    --bg-darker: #ffffff;
+    --bg-secondary: #f1f5f9;
+    --text-light: #0f172a;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --card-bg: #ffffff;
+    --primary-color: #6366f1;
+    --primary-hover: #4f46e5;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --info: #3b82f6;
+    
+    /* Specific colors */
+    --color-sales: #4dd4ac;
+    --color-orders: #ffd93d;
+    --color-bonuses: #ff6bcb;
+    --color-clients: #8b7ff4;
+}
+
+body.theme-light {
+    background: #f8fafc;
+    color: #0f172a;
+}
+
+/* ============================================
+   DARK THEME (Default)
+   ============================================ */
+body.theme-dark,
+[data-theme="dark"] {
+    --bg-dark: #1a1d2e;
+    --bg-darker: #151824;
+    --bg-secondary: #1e2139;
+    --text-light: #e2e8f0;
+    --text-primary: #e2e8f0;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --border-color: #2d3548;
+    --card-bg: #1e2139;
+    --primary-color: #6366f1;
+    --primary-hover: #4f46e5;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --info: #3b82f6;
+    
+    /* Specific colors */
+    --color-sales: #4dd4ac;
+    --color-orders: #ffd93d;
+    --color-bonuses: #ff6bcb;
+    --color-clients: #8b7ff4;
+}
+
+body.theme-dark {
+    background: #1a1d2e;
+    color: #e2e8f0;
+}
+
+/* ============================================
+   ORANGE THEME
+   ============================================ */
+body.theme-orange,
+[data-theme="orange"] {
+    --bg-dark: #fff7ed;
+    --bg-darker: #ffedd5;
+    --bg-secondary: #fed7aa;
+    --text-light: #1c1917;
+    --text-primary: #1c1917;
+    --text-secondary: #57534e;
+    --text-muted: #78716c;
+    --border-color: #fed7aa;
+    --card-bg: #ffedd5;
+    --primary-color: #f97316;
+    --primary-hover: #ea580c;
+    --success: #22c55e;
+    --warning: #eab308;
+    --danger: #ef4444;
+    --info: #3b82f6;
+    
+    /* Specific colors */
+    --color-sales: #fb923c;
+    --color-orders: #fdba74;
+    --color-bonuses: #f97316;
+    --color-clients: #ea580c;
+}
+
+body.theme-orange {
+    background: #fff7ed;
+    color: #1c1917;
+}
+
+/* ============================================
+   PURPLE THEME
+   ============================================ */
+body.theme-purple,
+[data-theme="purple"] {
+    --bg-dark: #faf5ff;
+    --bg-darker: #f3e8ff;
+    --bg-secondary: #e9d5ff;
+    --text-light: #1e1b4b;
+    --text-primary: #1e1b4b;
+    --text-secondary: #4c1d95;
+    --text-muted: #6b7280;
+    --border-color: #e9d5ff;
+    --card-bg: #f3e8ff;
+    --primary-color: #a855f7;
+    --primary-hover: #9333ea;
+    --success: #22c55e;
+    --warning: #eab308;
+    --danger: #ef4444;
+    --info: #3b82f6;
+    
+    /* Specific colors */
+    --color-sales: #c084fc;
+    --color-orders: #d8b4fe;
+    --color-bonuses: #a855f7;
+    --color-clients: #9333ea;
+}
+
+body.theme-purple {
+    background: #faf5ff;
+    color: #1e1b4b;
+}
+
+/* ============================================
+   CUSTOM THEME
+   ============================================ */
+body.theme-custom,
+[data-theme="custom"] {
+    --bg-dark: #f9fafb;
+    --bg-darker: #ffffff;
+    --bg-secondary: #f3f4f6;
+    --text-light: #1f2937;
+    --text-primary: #1f2937;
+    --text-secondary: #4b5563;
+    --text-muted: #6b7280;
+    --border-color: #e5e7eb;
+    --card-bg: #ffffff;
+    --primary-color: #667eea;
+    --primary-hover: #5568d3;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --info: #3b82f6;
+    
+    /* Specific colors */
+    --color-sales: #667eea;
+    --color-orders: #764ba2;
+    --color-bonuses: #f093fb;
+    --color-clients: #4facfe;
+}
+
+body.theme-custom {
+    background: #f9fafb;
+    color: #1f2937;
+}
+
+/* ============================================
+   COMMON THEME STYLES
+   ============================================ */
+
+/* Sidebar styles for all themes */
+.sidebar {
+    background: var(--bg-darker);
+    border-right: 1px solid var(--border-color);
+    color: var(--text-light);
+}
+
+.sidebar-header {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-logo {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+}
+
+.sidebar-title {
+    color: var(--text-light);
+}
+
+.nav-link {
+    color: var(--text-muted);
+}
+
+.nav-link:hover {
+    background: rgba(var(--primary-color-rgb, 99, 102, 241), 0.1);
+    color: var(--text-light);
+}
+
+.nav-link.active {
+    background: linear-gradient(135deg, rgba(var(--primary-color-rgb, 99, 102, 241), 0.2), rgba(var(--primary-hover-rgb, 79, 70, 229), 0.2));
+    color: var(--text-light);
+}
+
+.nav-link.active::before {
+    background: var(--primary-color);
+}
+
+.sidebar-footer {
+    border-top: 1px solid var(--border-color);
+}
+
+.user-profile:hover {
+    background: rgba(var(--primary-color-rgb, 99, 102, 241), 0.1);
+}
+
+.user-avatar {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+}
+
+.user-name {
+    color: var(--text-light);
+}
+
+.user-role {
+    color: var(--text-muted);
+}
+
+/* Main content styles */
+.main-content {
+    background: var(--bg-dark);
+    color: var(--text-light);
+}
+
+.page-title {
+    color: var(--text-light);
+}
+
+/* Search box */
+.search-input {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-light);
+}
+
+.search-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb, 99, 102, 241), 0.1);
+}
+
+.search-icon {
+    color: var(--text-muted);
+}
+
+/* Icon buttons */
+.icon-btn {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-light);
+}
+
+.icon-btn:hover {
+    background: rgba(var(--primary-color-rgb, 99, 102, 241), 0.1);
+    border-color: var(--primary-color);
+}
+
+/* Sidebar toggle */
+.sidebar-toggle {
+    background: var(--primary-color);
+}
+
+.sidebar-toggle:hover {
+    background: var(--primary-hover);
+}
+
+/* Cards */
+.card,
+.card-modern,
+.chart-card-modern {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-light);
+}
+
+.card-header,
+.card-header-modern {
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-light);
+}
+
+/* Tables */
+.table {
+    color: var(--text-light);
+}
+
+.table thead th {
+    border-bottom: 2px solid var(--border-color);
+    color: var(--text-secondary);
+}
+
+.table tbody td {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.table-hover tbody tr:hover {
+    background: rgba(var(--primary-color-rgb, 99, 102, 241), 0.05);
+}
+
+/* Forms */
+.form-control,
+.form-select {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-light);
+}
+
+.form-control:focus,
+.form-select:focus {
+    background: var(--card-bg);
+    border-color: var(--primary-color);
+    color: var(--text-light);
+    box-shadow: 0 0 0 0.2rem rgba(var(--primary-color-rgb, 99, 102, 241), 0.25);
+}
+
+.form-control::placeholder {
+    color: var(--text-muted);
+}
+
+.form-label {
+    color: var(--text-secondary);
+}
+
+/* Buttons */
+.btn-primary {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+}
+
+.btn-secondary {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+    color: var(--text-light);
+}
+
+.btn-secondary:hover {
+    background: var(--border-color);
+}
+
+/* Badges */
+.badge {
+    background: var(--bg-secondary);
+    color: var(--text-light);
+}
+
+.badge.bg-success {
+    background: var(--success) !important;
+}
+
+.badge.bg-warning {
+    background: var(--warning) !important;
+}
+
+.badge.bg-danger {
+    background: var(--danger) !important;
+}
+
+.badge.bg-info {
+    background: var(--info) !important;
+}
+
+/* Status badges */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.status-badge.success {
+    background: rgba(16, 185, 129, 0.2);
+    color: var(--success);
+}
+
+.status-badge.warning {
+    background: rgba(245, 158, 11, 0.2);
+    color: var(--warning);
+}
+
+.status-badge.danger {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--danger);
+}
+
+/* Dropdowns */
+.dropdown-menu {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+}
+
+.dropdown-item {
+    color: var(--text-light);
+}
+
+.dropdown-item:hover {
+    background: rgba(var(--primary-color-rgb, 99, 102, 241), 0.1);
+    color: var(--text-light);
+}
+
+.dropdown-divider {
+    border-top: 1px solid var(--border-color);
+}
+
+.dropdown-header {
+    color: var(--text-secondary);
+}
+
+/* Modern header specific styles */
+.modern-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+}
+
+.modern-brand {
+    color: white;
+}
+
+.modern-brand:hover {
+    color: white;
+}
+
+.modern-nav-link {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.modern-nav-link:hover,
+.modern-nav-link.active {
+    color: white;
+}
+
+.modern-action-btn {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+}
+
+.modern-action-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.modern-user-avatar {
+    background: rgba(255, 255, 255, 0.25);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+}
+
+.modern-user-avatar:hover {
+    border-color: white;
+}
+
+.modern-search input {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.modern-search input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.modern-search input:focus {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: white;
+}
+
+/* Smooth transitions */
+body {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.sidebar,
+.main-content,
+.card,
+.form-control,
+.form-select,
+.btn,
+.dropdown-menu {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+    
+    .sidebar.mobile-open {
+        transform: translateX(0);
+    }
+}
