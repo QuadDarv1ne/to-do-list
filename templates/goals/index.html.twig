@@ -510,11 +510,11 @@
     </h2>
     
     {% if activeGoals is empty %}
-        <div class="empty-state">
-            <i class="fas fa-bullseye"></i>
-            <h3>Нет активных целей</h3>
-            <p>Создайте свою первую цель и начните путь к успеху!</p>
-        </div>
+        {{ include('components/empty_state.html.twig', {
+            icon: 'fa-bullseye',
+            title: 'Нет активных целей',
+            message: 'Создайте свою первую цель и начните путь к успеху!'
+        }) }}
     {% else %}
         <div class="row">
             {% for goal in activeGoals %}

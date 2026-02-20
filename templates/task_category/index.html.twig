@@ -174,14 +174,13 @@
     {% else %}
     <div class="row">
         <div class="col-12">
-            <div class="empty-state py-5">
-                <i class="fas fa-tags mb-3"></i>
-                <h4 class="mb-3">Нет категорий</h4>
-                <p class="mb-4">Создайте первую категорию для организации ваших задач</p>
-                <a href="{{ path('app_task_category_new') }}" class="btn btn-primary btn-lg btn-enhanced">
-                    <i class="fas fa-plus me-2"></i>Создать категорию
-                </a>
-            </div>
+            {{ include('components/empty_state.html.twig', {
+                icon: 'fa-tags',
+                title: 'Нет категорий',
+                message: 'Создайте первую категорию для организации ваших задач',
+                action_url: path('app_task_category_new'),
+                action_text: 'Создать категорию'
+            }) }}
         </div>
     </div>
     {% endif %}

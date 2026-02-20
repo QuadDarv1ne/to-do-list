@@ -283,11 +283,11 @@
     </div>
 
     {% if tasks is empty %}
-        <div class="empty-state">
-            <i class="fas fa-check-circle"></i>
-            <h3 class="mb-3">Отличная работа!</h3>
-            <p class="text-muted mb-0">Нет задач с приближающимися дедлайнами</p>
-        </div>
+        {{ include('components/empty_state.html.twig', {
+            icon: 'fa-check-circle',
+            title: 'Отличная работа!',
+            message: 'Нет задач с приближающимися дедлайнами'
+        }) }}
     {% else %}
         <div class="row" id="tasks-container">
             {% for task in tasks %}

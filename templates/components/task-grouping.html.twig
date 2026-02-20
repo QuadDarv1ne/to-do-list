@@ -183,11 +183,11 @@
         {% endif %}
     {% endfor %}
 {% else %}
-    <div class="empty-state text-center py-5">
-        <i class="fas fa-tasks fa-4x text-muted mb-3" style="opacity: 0.3;"></i>
-        <h5>Нет задач</h5>
-        <p class="text-muted">Задачи не найдены</p>
-    </div>
+    {{ include('components/empty_state.html.twig', {
+        icon: 'fa-tasks',
+        title: 'Нет задач',
+        message: 'Задачи не найдены'
+    }) }}
 {% endif %}
 
 {# JavaScript for filtering #}

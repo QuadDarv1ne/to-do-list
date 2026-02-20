@@ -475,11 +475,11 @@
 
     <!-- Habits List -->
     {% if habits is empty %}
-        <div class="empty-state">
-            <i class="fas fa-seedling"></i>
-            <h3>Нет привычек</h3>
-            <p>Создайте свою первую привычку и начните путь к лучшей версии себя!</p>
-        </div>
+        {{ include('components/empty_state.html.twig', {
+            icon: 'fa-seedling',
+            title: 'Нет привычек',
+            message: 'Создайте свою первую привычку и начните путь к лучшей версии себя!'
+        }) }}
     {% else %}
         <div class="row" id="habitsContainer">
             {% for habit in habits %}
