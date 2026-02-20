@@ -153,7 +153,7 @@ class TimeTrackingService
 
             // Group by category
             $category = $tracking->getTask()->getCategory();
-            $categoryName = $category ? $category->getName() : 'Без категории';
+            $categoryName = $category ? ($category->getName() ?? 'Без категории') : 'Без категории';
             if (!isset($byCategory[$categoryName])) {
                 $byCategory[$categoryName] = 0;
             }
