@@ -144,14 +144,17 @@ class NotificationService
         }
 
         try {
-            $unreadNotifications = $this->getUnreadNotifications($user);
-            $count = \count($unreadNotifications);
-
-            foreach ($unreadNotifications as $notification) {
-                $notification->setIsRead(true);
-            }
-
-            $this->entityManager->flush();
+            // Optimized: use single UPDATE query instead of loading all notifications
+            $count = $this->entityManager->createQueryBuilder()
+                ->update(Notification::class, 'n')
+                ->set('n.isRead', ':isRead')
+                ->where('n.user = :user')
+                ->andWhere('n.isRead = :notRead')
+                ->setParameter('isRead', true)
+                ->setParameter('notRead', false)
+                ->setParameter('user', $user)
+                ->getQuery()
+                ->execute();
 
             return $count;
         } finally {

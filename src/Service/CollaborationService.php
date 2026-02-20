@@ -241,96 +241,168 @@ class CollaborationService
     }
 
     /**
-     * Suggest task assignment
+     * Suggest task assignment based on workload, collaboration history, and expertise
+     * Optimized: single query to calculate all scores
      */
     public function suggestAssignment(Task $task): ?User
     {
-        // Get all users except task creator
-        $users = $this->userRepository->createQueryBuilder('u')
+        $creator = $task->getUser();
+        $category = $task->getCategory();
+
+        // Build a single optimized query to get all scoring data
+        $qb = $this->userRepository->createQueryBuilder('u')
+            ->select('u.id as userId')
             ->where('u != :creator')
             ->andWhere('u.isActive = :active')
-            ->setParameter('creator', $task->getUser())
+            ->setParameter('creator', $creator)
+            ->setParameter('active', true);
+
+        // Get workload (active tasks count)
+        $qb->addSelect('(
+            SELECT COUNT(t1.id) 
+            FROM App\Entity\Task t1 
+            WHERE (t1.assignedUser = u OR t1.user = u) 
+            AND t1.status != :completed
+        ) as workload');
+
+        // Get collaboration count with task creator
+        $qb->addSelect('(
+            SELECT COUNT(t2.id) 
+            FROM App\Entity\Task t2 
+            WHERE (
+                (t2.user = :creator AND t2.assignedUser = u) OR 
+                (t2.user = u AND t2.assignedUser = :creator)
+            )
+        ) as collaborations');
+
+        // Get category experience if category exists
+        if ($category) {
+            $qb->addSelect('(
+                SELECT COUNT(t3.id) 
+                FROM App\Entity\Task t3 
+                WHERE (t3.assignedUser = u OR t3.user = u) 
+                AND t3.category = :category 
+                AND t3.status = :completed
+            ) as categoryExperience')
+            ->setParameter('category', $category);
+        } else {
+            $qb->addSelect('0 as categoryExperience');
+        }
+
+        $qb->setParameter('completed', 'completed');
+
+        $results = $qb->getQuery()->getArrayResult();
+
+        if (empty($results)) {
+            return null;
+        }
+
+        // Calculate scores
+        $scores = [];
+        foreach ($results as $result) {
+            $workload = (int)$result['workload'];
+            $collaborations = (int)$result['collaborations'];
+            $categoryExperience = (int)($result['categoryExperience'] ?? 0);
+
+            // Calculate total score
+            $score = max(0, 20 - $workload) + ($collaborations * 2) + ($categoryExperience * 3);
+
+            $scores[$result['userId']] = $score;
+        }
+
+        // Sort by score descending
+        arsort($scores);
+
+        // Get the best user
+        $bestUserId = array_key_first($scores);
+        if ($bestUserId) {
+            return $this->userRepository->find($bestUserId);
+        }
+
+        return null;
+    }
+
+    /**
+     * Get collaboration network
+     * Optimized: batch load collaboration data instead of per-user queries
+     */
+    public function getCollaborationNetwork(int $limit = 50): array
+    {
+        // Get active users with limit
+        $users = $this->userRepository->createQueryBuilder('u')
+            ->where('u.isActive = :active')
             ->setParameter('active', true)
+            ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
 
         if (empty($users)) {
-            return null;
+            return [];
         }
 
-        // Calculate scores for each user
-        $scores = [];
-        foreach ($users as $user) {
-            $score = 0;
+        $userIds = array_map(fn($u) => $u->getId(), $users);
 
-            // Lower workload = higher score
-            $workload = $this->taskRepository->createQueryBuilder('t')
-                ->select('COUNT(t.id)')
-                ->where('t.assignedUser = :user OR t.user = :user')
-                ->andWhere('t.status != :completed')
-                ->setParameter('user', $user)
-                ->setParameter('completed', 'completed')
-                ->getQuery()
-                ->getSingleScalarResult();
+        // Batch load all collaboration data in one query
+        $collaborationData = $this->taskRepository->createQueryBuilder('t')
+            ->select('
+                IDENTITY(t.user) as userId,
+                IDENTITY(t.assignedUser) as collaboratorId,
+                COUNT(t.id) as count
+            ')
+            ->where('t.user IN (:userIds) AND t.assignedUser IS NOT NULL')
+            ->orWhere('t.assignedUser IN (:userIds) AND t.user IS NOT NULL')
+            ->setParameter('userIds', $userIds)
+            ->groupBy('userId, collaboratorId')
+            ->getQuery()
+            ->getArrayResult();
 
-            $score += max(0, 20 - (int)$workload);
+        // Build collaboration map
+        $collaborationMap = [];
+        foreach ($collaborationData as $data) {
+            $userId = $data['userId'];
+            $collaboratorId = $data['collaboratorId'];
+            $count = (int)$data['count'];
 
-            // Previous collaboration = higher score
-            $collaborations = $this->taskRepository->createQueryBuilder('t')
-                ->select('COUNT(t.id)')
-                ->where('t.user = :creator AND t.assignedUser = :user')
-                ->orWhere('t.user = :user AND t.assignedUser = :creator')
-                ->setParameter('creator', $task->getUser())
-                ->setParameter('user', $user)
-                ->getQuery()
-                ->getSingleScalarResult();
-
-            $score += (int)$collaborations * 2;
-
-            // Same category experience = higher score
-            if ($task->getCategory()) {
-                $categoryTasks = $this->taskRepository->createQueryBuilder('t')
-                    ->select('COUNT(t.id)')
-                    ->where('t.assignedUser = :user OR t.user = :user')
-                    ->andWhere('t.category = :category')
-                    ->andWhere('t.status = :completed')
-                    ->setParameter('user', $user)
-                    ->setParameter('category', $task->getCategory())
-                    ->setParameter('completed', 'completed')
-                    ->getQuery()
-                    ->getSingleScalarResult();
-
-                $score += (int)$categoryTasks * 3;
+            if (!isset($collaborationMap[$userId])) {
+                $collaborationMap[$userId] = [];
             }
+            if (!isset($collaborationMap[$userId][$collaboratorId])) {
+                $collaborationMap[$userId][$collaboratorId] = 0;
+            }
+            $collaborationMap[$userId][$collaboratorId] += $count;
 
-            $scores[$user->getId()] = [
-                'user' => $user,
-                'score' => $score,
-            ];
+            // Bidirectional
+            if (!isset($collaborationMap[$collaboratorId])) {
+                $collaborationMap[$collaboratorId] = [];
+            }
+            if (!isset($collaborationMap[$collaboratorId][$userId])) {
+                $collaborationMap[$collaboratorId][$userId] = 0;
+            }
+            $collaborationMap[$collaboratorId][$userId] += $count;
         }
 
-        // Sort by score
-        uasort($scores, fn ($a, $b) => $b['score'] <=> $a['score']);
-
-        return reset($scores)['user'] ?? null;
-    }
-
-    /**
-     * Get collaboration network (optimized)
-     */
-    public function getCollaborationNetwork(): array
-    {
-        // Only get active users for collaboration network
-        $users = $this->userRepository->findActiveUsers();
+        // Build network
         $network = [];
-
         foreach ($users as $user) {
-            $collaborators = $this->getMostFrequentCollaborators($user, 5);
+            $userId = $user->getId();
+            $userCollaborations = $collaborationMap[$userId] ?? [];
+
+            // Sort and limit to top 5 collaborators
+            arsort($userCollaborations);
+            $topCollaborators = array_slice($userCollaborations, 0, 5, true);
+
+            $collaborators = [];
+            foreach ($topCollaborators as $collaboratorId => $count) {
+                $collaborators[] = [
+                    'user_id' => $collaboratorId,
+                    'collaboration_count' => $count,
+                ];
+            }
 
             $network[] = [
                 'user' => $user,
                 'collaborators' => $collaborators,
-                'total_collaborations' => array_sum(array_column($collaborators, 'collaboration_count')),
+                'total_collaborations' => array_sum($userCollaborations),
             ];
         }
 

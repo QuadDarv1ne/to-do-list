@@ -882,22 +882,54 @@ class TaskRepository extends ServiceEntityRepository
 
     /**
      * Internal method to find task with relations
+     * Optimized: load only essential relations, lazy load others
      */
     private function performFindTaskWithRelations(int $id): ?Task
     {
         return $this->createQueryBuilder('t')
-            ->leftJoin('t.user', 'u')
-            ->leftJoin('t.assignedUser', 'au')
-            ->leftJoin('t.category', 'c')
-            ->leftJoin('t.tags', 'tg')
-            ->leftJoin('t.comments', 'cm')
-            ->leftJoin('t.activityLogs', 'al')
-            ->leftJoin('t.notifications', 'nt')
-            ->leftJoin('t.dependencies', 'dep')
-            ->leftJoin('t.dependents', 'dt')
-            ->leftJoin('t.timeTrackings', 'tt')
-            ->leftJoin('t.recurrence', 'r')
-            ->addSelect('u', 'au', 'c', 'tg', 'cm', 'al', 'nt', 'dep', 'dt', 'tt', 'r')
+            ->leftJoin('t.user', 'u')->addSelect('u')
+            ->leftJoin('t.assignedUser', 'au')->addSelect('au')
+            ->leftJoin('t.category', 'c')->addSelect('c')
+            ->leftJoin('t.tags', 'tg')->addSelect('tg')
+            // Comments, logs, and other heavy relations are lazy-loaded
+            ->where('t.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
+     * Find task with comments for detail view
+     * Use this when you need comments, otherwise use findTaskWithRelations
+     */
+    public function findTaskWithComments(int $id): ?Task
+    {
+        return $this->createQueryBuilder('t')
+            ->leftJoin('t.user', 'u')->addSelect('u')
+            ->leftJoin('t.assignedUser', 'au')->addSelect('au')
+            ->leftJoin('t.category', 'c')->addSelect('c')
+            ->leftJoin('t.tags', 'tg')->addSelect('tg')
+            ->leftJoin('t.comments', 'cm')->addSelect('cm')
+            ->leftJoin('cm.user', 'cmu')->addSelect('cmu')
+            ->where('t.id = :id')
+            ->setParameter('id', $id)
+            ->orderBy('cm.createdAt', 'DESC')
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
+     * Find task with dependencies for dependency view
+     */
+    public function findTaskWithDependencies(int $id): ?Task
+    {
+        return $this->createQueryBuilder('t')
+            ->leftJoin('t.user', 'u')->addSelect('u')
+            ->leftJoin('t.assignedUser', 'au')->addSelect('au')
+            ->leftJoin('t.dependencies', 'dep')->addSelect('dep')
+            ->leftJoin('dep.dependencyTask', 'deptask')->addSelect('deptask')
+            ->leftJoin('t.dependents', 'dt')->addSelect('dt')
+            ->leftJoin('dt.dependentTask', 'dttask')->addSelect('dttask')
             ->where('t.id = :id')
             ->setParameter('id', $id)
             ->getQuery()

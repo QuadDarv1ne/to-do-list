@@ -252,7 +252,8 @@ class TaskController extends AbstractController
             $performanceMonitor->startTiming('task_controller_show');
         }
 
-        $task = $taskRepository->findTaskWithRelations($id);
+        // Use optimized method that loads comments for detail view
+        $task = $taskRepository->findTaskWithComments($id);
 
         if (!$task) {
             throw $this->createNotFoundException('Task not found');
@@ -792,38 +793,61 @@ class TaskController extends AbstractController
                ->setParameter('endDate', new \DateTime($endDate));
         }
 
-        $tasks = $qb->getQuery()->getResult();
-
-        // Create CSV content
-        $csvContent = "ID,Название,Описание,Статус,Приоритет,Дата создания,Срок выполнения,Категория,Назначен пользователю,Теги\n";
-
-        foreach ($tasks as $task) {
-            // Since we eager-loaded the tags, we can directly access them
-            $tagNames = [];
-            foreach ($task->getTags() as $tag) {
-                $tagNames[] = htmlspecialchars($tag->getName(), ENT_QUOTES, 'UTF-8');
-            }
-            $tagsString = implode(', ', $tagNames);
-
-            $csvContent .= \sprintf(
-                '"%s","%s","%s","%s","%s","%s","%s","%s","%s","%s"' . "\n",
-                $task->getId(),
-                str_replace('"', '""', htmlspecialchars($task->getTitle(), ENT_QUOTES, 'UTF-8')),
-                str_replace('"', '""', htmlspecialchars(strip_tags($task->getDescription() ?? ''), ENT_QUOTES, 'UTF-8')),
-                $task->getStatus(),
-                $task->getPriority(),
-                $task->getCreatedAt()->format('d.m.Y H:i'),
-                $task->getDueDate() ? $task->getDueDate()->format('d.m.Y') : '',
-                $task->getCategory() ? htmlspecialchars($task->getCategory()->getName(), ENT_QUOTES, 'UTF-8') : '',
-                $task->getAssignedUser() ? htmlspecialchars($task->getAssignedUser()->getFullName(), ENT_QUOTES, 'UTF-8') : '',
-                str_replace('"', '""', htmlspecialchars($tagsString, ENT_QUOTES, 'UTF-8')),
-            );
-        }
-
-        // Return CSV response
-        $response = new Response($csvContent);
+        // Use StreamedResponse to avoid memory issues with large datasets
+        $response = new \Symfony\Component\HttpFoundation\StreamedResponse();
         $response->headers->set('Content-Type', 'text/csv; charset=utf-8');
         $response->headers->set('Content-Disposition', 'attachment; filename="tasks_export_' . date('Y-m-d_H-i-s') . '.csv"');
+        
+        $response->setCallback(function() use ($qb) {
+            $handle = fopen('php://output', 'w');
+            
+            // Write BOM for UTF-8
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
+            
+            // Write header
+            fputcsv($handle, ['ID', 'Название', 'Описание', 'Статус', 'Приоритет', 'Дата создания', 'Срок выполнения', 'Категория', 'Назначен пользователю', 'Теги']);
+            
+            // Process tasks in batches to avoid memory issues
+            $batchSize = 100;
+            $offset = 0;
+            
+            while (true) {
+                $tasks = $qb->setFirstResult($offset)
+                    ->setMaxResults($batchSize)
+                    ->getQuery()
+                    ->getResult();
+                
+                if (empty($tasks)) {
+                    break;
+                }
+                
+                foreach ($tasks as $task) {
+                    $tagNames = [];
+                    foreach ($task->getTags() as $tag) {
+                        $tagNames[] = $tag->getName();
+                    }
+                    
+                    fputcsv($handle, [
+                        $task->getId(),
+                        $task->getTitle(),
+                        strip_tags($task->getDescription() ?? ''),
+                        $task->getStatus(),
+                        $task->getPriority(),
+                        $task->getCreatedAt()->format('d.m.Y H:i'),
+                        $task->getDueDate() ? $task->getDueDate()->format('d.m.Y') : '',
+                        $task->getCategory() ? $task->getCategory()->getName() : '',
+                        $task->getAssignedUser() ? $task->getAssignedUser()->getFullName() : '',
+                        implode(', ', $tagNames),
+                    ]);
+                }
+                
+                // Clear entity manager to free memory
+                $qb->getEntityManager()->clear();
+                $offset += $batchSize;
+            }
+            
+            fclose($handle);
+        });
 
         return $response;
     }

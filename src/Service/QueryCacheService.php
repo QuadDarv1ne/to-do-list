@@ -127,6 +127,14 @@ class QueryCacheService
     }
 
     /**
+     * Alias for invalidate() for consistency
+     */
+    public function delete(string $key): bool
+    {
+        return $this->invalidate($key);
+    }
+
+    /**
      * Check if cache item exists
      */
     public function has(string $key): bool

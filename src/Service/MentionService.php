@@ -14,45 +14,69 @@ class MentionService
     }
 
     /**
-     * Parse mentions from text (@username)
+     * Extract mentioned users from text (@username)
+     * Returns array of User objects
      */
-    public function parseMentions(string $text): array
+    public function extractMentions(string $text): array
     {
         $mentions = [];
 
-        // Find all @mentions
-        preg_match_all('/@(\\w+)/', $text, $matches);
+        // Find all @mentions (alphanumeric and underscore)
+        preg_match_all('/@([a-zA-Z0-9_]+)/', $text, $matches);
 
         if (!empty($matches[1])) {
-            foreach ($matches[1] as $username) {
-                $user = $this->userRepository->findOneBy(['username' => $username]);
-                if ($user) {
+            $uniqueUsernames = array_unique($matches[1]);
+            
+            // Batch load users for better performance
+            if (!empty($uniqueUsernames)) {
+                $users = $this->userRepository->createQueryBuilder('u')
+                    ->where('u.username IN (:usernames)')
+                    ->andWhere('u.isActive = :active')
+                    ->setParameter('usernames', $uniqueUsernames)
+                    ->setParameter('active', true)
+                    ->getQuery()
+                    ->getResult();
+
+                foreach ($users as $user) {
                     $mentions[] = $user;
                 }
             }
         }
 
-        return array_unique($mentions, SORT_REGULAR);
+        return $mentions;
     }
 
     /**
-     * Convert mentions to links
+     * Parse mentions from text (@username) - alias for backward compatibility
+     */
+    public function parseMentions(string $text): array
+    {
+        return $this->extractMentions($text);
+    }
+
+    /**
+     * Convert mentions to links with XSS protection
      */
     public function convertMentionsToLinks(string $text): string
     {
-        return preg_replace_callback('/@(\\w+)/', function ($matches) {
+        // First escape HTML to prevent XSS
+        $text = htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
+        
+        // Then convert mentions to links
+        return preg_replace_callback('/@([a-zA-Z0-9_]+)/', function ($matches) {
             $username = $matches[1];
             $user = $this->userRepository->findOneBy(['username' => $username]);
 
             if ($user) {
-                return \sprintf(
-                    '<a href="/users/%d" class="mention">@%s</a>',
+                return sprintf(
+                    '<a href="/users/%d" class="mention" data-user-id="%d">@%s</a>',
                     $user->getId(),
-                    $username,
+                    $user->getId(),
+                    htmlspecialchars($username, ENT_QUOTES, 'UTF-8')
                 );
             }
 
-            return $matches[0];
+            return '@' . htmlspecialchars($username, ENT_QUOTES, 'UTF-8');
         }, $text);
     }
 
