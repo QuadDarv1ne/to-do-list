@@ -58,7 +58,8 @@ class KanbanController extends AbstractController
         }
 
         $qb->orderBy('t.priority', 'DESC')
-           ->addOrderBy('t.createdAt', 'DESC');
+           ->addOrderBy('t.createdAt', 'DESC')
+           ->setMaxResults(500); // Limit to prevent memory issues with large datasets
 
         $allTasks = $qb->getQuery()->getResult();
 
