@@ -47,7 +47,7 @@
 
                             <div class="mb-3">
                                 <small class="text-muted d-block mb-1">URL:</small>
-                                <code class="text-primary" style="font-size: 0.85rem;">{{ webhook.url|truncate(40) }}</code>
+                                <code class="text-primary" style="font-size: 0.85rem;">{{ webhook.url|length > 40 ? webhook.url|slice(0, 40) ~ '...' : webhook.url }}</code>
                             </div>
 
                             <div class="mb-3">

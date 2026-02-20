@@ -101,7 +101,7 @@
                     <div class="mb-3">
                         <label class="form-label">Статус:</label>
                         <p class="mb-0">
-                            {% if task.isDone %}
+                            {% if task.isCompleted %}
                                 <span class="badge bg-success">Выполнена</span>
                             {% else %}
                                 {% if task.isOverdue %}

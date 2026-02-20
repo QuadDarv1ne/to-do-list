@@ -32,24 +32,11 @@ class CrmDashboardController extends AbstractController
             ? $clientRepository->countByCategory('vip')
             : $clientRepository->countByCategory('vip', $user);
 
-        // Статистика по сделкам
-        $deals = $isAdmin
-            ? $dealRepository->findAll()
-            : $dealRepository->findByManager($user);
-
-        $dealsStats = [
-            'total' => count($deals),
-            'in_progress' => count(array_filter($deals, fn($d) => $d->getStatus() === 'in_progress')),
-            'won' => count(array_filter($deals, fn($d) => $d->getStatus() === 'won')),
-            'lost' => count(array_filter($deals, fn($d) => $d->getStatus() === 'lost')),
-        ];
-
+        // Статистика по сделкам - оптимизировано через DQL
+        $dealsStats = $dealRepository->getDealsStatsByStatus($isAdmin ? null : $user);
+        
         // Общая выручка
-        $totalRevenue = array_reduce(
-            array_filter($deals, fn($d) => $d->getStatus() === 'won'),
-            fn($sum, $deal) => $sum + (float)$deal->getAmount(),
-            0
-        );
+        $totalRevenue = $dealRepository->getTotalRevenue($isAdmin ? null : $user);
 
         // Средний чек
         $averageCheck = $dealsStats['won'] > 0 ? $totalRevenue / $dealsStats['won'] : 0;
@@ -64,8 +51,11 @@ class CrmDashboardController extends AbstractController
         // Просроченные сделки
         $overdueDeals = $dealRepository->getOverdueDeals($isAdmin ? null : $user);
 
-        // Последние сделки
-        $recentDeals = array_slice($deals, 0, 5);
+        // Последние сделки - оптимизировано с JOIN
+        $recentDeals = $isAdmin
+            ? $dealRepository->findAllWithRelations()
+            : $dealRepository->findByManager($user);
+        $recentDeals = array_slice($recentDeals, 0, 5);
 
         // Статистика по товарам
         $totalProducts = $productRepository->countAll();
