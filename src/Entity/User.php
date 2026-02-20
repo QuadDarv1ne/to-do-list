@@ -149,6 +149,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
     #[ORM\OneToMany(mappedBy: 'author', targetEntity: KnowledgeBaseArticle::class)]
     private Collection $articles;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Webhook::class, orphanRemoval: true)]
+    private Collection $webhooks;
+
     public function __construct()
     {
         $this->tasks = new ArrayCollection();
@@ -162,6 +165,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
         $this->timeTrackings = new ArrayCollection();
         $this->tags = new ArrayCollection();
         $this->articles = new ArrayCollection();
+        $this->webhooks = new ArrayCollection();
         $this->createdAt = new \DateTime();
     }
 
@@ -925,6 +929,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
         if ($this->articles->removeElement($article)) {
             if ($article->getAuthor() === $this) {
                 $article->setAuthor(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Webhook>
+     */
+    public function getWebhooks(): Collection
+    {
+        return $this->webhooks;
+    }
+
+    public function addWebhook(Webhook $webhook): static
+    {
+        if (!$this->webhooks->contains($webhook)) {
+            $this->webhooks->add($webhook);
+            $webhook->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeWebhook(Webhook $webhook): static
+    {
+        if ($this->webhooks->removeElement($webhook)) {
+            // set the owning side to null (unless already changed)
+            if ($webhook->getUser() === $this) {
+                $webhook->setUser(null);
             }
         }
 

@@ -1,0 +1,109 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Webhooks{% endblock %}
+
+{% block body %}
+<div class="container-fluid page-transition">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+                <div class="d-flex align-items-center">
+                    <div class="icon-wrapper bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                        <i class="fas fa-bolt fa-xl text-primary"></i>
+                    </div>
+                    <div>
+                        <h1 class="mb-1">Webhooks</h1>
+                        <p class="text-muted mb-0">Настройте интеграции с внешними системами</p>
+                    </div>
+                </div>
+                <a href="{{ path('app_webhook_new') }}" class="btn btn-primary btn-lg px-4 py-2">
+                    <i class="fas fa-plus me-2"></i>
+                    Создать webhook
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {% if webhooks is not empty %}
+        <div class="row" id="webhooks-container">
+            {% for webhook in webhooks %}
+                <div class="col-lg-4 col-md-6 mb-4" data-webhook-id="{{ webhook.id }}">
+                    <div class="card border-0 shadow-sm h-100 card-hover">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-wrapper bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px;">
+                                        <i class="fas fa-bolt text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="card-title mb-1">{{ webhook.name }}</h5>
+                                        <small class="text-muted">{{ webhook.events|length }} событий</small>
+                                    </div>
+                                </div>
+                                <span class="badge bg-{{ webhook.isActive ? 'success' : 'secondary' }}">
+                                    {{ webhook.isActive ? 'Активен' : 'Неактивен' }}
+                                </span>
+                            </div>
+
+                            <div class="mb-3">
+                                <small class="text-muted d-block mb-1">URL:</small>
+                                <code class="text-primary" style="font-size: 0.85rem;">{{ webhook.url|truncate(40) }}</code>
+                            </div>
+
+                            <div class="mb-3">
+                                <small class="text-muted d-block mb-2">События:</small>
+                                <div class="d-flex flex-wrap gap-1">
+                                    {% for event in webhook.events|slice(0, 3) %}
+                                        <span class="badge bg-light text-dark border">
+                                            <i class="fas fa-circle me-1" style="font-size: 0.4rem;"></i>
+                                            {{ event }}
+                                        </span>
+                                    {% endfor %}
+                                    {% if webhook.events|length > 3 %}
+                                        <span class="badge bg-light text-dark border">
+                                            +{{ webhook.events|length - 3 }} ещё
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2 mt-3">
+                                <a href="{{ path('app_webhook_show', {id: webhook.id}) }}" class="btn btn-sm btn-outline-primary flex-fill">
+                                    <i class="fas fa-eye me-1"></i>
+                                    Просмотр
+                                </a>
+                                <a href="{{ path('app_webhook_edit', {id: webhook.id}) }}" class="btn btn-sm btn-outline-secondary flex-fill">
+                                    <i class="fas fa-edit me-1"></i>
+                                    Редактировать
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <div class="mb-4">
+                <i class="fas fa-bolt text-muted" style="font-size: 5rem; opacity: 0.3;"></i>
+            </div>
+            <h3 class="text-muted mb-2">Webhooks не настроены</h3>
+            <p class="text-muted mb-4">Создайте первый webhook для интеграции с внешними системами</p>
+            <a href="{{ path('app_webhook_new') }}" class="btn btn-primary btn-lg px-4">
+                <i class="fas fa-plus me-2"></i>
+                Создать webhook
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.card-hover {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+</style>
+{% endblock %}

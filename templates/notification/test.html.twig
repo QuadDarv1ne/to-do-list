@@ -1,0 +1,393 @@
+{# templates/notification/test.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Notification System Test{% endblock %}
+
+{% block body %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-bell me-2"></i>
+                        Enhanced Notification System Test
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Test Controls -->
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Test Controls</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Notification Title</label>
+                                        <input type="text" class="form-control" id="notificationTitle" value="Test Notification">
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">Notification Message</label>
+                                        <textarea class="form-control" id="notificationMessage" rows="3">This is a test notification message</textarea>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">Notification Type</label>
+                                        <select class="form-select" id="notificationType">
+                                            <option value="info">Info</option>
+                                            <option value="success">Success</option>
+                                            <option value="warning">Warning</option>
+                                            <option value="error">Error</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">Channels</label>
+                                        <div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="checkbox" id="channelInApp" value="in_app" checked>
+                                                <label class="form-check-label" for="channelInApp">In-App</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="checkbox" id="channelEmail" value="email">
+                                                <label class="form-check-label" for="channelEmail">Email</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="checkbox" id="channelPush" value="push">
+                                                <label class="form-check-label" for="channelPush">Push</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="useTemplate" value="1">
+                                        <label class="form-check-label" for="useTemplate">
+                                            Use Template (Task Assigned)
+                                        </label>
+                                    </div>
+                                    
+                                    <button type="button" class="btn btn-primary" id="sendTestNotification">
+                                        <i class="fas fa-paper-plane me-2"></i>
+                                        Send Test Notification
+                                    </button>
+                                    
+                                    <button type="button" class="btn btn-secondary" id="requestPermission">
+                                        <i class="fas fa-bell me-2"></i>
+                                        Request Browser Permission
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Connection Status -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Connection Status</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="status-indicator me-3" id="connectionStatus" style="width: 12px; height: 12px; border-radius: 50%;"></div>
+                                        <span id="connectionText">Disconnected</span>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <strong>Statistics:</strong>
+                                        <div id="notificationStats">
+                                            Loading...
+                                        </div>
+                                    </div>
+                                    
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="refreshStats">
+                                        <i class="fas fa-sync-alt me-1"></i>
+                                        Refresh Stats
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Notifications Display -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5 class="card-title mb-0">Recent Notifications</h5>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" id="clearNotifications">
+                                        <i class="fas fa-trash me-1"></i>
+                                        Clear All
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <div id="notificationsList">
+                                        <div class="text-center text-muted py-4">
+                                            <i class="fas fa-bell fa-2x mb-2"></i>
+                                            <p>No notifications received yet</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Templates -->
+                            <div class="card mt-4">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Available Templates</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="templatesList">
+                                        Loading templates...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.status-indicator.connected {
+    background-color: #28a745;
+    box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+}
+
+.status-indicator.disconnected {
+    background-color: #dc3545;
+}
+
+.status-indicator.connecting {
+    background-color: #ffc107;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.notification-item {
+    border-left: 4px solid #007bff;
+    padding: 12px;
+    margin-bottom: 10px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+
+.notification-item.info {
+    border-left-color: #17a2b8;
+}
+
+.notification-item.success {
+    border-left-color: #28a745;
+}
+
+.notification-item.warning {
+    border-left-color: #ffc107;
+}
+
+.notification-item.error {
+    border-left-color: #dc3545;
+}
+
+.template-item {
+    background-color: #e9ecef;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+
+.toast-container {
+    z-index: 1055;
+}
+</style>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script src="{{ asset('js/notification-client.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize notification client
+    const notificationClient = new NotificationClient();
+    window.notificationClient = notificationClient;
+    
+    // Update connection status
+    function updateConnectionStatus(connected) {
+        const statusIndicator = document.getElementById('connectionStatus');
+        const statusText = document.getElementById('connectionText');
+        
+        if (connected) {
+            statusIndicator.className = 'status-indicator connected';
+            statusText.textContent = 'Connected';
+        } else {
+            statusIndicator.className = 'status-indicator disconnected';
+            statusText.textContent = 'Disconnected';
+        }
+    }
+    
+    // Update statistics
+    async function updateStats() {
+        try {
+            const stats = await notificationClient.getNotificationStats();
+            document.getElementById('notificationStats').innerHTML = `
+                <div class="row">
+                    <div class="col-6">
+                        <small class="text-muted">Total:</small>
+                        <div class="fw-bold">${stats.total}</div>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">Unread:</small>
+                        <div class="fw-bold text-danger">${stats.unread}</div>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">Today:</small>
+                        <div class="fw-bold">${stats.today}</div>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">Read Rate:</small>
+                        <div class="fw-bold">${stats.read_percentage}%</div>
+                    </div>
+                </div>
+            `;
+        } catch (error) {
+            console.error('Failed to load stats:', error);
+            document.getElementById('notificationStats').innerHTML = '<div class="text-danger">Failed to load statistics</div>';
+        }
+    }
+    
+    // Add notification to list
+    function addNotificationToList(notification) {
+        const list = document.getElementById('notificationsList');
+        
+        // Clear empty state if this is the first notification
+        if (list.querySelector('.text-center')) {
+            list.innerHTML = '';
+        }
+        
+        const notificationElement = document.createElement('div');
+        notificationElement.className = `notification-item ${notification.type}`;
+        notificationElement.innerHTML = `
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h6 class="mb-1">${notification.title}</h6>
+                    <p class="mb-1 small">${notification.message}</p>
+                    <small class="text-muted">${new Date(notification.created_at).toLocaleString()}</small>
+                </div>
+                <span class="badge bg-${notification.type === 'error' ? 'danger' : notification.type === 'warning' ? 'warning' : notification.type === 'success' ? 'success' : 'info'}">
+                    ${notification.type}
+                </span>
+            </div>
+            ${notification.task_id ? `<small class="text-muted">Task ID: ${notification.task_id}</small>` : ''}
+        `;
+        
+        list.prepend(notificationElement);
+    }
+    
+    // Load templates
+    async function loadTemplates() {
+        try {
+            const templates = await notificationClient.getTemplates();
+            const list = document.getElementById('templatesList');
+            
+            if (templates.length === 0) {
+                list.innerHTML = '<div class="text-muted">No templates available</div>';
+                return;
+            }
+            
+            list.innerHTML = templates.map(template => `
+                <div class="template-item">
+                    <div class="d-flex justify-content-between">
+                        <strong>${template.name}</strong>
+                        <span class="badge bg-primary">${template.channel}</span>
+                    </div>
+                    <div class="small text-muted mt-1">Key: ${template.key}</div>
+                    <div class="small mt-1">Subject: ${template.subject}</div>
+                    ${template.variables ? `<div class="small text-muted">Variables: ${template.variables.join(', ')}</div>` : ''}
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Failed to load templates:', error);
+            document.getElementById('templatesList').innerHTML = '<div class="text-danger">Failed to load templates</div>';
+        }
+    }
+    
+    // Event listeners
+    notificationClient.on('connected', () => {
+        updateConnectionStatus(true);
+        updateStats();
+    });
+    
+    notificationClient.on('disconnected', () => {
+        updateConnectionStatus(false);
+    });
+    
+    notificationClient.on('notification', (notification) => {
+        addNotificationToList(notification);
+        updateStats();
+    });
+    
+    notificationClient.on('error', (error) => {
+        console.error('Notification error:', error);
+    });
+    
+    // Button event handlers
+    document.getElementById('sendTestNotification').addEventListener('click', async () => {
+        const title = document.getElementById('notificationTitle').value;
+        const message = document.getElementById('notificationMessage').value;
+        const type = document.getElementById('notificationType').value;
+        const useTemplate = document.getElementById('useTemplate').checked;
+        
+        const channels = [];
+        document.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
+            if (checkbox.id.startsWith('channel')) {
+                channels.push(checkbox.value);
+            }
+        });
+        
+        try {
+            const result = await notificationClient.sendTestNotification({
+                title: title,
+                message: message,
+                type: type,
+                channels: channels,
+                use_template: useTemplate
+            });
+            
+            if (result.success) {
+                alert('Test notification sent successfully!');
+            }
+        } catch (error) {
+            console.error('Failed to send test notification:', error);
+            alert('Failed to send test notification: ' + error.message);
+        }
+    });
+    
+    document.getElementById('requestPermission').addEventListener('click', async () => {
+        const granted = await notificationClient.requestNotificationPermission();
+        if (granted) {
+            alert('Notification permission granted!');
+        } else {
+            alert('Notification permission denied.');
+        }
+    });
+    
+    document.getElementById('refreshStats').addEventListener('click', updateStats);
+    
+    document.getElementById('clearNotifications').addEventListener('click', () => {
+        document.getElementById('notificationsList').innerHTML = `
+            <div class="text-center text-muted py-4">
+                <i class="fas fa-bell fa-2x mb-2"></i>
+                <p>No notifications received yet</p>
+            </div>
+        `;
+    });
+    
+    // Initial load
+    updateConnectionStatus(false);
+    updateStats();
+    loadTemplates();
+});
+</script>
+{% endblock %}

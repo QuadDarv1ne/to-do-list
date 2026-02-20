@@ -1,0 +1,131 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Создание webhook{% endblock %}
+
+{% block body %}
+<div class="container-fluid page-transition">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center mb-4">
+                <a href="{{ path('app_webhook_index') }}" class="btn btn-outline-secondary me-3">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <div class="d-flex align-items-center">
+                    <div class="icon-wrapper bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                        <i class="fas fa-bolt fa-xl text-primary"></i>
+                    </div>
+                    <div>
+                        <h1 class="mb-1">Создание webhook</h1>
+                        <p class="text-muted mb-0">Настройте интеграцию с внешней системой</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    {{ form_start(form, {attr: {class: 'webhook-form'}}) }}
+                    
+                    <div class="mb-4">
+                        {{ form_label(form.name) }}
+                        {{ form_widget(form.name) }}
+                        <div class="form-text">Придумайте название для этого webhook, например "Уведомления в Slack"</div>
+                        {{ form_errors(form.name) }}
+                    </div>
+
+                    <div class="mb-4">
+                        {{ form_label(form.url) }}
+                        {{ form_widget(form.url) }}
+                        {{ form_help(form.url) }}
+                        {{ form_errors(form.url) }}
+                    </div>
+
+                    <div class="mb-4">
+                        {{ form_label(form.secret) }}
+                        {{ form_widget(form.secret) }}
+                        {{ form_help(form.secret) }}
+                        {{ form_errors(form.secret) }}
+                    </div>
+
+                    <div class="mb-4">
+                        {{ form_label(form.events) }}
+                        {{ form_widget(form.events) }}
+                        {{ form_help(form.events) }}
+                        {{ form_errors(form.events) }}
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-check">
+                            {{ form_widget(form.isActive) }}
+                            {{ form_label(form.isActive) }}
+                        </div>
+                        {{ form_errors(form.isActive) }}
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg px-4">
+                            <i class="fas fa-save me-2"></i>
+                            Создать webhook
+                        </button>
+                        <a href="{{ path('app_webhook_index') }}" class="btn btn-outline-secondary btn-lg px-4">
+                            Отмена
+                        </a>
+                    </div>
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm bg-info bg-opacity-10">
+                <div class="card-body p-4">
+                    <h5 class="mb-3">
+                        <i class="fas fa-info-circle text-info me-2"></i>
+                        Что такое webhook?
+                    </h5>
+                    <p class="text-muted mb-3">
+                        Webhook — это способ для приложения отправлять данные в другую систему 
+                        при наступлении определенных событий.
+                    </p>
+                    <h6 class="mb-2">Как это работает:</h6>
+                    <ol class="text-muted small">
+                        <li>Вы указываете URL для получения уведомлений</li>
+                        <li>При наступлении события CRM отправляет POST-запрос</li>
+                        <li>Ваша система получает данные и обрабатывает их</li>
+                    </ol>
+                    <h6 class="mb-2 mt-3">Примеры использования:</h6>
+                    <ul class="text-muted small">
+                        <li>Отправка уведомлений в Slack/Telegram</li>
+                        <li>Синхронизация с внешней CRM</li>
+                        <li>Автоматизация через Zapier/Make</li>
+                        <li>Логирование событий</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mt-3">
+                <div class="card-body p-4">
+                    <h5 class="mb-3">
+                        <i class="fas fa-code text-primary me-2"></i>
+                        Пример payload
+                    </h5>
+                    <pre class="bg-dark text-light p-3 rounded small overflow-auto" style="max-height: 300px;"><code>{
+  "event": "task.created",
+  "timestamp": 1234567890,
+  "data": {
+    "task_id": 123,
+    "title": "Задача",
+    "status": "pending",
+    "priority": "medium"
+  }
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
