@@ -37,9 +37,15 @@
                     <form method="post" id="template-form">
                         <div class="mb-4">
                             <label for="template_name" class="form-label">Название шаблона *</label>
-                            <input type="text" class="form-control" id="template_name" name="template_name" required 
+                            <input type="text" class="form-control" id="template_name" name="template_name" required
                                    placeholder="Например: Еженедельное планирование">
                             <div class="form-text">Дайте вашему шаблону понятное название</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="template_description" class="form-label">Описание шаблона</label>
+                            <textarea class="form-control" id="template_description" name="template_description"
+                                      rows="2" placeholder="Краткое описание назначения шаблона (необязательно)"></textarea>
                         </div>
 
                         <div class="mb-4">
@@ -56,7 +62,7 @@
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-success">
                                 <i class="fas fa-save me-2"></i>
-                                Создать шаблон и задачи
+                                Сохранить шаблон
                             </button>
                             <a href="{{ path('app_task_template_index') }}" class="btn btn-outline-secondary">
                                 <i class="fas fa-times me-2"></i>

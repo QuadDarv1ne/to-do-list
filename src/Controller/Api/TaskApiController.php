@@ -164,15 +164,42 @@ class TaskApiController extends AbstractController
             ], Response::HTTP_BAD_REQUEST);
         }
 
+        // Validate priority
+        $allowedPriorities = ['low', 'medium', 'high', 'urgent'];
+        $priority = $data['priority'] ?? 'medium';
+        if (!in_array($priority, $allowedPriorities)) {
+            return $this->json([
+                'success' => false,
+                'error' => 'Invalid priority. Allowed values: ' . implode(', ', $allowedPriorities),
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Validate status
+        $allowedStatuses = ['pending', 'in_progress', 'completed', 'cancelled'];
+        $status = $data['status'] ?? 'pending';
+        if (!in_array($status, $allowedStatuses)) {
+            return $this->json([
+                'success' => false,
+                'error' => 'Invalid status. Allowed values: ' . implode(', ', $allowedStatuses),
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
         $task = new Task();
         $task->setTitle($data['title']);
         $task->setDescription($data['description'] ?? null);
-        $task->setPriority($data['priority'] ?? 'medium');
-        $task->setStatus($data['status'] ?? 'pending');
+        $task->setPriority($priority);
+        $task->setStatus($status);
         $task->setUser($this->getUser());
 
         if (isset($data['due_date'])) {
-            $task->setDueDate(new \DateTimeImmutable($data['due_date']));
+            try {
+                $task->setDueDate(new \DateTimeImmutable($data['due_date']));
+            } catch (\Exception $e) {
+                return $this->json([
+                    'success' => false,
+                    'error' => 'Invalid date format for due_date',
+                ], Response::HTTP_BAD_REQUEST);
+            }
         }
 
         $this->em->persist($task);
@@ -208,6 +235,12 @@ class TaskApiController extends AbstractController
 
         // Обновление полей
         if (isset($data['title'])) {
+            if (empty($data['title'])) {
+                return $this->json([
+                    'success' => false,
+                    'error' => 'Title cannot be empty',
+                ], Response::HTTP_BAD_REQUEST);
+            }
             $task->setTitle($data['title']);
         }
 
@@ -216,15 +249,36 @@ class TaskApiController extends AbstractController
         }
 
         if (isset($data['priority'])) {
+            $allowedPriorities = ['low', 'medium', 'high', 'urgent'];
+            if (!in_array($data['priority'], $allowedPriorities)) {
+                return $this->json([
+                    'success' => false,
+                    'error' => 'Invalid priority. Allowed values: ' . implode(', ', $allowedPriorities),
+                ], Response::HTTP_BAD_REQUEST);
+            }
             $task->setPriority($data['priority']);
         }
 
         if (isset($data['status'])) {
+            $allowedStatuses = ['pending', 'in_progress', 'completed', 'cancelled'];
+            if (!in_array($data['status'], $allowedStatuses)) {
+                return $this->json([
+                    'success' => false,
+                    'error' => 'Invalid status. Allowed values: ' . implode(', ', $allowedStatuses),
+                ], Response::HTTP_BAD_REQUEST);
+            }
             $task->setStatus($data['status']);
         }
 
         if (isset($data['due_date'])) {
-            $task->setDueDate(new \DateTimeImmutable($data['due_date']));
+            try {
+                $task->setDueDate(new \DateTimeImmutable($data['due_date']));
+            } catch (\Exception $e) {
+                return $this->json([
+                    'success' => false,
+                    'error' => 'Invalid date format for due_date',
+                ], Response::HTTP_BAD_REQUEST);
+            }
         }
 
         $task->setUpdatedAt(new \DateTimeImmutable());
@@ -352,6 +406,27 @@ class TaskApiController extends AbstractController
 
         $taskIds = $data['task_ids'];
         $changes = $data['changes'];
+
+        // Validate changes before applying
+        if (isset($changes['status'])) {
+            $allowedStatuses = ['pending', 'in_progress', 'completed', 'cancelled'];
+            if (!in_array($changes['status'], $allowedStatuses)) {
+                return $this->json([
+                    'success' => false,
+                    'error' => 'Invalid status. Allowed values: ' . implode(', ', $allowedStatuses),
+                ], Response::HTTP_BAD_REQUEST);
+            }
+        }
+
+        if (isset($changes['priority'])) {
+            $allowedPriorities = ['low', 'medium', 'high', 'urgent'];
+            if (!in_array($changes['priority'], $allowedPriorities)) {
+                return $this->json([
+                    'success' => false,
+                    'error' => 'Invalid priority. Allowed values: ' . implode(', ', $allowedPriorities),
+                ], Response::HTTP_BAD_REQUEST);
+            }
+        }
 
         $updated = 0;
         $tasks = $this->em->getRepository(Task::class)->findBy(['id' => $taskIds]);

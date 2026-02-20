@@ -3,6 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\Task;
+use App\Entity\TaskTemplate;
+use App\Entity\TaskTemplateItem;
+use App\Repository\TaskTemplateRepository;
 use App\Service\PerformanceMonitorService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -12,135 +15,81 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/task-template')]
+#[IsGranted('IS_AUTHENTICATED_FULLY')]
 class TaskTemplateController extends AbstractController
 {
-    #[Route('/', name: 'app_task_template_index')]
-    #[IsGranted('IS_AUTHENTICATED_FULLY')]
-    public function index(?PerformanceMonitorService $performanceMonitor = null): Response
+    /** Predefined system templates (not stored in DB) */
+    private function getPredefinedTemplates(): array
     {
-        if ($performanceMonitor) {
-            $performanceMonitor->startTiming('task_template_controller_index');
-        }
-
-        // Predefined task templates
-        $templates = [
+        return [
             [
                 'name' => 'Ежедневная рутина',
                 'description' => 'Стандартные ежедневные задачи',
                 'tasks' => [
-                    ['title' => 'Проверить почту', 'priority' => 'medium'],
-                    ['title' => 'Обновить статус проектов', 'priority' => 'high'],
-                    ['title' => 'План на день', 'priority' => 'medium'],
+                    ['title' => 'Проверить почту', 'priority' => 'medium', 'description' => 'Проверить рабочую и личную почту'],
+                    ['title' => 'Обновить статус проектов', 'priority' => 'high', 'description' => 'Обновить прогресс по текущим проектам'],
+                    ['title' => 'План на день', 'priority' => 'medium', 'description' => 'Составить список приоритетных задач'],
                 ],
             ],
             [
                 'name' => 'Планирование недели',
                 'description' => 'Задачи для планирования недели',
                 'tasks' => [
-                    ['title' => 'Обзор целей на неделю', 'priority' => 'high'],
-                    ['title' => 'Планирование встреч', 'priority' => 'medium'],
-                    ['title' => 'Подготовка отчетов', 'priority' => 'medium'],
+                    ['title' => 'Обзор целей на неделю', 'priority' => 'high', 'description' => 'Определить ключевые цели на неделю'],
+                    ['title' => 'Планирование встреч', 'priority' => 'medium', 'description' => 'Запланировать необходимые встречи'],
+                    ['title' => 'Подготовка отчетов', 'priority' => 'medium', 'description' => 'Подготовить недельные отчеты'],
                 ],
             ],
             [
                 'name' => 'Проектный запуск',
                 'description' => 'Шаблон для запуска новых проектов',
                 'tasks' => [
-                    ['title' => 'Определить цели проекта', 'priority' => 'high'],
-                    ['title' => 'Собрать команду', 'priority' => 'high'],
-                    ['title' => 'Создать план реализации', 'priority' => 'high'],
-                    ['title' => 'Назначить сроки', 'priority' => 'medium'],
+                    ['title' => 'Определить цели проекта', 'priority' => 'high', 'description' => 'Сформулировать цели и критерии успеха'],
+                    ['title' => 'Собрать команду', 'priority' => 'high', 'description' => 'Определить состав команды и роли'],
+                    ['title' => 'Создать план реализации', 'priority' => 'high', 'description' => 'Разработать детальный план с этапами'],
+                    ['title' => 'Назначить сроки', 'priority' => 'medium', 'description' => 'Установить реалистичные сроки'],
                 ],
             ],
             [
                 'name' => 'Обучение и развитие',
                 'description' => 'Задачи для профессионального роста',
                 'tasks' => [
-                    ['title' => 'Изучить новую технологию', 'priority' => 'medium'],
-                    ['title' => 'Пройти онлайн-курс', 'priority' => 'medium'],
-                    ['title' => 'Практические упражнения', 'priority' => 'low'],
+                    ['title' => 'Изучить новую технологию', 'priority' => 'medium', 'description' => 'Изучить новый инструмент или технологию'],
+                    ['title' => 'Пройти онлайн-курс', 'priority' => 'medium', 'description' => 'Зарегистрироваться и пройти курс'],
+                    ['title' => 'Практические упражнения', 'priority' => 'low', 'description' => 'Выполнить практические задания'],
                 ],
             ],
         ];
-
-        try {
-            return $this->render('task_template/index.html.twig', [
-                'templates' => $templates,
-            ]);
-        } finally {
-            if ($performanceMonitor) {
-                $performanceMonitor->stopTiming('task_template_controller_index');
-            }
-        }
     }
 
-    #[Route('/apply/{templateIndex}', name: 'app_task_template_apply')]
-    #[IsGranted('IS_AUTHENTICATED_FULLY')]
-    public function applyTemplate(
+    #[Route('/', name: 'app_task_template_index')]
+    public function index(TaskTemplateRepository $templateRepository): Response
+    {
+        $savedTemplates = $templateRepository->findByUser($this->getUser());
+
+        return $this->render('task_template/index.html.twig', [
+            'templates'      => $this->getPredefinedTemplates(),
+            'savedTemplates' => $savedTemplates,
+        ]);
+    }
+
+    /** Apply a predefined (hardcoded) template */
+    #[Route('/apply/{templateIndex}', name: 'app_task_template_apply', methods: ['POST', 'GET'])]
+    public function applyPredefined(
         int $templateIndex,
-        Request $request,
         EntityManagerInterface $entityManager,
-        ?PerformanceMonitorService $performanceMonitor = null,
     ): Response {
-
-        if ($performanceMonitor) {
-            $performanceMonitor->startTiming('task_template_controller_apply');
-        }
-
-        // Predefined templates
-        $templates = [
-            [
-                'name' => 'Ежедневная рутина',
-                'tasks' => [
-                    ['title' => 'Проверить почту', 'priority' => 'medium', 'description' => 'Проверить рабочую и личную почту на наличие новых сообщений'],
-                    ['title' => 'Обновить статус проектов', 'priority' => 'high', 'description' => 'Обновить прогресс по текущим проектам в системе управления задачами'],
-                    ['title' => 'План на день', 'priority' => 'medium', 'description' => 'Составить список приоритетных задач на текущий день'],
-                ],
-            ],
-            [
-                'name' => 'Планирование недели',
-                'tasks' => [
-                    ['title' => 'Обзор целей на неделю', 'priority' => 'high', 'description' => 'Определить ключевые цели и результаты на предстоящую неделю'],
-                    ['title' => 'Планирование встреч', 'priority' => 'medium', 'description' => 'Запланировать необходимые встречи и совещания'],
-                    ['title' => 'Подготовка отчетов', 'priority' => 'medium', 'description' => 'Подготовить недельные отчеты по проектам и активностям'],
-                ],
-            ],
-            [
-                'name' => 'Проектный запуск',
-                'tasks' => [
-                    ['title' => 'Определить цели проекта', 'priority' => 'high', 'description' => 'Четко сформулировать цели, ожидаемые результаты и критерии успеха проекта'],
-                    ['title' => 'Собрать команду', 'priority' => 'high', 'description' => 'Определить состав команды и распределить роли и ответственность'],
-                    ['title' => 'Создать план реализации', 'priority' => 'high', 'description' => 'Разработать детальный план выполнения проекта с этапами и сроками'],
-                    ['title' => 'Назначить сроки', 'priority' => 'medium', 'description' => 'Установить реалистичные сроки выполнения каждого этапа проекта'],
-                ],
-            ],
-            [
-                'name' => 'Обучение и развитие',
-                'tasks' => [
-                    ['title' => 'Изучить новую технологию', 'priority' => 'medium', 'description' => 'Погрузиться в изучение новой технологии или инструмента'],
-                    ['title' => 'Пройти онлайн-курс', 'priority' => 'medium', 'description' => 'Зарегистрироваться и пройти соответствующий онлайн-курс'],
-                    ['title' => 'Практические упражнения', 'priority' => 'low', 'description' => 'Выполнить практические задания для закрепления полученных знаний'],
-                ],
-            ],
-        ];
+        $templates = $this->getPredefinedTemplates();
 
         if (!isset($templates[$templateIndex])) {
             $this->addFlash('error', 'Шаблон не найден');
-
-            try {
-                return $this->redirectToRoute('app_task_template_index');
-            } finally {
-                if ($performanceMonitor) {
-                    $performanceMonitor->stopTiming('task_template_controller_apply');
-                }
-            }
+            return $this->redirectToRoute('app_task_template_index');
         }
 
         $template = $templates[$templateIndex];
         $user = $this->getUser();
+        $created = 0;
 
-        // Create tasks from template
-        $createdTasks = [];
         foreach ($template['tasks'] as $taskData) {
             $task = new Task();
             $task->setTitle($taskData['title']);
@@ -149,93 +98,148 @@ class TaskTemplateController extends AbstractController
             $task->setStatus('pending');
             $task->setCreatedBy($user);
             $task->setAssignedUser($user);
-
             $entityManager->persist($task);
-            $createdTasks[] = $task;
+            ++$created;
         }
 
         $entityManager->flush();
+        $this->addFlash('success', sprintf('Создано %d задач из шаблона «%s»', $created, $template['name']));
 
-        $this->addFlash('success', \sprintf('Создано %d задач из шаблона "%s"', \count($createdTasks), $template['name']));
-
-        try {
-            return $this->redirectToRoute('app_task_index');
-        } finally {
-            if ($performanceMonitor) {
-                $performanceMonitor->stopTiming('task_template_controller_apply');
-            }
-        }
+        return $this->redirectToRoute('app_task_index');
     }
 
+    /** Apply a saved (DB) template */
+    #[Route('/saved/{id}/apply', name: 'app_task_template_saved_apply', methods: ['POST', 'GET'])]
+    public function applySaved(
+        TaskTemplate $template,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        if ($template->getUser() !== $this->getUser() && !$template->isPublic()) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $user = $this->getUser();
+        $created = 0;
+
+        foreach ($template->getItems() as $item) {
+            $task = new Task();
+            $task->setTitle($item->getTitle());
+            $task->setDescription($item->getDescription() ?? '');
+            $task->setPriority($item->getPriority());
+            $task->setStatus('pending');
+            $task->setCreatedBy($user);
+            $task->setAssignedUser($user);
+            $entityManager->persist($task);
+            ++$created;
+        }
+
+        $entityManager->flush();
+        $this->addFlash('success', sprintf('Создано %d задач из шаблона «%s»', $created, $template->getName()));
+
+        return $this->redirectToRoute('app_task_index');
+    }
+
+    /** Delete a saved template */
+    #[Route('/saved/{id}/delete', name: 'app_task_template_saved_delete', methods: ['POST'])]
+    public function deleteSaved(
+        TaskTemplate $template,
+        Request $request,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        if ($template->getUser() !== $this->getUser()) {
+            throw $this->createAccessDeniedException();
+        }
+
+        if ($this->isCsrfTokenValid('delete-template-' . $template->getId(), $request->request->get('_token'))) {
+            $entityManager->remove($template);
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Шаблон «%s» удалён', $template->getName()));
+        }
+
+        return $this->redirectToRoute('app_task_template_index');
+    }
+
+    /** Save a task as a single-item template */
+    #[Route('/from-task/{id}', name: 'app_task_template_from_task', methods: ['POST'])]
+    public function fromTask(
+        Task $task,
+        Request $request,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        if ($task->getUser() !== $this->getUser()) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $templateName = trim($request->request->get('template_name', $task->getTitle()));
+        if (!$templateName) {
+            $templateName = $task->getTitle();
+        }
+
+        $template = new TaskTemplate();
+        $template->setName($templateName);
+        $template->setDescription($task->getDescription());
+        $template->setUser($this->getUser());
+
+        $item = new TaskTemplateItem();
+        $item->setTitle($task->getTitle());
+        $item->setDescription($task->getDescription());
+        $item->setPriority($task->getPriority());
+        $item->setSortOrder(0);
+        $template->addItem($item);
+
+        $entityManager->persist($template);
+        $entityManager->flush();
+
+        $this->addFlash('success', sprintf('Задача сохранена как шаблон «%s»', $template->getName()));
+
+        return $this->redirectToRoute('app_task_show', ['id' => $task->getId()]);
+    }
+
+    /** Save a custom template to DB */
     #[Route('/custom', name: 'app_task_template_custom')]
-    #[IsGranted('IS_AUTHENTICATED_FULLY')]
     public function customTemplate(
         Request $request,
         EntityManagerInterface $entityManager,
-        ?PerformanceMonitorService $performanceMonitor = null,
     ): Response {
-
-        if ($performanceMonitor) {
-            $performanceMonitor->startTiming('task_template_controller_custom');
-        }
-
         if ($request->isMethod('POST')) {
-            $templateName = $request->request->get('template_name');
-            $taskTitles = $request->request->all('task_titles');
-            $taskPriorities = $request->request->all('task_priorities');
+            $templateName = trim($request->request->get('template_name', ''));
+            $templateDesc = trim($request->request->get('template_description', ''));
+            $taskTitles       = $request->request->all('task_titles');
+            $taskPriorities   = $request->request->all('task_priorities');
             $taskDescriptions = $request->request->all('task_descriptions');
 
             if (!$templateName || empty(array_filter($taskTitles))) {
                 $this->addFlash('error', 'Пожалуйста, заполните название шаблона и хотя бы одну задачу');
-
-                try {
-                    return $this->render('task_template/custom.html.twig');
-                } finally {
-                    if ($performanceMonitor) {
-                        $performanceMonitor->stopTiming('task_template_controller_custom');
-                    }
-                }
+                return $this->render('task_template/custom.html.twig');
             }
 
-            $user = $this->getUser();
-            $createdTasks = [];
+            $template = new TaskTemplate();
+            $template->setName($templateName);
+            $template->setDescription($templateDesc ?: null);
+            $template->setUser($this->getUser());
 
-            // Create tasks from custom template
-            foreach ($taskTitles as $index => $title) {
-                if (trim($title)) {
-                    $task = new Task();
-                    $task->setTitle(trim($title));
-                    $task->setDescription(trim($taskDescriptions[$index] ?? ''));
-                    $task->setPriority($taskPriorities[$index] ?? 'medium');
-                    $task->setStatus('pending');
-                    $task->setCreatedBy($user);
-                    $task->setAssignedUser($user);
-
-                    $entityManager->persist($task);
-                    $createdTasks[] = $task;
+            $sortOrder = 0;
+            foreach ($taskTitles as $i => $title) {
+                $title = trim($title);
+                if (!$title) {
+                    continue;
                 }
+                $item = new TaskTemplateItem();
+                $item->setTitle($title);
+                $item->setDescription(trim($taskDescriptions[$i] ?? '') ?: null);
+                $item->setPriority($taskPriorities[$i] ?? 'medium');
+                $item->setSortOrder($sortOrder++);
+                $template->addItem($item);
             }
 
-            if (!empty($createdTasks)) {
-                $entityManager->flush();
-                $this->addFlash('success', \sprintf('Создано %d задач из пользовательского шаблона "%s"', \count($createdTasks), $templateName));
+            $entityManager->persist($template);
+            $entityManager->flush();
 
-                try {
-                    return $this->redirectToRoute('app_task_index');
-                } finally {
-                    if ($performanceMonitor) {
-                        $performanceMonitor->stopTiming('task_template_controller_custom');
-                    }
-                }
-            }
+            $this->addFlash('success', sprintf('Шаблон «%s» сохранён (%d задач)', $template->getName(), $template->getItems()->count()));
+
+            return $this->redirectToRoute('app_task_template_index');
         }
 
-        try {
-            return $this->render('task_template/custom.html.twig');
-        } finally {
-            if ($performanceMonitor) {
-                $performanceMonitor->stopTiming('task_template_controller_custom');
-            }
-        }
+        return $this->render('task_template/custom.html.twig');
     }
 }
