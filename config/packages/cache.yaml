@@ -3,13 +3,13 @@ framework:
         # Unique name of your app: used to compute stable namespaces for cache keys.
         prefix_seed: app/todo_list
 
-        # Development cache - filesystem
-        app: cache.adapter.filesystem
-        system: cache.adapter.system
+        # APCu для максимальной производительности
+        app: cache.adapter.apcu
+        system: cache.adapter.apcu
         
         pools:
             doctrine.system_cache_pool:
-                adapter: cache.adapter.system
+                adapter: cache.adapter.apcu
                 public: false
 
 when@prod:
