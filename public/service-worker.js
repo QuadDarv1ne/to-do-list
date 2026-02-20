@@ -9,8 +9,7 @@ const CACHE_NAME = `todo-app-${CACHE_VERSION}`;
 // Ресурсы для кеширования
 const STATIC_CACHE = [
     '/',
-    '/css/app-bundle.min.css',
-    '/css/themes-bundle.min.css',
+    '/css/unified-styles.min.css',
     '/js/core-bundle.min.js',
     '/js/common-bundle.min.js',
     '/manifest.json'

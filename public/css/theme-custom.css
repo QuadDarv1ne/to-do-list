@@ -1,0 +1,38 @@
+/* Custom Green-Cyan Theme */
+body.theme-custom {
+    --bg-primary: #0f1e1a;
+    --bg-secondary: #1a2e28;
+    --bg-card: #243830;
+    --bg-hover: #2e4238;
+    --accent-cyan: #4dd4ac;
+    --accent-yellow: #6ee7b7;
+    --accent-pink: #34d399;
+    --accent-purple: #10b981;
+    --accent-blue: #14b8a6;
+    --accent-orange: #2dd4bf;
+    --accent-green: #26de81;
+    --text-primary: #ffffff;
+    --text-secondary: #a7f3d0;
+    --text-muted: #6ee7b7;
+    --border-color: #374f45;
+}
+
+body.theme-custom .stat-card-modern.sales {
+    --card-color-1: #4dd4ac;
+    --card-color-2: #26de81;
+}
+
+body.theme-custom .stat-card-modern.orders {
+    --card-color-1: #6ee7b7;
+    --card-color-2: #4dd4ac;
+}
+
+body.theme-custom .stat-card-modern.bonuses {
+    --card-color-1: #34d399;
+    --card-color-2: #10b981;
+}
+
+body.theme-custom .stat-card-modern.clients {
+    --card-color-1: #14b8a6;
+    --card-color-2: #2dd4bf;
+}

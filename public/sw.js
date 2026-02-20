@@ -6,9 +6,9 @@
  * Дата: 19 февраля 2026
  */
 
-const CACHE_NAME = 'crm-cache-v2';
-const STATIC_CACHE = 'static-v2';
-const DYNAMIC_CACHE = 'dynamic-v2';
+const CACHE_NAME = 'crm-cache-v3';
+const STATIC_CACHE = 'static-v3';
+const DYNAMIC_CACHE = 'dynamic-v3';
 const OFFLINE_PAGE = '/offline-page.html';
 
 // Критические ресурсы для кэширования
@@ -16,10 +16,7 @@ const CRITICAL_ASSETS = [
     '/',
     '/offline-page.html',
     '/manifest.json',
-    '/css/themes-bundle.min.css',
-    '/css/components-bundle.min.css',
-    '/css/navbar-enhanced.min.css',
-    '/css/base-layout.css',
+    '/css/unified-styles.min.css',
     '/js/critical-functions.js',
     '/js/core-bundle.min.js',
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',

@@ -9,7 +9,7 @@
     "minify:js": "node scripts/minify.js",
     "minify:css": "node scripts/minify.js",
     "minify:all": "node scripts/minify.js",
-    "minify:design": "cleancss -o public/css/design-system.min.css public/css/design-system.css",
+    "minify:design": "cleancss -o public/css/unified-styles.min.css public/css/unified-styles.css",
     "build:prod": "npm run minify:all && npm run minify:design",
     "build": "npm run minify:all",
     "lint": "eslint assets/**/*.js",

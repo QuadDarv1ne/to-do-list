@@ -57,24 +57,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     {% block stylesheets %}
-        <!-- Design System v2.0 -->
-        <link rel="stylesheet" href="{{ asset('css/design-system.min.css') }}">
+        <!-- Unified Styles v3.0 - Оптимизированная система без дублирования -->
+        <link rel="stylesheet" href="{{ asset('css/unified-styles.min.css') }}">
 
-        <!-- Animations Enhanced -->
-        <link rel="stylesheet" href="{{ asset('css/animations-enhanced.min.css') }}">
-
-        <!-- Theme System -->
-        <link rel="stylesheet" href="{{ asset('css/theme-system.min.css') }}">
-
-        <!-- Mobile Enhanced -->
-        <link rel="stylesheet" href="{{ asset('css/mobile-enhanced.min.css') }}">
-
-        <!-- Component Bundles -->
-        <link rel="stylesheet" href="{{ asset('css/components-bundle.min.css') }}">
-        <link rel="stylesheet" href="{{ asset('css/navbar-enhanced.min.css') }}">
-        <link rel="stylesheet" href="{{ asset('css/base-layout.min.css') }}">
-
-        <!-- Page-specific styles -->
+        <!-- Page-specific styles (только при необходимости) -->
         {% if app.request.attributes.get('_route') starts with 'app_dashboard' %}
             <link rel="stylesheet" href="{{ asset('css/dashboard-enhanced.min.css') }}">
         {% endif %}
