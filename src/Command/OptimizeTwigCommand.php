@@ -2,7 +2,7 @@
 
 namespace App\Command;
 
-use App\Service\TwigOptimizationService;
+use App\Service\AssetOptimizerService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -17,7 +17,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 class OptimizeTwigCommand extends Command
 {
     public function __construct(
-        private TwigOptimizationService $twigOptimizer,
+        private AssetOptimizerService $assetOptimizer,
     ) {
         parent::__construct();
     }
@@ -26,8 +26,7 @@ class OptimizeTwigCommand extends Command
     {
         $this
             ->addOption('warmup', 'w', InputOption::VALUE_NONE, 'Warm up Twig cache')
-            ->addOption('analyze', 'a', InputOption::VALUE_NONE, 'Analyze template usage')
-            ->addOption('duplicates', 'd', InputOption::VALUE_NONE, 'Find duplicate includes');
+            ->addOption('analyze', 'a', InputOption::VALUE_NONE, 'Analyze template usage');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -42,23 +41,15 @@ class OptimizeTwigCommand extends Command
             return $this->analyzeUsage($io);
         }
 
-        if ($input->getOption('duplicates')) {
-            return $this->findDuplicates($io);
-        }
-
-        // Default: run all
-        $this->warmupCache($io);
-        $this->analyzeUsage($io);
-        $this->findDuplicates($io);
-
-        return Command::SUCCESS;
+        // Default: warmup cache
+        return $this->warmupCache($io);
     }
 
     private function warmupCache(SymfonyStyle $io): int
     {
         $io->section('Warming up Twig cache');
 
-        $result = $this->twigOptimizer->warmupCache();
+        $result = $this->assetOptimizer->warmupTwigCache();
 
         if (!empty($result['errors'])) {
             $io->warning(\sprintf(
@@ -86,7 +77,7 @@ class OptimizeTwigCommand extends Command
     {
         $io->section('Analyzing template usage');
 
-        $result = $this->twigOptimizer->analyzeTemplateUsage();
+        $result = $this->assetOptimizer->analyzeTemplateUsage();
 
         $io->table(
             ['Metric', 'Value'],
@@ -108,33 +99,6 @@ class OptimizeTwigCommand extends Command
                     \count($result['unused_templates']) - 20,
                 ));
             }
-        }
-
-        return Command::SUCCESS;
-    }
-
-    private function findDuplicates(SymfonyStyle $io): int
-    {
-        $io->section('Finding duplicate includes');
-
-        $result = $this->twigOptimizer->findDuplicateIncludes();
-
-        $io->info(\sprintf(
-            'Found %d reused includes out of %d total',
-            $result['reused_includes'],
-            $result['total_includes'],
-        ));
-
-        if (!empty($result['most_used'])) {
-            $io->table(
-                ['Template', 'Used Count', 'Used In (sample)'],
-                array_map(fn ($item) => [
-                    $item['template'],
-                    $item['used_count'],
-                    implode(', ', \array_slice($item['used_in'], 0, 3)) .
-                        (\count($item['used_in']) > 3 ? '...' : ''),
-                ], $result['most_used']),
-            );
         }
 
         return Command::SUCCESS;

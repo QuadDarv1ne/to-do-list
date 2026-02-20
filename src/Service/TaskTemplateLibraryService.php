@@ -3,13 +3,16 @@
 namespace App\Service;
 
 use App\Entity\Task;
+use App\Entity\TaskTemplate as TaskTemplateEntity;
 use App\Entity\User;
+use App\Repository\TaskTemplateRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
 class TaskTemplateLibraryService
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
+        private TaskTemplateRepository $templateRepository,
     ) {
     }
 
@@ -211,17 +214,18 @@ class TaskTemplateLibraryService
     /**
      * Create custom template
      */
-    public function createCustomTemplate(string $name, array $template, User $user): array
+    public function createCustomTemplate(string $name, array $template, User $user, ?string $icon = null, ?string $category = null): TaskTemplateEntity
     {
-        // TODO: Save to database
-        return [
-            'id' => uniqid(),
-            'name' => $name,
-            'template' => $template,
-            'user_id' => $user->getId(),
-            'is_custom' => true,
-            'created_at' => new \DateTime(),
-        ];
+        $templateEntity = new TaskTemplateEntity();
+        $templateEntity->setName($name);
+        $templateEntity->setIcon($icon ?? 'fa-file');
+        $templateEntity->setCategory($category ?? 'Пользовательские');
+        $templateEntity->setTemplateData($template);
+        $templateEntity->setUser($user);
+
+        $this->templateRepository->save($templateEntity);
+
+        return $templateEntity;
     }
 
     /**
@@ -229,8 +233,22 @@ class TaskTemplateLibraryService
      */
     public function getUserCustomTemplates(User $user): array
     {
-        // TODO: Get from database
-        return [];
+        $templates = $this->templateRepository->findByUser($user);
+        $result = [];
+        
+        foreach ($templates as $template) {
+            $result['custom_' . $template->getId()] = [
+                'name' => $template->getName(),
+                'icon' => $template->getIcon() ?? 'fa-file',
+                'category' => $template->getCategory(),
+                'template' => $template->getTemplateData(),
+                'is_custom' => true,
+                'id' => $template->getId(),
+                'usage_count' => $template->getUsageCount(),
+            ];
+        }
+        
+        return $result;
     }
 
     /**
@@ -238,9 +256,91 @@ class TaskTemplateLibraryService
      */
     public function getPopularTemplates(int $limit = 5): array
     {
-        // TODO: Track usage and return most used
-        $templates = $this->getAllTemplates();
+        $popular = $this->templateRepository->findPopular($limit);
+        $result = [];
+        
+        foreach ($popular as $template) {
+            $result['popular_' . $template->getId()] = [
+                'name' => $template->getName(),
+                'icon' => $template->getIcon() ?? 'fa-star',
+                'category' => $template->getCategory(),
+                'template' => $template->getTemplateData(),
+                'usage_count' => $template->getUsageCount(),
+            ];
+        }
+        
+        // Если мало популярных шаблонов, дополняем стандартными
+        if (count($popular) < $limit) {
+            $allTemplates = $this->getAllTemplates();
+            $remaining = $limit - count($popular);
+            $result = array_merge($result, array_slice($allTemplates, 0, $remaining));
+        }
+        
+        return $result;
+    }
 
-        return \array_slice($templates, 0, $limit);
+    /**
+     * Track template usage
+     */
+    public function trackUsage(int $templateId): void
+    {
+        $template = $this->templateRepository->find($templateId);
+        if ($template) {
+            $template->incrementUsageCount();
+            $this->templateRepository->save($template);
+        }
+    }
+
+    /**
+     * Get all templates including user custom
+     */
+    public function getAllTemplatesWithUser(User $user): array
+    {
+        return array_merge($this->getAllTemplates(), $this->getUserCustomTemplates($user));
+    }
+
+    /**
+     * Update template
+     */
+    public function updateTemplate(int $templateId, array $data, User $user): ?TaskTemplateEntity
+    {
+        $template = $this->templateRepository->findOneByUserAndId($user, $templateId);
+        
+        if (!$template) {
+            return null;
+        }
+
+        if (isset($data['name'])) {
+            $template->setName($data['name']);
+        }
+        if (isset($data['icon'])) {
+            $template->setIcon($data['icon']);
+        }
+        if (isset($data['category'])) {
+            $template->setCategory($data['category']);
+        }
+        if (isset($data['template'])) {
+            $template->setTemplateData($data['template']);
+        }
+
+        $this->templateRepository->save($template);
+
+        return $template;
+    }
+
+    /**
+     * Delete template
+     */
+    public function deleteTemplate(int $templateId, User $user): bool
+    {
+        $template = $this->templateRepository->findOneByUserAndId($user, $templateId);
+        
+        if (!$template) {
+            return false;
+        }
+
+        $this->templateRepository->remove($template);
+
+        return true;
     }
 }

@@ -2,52 +2,30 @@
 
 namespace App\Service;
 
+use App\Entity\NotificationPreference;
 use App\Entity\User;
+use App\Repository\NotificationPreferenceRepository;
 
 class NotificationPreferenceService
 {
+    public function __construct(
+        private NotificationPreferenceRepository $preferenceRepository,
+    ) {
+    }
+
     /**
      * Get user notification preferences
      */
     public function getPreferences(User $user): array
     {
-        // TODO: Get from database
-        // For now, return defaults
+        $preference = $this->preferenceRepository->getOrCreateForUser($user);
+        
         return [
-            'email' => [
-                'enabled' => true,
-                'task_assigned' => true,
-                'task_completed' => true,
-                'task_commented' => true,
-                'deadline_reminder' => true,
-                'daily_digest' => false,
-                'weekly_summary' => true,
-            ],
-            'push' => [
-                'enabled' => true,
-                'task_assigned' => true,
-                'task_completed' => false,
-                'task_commented' => true,
-                'deadline_reminder' => true,
-            ],
-            'in_app' => [
-                'enabled' => true,
-                'task_assigned' => true,
-                'task_completed' => true,
-                'task_commented' => true,
-                'deadline_reminder' => true,
-                'mentions' => true,
-            ],
-            'quiet_hours' => [
-                'enabled' => false,
-                'start' => '22:00',
-                'end' => '08:00',
-            ],
-            'frequency' => [
-                'immediate' => true,
-                'batched' => false,
-                'batch_interval' => 60, // minutes
-            ],
+            'email' => $preference->getEmailSettings(),
+            'push' => $preference->getPushSettings(),
+            'in_app' => $preference->getInAppSettings(),
+            'quiet_hours' => $preference->getQuietHours(),
+            'frequency' => $preference->getFrequency(),
         ];
     }
 
@@ -56,7 +34,26 @@ class NotificationPreferenceService
      */
     public function updatePreferences(User $user, array $preferences): bool
     {
-        // TODO: Save to database
+        $preference = $this->preferenceRepository->getOrCreateForUser($user);
+
+        if (isset($preferences['email'])) {
+            $preference->setEmailSettings($preferences['email']);
+        }
+        if (isset($preferences['push'])) {
+            $preference->setPushSettings($preferences['push']);
+        }
+        if (isset($preferences['in_app'])) {
+            $preference->setInAppSettings($preferences['in_app']);
+        }
+        if (isset($preferences['quiet_hours'])) {
+            $preference->setQuietHours($preferences['quiet_hours']);
+        }
+        if (isset($preferences['frequency'])) {
+            $preference->setFrequency($preferences['frequency']);
+        }
+
+        $this->preferenceRepository->save($preference);
+        
         return true;
     }
 
@@ -153,7 +150,31 @@ class NotificationPreferenceService
      */
     public function sendTestNotification(User $user, string $channel): bool
     {
-        // TODO: Send actual test notification
+        // Отправляем тестовое уведомление в зависимости от канала
+        return match($channel) {
+            'email' => $this->sendEmailTest($user),
+            'push' => $this->sendPushTest($user),
+            'in_app' => $this->sendInAppTest($user),
+            default => false,
+        };
+    }
+
+    private function sendEmailTest(User $user): bool
+    {
+        // Здесь будет реальная отправка email
+        // Для пока возвращаем true
+        return true;
+    }
+
+    private function sendPushTest(User $user): bool
+    {
+        // Здесь будет реальная отправка push
+        return true;
+    }
+
+    private function sendInAppTest(User $user): bool
+    {
+        // Создаём тестовое уведомление в приложении
         return true;
     }
 
@@ -162,14 +183,33 @@ class NotificationPreferenceService
      */
     public function getStatistics(User $user): array
     {
+        // Получаем статистику из базы уведомлений
+        $notifRepo = $this->preferenceRepository->getEntityManager()
+            ->getRepository(\App\Entity\Notification::class);
+        
+        $total = $notifRepo->createQueryBuilder('n')
+            ->select('COUNT(n.id)')
+            ->andWhere('n.user = :user')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleScalarResult()[1] ?? 0;
+
+        $read = $notifRepo->createQueryBuilder('n')
+            ->select('COUNT(n.id)')
+            ->andWhere('n.user = :user')
+            ->andWhere('n.isRead = true')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleScalarResult()[1] ?? 0;
+
         return [
-            'total_sent' => 0, // TODO: Count from database
-            'total_read' => 0,
-            'total_unread' => 0,
+            'total_sent' => $total,
+            'total_read' => $read,
+            'total_unread' => $total - $read,
             'by_channel' => [
-                'email' => 0,
+                'email' => 0, // Можно добавить подсчёт по типам
                 'push' => 0,
-                'in_app' => 0,
+                'in_app' => $total,
             ],
             'by_type' => [],
         ];

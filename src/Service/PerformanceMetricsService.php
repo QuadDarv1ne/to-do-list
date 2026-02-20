@@ -4,11 +4,13 @@ namespace App\Service;
 
 use App\Entity\User;
 use App\Repository\TaskRepository;
+use Doctrine\ORM\EntityManagerInterface;
 
 class PerformanceMetricsService
 {
     public function __construct(
         private TaskRepository $taskRepository,
+        private EntityManagerInterface $em,
     ) {
     }
 
@@ -70,10 +72,34 @@ class PerformanceMetricsService
      */
     private function calculateQualityScore(User $user, \DateTime $from, \DateTime $to): float
     {
-        // TODO: Factor in reopened tasks, comments, revisions
+        // Factor in reopened tasks, comments, revisions
         $onTimeRate = $this->getOnTimeCompletion($user, $from, $to);
-
-        return $onTimeRate;
+        
+        // Получаем количество переоткрытых задач
+        $reopened = $this->getReopenedTasksCount($user, $from, $to);
+        $completed = $this->getTasksCompleted($user, $from, $to);
+        
+        $reopenPenalty = $completed > 0 ? ($reopened / $completed) * 20 : 0;
+        
+        return max(0, min(100, $onTimeRate - $reopenPenalty));
+    }
+    
+    private function getReopenedTasksCount(User $user, \DateTime $from, \DateTime $to): int
+    {
+        $qb = $this->em->createQueryBuilder();
+        
+        $qb->select('COUNT(h.id)')
+            ->from(\App\Entity\TaskHistory::class, 'h')
+            ->join('h.task', 't')
+            ->andWhere('t.assignedUser = :user')
+            ->andWhere('h.action = :action')
+            ->andWhere('h.createdAt BETWEEN :from AND :to')
+            ->setParameter('user', $user)
+            ->setParameter('action', 'reopened')
+            ->setParameter('from', $from)
+            ->setParameter('to', $to);
+        
+        return (int) $qb->getQuery()->getSingleScalarResult();
     }
 
     /**
@@ -107,8 +133,23 @@ class PerformanceMetricsService
      */
     private function getAverageTaskTime(User $user, \DateTime $from, \DateTime $to): float
     {
-        // TODO: Calculate from creation to completion
-        return 0;
+        $qb = $this->em->createQueryBuilder();
+        
+        $qb->select('AVG(t.completedAt - t.createdAt) as avg_time')
+            ->from(\App\Entity\Task::class, 't')
+            ->andWhere('t.assignedUser = :user')
+            ->andWhere('t.status = :completed')
+            ->andWhere('t.completedAt BETWEEN :from AND :to')
+            ->setParameter('user', $user)
+            ->setParameter('completed', 'completed')
+            ->setParameter('from', $from)
+            ->setParameter('to', $to);
+        
+        $result = $qb->getQuery()->getOneOrNullResult();
+        $avgSeconds = (float) ($result['avg_time'] ?? 0);
+        
+        // Конвертируем секунды в часы
+        return round($avgSeconds / 3600, 2);
     }
 
     /**
@@ -175,8 +216,21 @@ class PerformanceMetricsService
             return 0;
         }
 
-        // TODO: Count tasks completed before deadline
-        $onTime = $completed; // Placeholder
+        // Count tasks completed before deadline
+        $qb = $this->em->createQueryBuilder();
+        
+        $qb->select('COUNT(t.id)')
+            ->from(\App\Entity\Task::class, 't')
+            ->andWhere('t.assignedUser = :user')
+            ->andWhere('t.status = :completed')
+            ->andWhere('t.completedAt <= t.dueDate')
+            ->andWhere('t.completedAt BETWEEN :from AND :to')
+            ->setParameter('user', $user)
+            ->setParameter('completed', 'completed')
+            ->setParameter('from', $from)
+            ->setParameter('to', $to);
+        
+        $onTime = (int) $qb->getQuery()->getSingleScalarResult();
 
         return round(($onTime / $completed) * 100, 2);
     }
@@ -187,11 +241,13 @@ class PerformanceMetricsService
     public function getTeamMetrics(array $userIds, \DateTime $from, \DateTime $to): array
     {
         $teamMetrics = [];
+        $userRepository = $this->em->getRepository(User::class);
 
         foreach ($userIds as $userId) {
-            // TODO: Get user by ID
-            // $user = $this->userRepository->find($userId);
-            // $teamMetrics[$userId] = $this->getUserMetrics($user, $from, $to);
+            $user = $userRepository->find($userId);
+            if ($user) {
+                $teamMetrics[$userId] = $this->getUserMetrics($user, $from, $to);
+            }
         }
 
         return [
@@ -297,8 +353,28 @@ class PerformanceMetricsService
      */
     public function getLeaderboard(array $userIds, \DateTime $from, \DateTime $to, int $limit = 10): array
     {
-        // TODO: Get all users metrics and sort by productivity score
-        return [];
+        $qb = $this->em->createQueryBuilder();
+        
+        $qb->select('u.id as user_id, u.username, COUNT(t.id) as completed_count')
+            ->from(\App\Entity\User::class, 'u')
+            ->leftJoin('u.tasks', 't')
+            ->andWhere('t.assignedUser = u')
+            ->andWhere('t.status = :completed')
+            ->andWhere('t.completedAt BETWEEN :from AND :to')
+            ->setParameter('completed', 'completed')
+            ->setParameter('from', $from)
+            ->setParameter('to', $to);
+        
+        if (!empty($userIds)) {
+            $qb->andWhere('u.id IN (:userIds)')
+                ->setParameter('userIds', $userIds);
+        }
+        
+        $qb->groupBy('u.id', 'u.username')
+            ->orderBy('completed_count', 'DESC')
+            ->setMaxResults($limit);
+        
+        return $qb->getQuery()->getResult();
     }
 
     /**
@@ -306,8 +382,112 @@ class PerformanceMetricsService
      */
     public function getAchievements(User $user): array
     {
-        // TODO: Check for achievements (100 tasks completed, 30 day streak, etc.)
-        return [];
+        $achievements = [];
+        $totalCompleted = $this->getTotalTasksCompleted($user);
+        
+        // Достижения за количество выполненных задач
+        if ($totalCompleted >= 100) {
+            $achievements[] = [
+                'id' => 'century',
+                'name' => 'Столетие',
+                'description' => 'Выполнить 100 задач',
+                'icon' => 'fa-trophy',
+                'unlocked' => true,
+            ];
+        }
+        
+        if ($totalCompleted >= 50) {
+            $achievements[] = [
+                'id' => 'half_century',
+                'name' => 'Полвека',
+                'description' => 'Выполнить 50 задач',
+                'icon' => 'fa-medal',
+                'unlocked' => true,
+            ];
+        }
+        
+        if ($totalCompleted >= 10) {
+            $achievements[] = [
+                'id' => 'first_steps',
+                'name' => 'Первые шаги',
+                'description' => 'Выполнить 10 задач',
+                'icon' => 'fa-star',
+                'unlocked' => true,
+            ];
+        }
+        
+        // Достижения за серию дней
+        $streak = $this->calculateStreak($user);
+        if ($streak >= 30) {
+            $achievements[] = [
+                'id' => 'month_streak',
+                'name' => 'Месяц продуктивности',
+                'description' => '30 дней подряд с выполненными задачами',
+                'icon' => 'fa-fire',
+                'unlocked' => true,
+            ];
+        }
+        
+        if ($streak >= 7) {
+            $achievements[] = [
+                'id' => 'week_streak',
+                'name' => 'Неделя продуктивности',
+                'description' => '7 дней подряд с выполненными задачами',
+                'icon' => 'fa-bolt',
+                'unlocked' => true,
+            ];
+        }
+        
+        return $achievements;
+    }
+    
+    private function getTotalTasksCompleted(User $user): int
+    {
+        $qb = $this->em->createQueryBuilder();
+        
+        $qb->select('COUNT(t.id)')
+            ->from(\App\Entity\Task::class, 't')
+            ->andWhere('t.assignedUser = :user')
+            ->andWhere('t.status = :completed')
+            ->setParameter('user', $user)
+            ->setParameter('completed', 'completed');
+        
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+    
+    private function calculateStreak(User $user): int
+    {
+        $qb = $this->em->createQueryBuilder();
+        
+        $qb->select('t.completedAt')
+            ->from(\App\Entity\Task::class, 't')
+            ->andWhere('t.assignedUser = :user')
+            ->andWhere('t.status = :completed')
+            ->andWhere('t.completedAt >= :dateFrom')
+            ->setParameter('user', $user)
+            ->setParameter('completed', 'completed')
+            ->setParameter('dateFrom', (new \DateTime())->modify('-90 days'))
+            ->orderBy('t.completedAt', 'DESC');
+        
+        $completedDates = $qb->getQuery()->getResult(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
+        
+        if (empty($completedDates)) {
+            return 0;
+        }
+        
+        $streak = 0;
+        $currentDate = new \DateTime();
+        
+        foreach ($completedDates as $task) {
+            $taskDate = new \DateTime($task['completedAt']);
+            $expectedDate = (clone $currentDate)->modify("-$streak days");
+            
+            if ($taskDate->format('Y-m-d') === $expectedDate->format('Y-m-d')) {
+                $streak++;
+            }
+        }
+        
+        return $streak;
     }
 
     /**

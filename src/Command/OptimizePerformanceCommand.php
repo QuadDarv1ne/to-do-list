@@ -2,9 +2,7 @@
 
 namespace App\Command;
 
-use App\Service\AssetOptimizationService;
-use App\Service\CacheOptimizationService;
-use App\Service\ThemeOptimizationService;
+use App\Service\AssetOptimizerService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -18,9 +16,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 class OptimizePerformanceCommand extends Command
 {
     public function __construct(
-        private AssetOptimizationService $assetOptimizer,
-        private CacheOptimizationService $cacheOptimizer,
-        private ThemeOptimizationService $themeOptimizer
+        private AssetOptimizerService $assetOptimizer,
     ) {
         parent::__construct();
     }
@@ -31,31 +27,17 @@ class OptimizePerformanceCommand extends Command
 
         $io->title('Оптимизация производительности');
 
-        // Оптимизация ресурсов
-        $io->section('Оптимизация CSS и изображений');
+        // Unified asset optimization (CSS, Images, Twig, Themes)
+        $io->section('Оптимизация всех ресурсов');
         try {
-            $this->assetOptimizer->optimizeAll();
-            $io->success('Ресурсы оптимизированы');
+            $results = $this->assetOptimizer->optimizeAll();
+            
+            $io->success('CSS: ' . ($results['css']['optimized'] ?? 0) . ' файлов оптимизировано');
+            $io->success('Изображения: ' . ($results['images']['optimized'] ?? 0) . ' файлов оптимизировано');
+            $io->success('Twig: ' . ($results['twig']['templates_warmed'] ?? 0) . ' шаблонов прогрето');
+            $io->success('Темы: оптимизированы');
         } catch (\Exception $e) {
-            $io->error('Ошибка оптимизации ресурсов: ' . $e->getMessage());
-        }
-
-        // Прогрев кэша
-        $io->section('Прогрев кэша');
-        try {
-            $this->cacheOptimizer->warmupCache();
-            $io->success('Кэш прогрет');
-        } catch (\Exception $e) {
-            $io->error('Ошибка прогрева кэша: ' . $e->getMessage());
-        }
-
-        // Оптимизация тем
-        $io->section('Оптимизация системы тем');
-        try {
-            $this->themeOptimizer->optimizeAll();
-            $io->success('Темы оптимизированы');
-        } catch (\Exception $e) {
-            $io->error('Ошибка оптимизации тем: ' . $e->getMessage());
+            $io->error('Ошибка оптимизации: ' . $e->getMessage());
         }
 
         $io->success('Оптимизация завершена!');

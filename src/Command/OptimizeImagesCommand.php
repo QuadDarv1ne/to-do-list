@@ -2,7 +2,7 @@
 
 namespace App\Command;
 
-use App\Service\ImageOptimizationService;
+use App\Service\AssetOptimizerService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -17,16 +17,14 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 class OptimizeImagesCommand extends Command
 {
     public function __construct(
-        private ImageOptimizationService $imageOptimizer,
+        private AssetOptimizerService $assetOptimizer,
     ) {
         parent::__construct();
     }
 
     protected function configure(): void
     {
-        $this
-            ->addOption('webp', 'w', InputOption::VALUE_NONE, 'Создать WebP версии')
-            ->addOption('stats', 's', InputOption::VALUE_NONE, 'Показать только статистику');
+        // No options needed - just optimize images
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -34,67 +32,32 @@ class OptimizeImagesCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $io->title('Оптимизация изображений');
 
-        // Статистика до оптимизации
-        $statsBefore = $this->imageOptimizer->getStatistics();
+        $result = $this->assetOptimizer->optimizeImages();
 
-        if ($input->getOption('stats')) {
-            $this->displayStats($io, $statsBefore);
+        if (!empty($result['errors'])) {
+            $io->warning(\sprintf(
+                'Оптимизировано %d/%d изображений с %d ошибками',
+                $result['optimized'],
+                $result['total'],
+                \count($result['errors']),
+            ));
 
-            return Command::SUCCESS;
-        }
-
-        // Оптимизация изображений
-        $io->section('Оптимизация изображений');
-        $results = $this->imageOptimizer->optimizeAll();
-
-        $io->text(\sprintf(
-            'Обработано: %d, Оптимизировано: %d, Ошибок: %d',
-            $results['processed'],
-            $results['optimized'],
-            $results['errors'],
-        ));
-
-        if ($results['saved_bytes'] > 0) {
-            $savedMB = round($results['saved_bytes'] / 1024 / 1024, 2);
-            $io->success("Сэкономлено: {$savedMB} MB");
-        }
-
-        // Создание WebP версий
-        if ($input->getOption('webp')) {
-            $io->section('Создание WebP версий');
-            $webpResults = $this->imageOptimizer->createWebPVersions();
-
-            $io->text(\sprintf(
-                'Обработано: %d, Создано: %d, Ошибок: %d',
-                $webpResults['processed'],
-                $webpResults['created'],
-                $webpResults['errors'],
+            foreach ($result['errors'] as $error) {
+                $io->writeln('  ❌ ' . $error);
+            }
+        } else {
+            $io->success(\sprintf(
+                'Успешно оптимизировано %d изображений',
+                $result['optimized'],
             ));
         }
 
-        // Статистика после оптимизации
-        $statsAfter = $this->imageOptimizer->getStatistics();
-        $this->displayStats($io, $statsAfter);
-
-        $io->success('Оптимизация завершена!');
+        if (!empty($result['images'])) {
+            $totalSaved = array_sum(array_column($result['images'], 'saved'));
+            $savedMB = round($totalSaved / 1024 / 1024, 2);
+            $io->info("Сэкономлено: {$savedMB} MB");
+        }
 
         return Command::SUCCESS;
-    }
-
-    private function displayStats(SymfonyStyle $io, array $stats): void
-    {
-        $io->section('Статистика изображений');
-
-        $totalSizeMB = round($stats['total_size'] / 1024 / 1024, 2);
-        $io->text("Всего изображений: {$stats['total_images']}");
-        $io->text("Общий размер: {$totalSizeMB} MB");
-
-        if (!empty($stats['by_format'])) {
-            $io->text('По форматам:');
-            foreach ($stats['by_format'] as $format => $data) {
-                $sizeMB = round($data['size'] / 1024 / 1024, 2);
-                $io->text("  {$format}: {$data['count']} файлов, {$sizeMB} MB");
-            }
-        }
     }
 }

@@ -155,6 +155,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: FilterView::class, orphanRemoval: true)]
     private Collection $filterViews;
 
+    #[ORM\OneToOne(mappedBy: 'user', targetEntity: NotificationPreference::class, cascade: ['persist', 'remove'])]
+    private ?NotificationPreference $notificationPreference = null;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: TaskTemplate::class, orphanRemoval: true)]
+    private Collection $taskTemplates;
+
     public function __construct()
     {
         $this->tasks = new ArrayCollection();
@@ -170,6 +176,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
         $this->articles = new ArrayCollection();
         $this->webhooks = new ArrayCollection();
         $this->filterViews = new ArrayCollection();
+        $this->taskTemplates = new ArrayCollection();
         $this->createdAt = new \DateTime();
     }
 
@@ -993,6 +1000,47 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
             // set the owning side to null (unless already changed)
             if ($filterView->getUser() === $this) {
                 $filterView->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getNotificationPreference(): ?NotificationPreference
+    {
+        return $this->notificationPreference;
+    }
+
+    public function setNotificationPreference(?NotificationPreference $notificationPreference): static
+    {
+        $this->notificationPreference = $notificationPreference;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TaskTemplate>
+     */
+    public function getTaskTemplates(): \Doctrine\Common\Collections\Collection
+    {
+        return $this->taskTemplates;
+    }
+
+    public function addTaskTemplate(TaskTemplate $template): static
+    {
+        if (!$this->taskTemplates->contains($template)) {
+            $this->taskTemplates->add($template);
+            $template->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTaskTemplate(TaskTemplate $template): static
+    {
+        if ($this->taskTemplates->removeElement($template)) {
+            if ($template->getUser() === $this) {
+                $template->setUser(null);
             }
         }
 

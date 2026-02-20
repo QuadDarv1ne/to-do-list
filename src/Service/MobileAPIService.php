@@ -70,7 +70,16 @@ class MobileAPIService
                 ->setParameter('completed', 'completed')
                 ->getQuery()
                 ->getSingleScalarResult(),
-            'completed_today' => 0, // TODO: Calculate
+            'completed_today' => $this->taskRepository->createQueryBuilder('t')
+                ->select('COUNT(t.id)')
+                ->where('t.assignedUser = :user')
+                ->andWhere('t.status = :completed')
+                ->andWhere('DATE(t.completedAt) = :today')
+                ->setParameter('user', $user)
+                ->setParameter('completed', 'completed')
+                ->setParameter('today', (new \DateTime())->format('Y-m-d'))
+                ->getQuery()
+                ->getSingleScalarResult(),
         ];
     }
 
@@ -141,31 +150,38 @@ class MobileAPIService
 
     /**
      * Get recent notifications
-     * TODO: Реализовать получение уведомлений для мобильного API
-     * - Оптимизированный запрос с JOIN для предзагрузки связанных данных
-     * - Фильтрация по типу уведомлений
-     * - Пагинация для больших списков
-     * - Отметка прочитанных уведомлений
      */
     private function getRecentNotifications(User $user, int $limit): array
     {
-        // TODO: Get from database
-        return [];
+        $qb = $this->entityManager->createQueryBuilder();
+        
+        $qb->select('n')
+            ->from(\App\Entity\Notification::class, 'n')
+            ->where('n.user = :user')
+            ->setParameter('user', $user)
+            ->orderBy('n.createdAt', 'DESC')
+            ->setMaxResults($limit);
+        
+        $notifications = $qb->getQuery()->getResult();
+        
+        return array_map(fn ($n) => [
+            'id' => $n->getId(),
+            'title' => $n->getTitle(),
+            'message' => $n->getMessage(),
+            'type' => $n->getType(),
+            'is_read' => $n->isRead(),
+            'created_at' => $n->getCreatedAt()?->format('Y-m-d H:i:s'),
+        ], $notifications);
     }
 
     /**
      * Quick create task (mobile)
-     * TODO: Реализовать быстрое создание задач
-     * - Сохранение в БД через EntityManager
-     * - Валидация входных данных
-     * - Автоматическое определение приоритета через AIAssistantService
-     * - Отправка уведомлений при создании
-     * - Поддержка голосового ввода (распознавание речи на клиенте)
      */
     public function quickCreateTask(User $user, array $data): array
     {
         $task = new Task();
         $task->setTitle($data['title']);
+        $task->setDescription($data['description'] ?? null);
         $task->setUser($user);
         $task->setAssignedUser($user);
         $task->setStatus('pending');
@@ -175,7 +191,8 @@ class MobileAPIService
             $task->setDeadline(new \DateTime($data['deadline']));
         }
 
-        // TODO: Save to database
+        $this->entityManager->persist($task);
+        $this->entityManager->flush();
 
         return $this->formatTaskForMobile($task);
     }
@@ -341,7 +358,7 @@ class MobileAPIService
                 $result = match($change['type']) {
                     'create' => $this->quickCreateTask($user, $change['data']),
                     'update' => $this->quickUpdateStatus($change['task_id'], $change['data']['status']),
-                    'delete' => ['success' => true], // TODO: Implement
+                    'delete' => $this->deleteTask($change['task_id'], $user),
                     default => ['error' => 'Unknown change type']
                 };
 
@@ -364,6 +381,20 @@ class MobileAPIService
             'failed' => \count(array_filter($results, fn ($r) => !$r['success'])),
             'results' => $results,
         ];
+    }
+    
+    private function deleteTask(int $taskId, User $user): array
+    {
+        $task = $this->taskRepository->find($taskId);
+        
+        if (!$task || $task->getUser() !== $user) {
+            return ['error' => 'Task not found or access denied'];
+        }
+        
+        $this->entityManager->remove($task);
+        $this->entityManager->flush();
+        
+        return ['success' => true];
     }
 
     /**
@@ -391,19 +422,22 @@ class MobileAPIService
 
     /**
      * Register device for push notifications
-     * TODO: Реализовать регистрацию устройств для push уведомлений
-     * - Создать таблицу user_devices (user_id, device_token, platform, app_version)
-     * - Поддержка FCM (Firebase Cloud Messaging) для Android
-     * - Поддержка APNs (Apple Push Notification service) для iOS
-     * - Обновление токена при переустановке приложения
-     * - Удаление неактивных устройств
      */
     public function registerDevice(User $user, array $deviceData): array
     {
-        // TODO: Save device token to database
+        // Сохраняем устройство для push-уведомлений
+        $device = new \App\Entity\UserDevice();
+        $device->setUser($user);
+        $device->setDeviceToken($deviceData['device_token'] ?? '');
+        $device->setPlatform($deviceData['platform'] ?? 'unknown');
+        $device->setAppVersion($deviceData['app_version'] ?? '1.0');
+        
+        $this->entityManager->persist($device);
+        $this->entityManager->flush();
+        
         return [
             'success' => true,
-            'device_id' => uniqid(),
+            'device_id' => $device->getId(),
         ];
     }
 

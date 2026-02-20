@@ -4,11 +4,13 @@ namespace App\Service;
 
 use App\Entity\User;
 use App\Repository\TaskRepository;
+use Doctrine\ORM\EntityManagerInterface;
 
 class TaskStatisticsService
 {
     public function __construct(
         private TaskRepository $taskRepository,
+        private EntityManagerInterface $em,
     ) {
     }
 
@@ -250,8 +252,21 @@ class TaskStatisticsService
      */
     private function getAverageCompletionTime(User $user, \DateTime $from, \DateTime $to): float
     {
-        // TODO: Calculate average time from creation to completion
-        return 0;
+        $qb = $this->em->createQueryBuilder();
+        
+        $qb->select('AVG(t.completedAt - t.createdAt) as avg_time')
+            ->from(\App\Entity\Task::class, 't')
+            ->andWhere('t.user = :user')
+            ->andWhere('t.status = :completed')
+            ->andWhere('t.completedAt BETWEEN :from AND :to')
+            ->setParameter('user', $user)
+            ->setParameter('completed', 'completed')
+            ->setParameter('from', $from)
+            ->setParameter('to', $to);
+        
+        $result = $qb->getQuery()->getOneOrNullResult();
+        
+        return (float) ($result['avg_time'] ?? 0);
     }
 
     /**
@@ -259,8 +274,37 @@ class TaskStatisticsService
      */
     private function getProductivityTrend(User $user, \DateTime $from, \DateTime $to): string
     {
-        // TODO: Calculate trend (increasing/decreasing/stable)
+        // Разбиваем период на две части и сравниваем
+        $interval = $from->diff($to);
+        $midPoint = (clone $from)->add($interval);
+        
+        $completed1 = $this->countCompleted($user, $from, $midPoint);
+        $completed2 = $this->countCompleted($user, $midPoint, $to);
+        
+        if ($completed2 > $completed1 * 1.1) {
+            return 'increasing';
+        } elseif ($completed2 < $completed1 * 0.9) {
+            return 'decreasing';
+        }
+        
         return 'stable';
+    }
+    
+    private function countCompleted(User $user, \DateTime $from, \DateTime $to): int
+    {
+        $qb = $this->em->createQueryBuilder();
+        
+        $qb->select('COUNT(t.id)')
+            ->from(\App\Entity\Task::class, 't')
+            ->andWhere('t.user = :user')
+            ->andWhere('t.status = :completed')
+            ->andWhere('t.completedAt BETWEEN :from AND :to')
+            ->setParameter('user', $user)
+            ->setParameter('completed', 'completed')
+            ->setParameter('from', $from)
+            ->setParameter('to', $to);
+        
+        return (int) $qb->getQuery()->getSingleScalarResult();
     }
 
     /**
@@ -287,8 +331,18 @@ class TaskStatisticsService
      */
     public function getTopPerformers(int $limit = 10): array
     {
-        // TODO: Get users with highest completion rates
-        return [];
+        $qb = $this->em->createQueryBuilder();
+        
+        $qb->select('u.id as user_id, u.username, COUNT(t.id) as completed_count')
+            ->from(\App\Entity\User::class, 'u')
+            ->leftJoin('u.tasks', 't')
+            ->andWhere('t.status = :completed')
+            ->setParameter('completed', 'completed')
+            ->groupBy('u.id', 'u.username')
+            ->orderBy('completed_count', 'DESC')
+            ->setMaxResults($limit);
+        
+        return $qb->getQuery()->getResult();
     }
 
     /**

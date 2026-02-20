@@ -384,9 +384,26 @@ class AdvancedFilterViewService
     /**
      * Share view
      */
-    public function shareView(int $viewId, array $userIds): void
+    public function shareView(int $viewId, array $userIds, User $owner): bool
     {
-        // TODO: Share with users
+        $view = $this->filterViewRepository->findOneByUserAndId($owner, $viewId);
+        
+        if (!$view) {
+            return false;
+        }
+
+        $userRepository = $this->em->getRepository(User::class);
+        
+        foreach ($userIds as $userId) {
+            $user = $userRepository->find($userId);
+            if ($user) {
+                $view->addSharedUser($user);
+            }
+        }
+
+        $this->filterViewRepository->save($view);
+
+        return true;
     }
 
     /**
@@ -394,17 +411,49 @@ class AdvancedFilterViewService
      */
     public function getSharedViews(User $user): array
     {
-        // TODO: Get views shared with user
-        return [];
+        $views = $this->filterViewRepository->findSharedWithUser($user);
+        $result = [];
+        
+        foreach ($views as $view) {
+            $result['shared_' . $view->getId()] = [
+                'name' => $view->getName(),
+                'icon' => $view->getIcon() ?? 'fa-share-alt',
+                'filters' => $view->getFilters(),
+                'columns' => $view->getColumns(),
+                'sort' => $view->getSort() ?? ['createdAt' => 'DESC'],
+                'group_by' => $view->getGroupBy(),
+                'is_shared' => true,
+                'owner' => $view->getUser()->getUsername(),
+                'id' => $view->getId(),
+            ];
+        }
+        
+        return $result;
     }
 
     /**
      * Duplicate view
      */
-    public function duplicateView(int $viewId, User $user): array
+    public function duplicateView(int $viewId, User $user): ?FilterView
     {
-        // TODO: Duplicate view
-        return [];
+        $view = $this->filterViewRepository->findOneByUserAndId($user, $viewId);
+        
+        if (!$view) {
+            return null;
+        }
+
+        $newView = new FilterView();
+        $newView->setName($view->getName() . ' (копия)');
+        $newView->setFilters($view->getFilters());
+        $newView->setColumns($view->getColumns());
+        $newView->setSort($view->getSort());
+        $newView->setGroupBy($view->getGroupBy());
+        $newView->setIcon($view->getIcon());
+        $newView->setUser($user);
+
+        $this->filterViewRepository->save($newView);
+
+        return $newView;
     }
 
     /**
@@ -453,8 +502,27 @@ class AdvancedFilterViewService
      */
     private function exportToJSON(array $tasks): string
     {
-        // TODO: Serialize tasks to JSON
-        return json_encode($tasks);
+        $data = [];
+        
+        foreach ($tasks as $task) {
+            if (\is_array($task)) {
+                // Grouped tasks
+                continue;
+            }
+            
+            $data[] = [
+                'id' => $task->getId(),
+                'title' => $task->getTitle(),
+                'status' => $task->getStatus(),
+                'priority' => $task->getPriority(),
+                'due_date' => $task->getDueDate()?->format('Y-m-d H:i:s'),
+                'completed_at' => $task->getCompletedAt()?->format('Y-m-d H:i:s'),
+                'category' => $task->getCategory()?->getName(),
+                'assigned_user' => $task->getAssignedUser()?->getUsername(),
+            ];
+        }
+        
+        return json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     }
 
     /**
@@ -462,7 +530,29 @@ class AdvancedFilterViewService
      */
     private function exportToExcel(array $tasks): string
     {
-        // TODO: Generate Excel file
-        return '';
+        // Генерируем CSV с BOM для Excel
+        $bom = "\xEF\xBB\xBF";
+        $csv = $bom . "ID;Название;Статус;Приоритет;Дедлайн;Категория;Исполнитель;Прогресс\n";
+
+        foreach ($tasks as $task) {
+            if (\is_array($task)) {
+                // Grouped tasks
+                continue;
+            }
+
+            $csv .= \sprintf(
+                "%d;\"%s\";%s;%s;%s;%s;%s;%d\n",
+                $task->getId(),
+                str_replace('"', '""', $task->getTitle()),
+                $task->getStatus(),
+                $task->getPriority(),
+                $task->getDueDate()?->format('d.m.Y H:i') ?? '',
+                $task->getCategory()?->getName() ?? '',
+                $task->getAssignedUser()?->getUsername() ?? '',
+                $task->getProgress(),
+            );
+        }
+
+        return $csv;
     }
 }
