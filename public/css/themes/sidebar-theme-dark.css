@@ -3,6 +3,32 @@
  * Тёмная тема для страниц с боковым меню
  */
 
+/* CSS Variables */
+[data-theme="dark"] {
+    --bg-primary: #1e293b;
+    --bg-secondary: #334155;
+    --bg-tertiary: #475569;
+    --bg-hover: #475569;
+    
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --text-tertiary: #94a3b8;
+    --text-inverse: #ffffff;
+    
+    --border-primary: #334155;
+    --border-secondary: #475569;
+    
+    --color-primary: #818cf8;
+    --color-primary-light: rgba(129, 140, 248, 0.2);
+    --color-accent: #a78bfa;
+    --color-success: #34d399;
+    --color-success-light: rgba(52, 211, 153, 0.2);
+    --color-warning: #fbbf24;
+    --color-warning-light: rgba(251, 191, 36, 0.2);
+    --color-danger: #f87171;
+    --color-danger-light: rgba(248, 113, 113, 0.2);
+}
+
 /* Sidebar Colors */
 .sidebar {
     background: #1e293b;
@@ -137,4 +163,18 @@ body {
 .mobile-menu-btn:hover {
     background: #818cf8;
     color: #ffffff;
+}
+
+/* Page Header */
+.page-header {
+    background: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
+    color: #ffffff;
+}
+
+.page-header-title {
+    color: #ffffff;
+}
+
+.page-header-subtitle {
+    color: rgba(255, 255, 255, 0.9);
 }

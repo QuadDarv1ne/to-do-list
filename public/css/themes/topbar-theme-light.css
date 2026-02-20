@@ -3,6 +3,33 @@
  * Светлая тема для страниц с верхним меню
  */
 
+/* CSS Variables */
+:root,
+[data-theme="light"] {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f3f4f6;
+    --bg-tertiary: #e5e7eb;
+    --bg-hover: #f9fafb;
+    
+    --text-primary: #1f2937;
+    --text-secondary: #6b7280;
+    --text-tertiary: #9ca3af;
+    --text-inverse: #ffffff;
+    
+    --border-primary: #e5e7eb;
+    --border-secondary: #d1d5db;
+    
+    --color-primary: #6366f1;
+    --color-primary-light: rgba(99, 102, 241, 0.1);
+    --color-accent: #8b5cf6;
+    --color-success: #10b981;
+    --color-success-light: rgba(16, 185, 129, 0.1);
+    --color-warning: #f59e0b;
+    --color-warning-light: rgba(245, 158, 11, 0.1);
+    --color-danger: #ef4444;
+    --color-danger-light: rgba(239, 68, 68, 0.1);
+}
+
 /* Header */
 .modern-header {
     background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);

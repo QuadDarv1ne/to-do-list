@@ -3,6 +3,32 @@
  * Оранжевая тема для страниц с верхним меню
  */
 
+/* CSS Variables */
+[data-theme="orange"] {
+    --bg-primary: #2d1810;
+    --bg-secondary: #3d2418;
+    --bg-tertiary: #4d3020;
+    --bg-hover: #4d3020;
+    
+    --text-primary: #fef3c7;
+    --text-secondary: #fcd34d;
+    --text-tertiary: #fbbf24;
+    --text-inverse: #ffffff;
+    
+    --border-primary: #4d3020;
+    --border-secondary: #5d3828;
+    
+    --color-primary: #f97316;
+    --color-primary-light: rgba(249, 115, 22, 0.2);
+    --color-accent: #fb923c;
+    --color-success: #34d399;
+    --color-success-light: rgba(52, 211, 153, 0.2);
+    --color-warning: #fbbf24;
+    --color-warning-light: rgba(251, 191, 36, 0.2);
+    --color-danger: #f87171;
+    --color-danger-light: rgba(248, 113, 113, 0.2);
+}
+
 /* Header */
 .modern-header {
     background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);

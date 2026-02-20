@@ -3,6 +3,32 @@
  * Фиолетовая тема для страниц с верхним меню
  */
 
+/* CSS Variables */
+[data-theme="purple"] {
+    --bg-primary: #312e81;
+    --bg-secondary: #3730a3;
+    --bg-tertiary: #4338ca;
+    --bg-hover: #4338ca;
+    
+    --text-primary: #ede9fe;
+    --text-secondary: #c4b5fd;
+    --text-tertiary: #a78bfa;
+    --text-inverse: #ffffff;
+    
+    --border-primary: #4338ca;
+    --border-secondary: #4f46e5;
+    
+    --color-primary: #a78bfa;
+    --color-primary-light: rgba(167, 139, 250, 0.2);
+    --color-accent: #c4b5fd;
+    --color-success: #34d399;
+    --color-success-light: rgba(52, 211, 153, 0.2);
+    --color-warning: #fbbf24;
+    --color-warning-light: rgba(251, 191, 36, 0.2);
+    --color-danger: #f87171;
+    --color-danger-light: rgba(248, 113, 113, 0.2);
+}
+
 /* Header */
 .modern-header {
     background: linear-gradient(135deg, #6366f1 0%, #a78bfa 100%);

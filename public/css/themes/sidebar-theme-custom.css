@@ -3,6 +3,32 @@
  * Настраиваемая (зелёная) тема для страниц с боковым меню
  */
 
+/* CSS Variables */
+[data-theme="custom"] {
+    --bg-primary: #065f46;
+    --bg-secondary: #047857;
+    --bg-tertiary: #059669;
+    --bg-hover: #059669;
+    
+    --text-primary: #d1fae5;
+    --text-secondary: #a7f3d0;
+    --text-tertiary: #6ee7b7;
+    --text-inverse: #ffffff;
+    
+    --border-primary: #059669;
+    --border-secondary: #10b981;
+    
+    --color-primary: #10b981;
+    --color-primary-light: rgba(16, 185, 129, 0.2);
+    --color-accent: #34d399;
+    --color-success: #34d399;
+    --color-success-light: rgba(52, 211, 153, 0.2);
+    --color-warning: #fbbf24;
+    --color-warning-light: rgba(251, 191, 36, 0.2);
+    --color-danger: #f87171;
+    --color-danger-light: rgba(248, 113, 113, 0.2);
+}
+
 /* Sidebar Colors */
 .sidebar {
     background: #065f46;
@@ -137,4 +163,18 @@ body {
 .mobile-menu-btn:hover {
     background: #10b981;
     color: #ffffff;
+}
+
+/* Page Header */
+.page-header {
+    background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+    color: #ffffff;
+}
+
+.page-header-title {
+    color: #ffffff;
+}
+
+.page-header-subtitle {
+    color: rgba(255, 255, 255, 0.9);
 }

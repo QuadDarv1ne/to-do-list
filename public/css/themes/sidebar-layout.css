@@ -293,7 +293,7 @@ body {
 
 /* Main Content */
 .main-content {
-    margin-left: var(--sidebar-width);
+    margin-left: 280px;
     min-height: 100vh;
     transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     padding: 2rem;
@@ -301,7 +301,7 @@ body {
 }
 
 .sidebar.collapsed ~ .main-content {
-    margin-left: var(--sidebar-collapsed-width);
+    margin-left: 70px;
 }
 
 /* Top Bar */
