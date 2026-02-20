@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Service\QuickSearchService;
+use App\Service\SearchService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,7 +14,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class QuickSearchController extends AbstractController
 {
     public function __construct(
-        private QuickSearchService $searchService,
+        private SearchService $searchService,
     ) {
     }
 
@@ -34,7 +34,7 @@ class QuickSearchController extends AbstractController
             ]);
         }
 
-        $results = $this->searchService->search($query, $user);
+        $results = $this->searchService->quickSearch($query, $user);
 
         return $this->json([
             'results' => [

@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 use App\Repository\TaskRepository;
-use App\Service\ExportService;
+use App\Service\TaskExportService;
 use App\Service\PerformanceOptimizerService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,7 +19,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class ExportController extends AbstractController
 {
     public function __construct(
-        private ExportService $exportService,
+        private TaskExportService $exportService,
         private PerformanceOptimizerService $optimizer,
     ) {
     }

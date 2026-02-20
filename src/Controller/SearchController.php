@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Service\SmartSearchService;
+use App\Service\SearchService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,7 +15,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class SearchController extends AbstractController
 {
     public function __construct(
-        private SmartSearchService $searchService,
+        private SearchService $searchService,
     ) {
     }
 
