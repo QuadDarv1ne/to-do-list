@@ -11,7 +11,7 @@ class DashboardCustomizationService
      */
     public function getUserLayout(User $user): array
     {
-        // TODO: Get from database
+        // Note: Требует создания таблицы user_dashboard_layouts
         return [
             'widgets' => [
                 ['id' => 'task_stats', 'position' => 1, 'size' => 'col-md-6'],
@@ -23,13 +23,10 @@ class DashboardCustomizationService
         ];
     }
 
-    /**
-     * Save user layout
-     */
     public function saveLayout(User $user, array $layout): bool
     {
-        // TODO: Save to database
-        return true;
+        // Note: Требует создания таблицы user_dashboard_layouts
+        return false;
     }
 
     /**

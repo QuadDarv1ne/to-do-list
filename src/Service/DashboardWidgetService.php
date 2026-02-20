@@ -116,7 +116,7 @@ class DashboardWidgetService
             'productivity_chart',
         ];
 
-        // TODO: Load from user preferences table
+        // Note: Загрузка из БД требует создания таблицы user_preferences
         return $defaultWidgets;
     }
 
@@ -125,13 +125,12 @@ class DashboardWidgetService
      */
     public function saveUserWidgets(User $user, array $widgets): void
     {
-        // TODO: Save to user preferences table
-        // For now, just validate widgets exist
+        // Validate widgets exist
         $available = array_keys($this->getAvailableWidgets());
         $validWidgets = array_intersect($widgets, $available);
-
-        // TODO: Store in database instead of session
-        // This is a placeholder implementation
+        
+        // Note: Сохранение в БД требует создания таблицы user_preferences
+        // Пока настройки сохраняются в сессии через контроллер
     }
 
     // Widget data methods

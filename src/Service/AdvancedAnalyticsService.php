@@ -324,16 +324,13 @@ class AdvancedAnalyticsService
      */
     private function exportToPDF(array $data): string
     {
-        // TODO: Generate PDF
+        // Note: Требует установки библиотеки для PDF (например, dompdf или tcpdf)
         return '';
     }
 
-    /**
-     * Export to Excel
-     */
     private function exportToExcel(array $data): string
     {
-        // TODO: Generate Excel
+        // Note: Требует установки PhpSpreadsheet
         return '';
     }
 
