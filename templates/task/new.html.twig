@@ -25,7 +25,7 @@
         <div style="display: flex; align-items: center; gap: 10px; color: var(--text-secondary);">
             <i class="fas fa-sitemap"></i>
             <span>Родительская задача:</span>
-            <a href="{{ path('app_task_show', {'id': parentTask.id}) }}" style="color: var(--color-sales); text-decoration: none; font-weight: 600;">
+            <a href="{{ path('app_task_show', {'id': parentTask.id}) }}" style="color: var(--color-success); text-decoration: none; font-weight: 600;">
                 {{ parentTask.title }}
             </a>
         </div>
@@ -172,18 +172,18 @@
                 </div>
                 {{ form_widget(form.progress, {
                     'attr': {
-                        'style': 'width: 100%; accent-color: var(--color-sales);',
+                        'style': 'width: 100%; accent-color: var(--color-success);',
                         'id': 'task_progress'
                     }
                 }) }}
                 <div style="height: 6px; background: var(--bg-secondary); border-radius: 3px; overflow: hidden; margin-top: 8px;">
-                    <div id="progress-bar" style="height: 100%; width: 0%; background: var(--color-sales); border-radius: 3px; transition: width 0.2s;"></div>
+                    <div id="progress-bar" style="height: 100%; width: 0%; background: var(--color-success); border-radius: 3px; transition: width 0.2s;"></div>
                 </div>
             </div>
             {% endif %}
 
             <div style="display: flex; gap: 12px; margin-top: 32px;">
-                <button type="submit" class="btn" style="background: var(--color-sales); border: none; color: #000; padding: 14px 32px; border-radius: 10px; font-weight: 600; font-size: 16px;">
+                <button type="submit" class="btn" style="background: var(--color-success); border: none; color: #000; padding: 14px 32px; border-radius: 10px; font-weight: 600; font-size: 16px;">
                     <i class="fas fa-check me-2"></i>{% if parentTask %}Создать подзадачу{% else %}Создать задачу{% endif %}
                 </button>
                 <a href="{{ parentTask ? path('app_task_show', {'id': parentTask.id}) : path('app_task_index') }}" class="btn" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 14px 32px; border-radius: 10px; font-weight: 600; font-size: 16px; text-decoration: none; display: inline-flex; align-items: center;">
@@ -204,7 +204,7 @@
             <div class="card-body">
                 <div style="display: flex; flex-direction: column; gap: 16px;">
                     <div>
-                        <div style="color: var(--color-sales); font-weight: 600; margin-bottom: 4px;">
+                        <div style="color: var(--color-success); font-weight: 600; margin-bottom: 4px;">
                             <i class="fas fa-lightbulb me-2"></i>Название
                         </div>
                         <p style="color: var(--text-secondary); font-size: 13px; margin: 0;">
@@ -213,7 +213,7 @@
                     </div>
                     
                     <div>
-                        <div style="color: var(--color-orders); font-weight: 600; margin-bottom: 4px;">
+                        <div style="color: var(--color-primary); font-weight: 600; margin-bottom: 4px;">
                             <i class="fas fa-flag me-2"></i>Приоритет
                         </div>
                         <p style="color: var(--text-secondary); font-size: 13px; margin: 0;">
@@ -222,7 +222,7 @@
                     </div>
                     
                     <div>
-                        <div style="color: var(--color-bonuses); font-weight: 600; margin-bottom: 4px;">
+                        <div style="color: var(--color-warning); font-weight: 600; margin-bottom: 4px;">
                             <i class="fas fa-calendar me-2"></i>Срок
                         </div>
                         <p style="color: var(--text-secondary); font-size: 13px; margin: 0;">
@@ -231,7 +231,7 @@
                     </div>
                     
                     <div>
-                        <div style="color: var(--color-clients); font-weight: 600; margin-bottom: 4px;">
+                        <div style="color: var(--color-info); font-weight: 600; margin-bottom: 4px;">
                             <i class="fas fa-tags me-2"></i>Теги
                         </div>
                         <p style="color: var(--text-secondary); font-size: 13px; margin: 0;">
@@ -312,7 +312,7 @@ if (progressSlider) {
     function updateProgress(val) {
         progressValue.textContent = val + '%';
         progressBar.style.width = val + '%';
-        const color = val == 100 ? 'var(--color-sales)' : val >= 50 ? 'var(--color-orders)' : 'var(--color-bonuses)';
+        const color = val == 100 ? 'var(--color-success)' : val >= 50 ? 'var(--color-primary)' : 'var(--color-warning)';
         progressBar.style.background = color;
     }
 

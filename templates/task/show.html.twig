@@ -38,15 +38,15 @@
             {% endif %}
             
             {% if task.priority == 'high' %}
-                <span class="status-badge" style="background: rgba(255, 107, 203, 0.2); color: var(--color-bonuses);">
+                <span class="status-badge" style="background: rgba(239, 68, 68, 0.2); color: var(--color-danger);">
                     <i class="fas fa-arrow-up me-1"></i>Высокий приоритет
                 </span>
             {% elseif task.priority == 'medium' %}
-                <span class="status-badge" style="background: rgba(255, 217, 61, 0.2); color: var(--color-orders);">
+                <span class="status-badge" style="background: rgba(99, 102, 241, 0.2); color: var(--color-primary);">
                     <i class="fas fa-minus me-1"></i>Средний приоритет
                 </span>
             {% else %}
-                <span class="status-badge" style="background: rgba(77, 212, 172, 0.2); color: var(--color-sales);">
+                <span class="status-badge" style="background: rgba(16, 185, 129, 0.2); color: var(--color-success);">
                     <i class="fas fa-arrow-down me-1"></i>Низкий приоритет
                 </span>
             {% endif %}
@@ -59,7 +59,7 @@
         </a>
         <form method="post" action="{{ path('app_task_delete', {'id': task.id}) }}" style="display: inline;" onsubmit="return confirm('Удалить задачу?');">
             <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ task.id) }}">
-            <button type="submit" class="btn" style="background: rgba(255, 107, 203, 0.1); border: 1px solid var(--color-bonuses); color: var(--color-bonuses); padding: 12px 20px; border-radius: 10px; font-weight: 600;">
+            <button type="submit" class="btn" style="background: rgba(239, 68, 68, 0.1); border: 1px solid var(--color-danger); color: var(--color-danger); padding: 12px 20px; border-radius: 10px; font-weight: 600;">
                 <i class="fas fa-trash me-2"></i>Удалить
             </button>
         </form>
@@ -94,7 +94,7 @@
                     {% endif %}
                 </h3>
                 <a href="{{ path('app_task_new', {'parent': task.id}) }}"
-                   style="font-size: 13px; background: var(--color-sales); color: #000; padding: 6px 14px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+                   style="font-size: 13px; background: var(--color-success); color: #000; padding: 6px 14px; border-radius: 8px; text-decoration: none; font-weight: 600;">
                     <i class="fas fa-plus me-1"></i>Добавить
                 </a>
             </div>
@@ -112,7 +112,7 @@
                             <span style="font-weight: 600; color: var(--text-primary);">{{ pct }}%</span>
                         </div>
                         <div style="height: 6px; background: var(--bg-secondary); border-radius: 3px; overflow: hidden;">
-                            <div style="height: 100%; width: {{ pct }}%; background: var(--color-sales); border-radius: 3px; transition: width 0.3s;"></div>
+                            <div style="height: 100%; width: {{ pct }}%; background: var(--color-success); border-radius: 3px; transition: width 0.3s;"></div>
                         </div>
                     </div>
                     <!-- Subtask list -->
@@ -126,7 +126,7 @@
                                 <button type="submit" title="Завершить" style="width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border-color); background: transparent; cursor: pointer; flex-shrink: 0;"></button>
                             </form>
                             {% else %}
-                            <span style="width: 20px; height: 20px; border-radius: 50%; background: var(--color-sales); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <span style="width: 20px; height: 20px; border-radius: 50%; background: var(--color-success); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                                 <i class="fas fa-check" style="font-size: 10px; color: #000;"></i>
                             </span>
                             {% endif %}
@@ -139,18 +139,18 @@
 
                             <!-- Priority badge -->
                             {% if subtask.priority == 'urgent' %}
-                                <span style="font-size: 11px; padding: 2px 8px; border-radius: 6px; background: rgba(255,107,203,0.15); color: var(--color-bonuses);">Критический</span>
+                                <span style="font-size: 11px; padding: 2px 8px; border-radius: 6px; background: rgba(239,68,68,0.15); color: var(--color-danger);">Критический</span>
                             {% elseif subtask.priority == 'high' %}
-                                <span style="font-size: 11px; padding: 2px 8px; border-radius: 6px; background: rgba(255,107,203,0.15); color: var(--color-bonuses);">Высокий</span>
+                                <span style="font-size: 11px; padding: 2px 8px; border-radius: 6px; background: rgba(239,68,68,0.15); color: var(--color-danger);">Высокий</span>
                             {% elseif subtask.priority == 'medium' %}
-                                <span style="font-size: 11px; padding: 2px 8px; border-radius: 6px; background: rgba(255,217,61,0.15); color: var(--color-orders);">Средний</span>
+                                <span style="font-size: 11px; padding: 2px 8px; border-radius: 6px; background: rgba(99,102,241,0.15); color: var(--color-primary);">Средний</span>
                             {% else %}
-                                <span style="font-size: 11px; padding: 2px 8px; border-radius: 6px; background: rgba(77,212,172,0.15); color: var(--color-sales);">Низкий</span>
+                                <span style="font-size: 11px; padding: 2px 8px; border-radius: 6px; background: rgba(16,185,129,0.15); color: var(--color-success);">Низкий</span>
                             {% endif %}
 
                             <!-- Due date -->
                             {% if subtask.dueDate %}
-                                <span style="font-size: 12px; color: {% if subtask.isOverdue %}var(--color-bonuses){% else %}var(--text-secondary){% endif %};">
+                                <span style="font-size: 12px; color: {% if subtask.isOverdue %}var(--color-danger){% else %}var(--text-secondary){% endif %};">
                                     <i class="fas fa-clock me-1"></i>{{ subtask.dueDate|date('d.m.Y') }}
                                 </span>
                             {% endif %}
@@ -197,7 +197,7 @@
                         </div>
                         <div style="height: 8px; background: var(--bg-secondary); border-radius: 4px; overflow: hidden;">
                             <div style="height: 100%; width: {{ task.progress }}%; border-radius: 4px; transition: width 0.4s ease;
-                                background: {% if task.progress == 100 %}var(--color-sales){% elseif task.progress >= 50 %}var(--color-orders){% else %}var(--color-bonuses){% endif %};"></div>
+                                background: {% if task.progress == 100 %}var(--color-success){% elseif task.progress >= 50 %}var(--color-primary){% else %}var(--color-warning){% endif %};"></div>
                         </div>
                     </div>
 
@@ -206,7 +206,7 @@
                         <div style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; margin-bottom: 4px;">Категория</div>
                         <div style="color: var(--text-primary); font-weight: 500;">
                             {% if task.category %}
-                                <i class="fas fa-folder me-2" style="color: var(--color-orders);"></i>{{ task.category.name }}
+                                <i class="fas fa-folder me-2" style="color: var(--color-primary);"></i>{{ task.category.name }}
                             {% else %}
                                 <span style="color: var(--text-secondary);">Не указана</span>
                             {% endif %}
@@ -217,7 +217,7 @@
                     <div>
                         <div style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; margin-bottom: 4px;">Создано</div>
                         <div style="color: var(--text-primary); font-weight: 500;">
-                            <i class="fas fa-calendar me-2" style="color: var(--color-sales);"></i>{{ task.createdAt|date('d.m.Y H:i') }}
+                            <i class="fas fa-calendar me-2" style="color: var(--color-success);"></i>{{ task.createdAt|date('d.m.Y H:i') }}
                         </div>
                     </div>
                     
@@ -226,7 +226,7 @@
                     <div>
                         <div style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; margin-bottom: 4px;">Срок выполнения</div>
                         <div style="color: var(--text-primary); font-weight: 500;">
-                            <i class="fas fa-clock me-2" style="color: var(--color-bonuses);"></i>{{ task.dueDate|date('d.m.Y') }}
+                            <i class="fas fa-clock me-2" style="color: var(--color-danger);"></i>{{ task.dueDate|date('d.m.Y') }}
                         </div>
                     </div>
                     {% endif %}
@@ -268,7 +268,7 @@
                     {% if task.status != 'completed' %}
                     <form method="post" action="{{ path('app_task_complete', {'id': task.id}) }}">
                         <input type="hidden" name="_token" value="{{ csrf_token('complete' ~ task.id) }}">
-                        <button type="submit" class="btn w-100" style="background: var(--color-sales); border: none; color: #000; padding: 12px; border-radius: 10px; font-weight: 600;">
+                        <button type="submit" class="btn w-100" style="background: var(--color-success); border: none; color: #000; padding: 12px; border-radius: 10px; font-weight: 600;">
                             <i class="fas fa-check me-2"></i>Завершить задачу
                         </button>
                     </form>
@@ -290,7 +290,7 @@
 <div id="save-template-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
     <div style="background:var(--bg-card); border-radius:16px; padding:28px; width:100%; max-width:420px; border:1px solid var(--border-color);">
         <h4 style="margin:0 0 16px; font-size:18px; font-weight:700;">
-            <i class="fas fa-bookmark me-2" style="color:var(--color-sales);"></i>Сохранить как шаблон
+            <i class="fas fa-bookmark me-2" style="color:var(--color-success);"></i>Сохранить как шаблон
         </h4>
         <form method="post" action="{{ path('app_task_template_from_task', {'id': task.id}) }}">
             <div style="margin-bottom:16px;">
@@ -300,7 +300,7 @@
                        required>
             </div>
             <div style="display:flex; gap:10px;">
-                <button type="submit" style="flex:1; background:var(--color-sales); border:none; color:#000; padding:12px; border-radius:10px; font-weight:600; cursor:pointer;">
+                <button type="submit" style="flex:1; background:var(--color-success); border:none; color:#000; padding:12px; border-radius:10px; font-weight:600; cursor:pointer;">
                     <i class="fas fa-save me-2"></i>Сохранить
                 </button>
                 <button type="button" onclick="document.getElementById('save-template-modal').style.display='none'"

@@ -239,3 +239,17 @@ body {
     background: #334155;
     color: #a78bfa;
 }
+
+/* Page Header */
+.page-header {
+    background: #1e293b;
+    color: #f1f5f9;
+}
+
+.page-header-title {
+    color: #f1f5f9;
+}
+
+.page-header-subtitle {
+    color: #cbd5e1;
+}

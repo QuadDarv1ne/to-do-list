@@ -1,349 +1,353 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="{% block lang %}ru{% endblock %}" data-theme="light" data-mode="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    {# ~ SEO & Social ~ #}
     <title>{% block title %}CRM система{% endblock %}</title>
-    
+    <meta name="description" content="{% block meta_description %}CRM система для анализа продаж{% endblock %}">
+    <meta name="robots"      content="{% block meta_robots %}noindex, nofollow{% endblock %}">
+
+    {# ~ Favicon ~ #}
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
+    <link rel="alternate icon" type="image/png" href="/favicon.png">
+
+    {# ~ Mobile / PWA ~ #}
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" id="meta-theme-color" content="#ffffff">
+
+    {# ~ Preconnect ~ #}
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+    {# ~ Vendor CSS ~ #}
     <link rel="stylesheet" href="{{ asset('css/vendor/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/vendor/fontawesome.min.css') }}">
-    
-    <!-- Theme System -->
+
+    {# ~ Sidebar Layout ~ #}
     <link rel="stylesheet" href="{{ asset('css/themes/sidebar-layout.css') }}?v=6">
+
+    {# ~ Core CSS ~ #}
     <link rel="stylesheet" href="{{ asset('css/core/ui-improvements.css') }}">
     <link rel="stylesheet" href="{{ asset('css/core/theme-transitions.css') }}">
     <link rel="stylesheet" href="{{ asset('css/core/advanced-animations.css') }}">
     <link rel="stylesheet" href="{{ asset('css/core/responsive.css') }}">
     <link rel="stylesheet" href="{{ asset('css/core/adaptive-grid.css') }}">
+
+    {# ~ Components CSS ~ #}
     <link rel="stylesheet" href="{{ asset('css/components/enhanced-stats.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components/fab-menu.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components/modern-dashboard.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components/pipeline-view.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components/enhanced-cards.css') }}">
-    
-    <!-- Enhanced Theme Manager -->
+
+    {# ~ Тема подключается динамически через theme-manager-enhanced.js ~ #}
+
+    {# ~ Core JS (до рендера — предотвращает мерцание темы) ~ #}
     <script src="{{ asset('js/core/theme-manager-enhanced.js') }}"></script>
     <script src="{{ asset('js/components/advanced-ui.js') }}"></script>
     <script src="{{ asset('js/components/modal-system.js') }}"></script>
     <script src="{{ asset('js/components/data-manager.js') }}"></script>
     <script src="{{ asset('js/components/virtual-scroll.js') }}"></script>
     <script src="{{ asset('js/components/filter-sort.js') }}"></script>
-    
+
+    {# ~ Стили дочерних шаблонов ~ #}
     {% block stylesheets %}{% endblock %}
 </head>
-<body>
-    <!-- Mobile Menu Button -->
-    <button class="mobile-menu-btn" onclick="toggleMobileSidebar()" style="display: none;">
-        <i class="fas fa-bars"></i>
+
+<body class="{% block body_class %}{% endblock %}">
+
+    {# ~ Мобильная кнопка меню ~ #}
+    <button class="mobile-menu-btn"
+            onclick="toggleMobileSidebar()"
+            aria-label="Открыть меню"
+            aria-expanded="false"
+            aria-controls="sidebar"
+            style="display: none;">
+        <i class="fas fa-bars" aria-hidden="true"></i>
     </button>
-    
-    <!-- Sidebar Backdrop -->
+
+    {# ~ Backdrop для мобильного sidebar ~ #}
     <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeMobileSidebar()"></div>
-    
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
+
+    {# ~ Sidebar ~ #}
+    <aside class="sidebar" id="sidebar" role="navigation" aria-label="Основная навигация">
+
+        {# Шапка #}
         <div class="sidebar-header">
-            <div class="sidebar-logo">
+            <div class="sidebar-logo" aria-hidden="true">
                 <i class="fas fa-chart-line"></i>
             </div>
             <div class="sidebar-title">CRM</div>
         </div>
-        
+
+        {# Навигация #}
+        {% set route = app.request.attributes.get('_route') %}
         <nav class="sidebar-nav">
-            <div class="nav-item">
-                <a href="{{ path('app_dashboard') }}" class="nav-link {{ app.request.attributes.get('_route') == 'app_dashboard' ? 'active' : '' }}">
-                    <i class="nav-icon fas fa-home"></i>
-                    <span class="nav-text">Панель</span>
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="{{ path('app_task_index') }}" class="nav-link {{ app.request.attributes.get('_route') starts with 'app_task' ? 'active' : '' }}">
-                    <i class="nav-icon fas fa-tasks"></i>
-                    <span class="nav-text">Задачи</span>
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="{{ path('app_kanban_board') }}" class="nav-link {{ app.request.attributes.get('_route') == 'app_kanban_board' ? 'active' : '' }}">
-                    <i class="nav-icon fas fa-columns"></i>
-                    <span class="nav-text">Канбан</span>
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="{{ path('app_calendar') }}" class="nav-link {{ app.request.attributes.get('_route') == 'app_calendar' ? 'active' : '' }}">
-                    <i class="nav-icon fas fa-calendar"></i>
-                    <span class="nav-text">Календарь</span>
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="{{ path('app_analytics_dashboard') }}" class="nav-link {{ app.request.attributes.get('_route') starts with 'app_analytics' ? 'active' : '' }}">
-                    <i class="nav-icon fas fa-chart-bar"></i>
-                    <span class="nav-text">Аналитика</span>
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="{{ path('app_crm_dashboard') }}" class="nav-link {{ app.request.attributes.get('_route') starts with 'app_crm' ? 'active' : '' }}">
-                    <i class="nav-icon fas fa-chart-line"></i>
-                    <span class="nav-text">CRM</span>
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="{{ path('app_clients_index') }}" class="nav-link {{ app.request.attributes.get('_route') starts with 'app_clients' ? 'active' : '' }}">
-                    <i class="nav-icon fas fa-building"></i>
-                    <span class="nav-text">Клиенты</span>
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="{{ path('app_deals_index') }}" class="nav-link {{ app.request.attributes.get('_route') starts with 'app_deals' ? 'active' : '' }}">
-                    <i class="nav-icon fas fa-handshake"></i>
-                    <span class="nav-text">Сделки</span>
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="{{ path('app_products_index') }}" class="nav-link {{ app.request.attributes.get('_route') starts with 'app_products' ? 'active' : '' }}">
-                    <i class="nav-icon fas fa-box"></i>
-                    <span class="nav-text">Товары</span>
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="{{ path('app_user_index') }}" class="nav-link {{ app.request.attributes.get('_route') starts with 'app_user' ? 'active' : '' }}">
-                    <i class="nav-icon fas fa-users"></i>
-                    <span class="nav-text">Пользователи</span>
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="{{ path('app_settings') }}" class="nav-link {{ app.request.attributes.get('_route') == 'app_settings' ? 'active' : '' }}">
-                    <i class="nav-icon fas fa-cog"></i>
-                    <span class="nav-text">Настройки</span>
-                </a>
-            </div>
+            {% set nav_items = [
+                { route: 'app_dashboard',          icon: 'fa-home',       label: 'Панель',       match: 'exact' },
+                { route: 'app_task_index',          icon: 'fa-tasks',      label: 'Задачи',       match: 'starts' },
+                { route: 'app_kanban_board',        icon: 'fa-columns',    label: 'Канбан',       match: 'exact' },
+                { route: 'app_calendar',            icon: 'fa-calendar',   label: 'Календарь',    match: 'exact' },
+                { route: 'app_analytics_dashboard', icon: 'fa-chart-bar',  label: 'Аналитика',    match: 'starts' },
+                { route: 'app_crm_dashboard',       icon: 'fa-chart-line', label: 'CRM',          match: 'starts' },
+                { route: 'app_clients_index',       icon: 'fa-building',   label: 'Клиенты',      match: 'starts' },
+                { route: 'app_deals_index',         icon: 'fa-handshake',  label: 'Сделки',       match: 'starts' },
+                { route: 'app_products_index',      icon: 'fa-box',        label: 'Товары',       match: 'starts' },
+                { route: 'app_user_index',          icon: 'fa-users',      label: 'Пользователи', match: 'starts' },
+                { route: 'app_settings',            icon: 'fa-cog',        label: 'Настройки',    match: 'exact' },
+            ] %}
+
+            {% for item in nav_items %}
+                {% set is_active = item.match == 'exact'
+                    ? route == item.route
+                    : route starts with item.route %}
+                <div class="nav-item">
+                    <a href="{{ path(item.route) }}"
+                       class="nav-link {{ is_active ? 'active' : '' }}"
+                       {{ is_active ? 'aria-current="page"' : '' }}>
+                        <i class="nav-icon fas {{ item.icon }}" aria-hidden="true"></i>
+                        <span class="nav-text">{{ item.label }}</span>
+                    </a>
+                </div>
+            {% endfor %}
         </nav>
-        
+
+        {# Футер sidebar #}
         <div class="sidebar-footer">
-            <!-- Theme Switcher -->
+
+            {# ~ Переключатель темы ~ #}
             <div class="theme-selector mb-3">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <small class="text-muted nav-text">Тема оформления</small>
                 </div>
-                <div class="theme-options d-flex gap-2 flex-wrap">
-                    <button class="theme-option" data-theme-option="light" title="Светлая" aria-label="Светлая тема">
-                        <i class="fas fa-sun"></i>
-                    </button>
-                    <button class="theme-option" data-theme-option="dark" title="Тёмная" aria-label="Тёмная тема">
-                        <i class="fas fa-moon"></i>
-                    </button>
-                    <button class="theme-option" data-theme-option="orange" title="Оранжевая" aria-label="Оранжевая тема">
-                        <i class="fas fa-fire"></i>
-                    </button>
-                    <button class="theme-option" data-theme-option="purple" title="Фиолетовая" aria-label="Фиолетовая тема">
-                        <i class="fas fa-palette"></i>
-                    </button>
-                    <button class="theme-option" data-theme-option="custom" title="Настраиваемая" aria-label="Настраиваемая тема">
-                        <i class="fas fa-sliders-h"></i>
-                    </button>
+                <div class="theme-options d-flex gap-2 flex-wrap" role="group" aria-label="Выбор темы">
+                    <button class="theme-option" data-theme-option="light"  title="Светлая"       aria-label="Светлая тема"><i class="fas fa-sun" aria-hidden="true"></i></button>
+                    <button class="theme-option" data-theme-option="dark"   title="Тёмная"        aria-label="Тёмная тема"><i class="fas fa-moon" aria-hidden="true"></i></button>
+                    <button class="theme-option" data-theme-option="orange" title="Оранжевая"     aria-label="Оранжевая тема"><i class="fas fa-fire" aria-hidden="true"></i></button>
+                    <button class="theme-option" data-theme-option="purple" title="Фиолетовая"    aria-label="Фиолетовая тема"><i class="fas fa-palette" aria-hidden="true"></i></button>
+                    <button class="theme-option" data-theme-option="custom" title="Настраиваемая" aria-label="Настраиваемая тема"><i class="fas fa-sliders-h" aria-hidden="true"></i></button>
                 </div>
             </div>
-            
-            <div class="user-profile">
-                <div class="user-avatar">
-                    {{ app.user.fullName|slice(0, 1)|upper }}
+
+            {# ~ Профиль пользователя ~ #}
+            {% if app.user %}
+                <div class="user-profile">
+                    <div class="user-avatar" aria-hidden="true">
+                        {{ app.user.fullName|slice(0, 1)|upper }}
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name">{{ app.user.fullName }}</div>
+                        <div class="user-role">
+                            {{ 'ROLE_ADMIN' in app.user.roles ? 'Администратор' : 'Пользователь' }}
+                        </div>
+                    </div>
                 </div>
-                <div class="user-info">
-                    <div class="user-name">{{ app.user.fullName }}</div>
-                    <div class="user-role">{{ 'ROLE_ADMIN' in app.user.roles ? 'Администратор' : 'Пользователь' }}</div>
-                </div>
-            </div>
+            {% endif %}
         </div>
-        
-        <div class="sidebar-toggle" onclick="toggleSidebar()">
-            <i class="fas fa-chevron-left"></i>
-        </div>
+
+        <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Свернуть меню">
+            <i class="fas fa-chevron-left" aria-hidden="true"></i>
+        </button>
     </aside>
-    
-    <!-- Main Content -->
-    <main class="main-content">
+
+    {# ~ Основной контент ~ #}
+    <main class="main-content" id="main-content">
+
+        {# Top Bar #}
         <div class="top-bar">
             <h1 class="page-title">{% block page_title %}Панель управления{% endblock %}</h1>
-            
+
             <div class="top-actions">
-                <div class="search-box">
-                    <i class="search-icon fas fa-search"></i>
-                    <input type="text" class="search-input" placeholder="Поиск...">
+                <div class="search-box" role="search">
+                    <i class="search-icon fas fa-search" aria-hidden="true"></i>
+                    <input type="search" class="search-input" placeholder="Поиск..." aria-label="Поиск">
                 </div>
-                
-                <button class="icon-btn">
-                    <i class="fas fa-moon"></i>
+
+                <button class="icon-btn" onclick="window.themeManager?.cycleTheme()" aria-label="Сменить тему">
+                    <i class="fas fa-palette" aria-hidden="true"></i>
                 </button>
-                
-                <button class="icon-btn">
-                    <i class="fas fa-bell"></i>
-                    <span class="badge">3</span>
+
+                <button class="icon-btn" aria-label="Уведомления">
+                    <i class="fas fa-bell" aria-hidden="true"></i>
+                    <span class="badge" aria-label="3 уведомления">3</span>
                 </button>
-                
-                <a href="{{ path('app_profile_show') }}" class="icon-btn">
-                    <i class="fas fa-user"></i>
+
+                <a href="{{ path('app_profile_show') }}" class="icon-btn" aria-label="Профиль">
+                    <i class="fas fa-user" aria-hidden="true"></i>
                 </a>
             </div>
         </div>
-        
+
+        {# ~ Flash-сообщения ~ #}
+        {% block flash_messages %}
+            {% for type, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ type == 'error' ? 'danger' : type }} alert-dismissible fade show m-2" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+        {% endblock %}
+
         {% block body %}{% endblock %}
     </main>
-    
-    <!-- FAB Menu -->
+
+    {# ~ FAB меню быстрых действий ~ #}
     {% if app.user %}
-    <div class="fab-container" id="fabContainer">
-        <button class="fab-main" onclick="toggleFAB()">
-            <i class="fas fa-plus"></i>
-            <span class="fab-tooltip">Быстрые действия</span>
-        </button>
-        <div class="fab-menu">
-            <div class="fab-item">
-                <span class="fab-label">Сменить тему</span>
-                <button class="fab-button" data-theme-toggle style="border: none; background: var(--accent-primary);">
-                    <i class="fas fa-palette"></i>
-                </button>
-            </div>
-            <div class="fab-item">
-                <span class="fab-label">Новая задача</span>
-                <a href="{{ path('app_task_new') }}" class="fab-button">
-                    <i class="fas fa-tasks"></i>
-                </a>
-            </div>
-            <div class="fab-item">
-                <span class="fab-label">Канбан доска</span>
-                <a href="{{ path('app_kanban_board') }}" class="fab-button success">
-                    <i class="fas fa-columns"></i>
-                </a>
-            </div>
-            <div class="fab-item">
-                <span class="fab-label">Аналитика</span>
-                <a href="{{ path('app_analytics_dashboard') }}" class="fab-button info">
-                    <i class="fas fa-chart-line"></i>
-                </a>
-            </div>
-            <div class="fab-item">
-                <span class="fab-label">Календарь</span>
-                <a href="{{ path('app_calendar') }}" class="fab-button warning">
-                    <i class="fas fa-calendar"></i>
-                </a>
+        <div class="fab-container" id="fabContainer">
+            <button class="fab-main" onclick="toggleFAB()" aria-label="Быстрые действия" aria-expanded="false">
+                <i class="fas fa-plus" aria-hidden="true"></i>
+                <span class="fab-tooltip">Быстрые действия</span>
+            </button>
+            <div class="fab-menu" role="menu">
+                <div class="fab-item" role="none">
+                    <span class="fab-label">Сменить тему</span>
+                    <button class="fab-button" onclick="window.themeManager?.cycleTheme()" aria-label="Сменить тему" role="menuitem">
+                        <i class="fas fa-palette" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="fab-item" role="none">
+                    <span class="fab-label">Новая задача</span>
+                    <a href="{{ path('app_task_new') }}" class="fab-button" role="menuitem">
+                        <i class="fas fa-tasks" aria-hidden="true"></i>
+                    </a>
+                </div>
+                <div class="fab-item" role="none">
+                    <span class="fab-label">Канбан доска</span>
+                    <a href="{{ path('app_kanban_board') }}" class="fab-button success" role="menuitem">
+                        <i class="fas fa-columns" aria-hidden="true"></i>
+                    </a>
+                </div>
+                <div class="fab-item" role="none">
+                    <span class="fab-label">Аналитика</span>
+                    <a href="{{ path('app_analytics_dashboard') }}" class="fab-button info" role="menuitem">
+                        <i class="fas fa-chart-line" aria-hidden="true"></i>
+                    </a>
+                </div>
+                <div class="fab-item" role="none">
+                    <span class="fab-label">Календарь</span>
+                    <a href="{{ path('app_calendar') }}" class="fab-button warning" role="menuitem">
+                        <i class="fas fa-calendar" aria-hidden="true"></i>
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="fab-backdrop" onclick="toggleFAB()"></div>
+        <div class="fab-backdrop" onclick="toggleFAB()"></div>
     {% endif %}
-    
-    <!-- Theme Manager - загружается первым для предотвращения мерцания -->
-    <script src="{{ asset('js/components/global-interactions.js') }}"></script>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ asset('js/components/mobile-interactions.js') }}"></script>
-    <script src="{{ asset('js/components/advanced-widgets.js') }}"></script>
-    <script src="{{ asset('js/components/real-time-updates.js') }}"></script>
-    <script src="{{ asset('js/components/advanced-filters.js') }}"></script>
-    <script src="{{ asset('js/components/smooth-animations.js') }}"></script>
+
+    {# ~ No-Script ~ #}
+    <noscript>
+        <div class="alert alert-warning text-center m-0 rounded-0" role="alert">
+            Для корректной работы приложения необходимо включить JavaScript.
+        </div>
+    </noscript>
+
+    {# ~ Vendor JS ~ #}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
+            crossorigin="anonymous"
+            defer></script>
+
+    {# ~ Components JS ~ #}
+    <script src="{{ asset('js/components/global-interactions.js') }}"  defer></script>
+    <script src="{{ asset('js/components/mobile-interactions.js') }}"  defer></script>
+    <script src="{{ asset('js/components/advanced-widgets.js') }}"     defer></script>
+    <script src="{{ asset('js/components/real-time-updates.js') }}"    defer></script>
+    <script src="{{ asset('js/components/advanced-filters.js') }}"     defer></script>
+    <script src="{{ asset('js/components/smooth-animations.js') }}"    defer></script>
+
+    {# ~ Sidebar & UI логика ~ #}
     <script>
         function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
+            const sidebar     = document.getElementById('sidebar');
             const mainContent = document.querySelector('.main-content');
-            
-            sidebar.classList.toggle('collapsed');
-            localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
-            
-            // Триггерим resize для графиков после анимации
+            const collapsed   = sidebar.classList.toggle('collapsed');
+            const btn         = document.querySelector('.mobile-menu-btn');
+
+            localStorage.setItem('sidebarCollapsed', collapsed);
+            if (btn) btn.setAttribute('aria-expanded', String(!collapsed));
+
+            // Resize для графиков после анимации
             setTimeout(() => {
                 window.dispatchEvent(new Event('resize'));
-                
-                // Убираем will-change после анимации для оптимизации
-                sidebar.classList.add('animation-complete');
-                mainContent.classList.add('animation-complete');
-                
-                setTimeout(() => {
-                    sidebar.classList.remove('animation-complete');
-                    mainContent.classList.remove('animation-complete');
-                }, 50);
             }, 300);
         }
-        
+
         function toggleFAB() {
-            document.getElementById('fabContainer').classList.toggle('open');
+            const fab      = document.getElementById('fabContainer');
+            const expanded = fab.classList.toggle('open');
+            fab.querySelector('.fab-main')?.setAttribute('aria-expanded', String(expanded));
         }
-        
+
         function toggleMobileSidebar() {
-            const sidebar = document.getElementById('sidebar');
+            const sidebar  = document.getElementById('sidebar');
             const backdrop = document.getElementById('sidebarBackdrop');
-            sidebar.classList.toggle('mobile-open');
-            backdrop.classList.toggle('active');
-            
-            // Триггерим resize для графиков
-            setTimeout(() => {
-                window.dispatchEvent(new Event('resize'));
-            }, 300);
+            const btn      = document.querySelector('.mobile-menu-btn');
+            const opened   = sidebar.classList.toggle('mobile-open');
+
+            backdrop.classList.toggle('active', opened);
+            btn?.setAttribute('aria-expanded', String(opened));
+
+            setTimeout(() => window.dispatchEvent(new Event('resize')), 300);
         }
-        
+
         function closeMobileSidebar() {
-            const sidebar = document.getElementById('sidebar');
+            const sidebar  = document.getElementById('sidebar');
             const backdrop = document.getElementById('sidebarBackdrop');
+            const btn      = document.querySelector('.mobile-menu-btn');
+
             sidebar.classList.remove('mobile-open');
             backdrop.classList.remove('active');
-            
-            // Триггерим resize для графиков
-            setTimeout(() => {
-                window.dispatchEvent(new Event('resize'));
-            }, 300);
+            btn?.setAttribute('aria-expanded', 'false');
+
+            setTimeout(() => window.dispatchEvent(new Event('resize')), 300);
         }
-        
-        // Restore sidebar state
+
+        // Восстанавливаем состояние sidebar
         if (localStorage.getItem('sidebarCollapsed') === 'true') {
             document.getElementById('sidebar').classList.add('collapsed');
         }
-        
-        // Mobile menu toggle
-        document.addEventListener('DOMContentLoaded', function() {
-            const sidebar = document.getElementById('sidebar');
-            
-            // Close sidebar when clicking on nav link on mobile
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Закрываем sidebar при клике на ссылку (мобилка)
             document.querySelectorAll('.sidebar .nav-link').forEach(link => {
-                link.addEventListener('click', function() {
-                    if (window.innerWidth <= 1024) {
-                        closeMobileSidebar();
-                    }
+                link.addEventListener('click', () => {
+                    if (window.innerWidth <= 1024) closeMobileSidebar();
                 });
             });
-            
-            // Close FAB when clicking on menu item
+
+            // Закрываем FAB после нажатия
             document.querySelectorAll('.fab-button').forEach(btn => {
                 btn.addEventListener('click', () => {
                     document.getElementById('fabContainer').classList.remove('open');
                 });
             });
-            
-            // Обработка resize для адаптивности
+
+            // Плавное появление контента
+            const main = document.querySelector('.main-content');
+            if (main) {
+                main.style.opacity = '0';
+                requestAnimationFrame(() => {
+                    main.style.transition = 'opacity 0.3s ease';
+                    main.style.opacity    = '1';
+                });
+            }
+
+            // Debounced resize
             let resizeTimer;
             window.addEventListener('resize', () => {
                 clearTimeout(resizeTimer);
                 resizeTimer = setTimeout(() => {
-                    // Пересчитываем layout после resize
-                    const mainContent = document.querySelector('.main-content');
-                    if (mainContent) {
-                        mainContent.style.opacity = '0.95';
-                        setTimeout(() => {
-                            mainContent.style.opacity = '1';
-                        }, 50);
-                    }
+                    window.dispatchEvent(new Event('resize'));
                 }, 150);
             });
-            
-            // Плавное появление контента при загрузке
-            const mainContent = document.querySelector('.main-content');
-            if (mainContent) {
-                mainContent.style.opacity = '0';
-                setTimeout(() => {
-                    mainContent.style.transition = 'opacity 0.3s ease';
-                    mainContent.style.opacity = '1';
-                }, 100);
-            }
         });
     </script>
-    
+
+    {# ~ Скрипты дочерних шаблонов ~ #}
     {% block javascripts %}{% endblock %}
+
 </body>
 </html>

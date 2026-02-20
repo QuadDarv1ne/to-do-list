@@ -239,3 +239,17 @@ body {
     background: #047857;
     color: #34d399;
 }
+
+/* Page Header */
+.page-header {
+    background: var(--bg-card, #ffffff);
+    color: var(--text-primary, #1f2937);
+}
+
+.page-header-title {
+    color: var(--text-primary, #1f2937);
+}
+
+.page-header-subtitle {
+    color: var(--text-secondary, #6b7280);
+}

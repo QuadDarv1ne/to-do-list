@@ -12,17 +12,38 @@ const cleanCSS = new CleanCSS({
     compatibility: '*'
 });
 
-async function minifyJS() {
-    const files = fs.readdirSync(jsDir).filter(f => f.endsWith('.js') && !f.endsWith('.min.js'));
+// Recursively get all files in directory
+function getAllFiles(dir, ext, fileList = []) {
+    const files = fs.readdirSync(dir);
     
-    for (const file of files) {
+    files.forEach(file => {
+        const filePath = path.join(dir, file);
+        const stat = fs.statSync(filePath);
+        
+        if (stat.isDirectory()) {
+            getAllFiles(filePath, ext, fileList);
+        } else if (file.endsWith(ext) && !file.endsWith('.min' + ext)) {
+            fileList.push(filePath);
+        }
+    });
+    
+    return fileList;
+}
+
+async function minifyJS() {
+    const files = getAllFiles(jsDir, '.js');
+    
+    for (const inputPath of files) {
         try {
-            const inputPath = path.join(jsDir, file);
-            const outputPath = path.join(jsDir, file.replace('.js', '.min.js'));
-            
+            const outputPath = inputPath.replace('.js', '.min.js');
             const code = fs.readFileSync(inputPath, 'utf8');
+            
             const result = await Terser.minify(code, {
-                compress: true,
+                compress: {
+                    drop_console: true, // Remove console.* in production
+                    drop_debugger: true,
+                    pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.warn']
+                },
                 mangle: true,
                 format: {
                     comments: false
@@ -31,31 +52,29 @@ async function minifyJS() {
             
             if (result.code) {
                 fs.writeFileSync(outputPath, result.code);
-                console.log(`✓ Minified: ${file}`);
+                console.log(`✓ Minified: ${path.relative(publicDir, inputPath)}`);
             }
         } catch (error) {
-            console.error(`✗ Error minifying ${file}:`, error.message);
+            console.error(`✗ Error minifying ${path.relative(publicDir, inputPath)}:`, error.message);
         }
     }
 }
 
 function minifyCSS() {
-    const files = fs.readdirSync(cssDir).filter(f => f.endsWith('.css') && !f.endsWith('.min.css'));
+    const files = getAllFiles(cssDir, '.css');
     
-    for (const file of files) {
+    for (const inputPath of files) {
         try {
-            const inputPath = path.join(cssDir, file);
-            const outputPath = path.join(cssDir, file.replace('.css', '.min.css'));
-            
+            const outputPath = inputPath.replace('.css', '.min.css');
             const code = fs.readFileSync(inputPath, 'utf8');
             const result = cleanCSS.minify(code);
             
             if (result.styles) {
                 fs.writeFileSync(outputPath, result.styles);
-                console.log(`✓ Minified: ${file}`);
+                console.log(`✓ Minified: ${path.relative(publicDir, inputPath)}`);
             }
         } catch (error) {
-            console.error(`✗ Error minifying ${file}:`, error.message);
+            console.error(`✗ Error minifying ${path.relative(publicDir, inputPath)}:`, error.message);
         }
     }
 }

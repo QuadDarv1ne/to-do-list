@@ -252,13 +252,13 @@
                             </div>
                             {{ form_widget(form.progress, {
                                 'attr': {
-                                    'style': 'width: 100%; accent-color: var(--color-sales);',
+                                    'style': 'width: 100%; accent-color: var(--color-success);',
                                     'id': 'edit_task_progress'
                                 }
                             }) }}
                             <div style="height: 8px; background: var(--bg-secondary); border-radius: 4px; overflow: hidden; margin-top: 10px;">
                                 <div id="edit-progress-bar" style="height: 100%; width: {{ task.progress }}%; border-radius: 4px; transition: width 0.2s;
-                                    background: {% if task.progress == 100 %}var(--color-sales){% elseif task.progress >= 50 %}var(--color-orders){% else %}var(--color-bonuses){% endif %};"></div>
+                                    background: {% if task.progress == 100 %}var(--color-success){% elseif task.progress >= 50 %}var(--color-primary){% else %}var(--color-warning){% endif %};"></div>
                             </div>
                             {{ form_errors(form.progress) }}
                         </div>
@@ -301,7 +301,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const val = this.value;
             editProgressValue.textContent = val + '%';
             editProgressBar.style.width = val + '%';
-            const color = val == 100 ? 'var(--color-sales)' : val >= 50 ? 'var(--color-orders)' : 'var(--color-bonuses)';
+            const color = val == 100 ? 'var(--color-success)' : val >= 50 ? 'var(--color-primary)' : 'var(--color-warning)';
             editProgressBar.style.background = color;
         });
     }

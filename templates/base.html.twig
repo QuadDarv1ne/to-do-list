@@ -66,6 +66,17 @@
     
     <!-- Enhanced Theme Manager -->
     <script src="{{ asset('js/core/theme-manager-enhanced.js') }}"></script>
+    
+    <!-- Load theme on page load -->
+    <script>
+        (function() {
+            const theme = localStorage.getItem('theme') || 'light';
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = '/css/themes/topbar-theme-' + theme + '.css';
+            document.head.appendChild(link);
+        })();
+    </script>
 
     {% block stylesheets %}
         <!-- Page-specific styles (только при необходимости) -->
@@ -95,176 +106,6 @@
     </a>
 
     <!-- Modern Header Navigation -->
-    <style>
-        .modern-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            padding: 0;
-        }
-        
-        .modern-header .container-fluid {
-            padding: 1rem 2rem;
-        }
-        
-        .modern-brand {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            text-decoration: none;
-            color: white;
-            font-weight: 700;
-            font-size: 1.5rem;
-            transition: transform 0.2s;
-        }
-        
-        .modern-brand:hover {
-            transform: scale(1.05);
-            color: white;
-        }
-        
-        .modern-brand-icon {
-            width: 45px;
-            height: 45px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.3rem;
-            backdrop-filter: blur(10px);
-        }
-        
-        .modern-nav-link {
-            color: rgba(255, 255, 255, 0.9) !important;
-            padding: 0.75rem 1.25rem !important;
-            border-radius: 10px;
-            transition: all 0.2s;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .modern-nav-link:hover {
-            background: rgba(255, 255, 255, 0.15);
-            color: white !important;
-            transform: translateY(-2px);
-        }
-        
-        .modern-nav-link.active {
-            background: rgba(255, 255, 255, 0.25);
-            color: white !important;
-        }
-        
-        .modern-action-btn {
-            width: 42px;
-            height: 42px;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.15);
-            border: none;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
-            backdrop-filter: blur(10px);
-        }
-        
-        .modern-action-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: scale(1.1);
-        }
-        
-        .modern-notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: #ef4444;
-            color: white;
-            border-radius: 10px;
-            padding: 0.125rem 0.4rem;
-            font-size: 0.7rem;
-            font-weight: 700;
-            min-width: 20px;
-            text-align: center;
-        }
-        
-        .modern-user-avatar {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.25);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            color: white;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-        }
-        
-        .modern-user-avatar:hover {
-            transform: scale(1.1);
-            border-color: white;
-        }
-        
-        .modern-search {
-            position: relative;
-            max-width: 400px;
-        }
-        
-        .modern-search input {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            padding: 0.75rem 1rem 0.75rem 3rem;
-            color: white;
-            backdrop-filter: blur(10px);
-            transition: all 0.2s;
-        }
-        
-        .modern-search input::placeholder {
-            color: rgba(255, 255, 255, 0.6);
-        }
-        
-        .modern-search input:focus {
-            background: rgba(255, 255, 255, 0.25);
-            border-color: white;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
-        }
-        
-        .modern-search-icon {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: rgba(255, 255, 255, 0.7);
-        }
-        
-        .navbar-toggler {
-            border-color: rgba(255, 255, 255, 0.3);
-            padding: 0.5rem;
-        }
-        
-        .navbar-toggler-icon {
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 0.9)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
-        }
-        
-        @media (max-width: 991px) {
-            .modern-header .container-fluid {
-                padding: 1rem;
-            }
-            
-            .modern-nav-link {
-                margin: 0.25rem 0;
-            }
-        }
-    </style>
-    
     <nav class="navbar navbar-expand-lg modern-header sticky-top" role="navigation" aria-label="Основная навигация">
         <div class="container-fluid">
             <a class="modern-brand" href="{{ path('app_dashboard') }}">
@@ -511,6 +352,24 @@
         </a>
     </div>
     <div class="bottom-nav-fab-backdrop" id="fabBackdrop" onclick="toggleFabMenu()"></div>
+    
+    <script>
+        function toggleFabMenu() {
+            const menu = document.getElementById('fabMenu');
+            const backdrop = document.getElementById('fabBackdrop');
+            const button = document.getElementById('fabButton');
+            
+            if (menu.style.display === 'flex') {
+                menu.style.display = 'none';
+                backdrop.style.display = 'none';
+                button.querySelector('i').className = 'fas fa-plus';
+            } else {
+                menu.style.display = 'flex';
+                backdrop.style.display = 'block';
+                button.querySelector('i').className = 'fas fa-times';
+            }
+        }
+    </script>
     {% endif %}
 
     <!-- Scripts -->
