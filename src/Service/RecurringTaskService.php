@@ -17,6 +17,12 @@ class RecurringTaskService
 
     /**
      * Create recurring task
+     * TODO: Реализовать повторяющиеся задачи
+     * - Создать таблицу task_recurrence (task_id, frequency, interval, end_date, last_created, next_creation)
+     * - Поддержка сложных паттернов (каждый второй понедельник, последний день месяца)
+     * - Настройка времени создания задачи
+     * - Пропуск выходных дней
+     * - Автоматическое завершение серии при достижении end_date
      */
     public function createRecurring(Task $template, string $frequency, ?\DateTime $endDate = null): array
     {
@@ -51,6 +57,13 @@ class RecurringTaskService
 
     /**
      * Process recurring tasks (should be run by cron)
+     * TODO: Реализовать обработку повторяющихся задач
+     * - Создать Symfony Command для запуска через cron
+     * - Использовать Messenger для асинхронной обработки
+     * - Обработка ошибок и retry логика
+     * - Уведомления при создании новых задач
+     * - Логирование созданных задач
+     * - Добавить в crontab.example команду для запуска
      */
     public function processRecurringTasks(): array
     {
@@ -161,6 +174,11 @@ class RecurringTaskService
 
     /**
      * Get user's recurring tasks
+     * TODO: Реализовать получение повторяющихся задач пользователя
+     * - Запрос к таблице task_recurrence с JOIN к tasks
+     * - Показывать следующую дату создания
+     * - Статистика созданных задач по каждому правилу
+     * - Возможность редактирования правил
      */
     public function getUserRecurringTasks(User $user): array
     {
@@ -170,6 +188,11 @@ class RecurringTaskService
 
     /**
      * Delete recurring task
+     * TODO: Реализовать удаление повторяющихся задач
+     * - Удаление записи из task_recurrence
+     * - Опция: удалить все созданные задачи или только правило
+     * - Подтверждение перед удалением
+     * - Логирование удаления
      */
     public function deleteRecurring(int $configId): bool
     {

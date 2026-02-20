@@ -10,8 +10,8 @@ const CACHE_NAME = `todo-app-${CACHE_VERSION}`;
 const STATIC_CACHE = [
     '/',
     '/css/unified-styles.min.css',
-    '/js/core-bundle.min.js',
-    '/js/common-bundle.min.js',
+    '/js/unified-core.min.js',
+    '/js/navbar-enhanced.min.js',
     '/manifest.json'
 ];
 

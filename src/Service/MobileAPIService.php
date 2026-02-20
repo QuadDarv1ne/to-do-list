@@ -141,6 +141,11 @@ class MobileAPIService
 
     /**
      * Get recent notifications
+     * TODO: Реализовать получение уведомлений для мобильного API
+     * - Оптимизированный запрос с JOIN для предзагрузки связанных данных
+     * - Фильтрация по типу уведомлений
+     * - Пагинация для больших списков
+     * - Отметка прочитанных уведомлений
      */
     private function getRecentNotifications(User $user, int $limit): array
     {
@@ -150,6 +155,12 @@ class MobileAPIService
 
     /**
      * Quick create task (mobile)
+     * TODO: Реализовать быстрое создание задач
+     * - Сохранение в БД через EntityManager
+     * - Валидация входных данных
+     * - Автоматическое определение приоритета через AIAssistantService
+     * - Отправка уведомлений при создании
+     * - Поддержка голосового ввода (распознавание речи на клиенте)
      */
     public function quickCreateTask(User $user, array $data): array
     {
@@ -314,6 +325,12 @@ class MobileAPIService
 
     /**
      * Sync offline changes
+     * TODO: Улучшить синхронизацию оффлайн изменений
+     * - Обработка конфликтов (conflict resolution strategy)
+     * - Приоритет серверных данных vs клиентских
+     * - Merge стратегии для одновременных изменений
+     * - Транзакционная обработка для целостности данных
+     * - Логирование конфликтов для анализа
      */
     public function syncOfflineChanges(User $user, array $changes): array
     {
@@ -374,6 +391,12 @@ class MobileAPIService
 
     /**
      * Register device for push notifications
+     * TODO: Реализовать регистрацию устройств для push уведомлений
+     * - Создать таблицу user_devices (user_id, device_token, platform, app_version)
+     * - Поддержка FCM (Firebase Cloud Messaging) для Android
+     * - Поддержка APNs (Apple Push Notification service) для iOS
+     * - Обновление токена при переустановке приложения
+     * - Удаление неактивных устройств
      */
     public function registerDevice(User $user, array $deviceData): array
     {

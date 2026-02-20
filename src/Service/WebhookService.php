@@ -134,6 +134,11 @@ class WebhookService
 
     /**
      * Get active webhooks for event
+     * TODO: Реализовать управление webhooks
+     * - Создать таблицу webhooks (id, user_id, url, events, is_active, secret)
+     * - Фильтровать webhooks по типу события
+     * - Поддержка wildcard событий (*)
+     * - Проверка активности webhook перед отправкой
      */
     private function getActiveWebhooks(string $event): array
     {
@@ -188,6 +193,12 @@ class WebhookService
 
     /**
      * Get webhook statistics
+     * TODO: Реализовать статистику webhooks
+     * - Создать таблицу webhook_logs (webhook_id, event, status, response_time, created_at)
+     * - Подсчитывать успешные/неудачные отправки
+     * - Средний response time
+     * - График отправок по времени
+     * - Алерты при высоком проценте ошибок
      */
     public function getWebhookStats(): array
     {

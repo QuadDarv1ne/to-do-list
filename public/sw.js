@@ -17,8 +17,8 @@ const CRITICAL_ASSETS = [
     '/offline-page.html',
     '/manifest.json',
     '/css/unified-styles.min.css',
-    '/js/critical-functions.js',
-    '/js/core-bundle.min.js',
+    '/js/unified-core.min.js',
+    '/js/navbar-enhanced.min.js',
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];

@@ -1,0 +1,31 @@
+{# templates/components/_delete_form.html.twig #}
+{# 
+    Компонент формы удаления с подтверждением
+    
+    Параметры:
+    - route: маршрут для удаления (обязательный)
+    - id: ID сущности (обязательный)
+    - token_name: имя токена CSRF (по умолчанию 'delete')
+    - button_class: CSS класс кнопки (по умолчанию 'btn btn-outline-danger')
+    - button_text: текст кнопки (по умолчанию 'Удалить')
+    - button_icon: иконка кнопки (по умолчанию 'fa-trash')
+    - confirm_message: сообщение подтверждения (по умолчанию 'Вы уверены, что хотите удалить?')
+    - inline: отображать inline (по умолчанию true)
+#}
+
+{% set token_name = token_name|default('delete') %}
+{% set button_class = button_class|default('btn btn-outline-danger') %}
+{% set button_text = button_text|default('Удалить') %}
+{% set button_icon = button_icon|default('fa-trash') %}
+{% set confirm_message = confirm_message|default('Вы уверены, что хотите удалить?') %}
+{% set inline = inline is defined ? inline : true %}
+
+<form method="post" 
+      action="{{ path(route, {'id': id}) }}" 
+      {% if inline %}style="display: inline-block;"{% endif %}
+      onsubmit="return confirm('{{ confirm_message|e('js') }}');">
+    <input type="hidden" name="_token" value="{{ csrf_token(token_name ~ id) }}">
+    <button type="submit" class="{{ button_class }}">
+        <i class="fas {{ button_icon }}"></i> {{ button_text }}
+    </button>
+</form>

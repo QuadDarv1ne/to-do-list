@@ -199,6 +199,12 @@ class TaskImportService
 
     /**
      * Get import statistics
+     * TODO: Реализовать статистику импорта
+     * - Создать таблицу import_history (user_id, filename, rows_imported, rows_failed, created_at)
+     * - Подсчет общего количества импортов
+     * - Средний процент успешности
+     * - История последних импортов
+     * - График импортов по времени
      */
     public function getImportStatistics(): array
     {

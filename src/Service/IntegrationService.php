@@ -9,6 +9,11 @@ class IntegrationService
 {
     /**
      * GitHub Integration
+     * TODO: Реализовать полную интеграцию с GitHub API
+     * - Сохранение токена в базу данных (создать таблицу user_integrations)
+     * - Валидация токена через GitHub API
+     * - Получение списка репозиториев пользователя
+     * - Обработка ошибок авторизации
      */
     public function connectGitHub(User $user, string $token): array
     {
@@ -22,6 +27,12 @@ class IntegrationService
 
     /**
      * Create GitHub issue from task
+     * TODO: Реализовать создание GitHub issue
+     * - Использовать HttpClient для вызова GitHub API v3
+     * - Форматировать описание задачи в Markdown
+     * - Добавлять метки (labels) на основе приоритета и категории
+     * - Сохранять связь task_id <-> issue_number в БД
+     * - Обрабатывать rate limits GitHub API
      */
     public function createGitHubIssue(Task $task, string $repo): array
     {
@@ -35,6 +46,13 @@ class IntegrationService
 
     /**
      * Sync GitHub issues
+     * TODO: Реализовать двустороннюю синхронизацию
+     * - Получать issues из GitHub API с пагинацией
+     * - Создавать задачи для новых issues
+     * - Обновлять существующие задачи при изменении issues
+     * - Синхронизировать статусы (open/closed -> pending/completed)
+     * - Использовать Messenger для асинхронной обработки
+     * - Добавить webhook handler для real-time обновлений
      */
     public function syncGitHubIssues(User $user, string $repo): int
     {
@@ -44,6 +62,11 @@ class IntegrationService
 
     /**
      * Slack Integration
+     * TODO: Реализовать интеграцию со Slack
+     * - Сохранять webhook URL в таблицу user_integrations
+     * - Валидировать webhook через тестовое сообщение
+     * - Получать информацию о канале через Slack API
+     * - Поддержка OAuth для более безопасной авторизации
      */
     public function connectSlack(User $user, string $webhookUrl): array
     {
@@ -57,6 +80,12 @@ class IntegrationService
 
     /**
      * Send Slack notification
+     * TODO: Реализовать отправку уведомлений в Slack
+     * - Использовать HttpClient для POST запроса к webhook
+     * - Форматировать сообщения с использованием Block Kit
+     * - Добавлять кнопки действий (завершить задачу, открыть в системе)
+     * - Обрабатывать ошибки и retry логику
+     * - Логировать отправленные уведомления
      */
     public function sendSlackNotification(string $channel, string $message): bool
     {
@@ -66,6 +95,12 @@ class IntegrationService
 
     /**
      * Create task from Slack command
+     * TODO: Реализовать создание задач из Slack
+     * - Парсить slash команды (/task create "название" priority:high)
+     * - Создавать контроллер для обработки Slack webhooks
+     * - Валидировать Slack signature для безопасности
+     * - Отправлять подтверждение обратно в Slack
+     * - Поддержка интерактивных диалогов для заполнения деталей
      */
     public function createTaskFromSlack(array $slackData): Task
     {
@@ -75,6 +110,11 @@ class IntegrationService
 
     /**
      * Jira Integration
+     * TODO: Реализовать интеграцию с Jira
+     * - Сохранять credentials в зашифрованном виде
+     * - Тестировать подключение через Jira REST API
+     * - Получать список доступных проектов
+     * - Кэшировать данные проектов для производительности
      */
     public function connectJira(User $user, string $domain, string $email, string $apiToken): array
     {
@@ -88,6 +128,12 @@ class IntegrationService
 
     /**
      * Import Jira issues
+     * TODO: Реализовать импорт из Jira
+     * - Использовать JQL для фильтрации issues
+     * - Маппинг полей Jira -> Task (summary->title, description, priority, status)
+     * - Импорт вложений и комментариев
+     * - Сохранение связи с оригинальным issue для синхронизации
+     * - Обработка больших объемов данных через Messenger
      */
     public function importJiraIssues(User $user, string $projectKey): int
     {
@@ -109,6 +155,11 @@ class IntegrationService
 
     /**
      * Trello Integration
+     * TODO: Реализовать интеграцию с Trello
+     * - Сохранять API key и token в БД
+     * - Получать список досок пользователя через Trello API
+     * - Валидировать credentials
+     * - Поддержка OAuth для безопасной авторизации
      */
     public function connectTrello(User $user, string $apiKey, string $token): array
     {
@@ -130,6 +181,11 @@ class IntegrationService
 
     /**
      * Google Calendar Integration
+     * TODO: Реализовать интеграцию с Google Calendar
+     * - Использовать OAuth 2.0 для авторизации
+     * - Сохранять access и refresh tokens
+     * - Автоматическое обновление токенов при истечении
+     * - Получать список календарей пользователя
      */
     public function connectGoogleCalendar(User $user, string $accessToken): array
     {
@@ -142,6 +198,12 @@ class IntegrationService
 
     /**
      * Sync tasks to Google Calendar
+     * TODO: Реализовать синхронизацию с Google Calendar
+     * - Создавать события для задач с дедлайнами
+     * - Обновлять события при изменении задач
+     * - Удалять события при удалении задач
+     * - Двусторонняя синхронизация (изменения в календаре -> задачи)
+     * - Настройка напоминаний
      */
     public function syncToGoogleCalendar(User $user): int
     {
@@ -151,6 +213,12 @@ class IntegrationService
 
     /**
      * Telegram Integration
+     * TODO: Реализовать Telegram бота
+     * - Создать Telegram бота через BotFather
+     * - Сохранять chat_id пользователя в БД
+     * - Реализовать команды бота (/start, /tasks, /create)
+     * - Inline клавиатуры для быстрых действий
+     * - Webhook для получения сообщений от бота
      */
     public function connectTelegram(User $user, string $chatId): array
     {
@@ -272,6 +340,10 @@ class IntegrationService
 
     /**
      * Get user integrations
+     * TODO: Реализовать получение интеграций из БД
+     * - Создать таблицу user_integrations (user_id, type, credentials, settings, created_at)
+     * - Возвращать список активных интеграций с их статусом
+     * - Скрывать чувствительные данные (токены, пароли)
      */
     public function getUserIntegrations(User $user): array
     {

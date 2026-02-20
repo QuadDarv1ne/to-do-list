@@ -13,7 +13,13 @@ class AIAssistantService
     }
 
     /**
-     * Suggest task title based on description
+     * Suggest title based on description
+     * TODO: Интеграция с AI API для улучшения предложений
+     * - Использовать OpenAI API или локальную LLM модель
+     * - Анализировать контекст проекта и категории
+     * - Учитывать стиль названий задач пользователя
+     * - Поддержка разных языков (русский, английский)
+     * - Кэширование частых паттернов
      */
     public function suggestTitle(string $description): array
     {
@@ -98,6 +104,12 @@ class AIAssistantService
 
     /**
      * Suggest assignee based on task content and workload
+     * TODO: Улучшить алгоритм подбора исполнителя
+     * - Анализировать текущую загрузку пользователей
+     * - Учитывать навыки (skills) пользователей
+     * - Анализировать историю выполнения похожих задач
+     * - Machine Learning модель для предсказания лучшего исполнителя
+     * - Учитывать часовые пояса и доступность
      */
     public function suggestAssignee(Task $task): array
     {
@@ -361,6 +373,12 @@ class AIAssistantService
 
     /**
      * Predict completion time
+     * TODO: Улучшить предсказание времени выполнения
+     * - Анализировать историю выполнения похожих задач
+     * - Учитывать сложность на основе количества подзадач
+     * - Факторы: приоритет, категория, исполнитель
+     * - Machine Learning модель для точных предсказаний
+     * - Учитывать текущую загрузку команды
      */
     public function predictCompletionTime(Task $task): array
     {

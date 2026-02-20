@@ -306,22 +306,75 @@ class TaskController extends AbstractController
             if ($originalAssignedUser !== $task->getAssignedUser() &&
                 $task->getAssignedUser() &&
                 $task->getAssignedUser() !== $this->getUser()) {
-                $notificationService->sendTaskAssignmentNotification($task->getAssignedUser(), $this->getUser(), $task->getId(), $task->getName(), $task->getPriority());
+                $notificationService->sendTaskAssignmentNotification(
+                    $task->getAssignedUser(), 
+                    $this->getUser(), 
+                    $task->getId(), 
+                    $task->getName(), 
+                    $task->getPriority()
+                );
             }
 
             // Send notification if status changed
-            if ($originalStatus !== $task->getStatus()) {
-                $notificationService->sendTaskCompletionNotification($task->getUser(), $this->getUser(), $task->getId(), $task->getName());
+            if ($originalStatus !== $task->getStatus() && $task->getStatus() === 'completed') {
+                $notificationService->sendTaskCompletionNotification(
+                    $task->getUser(), 
+                    $this->getUser(), 
+                    $task->getId(), 
+                    $task->getName()
+                );
             }
 
             // Send notification if priority changed
             if ($originalPriority !== $task->getPriority()) {
-                // Priority change notifications not implemented in NotificationService
+                // Notify assigned user about priority change
+                if ($task->getAssignedUser() && $task->getAssignedUser() !== $this->getUser()) {
+                    $notificationService->sendTaskPriorityChangeNotification(
+                        $task->getAssignedUser(),
+                        $this->getUser(),
+                        $task->getId(),
+                        $task->getName(),
+                        $originalPriority,
+                        $task->getPriority()
+                    );
+                }
+                // Also notify task creator if different
+                if ($task->getUser() !== $this->getUser() && $task->getUser() !== $task->getAssignedUser()) {
+                    $notificationService->sendTaskPriorityChangeNotification(
+                        $task->getUser(),
+                        $this->getUser(),
+                        $task->getId(),
+                        $task->getName(),
+                        $originalPriority,
+                        $task->getPriority()
+                    );
+                }
             }
 
             // Send notification if due date changed
             if (($originalDueDate?->format('Y-m-d') ?? null) !== ($task->getDueDate()?->format('Y-m-d') ?? null)) {
-                // Due date change notifications not implemented in NotificationService
+                // Notify assigned user about due date change
+                if ($task->getAssignedUser() && $task->getAssignedUser() !== $this->getUser()) {
+                    $notificationService->sendTaskDueDateChangeNotification(
+                        $task->getAssignedUser(),
+                        $this->getUser(),
+                        $task->getId(),
+                        $task->getName(),
+                        $originalDueDate,
+                        $task->getDueDate()
+                    );
+                }
+                // Also notify task creator if different
+                if ($task->getUser() !== $this->getUser() && $task->getUser() !== $task->getAssignedUser()) {
+                    $notificationService->sendTaskDueDateChangeNotification(
+                        $task->getUser(),
+                        $this->getUser(),
+                        $task->getId(),
+                        $task->getName(),
+                        $originalDueDate,
+                        $task->getDueDate()
+                    );
+                }
             }
 
             $entityManager->flush();

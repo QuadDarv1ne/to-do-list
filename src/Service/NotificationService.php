@@ -367,6 +367,152 @@ class NotificationService
     }
 
     /**
+     * Send task priority change notification
+     */
+    public function sendTaskPriorityChangeNotification(
+        User $recipient,
+        User $changer,
+        int $taskId,
+        string $taskTitle,
+        string $oldPriority,
+        string $newPriority,
+    ): void {
+        if ($this->performanceMonitor) {
+            $this->performanceMonitor->startTiming('notification_service_send_priority_change_notification');
+        }
+
+        try {
+            $priorityLabels = [
+                'low' => 'низкий',
+                'medium' => 'средний',
+                'high' => 'высокий',
+                'urgent' => 'критический',
+            ];
+
+            $title = 'Изменен приоритет задачи';
+            $message = \sprintf(
+                'Пользователь %s изменил приоритет задачи "%s" с "%s" на "%s"',
+                $changer->getFullName(),
+                $taskTitle,
+                $priorityLabels[$oldPriority] ?? $oldPriority,
+                $priorityLabels[$newPriority] ?? $newPriority,
+            );
+
+            $this->createTaskNotification($recipient, $title, $message, $taskId, $taskTitle);
+        } finally {
+            if ($this->performanceMonitor) {
+                $this->performanceMonitor->stopTiming('notification_service_send_priority_change_notification');
+            }
+        }
+    }
+
+    /**
+     * Send task due date change notification
+     */
+    public function sendTaskDueDateChangeNotification(
+        User $recipient,
+        User $changer,
+        int $taskId,
+        string $taskTitle,
+        ?\DateTimeInterface $oldDueDate,
+        ?\DateTimeInterface $newDueDate,
+    ): void {
+        if ($this->performanceMonitor) {
+            $this->performanceMonitor->startTiming('notification_service_send_due_date_change_notification');
+        }
+
+        try {
+            $oldDateStr = $oldDueDate ? $oldDueDate->format('d.m.Y') : 'не установлен';
+            $newDateStr = $newDueDate ? $newDueDate->format('d.m.Y') : 'не установлен';
+
+            $title = 'Изменен срок выполнения задачи';
+            $message = \sprintf(
+                'Пользователь %s изменил срок выполнения задачи "%s" с %s на %s',
+                $changer->getFullName(),
+                $taskTitle,
+                $oldDateStr,
+                $newDateStr,
+            );
+
+            $this->createTaskNotification($recipient, $title, $message, $taskId, $taskTitle);
+        } finally {
+            if ($this->performanceMonitor) {
+                $this->performanceMonitor->stopTiming('notification_service_send_due_date_change_notification');
+            }
+        }
+    }
+
+    /**
+     * Send comment notification
+     */
+    public function sendCommentNotification(
+        User $recipient,
+        User $commenter,
+        int $taskId,
+        string $taskTitle,
+        string $commentPreview,
+    ): void {
+        if ($this->performanceMonitor) {
+            $this->performanceMonitor->startTiming('notification_service_send_comment_notification');
+        }
+
+        try {
+            $title = 'Новый комментарий к задаче';
+            $preview = mb_strlen($commentPreview) > 100 
+                ? mb_substr($commentPreview, 0, 100) . '...' 
+                : $commentPreview;
+
+            $message = \sprintf(
+                'Пользователь %s оставил комментарий к задаче "%s": %s',
+                $commenter->getFullName(),
+                $taskTitle,
+                $preview,
+            );
+
+            $this->createTaskNotification($recipient, $title, $message, $taskId, $taskTitle);
+        } finally {
+            if ($this->performanceMonitor) {
+                $this->performanceMonitor->stopTiming('notification_service_send_comment_notification');
+            }
+        }
+    }
+
+    /**
+     * Send mention notification
+     */
+    public function sendMentionNotification(
+        User $mentionedUser,
+        User $mentioner,
+        int $taskId,
+        string $taskTitle,
+        string $context,
+    ): void {
+        if ($this->performanceMonitor) {
+            $this->performanceMonitor->startTiming('notification_service_send_mention_notification');
+        }
+
+        try {
+            $title = 'Вас упомянули в комментарии';
+            $preview = mb_strlen($context) > 100 
+                ? mb_substr($context, 0, 100) . '...' 
+                : $context;
+
+            $message = \sprintf(
+                'Пользователь %s упомянул вас в задаче "%s": %s',
+                $mentioner->getFullName(),
+                $taskTitle,
+                $preview,
+            );
+
+            $this->createTaskNotification($mentionedUser, $title, $message, $taskId, $taskTitle);
+        } finally {
+            if ($this->performanceMonitor) {
+                $this->performanceMonitor->stopTiming('notification_service_send_mention_notification');
+            }
+        }
+    }
+
+    /**
      * Send deadline reminder notification
      */
     public function sendDeadlineReminder(
