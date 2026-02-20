@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/unified-themes.css') }}">
     <link rel="stylesheet" href="{{ asset('css/advanced-animations.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/fab-menu.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/modern-dashboard.css') }}">
     
     <style>
         /* Дополнительные стили для sidebar layout */
@@ -419,12 +421,55 @@
         {% block body %}{% endblock %}
     </main>
     
+    <!-- FAB Menu -->
+    {% if app.user %}
+    <div class="fab-container" id="fabContainer">
+        <button class="fab-main" onclick="toggleFAB()">
+            <i class="fas fa-plus"></i>
+            <span class="fab-tooltip">Быстрые действия</span>
+        </button>
+        <div class="fab-menu">
+            <div class="fab-item">
+                <span class="fab-label">Новая задача</span>
+                <a href="{{ path('app_task_new') }}" class="fab-button">
+                    <i class="fas fa-tasks"></i>
+                </a>
+            </div>
+            <div class="fab-item">
+                <span class="fab-label">Новый проект</span>
+                <a href="{{ path('app_project_new') }}" class="fab-button success">
+                    <i class="fas fa-folder-plus"></i>
+                </a>
+            </div>
+            <div class="fab-item">
+                <span class="fab-label">Аналитика</span>
+                <a href="{{ path('app_analytics_dashboard') }}" class="fab-button info">
+                    <i class="fas fa-chart-line"></i>
+                </a>
+            </div>
+            <div class="fab-item">
+                <span class="fab-label">Настройки</span>
+                <a href="{{ path('app_settings') }}" class="fab-button warning">
+                    <i class="fas fa-cog"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="fab-backdrop" onclick="toggleFAB()"></div>
+    {% endif %}
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ asset('js/unified-theme-system.js') }}"></script>
+    <script src="{{ asset('js/micro-interactions.js') }}"></script>
+    <script src="{{ asset('js/advanced-widgets.js') }}"></script>
     <script>
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('collapsed');
             localStorage.setItem('sidebarCollapsed', document.getElementById('sidebar').classList.contains('collapsed'));
+        }
+        
+        function toggleFAB() {
+            document.getElementById('fabContainer').classList.toggle('open');
         }
         
         // Restore sidebar state
@@ -441,6 +486,13 @@
                 if (window.innerWidth <= 768 && !sidebar.contains(e.target)) {
                     sidebar.classList.remove('mobile-open');
                 }
+            });
+            
+            // Close FAB when clicking on menu item
+            document.querySelectorAll('.fab-button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.getElementById('fabContainer').classList.remove('open');
+                });
             });
         });
     </script>

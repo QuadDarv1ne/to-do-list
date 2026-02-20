@@ -1,0 +1,296 @@
+/**
+ * Floating Action Button (FAB) Menu
+ * Современный паттерн для быстрых действий
+ */
+
+.fab-container {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 1000;
+}
+
+.fab-main {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 8px 24px rgba(99, 102, 241, 0.3);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    position: relative;
+    overflow: hidden;
+}
+
+.fab-main::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.fab-main:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.fab-main:hover {
+    transform: scale(1.1) rotate(90deg);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2), 0 12px 32px rgba(99, 102, 241, 0.4);
+}
+
+.fab-main:active {
+    transform: scale(0.95) rotate(90deg);
+}
+
+.fab-main i {
+    position: relative;
+    z-index: 1;
+    transition: transform 0.3s ease;
+}
+
+.fab-container.open .fab-main i {
+    transform: rotate(45deg);
+}
+
+.fab-menu {
+    position: absolute;
+    bottom: 70px;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.fab-container.open .fab-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.fab-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    opacity: 0;
+    transform: translateX(20px);
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.fab-container.open .fab-item {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.fab-container.open .fab-item:nth-child(1) { transition-delay: 0.05s; }
+.fab-container.open .fab-item:nth-child(2) { transition-delay: 0.1s; }
+.fab-container.open .fab-item:nth-child(3) { transition-delay: 0.15s; }
+.fab-container.open .fab-item:nth-child(4) { transition-delay: 0.2s; }
+
+.fab-label {
+    background: var(--card-bg);
+    color: var(--text-light);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border-color);
+    opacity: 0;
+    transform: translateX(10px);
+    transition: all 0.2s ease;
+}
+
+.fab-item:hover .fab-label {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.fab-button {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--card-bg);
+    color: var(--text-light);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.fab-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.fab-button:active {
+    transform: scale(0.95);
+}
+
+/* Цветные варианты */
+.fab-button.success {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+    border-color: var(--success);
+}
+
+.fab-button.success:hover {
+    background: var(--success);
+    color: white;
+}
+
+.fab-button.warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning);
+    border-color: var(--warning);
+}
+
+.fab-button.warning:hover {
+    background: var(--warning);
+    color: white;
+}
+
+.fab-button.info {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--info);
+    border-color: var(--info);
+}
+
+.fab-button.info:hover {
+    background: var(--info);
+    color: white;
+}
+
+/* Backdrop */
+.fab-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 999;
+}
+
+.fab-container.open ~ .fab-backdrop {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .fab-container {
+        bottom: 1rem;
+        right: 1rem;
+    }
+
+    .fab-main {
+        width: 52px;
+        height: 52px;
+    }
+
+    .fab-button {
+        width: 44px;
+        height: 44px;
+    }
+
+    .fab-label {
+        font-size: 13px;
+        padding: 6px 12px;
+    }
+}
+
+/* Анимация пульсации для привлечения внимания */
+@keyframes fab-pulse {
+    0%, 100% {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 8px 24px rgba(99, 102, 241, 0.3);
+    }
+    50% {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 8px 24px rgba(99, 102, 241, 0.6);
+    }
+}
+
+.fab-main.pulse {
+    animation: fab-pulse 2s ease-in-out infinite;
+}
+
+/* Tooltip для FAB */
+.fab-tooltip {
+    position: absolute;
+    right: 70px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    pointer-events: none;
+}
+
+.fab-main:hover .fab-tooltip {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Счётчик уведомлений на FAB */
+.fab-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: var(--danger);
+    color: white;
+    border-radius: 10px;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-weight: 700;
+    min-width: 20px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    animation: badge-pop 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes badge-pop {
+    0% {
+        transform: scale(0);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
