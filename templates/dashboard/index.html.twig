@@ -4,7 +4,7 @@
 
 {% block stylesheets %}
     {{ parent() }}
-    <link rel="stylesheet" href="{{ asset('css/components/dashboard-cards.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/components/dashboard-cards.css') }}?v=3">
     <link rel="stylesheet" href="{{ asset('css/pages/dashboard-enhanced.css') }}">
 {% endblock %}
 
@@ -21,8 +21,8 @@
     </div>
 
     <!-- Quick Stats -->
-    <div class="quick-stats">
-        <div class="stat-card stagger-item hover-lift" style="--stat-color: #10b981; --stat-bg: rgba(16, 185, 129, 0.1);">
+    <div class="quick-stats stagger-container">
+        <div class="stat-card hover-lift reveal" style="--stat-color: #10b981; --stat-bg: rgba(16, 185, 129, 0.1);" data-tooltip="Общее количество задач в системе">
             <div class="stat-header">
                 <div class="stat-icon">
                     <i class="fas fa-tasks"></i>
@@ -32,14 +32,14 @@
                     <span>12%</span>
                 </div>
             </div>
-            <div class="stat-value">{{ task_stats.total|default(24) }}</div>
+            <div class="stat-value counter">{{ task_stats.total|default(24) }}</div>
             <div class="stat-label">Всего задач</div>
             <div class="progress-bar-container">
-                <div class="progress-bar progress-animated" style="width: 75%;"></div>
+                <div class="progress-bar progress-animated" style="width: 75%; background: linear-gradient(90deg, #10b981, #059669);"></div>
             </div>
         </div>
 
-        <div class="stat-card stagger-item hover-lift delay-100" style="--stat-color: #f59e0b; --stat-bg: rgba(245, 158, 11, 0.1);">
+        <div class="stat-card hover-lift reveal" style="--stat-color: #f59e0b; --stat-bg: rgba(245, 158, 11, 0.1);" data-tooltip="Задачи в процессе выполнения">
             <div class="stat-header">
                 <div class="stat-icon">
                     <i class="fas fa-clock"></i>
@@ -49,14 +49,14 @@
                     <span>8%</span>
                 </div>
             </div>
-            <div class="stat-value">{{ task_stats.in_progress|default(8) }}</div>
+            <div class="stat-value counter">{{ task_stats.in_progress|default(8) }}</div>
             <div class="stat-label">В работе</div>
             <div class="progress-bar-container">
                 <div class="progress-bar progress-animated" style="width: 60%; background: linear-gradient(90deg, #f59e0b, #d97706);"></div>
             </div>
         </div>
 
-        <div class="stat-card stagger-item hover-lift delay-200" style="--stat-color: #6366f1; --stat-bg: rgba(99, 102, 241, 0.1);">
+        <div class="stat-card hover-lift reveal" style="--stat-color: #6366f1; --stat-bg: rgba(99, 102, 241, 0.1);" data-tooltip="Успешно завершённые задачи">
             <div class="stat-header">
                 <div class="stat-icon">
                     <i class="fas fa-check-circle"></i>
@@ -66,14 +66,14 @@
                     <span>15%</span>
                 </div>
             </div>
-            <div class="stat-value">{{ task_stats.completed|default(12) }}</div>
+            <div class="stat-value counter">{{ task_stats.completed|default(12) }}</div>
             <div class="stat-label">Завершено</div>
             <div class="progress-bar-container">
                 <div class="progress-bar progress-animated" style="width: 85%; background: linear-gradient(90deg, #6366f1, #4f46e5);"></div>
             </div>
         </div>
 
-        <div class="stat-card stagger-item hover-lift delay-300" style="--stat-color: #ef4444; --stat-bg: rgba(239, 68, 68, 0.1);">
+        <div class="stat-card hover-lift reveal" style="--stat-color: #ef4444; --stat-bg: rgba(239, 68, 68, 0.1);" data-tooltip="Задачи с истёкшим сроком">
             <div class="stat-header">
                 <div class="stat-icon">
                     <i class="fas fa-exclamation-triangle"></i>
@@ -83,7 +83,7 @@
                     <span>5%</span>
                 </div>
             </div>
-            <div class="stat-value">{{ task_stats.overdue|default(4) }}</div>
+            <div class="stat-value counter">{{ task_stats.overdue|default(4) }}</div>
             <div class="stat-label">Просрочено</div>
             <div class="progress-bar-container">
                 <div class="progress-bar progress-animated" style="width: 30%; background: linear-gradient(90deg, #ef4444, #dc2626);"></div>
@@ -272,6 +272,7 @@ document.querySelectorAll('.task-checkbox').forEach(checkbox => {
 {% block javascripts %}
     {{ parent() }}
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="{{ asset('js/components/dashboard-interactions.js') }}"></script>
     <script>
         // Tasks Chart
         const tasksCtx = document.getElementById('tasksChart').getContext('2d');
