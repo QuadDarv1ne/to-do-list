@@ -159,27 +159,6 @@
     border-radius: 3px;
     font-weight: 600;
 }
-
-.empty-state {
-    text-align: center;
-    padding: 5rem 2rem;
-}
-
-.empty-state i {
-    font-size: 5rem;
-    color: #dee2e6;
-    margin-bottom: 2rem;
-    animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-    0%, 100% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-20px);
-    }
-}
 </style>
 {% endblock %}
 
@@ -252,21 +231,25 @@
 
             <div class="col-lg-9">
                 {% if results.total == 0 %}
-                    <div class="card border-0 shadow-sm">
-                        <div class="empty-state">
-                            <i class="fas fa-search-minus"></i>
-                            <h3 class="mb-3">Ничего не найдено</h3>
-                            <p class="text-muted mb-4">По запросу "{{ query }}" результатов не найдено</p>
-                            <div class="d-flex gap-2 justify-content-center">
-                                <a href="{{ path('app_search') }}" class="btn btn-primary">
-                                    <i class="fas fa-search me-2"></i>Новый поиск
-                                </a>
-                                <a href="{{ path('app_dashboard') }}" class="btn btn-outline-secondary">
-                                    <i class="fas fa-home me-2"></i>На главную
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+                    {{ include('components/empty_state.html.twig', {
+                        icon: 'search-minus',
+                        title: 'Ничего не найдено',
+                        message: 'По запросу "' ~ query ~ '" результатов не найдено',
+                        actions: [
+                            {
+                                label: 'Новый поиск',
+                                url: path('app_search'),
+                                icon: 'search',
+                                class: 'btn-primary'
+                            },
+                            {
+                                label: 'На главную',
+                                url: path('app_dashboard'),
+                                icon: 'home',
+                                class: 'btn-outline-secondary'
+                            }
+                        ]
+                    }) }}
                 {% else %}
                     <div class="mb-3">
                         <h5 class="text-muted">

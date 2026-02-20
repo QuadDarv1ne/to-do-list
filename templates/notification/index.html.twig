@@ -196,27 +196,6 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
-.empty-state {
-    text-align: center;
-    padding: 5rem 2rem;
-}
-
-.empty-state i {
-    font-size: 5rem;
-    color: #dee2e6;
-    margin-bottom: 2rem;
-    animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-    0%, 100% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-20px);
-    }
-}
-
 .stats-bar {
     display: flex;
     gap: 1rem;
@@ -427,17 +406,19 @@
             </div>
         </div>
     {% else %}
-        <div class="card-modern">
-            <div class="card-body-modern text-center py-5">
-                <i class="fas fa-bell-slash fa-3x text-muted mb-4"></i>
-                <h3 class="mb-3">Уведомлений нет</h3>
-                <p class="text-muted mb-4">Здесь будут отображаться ваши уведомления</p>
-                <a href="{{ path('app_dashboard') }}" class="btn btn-primary-modern">
-                    <i class="fas fa-home me-2"></i>
-                    На главную
-                </a>
-            </div>
-        </div>
+        {{ include('components/empty_state.html.twig', {
+            icon: 'bell-slash',
+            title: 'Уведомлений нет',
+            message: 'Здесь будут отображаться ваши уведомления',
+            actions: [
+                {
+                    label: 'На главную',
+                    url: path('app_dashboard'),
+                    icon: 'home',
+                    class: 'btn-primary'
+                }
+            ]
+        }) }}
     {% endif %}
 </div>
 {% endblock %}

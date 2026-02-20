@@ -133,27 +133,6 @@
     letter-spacing: 0.5px;
 }
 
-.empty-report-state {
-    text-align: center;
-    padding: 5rem 2rem;
-}
-
-.empty-report-state i {
-    font-size: 5rem;
-    color: #dee2e6;
-    margin-bottom: 2rem;
-    animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-    0%, 100% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-20px);
-    }
-}
-
 .chart-container {
     position: relative;
     height: 300px;
@@ -245,11 +224,11 @@
                     </h5>
                 </div>
                 <div class="card-body" id="report-results">
-                    <div class="empty-report-state">
-                        <i class="fas fa-chart-pie"></i>
-                        <h3 class="mb-3">Выберите отчет</h3>
-                        <p class="text-muted mb-0">Выберите отчет из списка слева для просмотра данных</p>
-                    </div>
+                    {{ include('components/empty_state.html.twig', {
+                        icon: 'chart-pie',
+                        title: 'Выберите отчет',
+                        message: 'Выберите отчет из списка слева для просмотра данных'
+                    }) }}
                 </div>
             </div>
         </div>

@@ -179,24 +179,25 @@
             </div>
         </div>
     {% else %}
-        <!-- Empty State -->
-        <div class="empty-state-container py-5 text-center">
-            <div class="empty-state-icon bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 120px; height: 120px;">
-                <i class="fas fa-tags fa-3x text-primary"></i>
-            </div>
-            <h3 class="mb-3">Теги не найдены</h3>
-            <p class="lead text-muted mb-4">Создайте первый тег для начала организации ваших задач</p>
-            <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
-                <a href="{{ path('app_tag_new') }}" class="btn btn-primary btn-lg px-4 py-3">
-                    <i class="fas fa-plus me-2"></i>
-                    Создать тег
-                </a>
-                <a href="{{ path('app_task_index') }}" class="btn btn-outline-secondary btn-lg px-4 py-3">
-                    <i class="fas fa-tasks me-2"></i>
-                    Просмотреть задачи
-                </a>
-            </div>
-        </div>
+        {{ include('components/empty_state.html.twig', {
+            icon: 'tags',
+            title: 'Теги не найдены',
+            message: 'Создайте первый тег для начала организации ваших задач',
+            actions: [
+                {
+                    label: 'Создать тег',
+                    url: path('app_tag_new'),
+                    icon: 'plus',
+                    class: 'btn-primary'
+                },
+                {
+                    label: 'Просмотреть задачи',
+                    url: path('app_task_index'),
+                    icon: 'tasks',
+                    class: 'btn-outline-secondary'
+                }
+            ]
+        }) }}
     {% endif %}
 </div>
 
@@ -330,19 +331,6 @@ document.addEventListener('DOMContentLoaded', function() {
 .dropdown-item:hover {
     background-color: rgba(13, 110, 253, 0.1);
     transform: translateX(5px);
-}
-
-.empty-state-container {
-    animation: fadeInUp 0.8s ease;
-}
-
-.empty-state-icon {
-    transition: all 0.3s ease;
-}
-
-.empty-state-icon:hover {
-    transform: scale(1.05);
-    box-shadow: 0 8px 25px rgba(13, 110, 253, 0.2) !important;
 }
 
 .tag-cloud-container {
