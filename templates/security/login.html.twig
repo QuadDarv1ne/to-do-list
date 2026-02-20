@@ -6,21 +6,22 @@
 
 {% block stylesheets %}
     {{ parent() }}
-    <link rel="stylesheet" href="{{ asset('css/pages/login-enhanced.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/pages/auth-enhanced.css') }}">
 {% endblock %}
 
 {% block body %}
-<div class="login-card">
-    <div class="login-header">
-        <div class="login-logo">
-            <i class="fas fa-chart-line me-2"></i>CRM система
+<div class="auth-card">
+    <div class="auth-header">
+        <div class="auth-icon">
+            <i class="fas fa-chart-line"></i>
         </div>
-        <div class="login-subtitle">Анализ продаж ООО «Дальневосточный фермер»</div>
+        <h2>Вход в систему</h2>
+        <p>CRM система: Анализ продаж</p>
     </div>
     
-    <div class="login-body">
+    <div class="auth-body">
         {% if session_expired %}
-            <div class="session-expired">
+            <div class="alert alert-warning mb-4">
                 <i class="fas fa-clock me-2"></i>
                 Ваша сессия истекла. Пожалуйста, войдите снова.
             </div>
@@ -53,7 +54,7 @@
                 <label for="inputPassword" class="form-label">
                     <i class="fas fa-lock me-2"></i>Пароль
                 </label>
-                <div class="input-group-custom">
+                <div class="password-wrapper">
                     <input type="password" 
                            name="password" 
                            id="inputPassword" 
@@ -79,17 +80,17 @@
             
             <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
             
-            <button type="submit" class="btn btn-login mb-4" id="loginBtn">
+            <button type="submit" class="btn-auth" id="loginBtn">
                 <span class="btn-text">
                     <i class="fas fa-sign-in-alt me-2"></i>Войти в систему
                 </span>
-                <span class="loading-spinner">
+                <span class="loading-spinner" style="display: none;">
                     <i class="fas fa-spinner fa-spin"></i>
                 </span>
             </button>
         </form>
         
-        <div class="login-footer">
+        <div class="auth-footer">
             <p class="text-muted mb-3">
                 <i class="fas fa-info-circle me-2"></i>
                 Нет аккаунта? 
@@ -125,7 +126,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (loginForm && loginBtn) {
         loginForm.addEventListener('submit', function() {
-            loginBtn.classList.add('loading');
+            const btnText = loginBtn.querySelector('.btn-text');
+            const spinner = loginBtn.querySelector('.loading-spinner');
+            if (btnText) btnText.style.display = 'none';
+            if (spinner) spinner.style.display = 'inline-block';
             loginBtn.disabled = true;
         });
     }

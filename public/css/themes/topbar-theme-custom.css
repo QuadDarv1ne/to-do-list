@@ -21,16 +21,25 @@
     --border-primary: #059669;
     --border-secondary: #10b981;
     --border: #059669;
+    --border-color: #059669;
+    
+    --bg-input: #065f46;
     
     --color-primary: #10b981;
     --color-primary-light: rgba(16, 185, 129, 0.2);
+    --color-primary-rgb: 16, 185, 129;
+    --color-secondary: #34d399;
     --color-accent: #34d399;
     --color-success: #34d399;
     --color-success-light: rgba(52, 211, 153, 0.2);
+    --color-success-rgb: 52, 211, 153;
     --color-warning: #fbbf24;
     --color-warning-light: rgba(251, 191, 36, 0.2);
     --color-danger: #f87171;
     --color-danger-light: rgba(248, 113, 113, 0.2);
+    --color-danger-rgb: 248, 113, 113;
+    --color-info: #60a5fa;
+    --color-info-rgb: 96, 165, 250;
     
     --primary: #10b981;
     --success: #34d399;

@@ -1,198 +1,217 @@
 {% extends 'auth_base.html.twig' %}
 
+{# ~ Заголовок страницы ~ #}
 {% block title %}Регистрация{% endblock %}
 
+{# ~ Page-specific CSS ~ #}
 {% block stylesheets %}
     {{ parent() }}
     <link rel="stylesheet" href="{{ asset('css/pages/auth-enhanced.css') }}">
 {% endblock %}
 
+{# ~ Контент ~ #}
 {% block body %}
 <div class="register-container">
+
+    {# ~ Шапка формы ~ #}
     <div class="register-header">
-        <div class="register-icon">
+        <div class="register-icon" aria-hidden="true">
             <i class="fas fa-user-plus"></i>
         </div>
         <h2>Создать аккаунт</h2>
         <p>CRM система: Анализ продаж</p>
     </div>
-    
+
     <div class="register-body">
+
+        {# ~ Ошибки формы ~ #}
         {% if registration_form.vars.errors|length > 0 %}
-            <div class="alert alert-danger">
-                <i class="fas fa-exclamation-circle"></i>
+            <div class="alert alert-danger" role="alert">
+                <i class="fas fa-exclamation-circle me-2" aria-hidden="true"></i>
                 {{ form_errors(registration_form) }}
             </div>
         {% endif %}
-        
+
         {% for flash_error in app.flashes('verify_email_error') %}
-            <div class="alert alert-danger">
-                <i class="fas fa-exclamation-circle"></i>
+            <div class="alert alert-danger" role="alert">
+                <i class="fas fa-exclamation-circle me-2" aria-hidden="true"></i>
                 {{ flash_error }}
             </div>
         {% endfor %}
-        
-        {{ form_start(registration_form, {'attr': {'novalidate': 'novalidate'}}) }}
-        
-        <div class="row">
-            <div class="col-half">
-                <div class="form-group">
-                    <label class="form-label">
-                        <i class="fas fa-user"></i>
-                        Имя
-                    </label>
-                    {{ form_widget(registration_form.firstName, {
-                        'attr': {'class': 'form-control', 'placeholder': 'Иван'}
-                    }) }}
-                    {{ form_errors(registration_form.firstName) }}
+
+        {# ~ Форма ~ #}
+        {{ form_start(registration_form, { attr: { novalidate: 'novalidate', id: 'registration-form' } }) }}
+
+            {# Имя + Фамилия #}
+            <div class="row">
+                <div class="col-half">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-user" aria-hidden="true"></i> Имя
+                        </label>
+                        {{ form_widget(registration_form.firstName, { attr: { class: 'form-control', placeholder: 'Иван' } }) }}
+                        {{ form_errors(registration_form.firstName) }}
+                    </div>
+                </div>
+                <div class="col-half">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-user" aria-hidden="true"></i> Фамилия
+                        </label>
+                        {{ form_widget(registration_form.lastName, { attr: { class: 'form-control', placeholder: 'Иванов' } }) }}
+                        {{ form_errors(registration_form.lastName) }}
+                    </div>
                 </div>
             </div>
-            <div class="col-half">
-                <div class="form-group">
-                    <label class="form-label">
-                        <i class="fas fa-user"></i>
-                        Фамилия
-                    </label>
-                    {{ form_widget(registration_form.lastName, {
-                        'attr': {'class': 'form-control', 'placeholder': 'Иванов'}
-                    }) }}
-                    {{ form_errors(registration_form.lastName) }}
+
+            {# Логин #}
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-id-badge" aria-hidden="true"></i> Логин
+                </label>
+                {{ form_widget(registration_form.username, { attr: { class: 'form-control', placeholder: 'ivanov', autocomplete: 'username' } }) }}
+                {{ form_errors(registration_form.username) }}
+            </div>
+
+            {# Email #}
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-envelope" aria-hidden="true"></i> Email
+                </label>
+                {{ form_widget(registration_form.email, { attr: { class: 'form-control', placeholder: 'ivanov@company.ru', type: 'email', autocomplete: 'email' } }) }}
+                {{ form_errors(registration_form.email) }}
+            </div>
+
+            {# Пароль #}
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-lock" aria-hidden="true"></i> Пароль
+                </label>
+                <div class="password-wrapper">
+                    {{ form_widget(registration_form.plainPassword.first, { attr: { class: 'form-control', placeholder: 'Минимум 8 символов', id: 'password-first', autocomplete: 'new-password' } }) }}
+                    <button type="button" class="password-toggle" data-target="password-first" aria-label="Показать пароль">
+                        <i class="fas fa-eye" aria-hidden="true"></i>
+                    </button>
+                </div>
+                {{ form_errors(registration_form.plainPassword.first) }}
+            </div>
+
+            {# Подтверждение пароля #}
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-lock" aria-hidden="true"></i> Подтверждение пароля
+                </label>
+                <div class="password-wrapper">
+                    {{ form_widget(registration_form.plainPassword.second, { attr: { class: 'form-control', placeholder: 'Повторите пароль', id: 'password-second', autocomplete: 'new-password' } }) }}
+                    <button type="button" class="password-toggle" data-target="password-second" aria-label="Показать пароль">
+                        <i class="fas fa-eye" aria-hidden="true"></i>
+                    </button>
+                </div>
+                {{ form_errors(registration_form.plainPassword.second) }}
+            </div>
+
+            {# Телефон #}
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-phone" aria-hidden="true"></i> Телефон
+                </label>
+                {{ form_widget(registration_form.phone, { attr: { class: 'form-control', placeholder: '+7 (999) 123-45-67', type: 'tel', autocomplete: 'tel' } }) }}
+                {{ form_errors(registration_form.phone) }}
+            </div>
+
+            {# Должность + Отдел #}
+            <div class="row">
+                <div class="col-half">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-briefcase" aria-hidden="true"></i> Должность
+                        </label>
+                        {{ form_widget(registration_form.position, { attr: { class: 'form-control', placeholder: 'Менеджер' } }) }}
+                        {{ form_errors(registration_form.position) }}
+                    </div>
+                </div>
+                <div class="col-half">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-building" aria-hidden="true"></i> Отдел
+                        </label>
+                        {{ form_widget(registration_form.department, { attr: { class: 'form-control', placeholder: 'Продажи' } }) }}
+                        {{ form_errors(registration_form.department) }}
+                    </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="form-group">
-            <label class="form-label">
-                <i class="fas fa-id-badge"></i>
-                Логин
-            </label>
-            {{ form_widget(registration_form.username, {
-                'attr': {'class': 'form-control', 'placeholder': 'ivanov'}
-            }) }}
-            {{ form_errors(registration_form.username) }}
-        </div>
-        
-        <div class="form-group">
-            <label class="form-label">
-                <i class="fas fa-envelope"></i>
-                Email
-            </label>
-            {{ form_widget(registration_form.email, {
-                'attr': {'class': 'form-control', 'placeholder': 'ivanov@dvfarm.ru', 'type': 'email'}
-            }) }}
-            {{ form_errors(registration_form.email) }}
-        </div>
-        
-        <div class="form-group">
-            <label class="form-label">
-                <i class="fas fa-lock"></i>
-                Пароль
-            </label>
-            <div class="password-wrapper">
-                {{ form_widget(registration_form.plainPassword.first, {
-                    'attr': {'class': 'form-control', 'placeholder': 'Минимум 8 символов', 'id': 'password-first'}
-                }) }}
-                <i class="fas fa-eye password-toggle" data-target="password-first"></i>
-            </div>
-            {{ form_errors(registration_form.plainPassword.first) }}
-        </div>
-        
-        <div class="form-group">
-            <label class="form-label">
-                <i class="fas fa-lock"></i>
-                Подтверждение пароля
-            </label>
-            <div class="password-wrapper">
-                {{ form_widget(registration_form.plainPassword.second, {
-                    'attr': {'class': 'form-control', 'placeholder': 'Повторите пароль', 'id': 'password-second'}
-                }) }}
-                <i class="fas fa-eye password-toggle" data-target="password-second"></i>
-            </div>
-            {{ form_errors(registration_form.plainPassword.second) }}
-        </div>
-        
-        <div class="form-group">
-            <label class="form-label">
-                <i class="fas fa-phone"></i>
-                Телефон
-            </label>
-            {{ form_widget(registration_form.phone, {
-                'attr': {'class': 'form-control', 'placeholder': '+7 (999) 123-45-67'}
-            }) }}
-            {{ form_errors(registration_form.phone) }}
-        </div>
-        
-        <div class="row">
-            <div class="col-half">
-                <div class="form-group">
-                    <label class="form-label">
-                        <i class="fas fa-briefcase"></i>
-                        Должность
-                    </label>
-                    {{ form_widget(registration_form.position, {
-                        'attr': {'class': 'form-control', 'placeholder': 'Менеджер'}
-                    }) }}
-                    {{ form_errors(registration_form.position) }}
-                </div>
-            </div>
-            <div class="col-half">
-                <div class="form-group">
-                    <label class="form-label">
-                        <i class="fas fa-building"></i>
-                        Отдел
-                    </label>
-                    {{ form_widget(registration_form.department, {
-                        'attr': {'class': 'form-control', 'placeholder': 'Продажи'}
-                    }) }}
-                    {{ form_errors(registration_form.department) }}
-                </div>
-            </div>
-        </div>
-        
-        <button type="submit" class="btn-register">
-            <span>
-                <i class="fas fa-user-plus me-2"></i>
-                Зарегистрироваться
-            </span>
-        </button>
-        
+
+            <button type="submit" class="btn-register">
+                <i class="fas fa-user-plus me-2" aria-hidden="true"></i>
+                <span>Зарегистрироваться</span>
+            </button>
+
         {{ form_end(registration_form) }}
-        
+
+        {# ~ Ссылка на логин ~ #}
         <div class="register-footer">
             <p>Уже есть аккаунт?</p>
             <a href="{{ path('app_login') }}">
-                <i class="fas fa-sign-in-alt"></i>
+                <i class="fas fa-sign-in-alt" aria-hidden="true"></i>
                 Войти в систему
             </a>
         </div>
+
     </div>
 </div>
+{% endblock %}
 
-<script>
-document.querySelectorAll('.password-toggle').forEach(toggle => {
-    toggle.addEventListener('click', function() {
-        const targetId = this.getAttribute('data-target');
-        const input = document.getElementById(targetId);
-        
-        if (input) {
-            const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
-            input.setAttribute('type', type);
-            
-            this.classList.toggle('fa-eye');
-            this.classList.toggle('fa-eye-slash');
+{# ~ JS ~ #}
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // ~ Переключатель видимости пароля ~
+        document.querySelectorAll('.password-toggle').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const input = document.getElementById(this.dataset.target);
+                if (!input) return;
+
+                const isPassword = input.type === 'password';
+                input.type = isPassword ? 'text' : 'password';
+
+                const icon = this.querySelector('i');
+                icon?.classList.toggle('fa-eye',       !isPassword);
+                icon?.classList.toggle('fa-eye-slash',  isPassword);
+                this.setAttribute('aria-label', isPassword ? 'Скрыть пароль' : 'Показать пароль');
+            });
+        });
+
+        // ~ Эффект фокуса на полях ~
+        document.querySelectorAll('.form-control').forEach(input => {
+            const wrapper = () => input.closest('.password-wrapper') ?? input.parentElement;
+            input.addEventListener('focus', () => { if (wrapper()) wrapper().style.transform = 'scale(1.01)'; });
+            input.addEventListener('blur',  () => { if (wrapper()) wrapper().style.transform = 'scale(1)'; });
+        });
+
+        // ~ Валидация совпадения паролей ~
+        const p1 = document.getElementById('password-first');
+        const p2 = document.getElementById('password-second');
+        if (p1 && p2) {
+            const validate = () => {
+                p2.classList.toggle('is-invalid', !!p2.value && p1.value !== p2.value);
+            };
+            p1.addEventListener('input', validate);
+            p2.addEventListener('input', validate);
         }
-    });
-});
 
-document.querySelectorAll('.form-control').forEach(input => {
-    input.addEventListener('focus', function() {
-        this.parentElement.style.transform = 'scale(1.02)';
-        this.parentElement.style.transition = 'transform 0.3s ease';
+        // ~ Лоадер на отправку формы ~
+        document.getElementById('registration-form')?.addEventListener('submit', function () {
+            const btn  = this.querySelector('button[type="submit"]');
+            const icon = btn?.querySelector('i');
+            if (!btn) return;
+
+            btn.disabled     = true;
+            btn.style.opacity = '0.7';
+            if (icon) icon.className = 'fas fa-spinner fa-spin me-2';
+        });
+
     });
-    
-    input.addEventListener('blur', function() {
-        this.parentElement.style.transform = 'scale(1)';
-    });
-});
-</script>
+    </script>
 {% endblock %}

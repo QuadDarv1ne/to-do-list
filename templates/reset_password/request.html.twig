@@ -53,4 +53,29 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitBtn = form?.querySelector('button[type="submit"]');
+    
+    if (form && submitBtn) {
+        form.addEventListener('submit', function() {
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = '0.7';
+            
+            const icon = submitBtn.querySelector('i');
+            if (icon) {
+                icon.className = 'fas fa-spinner fa-spin me-2';
+            }
+        });
+    }
+    
+    // Auto-focus email input
+    const emailInput = form?.querySelector('input[type="email"]');
+    if (emailInput) {
+        emailInput.focus();
+    }
+});
+</script>
 {% endblock %}

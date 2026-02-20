@@ -68,27 +68,49 @@
 </div>
 
 <script>
-// Password strength indicator
-document.getElementById('password-input')?.addEventListener('input', function(e) {
-    const password = e.target.value;
+document.addEventListener('DOMContentLoaded', function() {
+    // Password strength indicator
+    const passwordInput = document.getElementById('password-input');
     const strengthBar = document.getElementById('password-strength-bar');
     
-    let strength = 0;
-    if (password.length >= 8) strength += 25;
-    if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength += 25;
-    if (password.match(/[0-9]/)) strength += 25;
-    if (password.match(/[^a-zA-Z0-9]/)) strength += 25;
+    if (passwordInput && strengthBar) {
+        passwordInput.addEventListener('input', function(e) {
+            const password = e.target.value;
+            
+            let strength = 0;
+            if (password.length >= 8) strength += 25;
+            if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength += 25;
+            if (password.match(/[0-9]/)) strength += 25;
+            if (password.match(/[^a-zA-Z0-9]/)) strength += 25;
+            
+            strengthBar.style.width = strength + '%';
+            
+            if (strength <= 25) {
+                strengthBar.style.backgroundColor = '#dc3545';
+            } else if (strength <= 50) {
+                strengthBar.style.backgroundColor = '#ffc107';
+            } else if (strength <= 75) {
+                strengthBar.style.backgroundColor = '#17a2b8';
+            } else {
+                strengthBar.style.backgroundColor = '#28a745';
+            }
+        });
+    }
     
-    strengthBar.style.width = strength + '%';
+    // Form submission
+    const form = document.querySelector('form');
+    const submitBtn = form?.querySelector('button[type="submit"]');
     
-    if (strength <= 25) {
-        strengthBar.style.backgroundColor = '#dc3545';
-    } else if (strength <= 50) {
-        strengthBar.style.backgroundColor = '#ffc107';
-    } else if (strength <= 75) {
-        strengthBar.style.backgroundColor = '#17a2b8';
-    } else {
-        strengthBar.style.backgroundColor = '#28a745';
+    if (form && submitBtn) {
+        form.addEventListener('submit', function() {
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = '0.7';
+            
+            const icon = submitBtn.querySelector('i');
+            if (icon) {
+                icon.className = 'fas fa-spinner fa-spin me-2';
+            }
+        });
     }
 });
 </script>
