@@ -420,7 +420,7 @@
             <script {{ nonce_attr }} src="{{ asset('js/components/table-enhancements.js') }}" defer></script>
         {% endif %}
         {% if app.request.attributes.get('_route') == 'app_kanban_board' %}
-            <script {{ nonce_attr }} src="{{ asset('js/pages/kanban-enhanced.js') }}" defer></script>
+            <script {{ nonce_attr }} src="{{ asset('js/pages/kanban-enhanced.js') }}?v={{ 'now'|date('U') }}" defer></script>
         {% endif %}
         {% if app.request.attributes.get('_route') == 'app_calendar' %}
             <script {{ nonce_attr }} src="{{ asset('js/pages/calendar-enhanced.js') }}" defer></script>

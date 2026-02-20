@@ -157,7 +157,7 @@ class DashboardController extends AbstractController
         $dealsByStage = $dealRepository->getDealsByStage($manager);
         $dealsCountByStatus = $dealRepository->getDealsCountByStatus($manager);
         $overdueDeals = $dealRepository->getOverdueDeals($manager);
-        $monthRevenue = $dealRepository->getTotalRevenue($startOfMonth, $endOfMonth, $manager);
+        $monthRevenue = $dealRepository->getTotalRevenueForPeriod($startOfMonth, $endOfMonth, $manager);
         $topClients = $clientRepository->getTopClientsByRevenue(5, $manager);
         $totalClients = $clientRepository->getTotalCount($manager);
         $newClientsThisMonth = $clientRepository->getNewClientsCount($startOfMonth, $endOfMonth, $manager);

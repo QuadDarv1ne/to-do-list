@@ -64,7 +64,7 @@ class DealApiController extends AbstractController
 
         $startOfMonth = new \DateTime('first day of this month');
         $endOfMonth = new \DateTime('last day of this month');
-        $monthRevenue = $dealRepository->getTotalRevenue($startOfMonth, $endOfMonth, $manager);
+        $monthRevenue = $dealRepository->getTotalRevenueForPeriod($startOfMonth, $endOfMonth, $manager);
 
         return $this->json([
             'success' => true,

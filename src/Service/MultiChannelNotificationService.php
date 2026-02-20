@@ -19,8 +19,8 @@ class MultiChannelNotificationService
         private NotificationRepository $notificationRepository,
         private NotificationTemplateService $templateService,
         private MailerInterface $mailer,
-        private ?NotifierInterface $notifier = null,
         private LoggerInterface $logger,
+        private ?NotifierInterface $notifier = null,
     ) {
     }
 

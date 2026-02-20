@@ -216,7 +216,7 @@ class AdvancedUI {
     }
 
     createNewTask() {
-        window.location.href = '/task/new';
+        window.location.href = '/tasks/new';
     }
 
     saveData() {

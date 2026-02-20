@@ -136,13 +136,15 @@ class TimeTrackingService
             $totalTime += $duration;
 
             $taskId = $tracking->getTask()->getId();
-            if (!isset($tasksTracked[$taskId])) {
-                $tasksTracked[$taskId] = [
+            // Use empty string for null task IDs to avoid deprecation
+            $taskKey = $taskId ?? '';
+            if (!isset($tasksTracked[$taskKey])) {
+                $tasksTracked[$taskKey] = [
                     'task' => $tracking->getTask(),
                     'time' => 0,
                 ];
             }
-            $tasksTracked[$taskId]['time'] += $duration;
+            $tasksTracked[$taskKey]['time'] += $duration;
 
             // Group by day
             $dayKey = $tracking->getDateLogged()->format('Y-m-d');

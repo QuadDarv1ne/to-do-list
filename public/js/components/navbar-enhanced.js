@@ -159,7 +159,7 @@
                 window.location.href = '/profile';
                 break;
             case 'n':
-                window.location.href = '/task/new';
+                window.location.href = '/tasks/new';
                 break;
             case '?':
                 const modal = new bootstrap.Modal(document.getElementById('keyboardShortcutsModal'));

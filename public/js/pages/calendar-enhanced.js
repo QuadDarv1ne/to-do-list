@@ -218,10 +218,10 @@ function showDayModal(data) {
                                             <small class="text-muted">${event.time || ''}</small>
                                         </div>
                                         <div class="btn-group btn-group-sm">
-                                            <a href="/task/${event.id}" class="btn btn-outline-primary">
+                                            <a href="/tasks/${event.id}" class="btn btn-outline-primary">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a href="/task/${event.id}/edit" class="btn btn-outline-secondary">
+                                            <a href="/tasks/${event.id}/edit" class="btn btn-outline-secondary">
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                         </div>
@@ -233,7 +233,7 @@ function showDayModal(data) {
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-                    <a href="/task/new?date=${data.date}" class="btn btn-primary">
+                    <a href="/tasks/new?date=${data.date}" class="btn btn-primary">
                         <i class="fas fa-plus me-2"></i>Добавить задачу
                     </a>
                 </div>
@@ -257,7 +257,7 @@ function initEventActions() {
         
         const eventId = event.dataset.eventId;
         if (eventId) {
-            window.location.href = `/task/${eventId}`;
+            window.location.href = `/tasks/${eventId}`;
         }
     });
 }
@@ -279,7 +279,7 @@ function initQuickEventAdd() {
  */
 function showQuickEventForm() {
     // Implementation depends on your requirements
-    window.location.href = '/task/new';
+    window.location.href = '/tasks/new';
 }
 
 /**

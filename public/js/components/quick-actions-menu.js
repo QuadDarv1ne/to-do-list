@@ -164,7 +164,7 @@ class QuickActionsMenu {
                 if (quickTaskBtn) {
                     quickTaskBtn.click();
                 } else {
-                    window.location.href = '/task/new';
+                    window.location.href = '/tasks/new';
                 }
                 break;
                 

@@ -25,8 +25,8 @@ class CRMAnalyticsService
         $endOfPrevMonth = new \DateTime('last day of last month');
 
         // Revenue
-        $currentRevenue = $this->dealRepository->getTotalRevenue($startOfMonth, $endOfMonth, $manager);
-        $previousRevenue = $this->dealRepository->getTotalRevenue($startOfPrevMonth, $endOfPrevMonth, $manager);
+        $currentRevenue = $this->dealRepository->getTotalRevenueForPeriod($startOfMonth, $endOfMonth, $manager);
+        $previousRevenue = $this->dealRepository->getTotalRevenueForPeriod($startOfPrevMonth, $endOfPrevMonth, $manager);
         $revenueTrend = $previousRevenue > 0 ? (($currentRevenue - $previousRevenue) / $previousRevenue) * 100 : 0;
 
         // Deals

@@ -343,7 +343,7 @@ class AdvancedWidgets {
 
     executeCommand(action) {
         const actions = {
-            'new-task': () => window.location.href = '/task/new',
+            'new-task': () => window.location.href = '/tasks/new',
             'new-project': () => window.location.href = '/project/new',
             'analytics': () => window.location.href = '/analytics',
             'users': () => window.location.href = '/user',

@@ -87,6 +87,24 @@ class DealRepository extends ServiceEntityRepository
     /**
      * Get total revenue for period
      */
+    public function getTotalRevenueForPeriod(\DateTimeInterface $startDate, \DateTimeInterface $endDate, ?User $manager = null): float
+    {
+        $qb = $this->createQueryBuilder('d')
+            ->select('SUM(d.amount)')
+            ->where('d.status = :status')
+            ->andWhere('d.actualCloseDate >= :startDate')
+            ->andWhere('d.actualCloseDate <= :endDate')
+            ->setParameter('status', 'won')
+            ->setParameter('startDate', $startDate)
+            ->setParameter('endDate', $endDate);
+
+        if ($manager) {
+            $qb->andWhere('d.manager = :manager')
+               ->setParameter('manager', $manager);
+        }
+
+        return (float) ($qb->getQuery()->getSingleScalarResult() ?? 0);
+    }
 
     /**
      * Get deals count by status
@@ -191,5 +209,49 @@ class DealRepository extends ServiceEntityRepository
         }
 
         return (float) ($qb->getQuery()->getSingleScalarResult() ?? 0);
+    }
+
+    /**
+     * Get conversion rate (won / total closed) for period
+     */
+    public function getConversionRate(\DateTimeInterface $startDate, \DateTimeInterface $endDate, ?User $manager = null): float
+    {
+        $qb = $this->createQueryBuilder('d')
+            ->select('COUNT(d.id)')
+            ->where('d.actualCloseDate >= :startDate')
+            ->andWhere('d.actualCloseDate <= :endDate')
+            ->andWhere('d.status IN (:statuses)')
+            ->setParameter('startDate', $startDate)
+            ->setParameter('endDate', $endDate)
+            ->setParameter('statuses', ['won', 'lost']);
+
+        if ($manager) {
+            $qb->andWhere('d.manager = :manager')
+               ->setParameter('manager', $manager);
+        }
+
+        $totalClosed = (int) $qb->getQuery()->getSingleScalarResult();
+
+        if ($totalClosed === 0) {
+            return 0;
+        }
+
+        $qbWon = $this->createQueryBuilder('d')
+            ->select('COUNT(d.id)')
+            ->where('d.actualCloseDate >= :startDate')
+            ->andWhere('d.actualCloseDate <= :endDate')
+            ->andWhere('d.status = :status')
+            ->setParameter('startDate', $startDate)
+            ->setParameter('endDate', $endDate)
+            ->setParameter('status', 'won');
+
+        if ($manager) {
+            $qbWon->andWhere('d.manager = :manager')
+                  ->setParameter('manager', $manager);
+        }
+
+        $wonDeals = (int) $qbWon->getQuery()->getSingleScalarResult();
+
+        return round(($wonDeals / $totalClosed) * 100, 2);
     }
 }

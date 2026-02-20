@@ -122,7 +122,7 @@ function initCardActions() {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
             const taskId = this.closest('.kanban-card').dataset.taskId;
-            window.location.href = `/task/${taskId}/edit`;
+            window.location.href = `/tasks/${taskId}/edit`;
         });
     });
     
@@ -146,7 +146,7 @@ function initCardActions() {
             if (e.target.closest('button') || e.target.closest('a')) return;
             
             const taskId = this.dataset.taskId;
-            window.location.href = `/task/${taskId}`;
+            window.location.href = `/tasks/${taskId}`;
         });
     });
 }

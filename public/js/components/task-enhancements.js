@@ -279,7 +279,7 @@ class TaskEnhancements {
         document.body.appendChild(modal);
         
         // Здесь можно загрузить данные задачи через AJAX
-        // fetch(`/task/${taskId}/quick-view`)...
+        // fetch(`/tasks/${taskId}/quick-view`)...
     }
 
     /**
@@ -341,7 +341,7 @@ class TaskEnhancements {
             // Ctrl/Cmd + N - новая задача
             if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
                 e.preventDefault();
-                window.location.href = '/task/new';
+                window.location.href = '/tasks/new';
             }
             
             // Ctrl/Cmd + F - фокус на поиск

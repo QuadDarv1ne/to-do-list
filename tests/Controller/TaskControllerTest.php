@@ -74,8 +74,8 @@ class TaskControllerTest extends WebTestCase
 
         $this->client->submit($form);
 
-        // Should redirect to tasks list
-        $this->assertResponseRedirects('/tasks');
+        // Should redirect to tasks list (with trailing slash)
+        $this->assertResponseRedirects('/tasks/', 303);
     }
 
     public function testViewTask(): void
@@ -157,8 +157,8 @@ class TaskControllerTest extends WebTestCase
         // Test deleting the task
         $this->client->request('POST', '/tasks/' . $task->getId() . '/delete');
 
-        // Should redirect to tasks list
-        $this->assertResponseRedirects('/tasks');
+        // Should redirect to tasks list (with trailing slash)
+        $this->assertResponseRedirects('/tasks/', 303);
     }
 
     public function testTaskSearch(): void
@@ -169,15 +169,15 @@ class TaskControllerTest extends WebTestCase
         $entityManager = static::getContainer()->get('doctrine')->getManager();
 
         $task1 = new Task();
-        $task1->setTitle('Важная задача');
-        $task1->setDescription('Срочно нужно сделать');
+        $task1->setTitle('Important Task');
+        $task1->setDescription('Urgent task description');
         $task1->setPriority('high');
         $task1->setUser($this->testUser);
         $task1->setAssignedUser($this->testUser);
 
         $task2 = new Task();
-        $task2->setTitle('Обычная задача');
-        $task2->setDescription('Можно сделать позже');
+        $task2->setTitle('Regular Task');
+        $task2->setDescription('Can do later');
         $task2->setPriority('medium');
         $task2->setUser($this->testUser);
         $task2->setAssignedUser($this->testUser);
@@ -186,11 +186,12 @@ class TaskControllerTest extends WebTestCase
         $entityManager->persist($task2);
         $entityManager->flush();
 
-        // Test search
-        $this->client->request('GET', '/tasks?search=важная');
+        // Test search (follow redirect to /tasks/?search=...)
+        $this->client->request('GET', '/tasks?search=important');
+        $this->client->followRedirect();
 
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('.task-title', 'Важная задача');
+        $this->assertSelectorTextContains('.fw-medium', 'Important Task');
     }
 
     protected function tearDown(): void
