@@ -910,7 +910,7 @@ class TaskRepository extends ServiceEntityRepository
             ->leftJoin('t.category', 'c')->addSelect('c')
             ->leftJoin('t.tags', 'tg')->addSelect('tg')
             ->leftJoin('t.comments', 'cm')->addSelect('cm')
-            ->leftJoin('cm.user', 'cmu')->addSelect('cmu')
+            ->leftJoin('cm.author', 'cmu')->addSelect('cmu')
             ->where('t.id = :id')
             ->setParameter('id', $id)
             ->orderBy('cm.createdAt', 'DESC')
