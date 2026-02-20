@@ -5,35 +5,6 @@
 {% block stylesheets %}
 {{ parent() }}
 <style>
-.clients-container {
-    animation: fadeIn 0.6s ease-out;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-.clients-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 2rem;
-    border-radius: 16px;
-    margin-bottom: 2rem;
-    animation: fadeInDown 0.6s ease-out;
-}
-
-@keyframes fadeInDown {
-    from {
-        opacity: 0;
-        transform: translateY(-30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
 .stats-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -48,24 +19,12 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     transition: all 0.3s ease;
     border-left: 4px solid;
-    animation: slideInUp 0.5s ease-out backwards;
 }
 
-.stat-card-client:nth-child(1) { animation-delay: 0.1s; border-left-color: #667eea; }
-.stat-card-client:nth-child(2) { animation-delay: 0.2s; border-left-color: #28a745; }
-.stat-card-client:nth-child(3) { animation-delay: 0.3s; border-left-color: #ffc107; }
-.stat-card-client:nth-child(4) { animation-delay: 0.4s; border-left-color: #17a2b8; }
-
-@keyframes slideInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+.stat-card-client:nth-child(1) { border-left-color: #667eea; }
+.stat-card-client:nth-child(2) { border-left-color: #28a745; }
+.stat-card-client:nth-child(3) { border-left-color: #ffc107; }
+.stat-card-client:nth-child(4) { border-left-color: #17a2b8; }
 
 .stat-card-client:hover {
     transform: translateY(-5px);
@@ -94,24 +53,6 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     transition: all 0.3s ease;
     border-left: 4px solid #667eea;
-    animation: fadeInUp 0.5s ease-out backwards;
-}
-
-.client-card:nth-child(1) { animation-delay: 0.1s; }
-.client-card:nth-child(2) { animation-delay: 0.15s; }
-.client-card:nth-child(3) { animation-delay: 0.2s; }
-.client-card:nth-child(4) { animation-delay: 0.25s; }
-.client-card:nth-child(5) { animation-delay: 0.3s; }
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 
 .client-card:hover {
@@ -123,7 +64,6 @@
     width: 60px;
     height: 60px;
     border-radius: 12px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     display: flex;
     align-items: center;
@@ -150,19 +90,6 @@
     border-radius: 12px;
     font-size: 0.75rem;
     font-weight: 600;
-}
-
-.btn-modern {
-    border-radius: 8px;
-    padding: 0.5rem 1rem;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    border: none;
-}
-
-.btn-modern:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .search-box {
@@ -195,8 +122,8 @@
     ]
 }) }}
 
-<div class="container-fluid py-4 clients-container">
-    <div class="clients-header">
+<div class="container-fluid py-4 animate-fade-in">
+    <div class="page-header stagger-item">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div>
                 <h1 class="mb-1">
@@ -205,7 +132,7 @@
                 </h1>
                 <p class="mb-0 opacity-75">Управление базой клиентов</p>
             </div>
-            <a href="{{ path('app_clients_new') }}" class="btn btn-light btn-modern">
+            <a href="{{ path('app_clients_new') }}" class="btn btn-gradient-primary">
                 <i class="fas fa-plus me-2"></i>
                 Добавить клиента
             </a>
@@ -214,19 +141,19 @@
 
     {% if clients is not empty %}
         <div class="stats-row">
-            <div class="stat-card-client">
+            <div class="stat-card-client stagger-item delay-100">
                 <div class="stat-number-client text-primary">{{ clients|length }}</div>
                 <div class="stat-label-client">Всего клиентов</div>
             </div>
-            <div class="stat-card-client">
+            <div class="stat-card-client stagger-item delay-200">
                 <div class="stat-number-client text-success">{{ clients|filter(c => c.category == 'vip')|length }}</div>
                 <div class="stat-label-client">VIP клиенты</div>
             </div>
-            <div class="stat-card-client">
+            <div class="stat-card-client stagger-item delay-300">
                 <div class="stat-number-client text-warning">{{ clients|filter(c => c.category == 'new')|length }}</div>
                 <div class="stat-label-client">Новые</div>
             </div>
-            <div class="stat-card-client">
+            <div class="stat-card-client stagger-item delay-400">
                 <div class="stat-number-client text-info">{{ clients|filter(c => c.segment == 'wholesale')|length }}</div>
                 <div class="stat-label-client">Оптовые</div>
             </div>
@@ -265,7 +192,7 @@
                      data-segment="{{ client.segment }}"
                      data-category="{{ client.category }}">
                     <div class="d-flex align-items-start gap-3">
-                        <div class="client-avatar">
+                        <div class="client-avatar avatar-primary">
                             {{ client.companyName|slice(0, 2)|upper }}
                         </div>
                         <div class="flex-grow-1">
