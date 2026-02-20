@@ -25,8 +25,8 @@ class ResetPasswordController extends AbstractController
         private TokenGeneratorInterface $tokenGenerator,
         private EntityManagerInterface $entityManager,
         private MailerInterface $mailer,
-        private string $fromEmail = 'noreply@todolist.local',
-        private string $fromName = 'Система управления задачами',
+        private string $fromEmail = '',
+        private string $fromName = '',
     ) {
     }
 

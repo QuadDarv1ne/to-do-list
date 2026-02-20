@@ -65,7 +65,7 @@ class QuickSearchService
     private function searchUsers(string $query, int $limit): array
     {
         return $this->userRepository->createQueryBuilder('u')
-            ->where('u.username LIKE :query OR u.email LIKE :query OR u.fullName LIKE :query')
+            ->where('u.username LIKE :query OR u.email LIKE :query OR CONCAT(u.firstName, \' \', u.lastName) LIKE :query')
             ->setParameter('query', '%' . $query . '%')
             ->setMaxResults($limit)
             ->getQuery()

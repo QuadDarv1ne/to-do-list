@@ -12,6 +12,7 @@ use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -132,6 +133,18 @@ class TaskType extends AbstractType
                     'data-controller' => 'user-select',
                 ],
                 'placeholder' => 'Выберите исполнителя',
+            ])
+            ->add('progress', IntegerType::class, [
+                'label' => 'Прогресс (%)',
+                'required' => false,
+                'attr' => [
+                    'class' => 'form-range',
+                    'min' => 0,
+                    'max' => 100,
+                    'step' => 5,
+                    'type' => 'range',
+                    'data-progress-slider' => 'true',
+                ],
             ])
             ->add('tags', EntityType::class, [
                 'label' => 'Теги',

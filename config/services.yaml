@@ -1,5 +1,7 @@
 parameters:
     uploads_directory: '%kernel.project_dir%/public/uploads'
+    app.mail_from_address: 'noreply@todolist.local'
+    app.mail_from_name: 'Task Management System'
 
 services:
     _defaults:
@@ -10,6 +12,8 @@ services:
             $kernelProjectDir: '%kernel.project_dir%'
             $uploadsDirectory: '%uploads_directory%'
             $environment: '%kernel.environment%'
+            $fromEmail: '%app.mail_from_address%'
+            $fromName: '%app.mail_from_name%'
 
     App\:
         resource: '../src/'

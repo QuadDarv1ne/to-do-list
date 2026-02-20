@@ -197,9 +197,9 @@ class CommentService
     public function getMostActiveCommenters(int $limit = 10): array
     {
         return $this->commentRepository->createQueryBuilder('c')
-            ->select('u.id, u.fullName, u.email, COUNT(c.id) as comment_count')
+            ->select('u.id, u.firstName, u.lastName, u.email, COUNT(c.id) as comment_count')
             ->join('c.author', 'u')
-            ->groupBy('u.id, u.fullName, u.email')
+            ->groupBy('u.id, u.firstName, u.lastName, u.email')
             ->orderBy('comment_count', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()

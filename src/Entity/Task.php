@@ -75,6 +75,10 @@ class Task
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $completedAt = null;
 
+    #[Assert\Range(min: 0, max: 100)]
+    #[ORM\Column(type: Types::INTEGER, options: ['default' => 0])]
+    private int $progress = 0;
+
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'tasks')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
@@ -124,6 +128,14 @@ class Task
     #[ORM\ManyToMany(targetEntity: Skill::class, mappedBy: 'tasks')]
     private Collection $skills;
 
+    #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'children')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?Task $parent = null;
+
+    #[ORM\OneToMany(mappedBy: 'parent', targetEntity: self::class, orphanRemoval: false)]
+    #[ORM\OrderBy(['createdAt' => 'ASC'])]
+    private Collection $children;
+
     public function __construct()
     {
         $this->allocations = new ArrayCollection();
@@ -136,6 +148,7 @@ class Task
         $this->tags = new ArrayCollection();
         $this->dependencies = new ArrayCollection();
         $this->dependents = new ArrayCollection();
+        $this->children = new ArrayCollection();
         $this->createdAt = new \DateTime();
     }
 
@@ -196,6 +209,7 @@ class Task
         // If changing to completed status and not already completed, set completion timestamp
         if ($status === 'completed' && $this->status !== 'completed') {
             $this->completedAt = new \DateTime();
+            $this->progress = 100;
         }
         // If changing from completed to another status, clear completion timestamp
         elseif ($this->status === 'completed' && $status !== 'completed') {
@@ -294,6 +308,18 @@ class Task
     public function setCompletedAt(?\DateTimeInterface $completedAt): static
     {
         $this->completedAt = $completedAt;
+
+        return $this;
+    }
+
+    public function getProgress(): int
+    {
+        return $this->progress;
+    }
+
+    public function setProgress(int $progress): static
+    {
+        $this->progress = max(0, min(100, $progress));
 
         return $this;
     }
@@ -804,5 +830,72 @@ class Task
         }
 
         return $this;
+    }
+
+    public function getParent(): ?self
+    {
+        return $this->parent;
+    }
+
+    public function setParent(?self $parent): static
+    {
+        $this->parent = $parent;
+
+        return $this;
+    }
+
+    public function isSubtask(): bool
+    {
+        return $this->parent !== null;
+    }
+
+    /**
+     * @return Collection<int, Task>
+     */
+    public function getChildren(): Collection
+    {
+        return $this->children;
+    }
+
+    public function addChild(Task $child): static
+    {
+        if (!$this->children->contains($child)) {
+            $this->children->add($child);
+            $child->setParent($this);
+        }
+
+        return $this;
+    }
+
+    public function removeChild(Task $child): static
+    {
+        if ($this->children->removeElement($child)) {
+            if ($child->getParent() === $this) {
+                $child->setParent(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Returns completion percentage based on children tasks (0-100).
+     * If no children, returns 100 when completed, 0 otherwise.
+     */
+    public function getCompletionPercentage(): int
+    {
+        if ($this->children->isEmpty()) {
+            return $this->isCompleted() ? 100 : 0;
+        }
+
+        $total = $this->children->count();
+        $completed = 0;
+        foreach ($this->children as $child) {
+            if ($child->isCompleted()) {
+                ++$completed;
+            }
+        }
+
+        return (int) round(($completed / $total) * 100);
     }
 }

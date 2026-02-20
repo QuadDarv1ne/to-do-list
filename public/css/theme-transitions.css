@@ -1,0 +1,200 @@
+/**
+ * Theme Transitions
+ * Плавные переходы между темами
+ */
+
+/* Базовые переходы для всех элементов */
+body.theme-transitioning,
+body.theme-transitioning * {
+    transition: background-color 0.3s ease, 
+                color 0.3s ease, 
+                border-color 0.3s ease,
+                box-shadow 0.3s ease !important;
+}
+
+/* Отключаем переходы для элементов, которые не должны анимироваться */
+body.theme-transitioning .no-transition,
+body.theme-transitioning [data-no-transition] {
+    transition: none !important;
+}
+
+/* CSS переменные для плавных переходов */
+:root {
+    --theme-transition-duration: 0.3s;
+    --theme-transition-timing: ease;
+}
+
+/* Применяем переходы к основным элементам */
+body,
+.card,
+.card-modern,
+.card-body-modern,
+.btn,
+.form-control,
+.form-select,
+.nav-link,
+.sidebar,
+.main-content,
+.modal-content,
+.dropdown-menu,
+.alert,
+.badge,
+.table {
+    transition: background-color var(--theme-transition-duration) var(--theme-transition-timing),
+                color var(--theme-transition-duration) var(--theme-transition-timing),
+                border-color var(--theme-transition-duration) var(--theme-transition-timing),
+                box-shadow var(--theme-transition-duration) var(--theme-transition-timing);
+}
+
+/* Специальные переходы для sidebar */
+.sidebar {
+    transition: background var(--theme-transition-duration) var(--theme-transition-timing),
+                box-shadow var(--theme-transition-duration) var(--theme-transition-timing);
+}
+
+.sidebar .nav-link {
+    transition: background var(--theme-transition-duration) var(--theme-transition-timing),
+                color var(--theme-transition-duration) var(--theme-transition-timing);
+}
+
+/* Переходы для карточек */
+.card-modern,
+.stat-card-modern {
+    transition: background var(--theme-transition-duration) var(--theme-transition-timing),
+                border-color var(--theme-transition-duration) var(--theme-transition-timing),
+                box-shadow var(--theme-transition-duration) var(--theme-transition-timing),
+                transform 0.2s ease;
+}
+
+/* Переходы для кнопок */
+.btn {
+    transition: background-color 0.2s ease,
+                color 0.2s ease,
+                border-color 0.2s ease,
+                box-shadow 0.2s ease,
+                transform 0.1s ease;
+}
+
+/* Переходы для форм */
+.form-control,
+.form-select {
+    transition: background-color var(--theme-transition-duration) var(--theme-transition-timing),
+                color var(--theme-transition-duration) var(--theme-transition-timing),
+                border-color 0.2s ease,
+                box-shadow 0.2s ease;
+}
+
+/* Переходы для модальных окон */
+.modal-content {
+    transition: background-color var(--theme-transition-duration) var(--theme-transition-timing),
+                color var(--theme-transition-duration) var(--theme-transition-timing),
+                box-shadow var(--theme-transition-duration) var(--theme-transition-timing);
+}
+
+/* Переходы для таблиц */
+.table {
+    transition: background-color var(--theme-transition-duration) var(--theme-transition-timing),
+                color var(--theme-transition-duration) var(--theme-transition-timing);
+}
+
+.table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+/* Переходы для навигации */
+.nav-link,
+.navbar-nav .nav-link {
+    transition: background-color 0.2s ease,
+                color 0.2s ease;
+}
+
+/* Переходы для дропдаунов */
+.dropdown-menu {
+    transition: background-color var(--theme-transition-duration) var(--theme-transition-timing),
+                border-color var(--theme-transition-duration) var(--theme-transition-timing),
+                box-shadow var(--theme-transition-duration) var(--theme-transition-timing);
+}
+
+/* Переходы для алертов и бейджей */
+.alert,
+.badge {
+    transition: background-color var(--theme-transition-duration) var(--theme-transition-timing),
+                color var(--theme-transition-duration) var(--theme-transition-timing),
+                border-color var(--theme-transition-duration) var(--theme-transition-timing);
+}
+
+/* Переходы для прогресс-баров */
+.progress {
+    transition: background-color var(--theme-transition-duration) var(--theme-transition-timing);
+}
+
+.progress-bar {
+    transition: background-color var(--theme-transition-duration) var(--theme-transition-timing),
+                width 0.6s ease;
+}
+
+/* Переходы для списков */
+.list-group-item {
+    transition: background-color 0.2s ease,
+                color 0.2s ease,
+                border-color var(--theme-transition-duration) var(--theme-transition-timing);
+}
+
+/* Переходы для пагинации */
+.pagination .page-link {
+    transition: background-color 0.2s ease,
+                color 0.2s ease,
+                border-color 0.2s ease;
+}
+
+/* Переходы для breadcrumbs */
+.breadcrumb {
+    transition: background-color var(--theme-transition-duration) var(--theme-transition-timing);
+}
+
+.breadcrumb-item a {
+    transition: color 0.2s ease;
+}
+
+/* Переходы для tooltips и popovers */
+.tooltip-inner,
+.popover {
+    transition: background-color var(--theme-transition-duration) var(--theme-transition-timing),
+                color var(--theme-transition-duration) var(--theme-transition-timing);
+}
+
+/* Переходы для кастомных компонентов */
+.kanban-column,
+.task-card,
+.calendar-day {
+    transition: background-color var(--theme-transition-duration) var(--theme-transition-timing),
+                border-color var(--theme-transition-duration) var(--theme-transition-timing),
+                box-shadow var(--theme-transition-duration) var(--theme-transition-timing);
+}
+
+/* Оптимизация производительности */
+@media (prefers-reduced-motion: reduce) {
+    body.theme-transitioning,
+    body.theme-transitioning * {
+        transition: none !important;
+    }
+}
+
+/* Предотвращение мерцания при загрузке */
+html:not(.theme-ready) * {
+    transition: none !important;
+}
+
+/* Анимация появления при смене темы */
+@keyframes themeChange {
+    0% {
+        opacity: 0.95;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+body.theme-transitioning {
+    animation: themeChange 0.3s ease;
+}

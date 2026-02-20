@@ -144,12 +144,12 @@ class CollaborationService
     {
         // First get users with their active task counts (optimized query to avoid N+1)
         $qb = $this->userRepository->createQueryBuilder('u')
-            ->select('u.id, u.fullName, u.email, COUNT(t.id) as activeTasksCount')
+            ->select('u.id, u.firstName, u.lastName, u.email, COUNT(t.id) as activeTasksCount')
             ->leftJoin('u.assignedTasks', 't', 'WITH', 't.status != :completed')
             ->where('u.isActive = :active')
             ->setParameter('active', true)
             ->setParameter('completed', 'completed')
-            ->groupBy('u.id')
+            ->groupBy('u.id, u.firstName, u.lastName, u.email')
             ->setMaxResults(100);
 
         $results = $qb->getQuery()->getResult();

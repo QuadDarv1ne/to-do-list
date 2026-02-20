@@ -132,6 +132,7 @@
                         <th>Категория</th>
                         <th>Приоритет</th>
                         <th>Статус</th>
+                        <th style="width: 110px;">Прогресс</th>
                         <th>Дата создания</th>
                         <th style="width: 100px;">Действия</th>
                     </tr>
@@ -193,6 +194,15 @@
                                     <i class="fas fa-clock me-1"></i>В ожидании
                                 </span>
                             {% endif %}
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="flex: 1; height: 6px; background: var(--bg-secondary); border-radius: 3px; overflow: hidden;">
+                                    <div style="height: 100%; width: {{ task.progress }}%; border-radius: 3px;
+                                        background: {% if task.progress == 100 %}var(--color-sales){% elseif task.progress >= 50 %}var(--color-orders){% else %}var(--color-bonuses){% endif %};"></div>
+                                </div>
+                                <span style="font-size: 12px; color: var(--text-secondary); white-space: nowrap;">{{ task.progress }}%</span>
+                            </div>
                         </td>
                         <td style="color: var(--text-secondary);">
                             {{ task.createdAt|date('d.m.Y') }}

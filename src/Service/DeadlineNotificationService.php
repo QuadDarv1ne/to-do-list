@@ -35,7 +35,7 @@ class DeadlineNotificationService
         MailerInterface $mailer,
         NotifierInterface $notifier,
         LoggerInterface $logger,
-        string $fromEmail = 'noreply@todo-app.com',
+        string $fromEmail = '',
     ) {
         $this->entityManager = $entityManager;
         $this->taskRepository = $taskRepository;

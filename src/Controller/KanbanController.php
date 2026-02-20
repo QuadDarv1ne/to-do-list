@@ -95,7 +95,8 @@ class KanbanController extends AbstractController
                 ->createQueryBuilder('u')
                 ->where('u.isActive = :active')
                 ->setParameter('active', true)
-                ->orderBy('u.fullName', 'ASC')
+                ->orderBy('u.firstName', 'ASC')
+                ->addOrderBy('u.lastName', 'ASC')
                 ->setMaxResults(100)
                 ->getQuery()
                 ->getResult();

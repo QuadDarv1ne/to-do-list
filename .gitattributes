@@ -1,93 +1,155 @@
 # Set the default behavior, in case people don't have core.autocrlf set.
 * text=auto eol=lf
 
-# Explicitly declare source files
+# ──────────────────────────────────────────────
+# PHP / Symfony
+# ──────────────────────────────────────────────
 *.php text diff=php
-*.twig text
+*.twig text diff=html
+importmap.php text diff=php
+
+# ──────────────────────────────────────────────
+# JavaScript / TypeScript
+# ──────────────────────────────────────────────
 *.js text
 *.mjs text
 *.ts text
+
+# ──────────────────────────────────────────────
+# Styles
+# ──────────────────────────────────────────────
 *.css text
 *.scss text
 *.less text
 
-# Denote all files that are truly binary and should not be modified.
+# ──────────────────────────────────────────────
+# Markup / Templates
+# ──────────────────────────────────────────────
+*.html text
+*.svg text
+*.xml text
+
+# ──────────────────────────────────────────────
+# Конфигурационные файлы
+# ──────────────────────────────────────────────
+*.json text
+*.yaml text
+*.yml text
+*.ini text
+*.env text
+*.neon text
+*.dist text
+*.example text
+
+# ──────────────────────────────────────────────
+# Lock-файлы (текст, но не нужны в GitHub stats)
+# ──────────────────────────────────────────────
+composer.lock text linguist-generated=true
+package-lock.json text linguist-generated=true
+yarn.lock text linguist-generated=true
+symfony.lock text linguist-generated=true
+
+# ──────────────────────────────────────────────
+# Документация
+# ──────────────────────────────────────────────
+*.md text
+docs/** text
+
+# ──────────────────────────────────────────────
+# Переводы
+# ──────────────────────────────────────────────
+*.xlf text
+*.xliff text
+*.po text
+*.pot text
+translations/** text
+
+# ──────────────────────────────────────────────
+# База данных
+# ──────────────────────────────────────────────
+*.sql text
+migrations/** text diff=php
+
+# ──────────────────────────────────────────────
+# Shell-скрипты (проект использует .sh и .bat)
+# ──────────────────────────────────────────────
+*.sh text eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+bin/* text eol=lf
+scripts/** text eol=lf
+
+# ──────────────────────────────────────────────
+# Makefile (используется в проекте)
+# ──────────────────────────────────────────────
+Makefile text eol=lf
+
+# ──────────────────────────────────────────────
+# Docker
+# ──────────────────────────────────────────────
+Dockerfile* text eol=lf
+compose*.yaml text
+.dockerignore text
+
+# ──────────────────────────────────────────────
+# Git-файлы
+# ──────────────────────────────────────────────
+.gitignore text
+.gitattributes text
+.editorconfig text
+.githooks/** text eol=lf
+.github/** text
+
+# ──────────────────────────────────────────────
+# Symfony-специфика
+# ──────────────────────────────────────────────
+.php-cs-fixer.dist.php text diff=php
+phpstan.neon text
+phpunit.*.xml text
+phpunit.dist.xml text
+crontab.example text eol=lf
+symfony.lock text linguist-generated=true
+
+# ──────────────────────────────────────────────
+# Тесты
+# ──────────────────────────────────────────────
+tests/** text diff=php
+
+# ──────────────────────────────────────────────
+# Бинарные файлы: изображения
+# ──────────────────────────────────────────────
 *.png binary
 *.jpg binary
 *.jpeg binary
 *.gif binary
 *.webp binary
-*.svg text
 *.ico binary
 
+# ──────────────────────────────────────────────
+# Бинарные файлы: шрифты
+# ──────────────────────────────────────────────
 *.woff binary
 *.woff2 binary
 *.ttf binary
 *.eot binary
 
-# Archives
+# ──────────────────────────────────────────────
+# Бинарные файлы: архивы и документы
+# ──────────────────────────────────────────────
 *.zip binary
 *.tar binary
 *.gz binary
-
-# Documents
 *.pdf binary
 *.doc binary
 *.docx binary
 *.xls binary
 *.xlsx binary
 
-# Lock files
-composer.lock text
-package-lock.json text
-yarn.lock text
-
-# Config files
-*.json text
-*.yaml text
-*.yml text
-*.xml text
-*.ini text
-*.env text
-*.neon text
-
-# Shell scripts
-*.sh text eol=lf
-*.bat text eol=crlf
-*.cmd text eol=crlf
-
-# Markdown
-*.md text
-
-# SQL
-*.sql text
-
-# HTML
-*.html text
-
-# Git files
-.gitignore text
-.gitattributes text
-.editorconfig text
-
-# Docker
-Dockerfile text
-docker-compose*.yaml text
-
-# Symfony
-.php-cs-fixer.dist.php text
-phpstan.neon text
-phpunit.*.xml text
-
-# Tests
-tests/** text
-
-# Documentation
-docs/** text
-
-# Vendor and node_modules should not be tracked
-/vendor/** -text
-/node_modules/** -text
+# ──────────────────────────────────────────────
+# Сгенерированные папки — не обрабатывать
+# ──────────────────────────────────────────────
+/vendor/** -text linguist-vendored=true
+/node_modules/** -text linguist-vendored=true
 /var/** -text
-/public/build/** -text
-/public/assets/** -text
+/public/build/** -text linguist-generated=true
+/public/assets/** -text linguist-generated=true

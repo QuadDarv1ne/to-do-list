@@ -174,4 +174,22 @@ class ClientRepository extends ServiceEntityRepository
 
         return (int) $qb->getQuery()->getSingleScalarResult();
     }
+
+    /**
+     * Count clients by category
+     */
+    public function countByCategory(string $category, ?User $manager = null): int
+    {
+        $qb = $this->createQueryBuilder('c')
+            ->select('COUNT(c.id)')
+            ->where('c.category = :category')
+            ->setParameter('category', $category);
+
+        if ($manager) {
+            $qb->andWhere('c.manager = :manager')
+               ->setParameter('manager', $manager);
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
 }

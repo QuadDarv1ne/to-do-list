@@ -11,6 +11,7 @@
 ###> phpunit/phpunit ###
 /phpunit.xml
 /.phpunit.cache/
+/.phpunit.result.cache
 ###< phpunit/phpunit ###
 
 ###> symfony/asset-mapper ###
@@ -19,64 +20,43 @@
 ###< symfony/asset-mapper ###
 
 ###> Редакторы кода (IDE) ###
-/.idea
-/.vscode
-/.kiro
-/.qoder
-/.qwen
-*.sublime-*
+/.idea/
+/.vscode/
+/.kiro/
+/.qoder/
+/.qwen/
+*.sublime-project
+*.sublime-workspace
 ###< Редакторы кода (IDE) ###
 
 ###> Операционная система ###
 .DS_Store
 Thumbs.db
+desktop.ini
+ehthumbs.db
 ###< Операционная система ###
 
-###> Логи ###
-/var/log/
-*.log
-###< Логи ###
-
 ###> Кеш инструментов ###
-/var/cache/
 /.php-cs-fixer.cache
 /.php_cs.cache
-/.phpstan.cache
+/.phpstan/
 /.psalm.cache
-/.php-cs-fixer.dist.php.cache
 ###< Кеш инструментов ###
 
 ###> Инструменты тестирования ###
-/phpunit.xml.dist
-/phpunit.xml
-/behat.yml
-/.phpunit.result.cache
-/phpunit.coverage.xml
 /coverage/
-/tools/
+/phpunit.coverage.xml
 ###< Инструменты тестирования ###
 
-###> Фронтенд (Node, npm, yarn) ###
+###> Фронтенд ###
 /node_modules/
-/package-lock.json
-/yarn.lock
 /public/build/
-###< Фронтенд (Node, npm, yarn) ###
+###< Фронтенд ###
 
 ###> Docker ###
 /docker-compose.override.yml
-/.docker/
 ###< Docker ###
 
-###> Специфичные для окружения ###
-/.env.test.local
-/.env.test
-###< Специфичные для окружения ###
-
-###> Git hooks ###
-/.githooks/
-###< Git hooks ###
-###> friendsofphp/php-cs-fixer ###
-/.php-cs-fixer.php
-/.php-cs-fixer.cache
-###< friendsofphp/php-cs-fixer ###
+###> Логи ###
+*.log
+###< Логи ###

@@ -236,6 +236,35 @@
                         </div>
                     </div>
                     
+                    <!-- Progress -->
+                    {% if form.progress is defined %}
+                    <div class="card-modern mb-4">
+                        <div class="card-header-modern">
+                            <div class="form-section-title">
+                                <i class="fas fa-chart-line text-primary"></i>
+                                Прогресс выполнения
+                            </div>
+                        </div>
+                        <div class="card-body-modern">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <label class="form-label fw-bold mb-0">Укажите процент выполнения</label>
+                                <span id="edit-progress-value" style="font-size: 20px; font-weight: 700; color: var(--text-primary);">{{ task.progress }}%</span>
+                            </div>
+                            {{ form_widget(form.progress, {
+                                'attr': {
+                                    'style': 'width: 100%; accent-color: var(--color-sales);',
+                                    'id': 'edit_task_progress'
+                                }
+                            }) }}
+                            <div style="height: 8px; background: var(--bg-secondary); border-radius: 4px; overflow: hidden; margin-top: 10px;">
+                                <div id="edit-progress-bar" style="height: 100%; width: {{ task.progress }}%; border-radius: 4px; transition: width 0.2s;
+                                    background: {% if task.progress == 100 %}var(--color-sales){% elseif task.progress >= 50 %}var(--color-orders){% else %}var(--color-bonuses){% endif %};"></div>
+                            </div>
+                            {{ form_errors(form.progress) }}
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <!-- Actions -->
                     <div class="card-modern">
                         <div class="card-body-modern">
@@ -262,6 +291,21 @@
 {{ parent() }}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Progress slider
+    const editProgressSlider = document.getElementById('edit_task_progress');
+    if (editProgressSlider) {
+        const editProgressValue = document.getElementById('edit-progress-value');
+        const editProgressBar = document.getElementById('edit-progress-bar');
+
+        editProgressSlider.addEventListener('input', function() {
+            const val = this.value;
+            editProgressValue.textContent = val + '%';
+            editProgressBar.style.width = val + '%';
+            const color = val == 100 ? 'var(--color-sales)' : val >= 50 ? 'var(--color-orders)' : 'var(--color-bonuses)';
+            editProgressBar.style.background = color;
+        });
+    }
+
     const quickTagInput = document.getElementById('quick-tag-input');
     const quickTagColor = document.getElementById('quick-tag-color');
     const createQuickTagBtn = document.getElementById('create-quick-tag-btn');

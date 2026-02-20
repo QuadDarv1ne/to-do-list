@@ -53,7 +53,7 @@
                                 </div>
                             </div>
                             <div class="comment-text">
-                                {{ comment.content|nl2br }}
+                                {{ comment.content|mention_links|raw }}
                             </div>
                         </div>
                     </div>
@@ -67,18 +67,24 @@
                 <i class="fas fa-comment-dots me-2"></i>
                 Добавить комментарий
             </h6>
-            {{ form_start(comment_form, {'attr': {'class': 'comment-form'}}) }}
-                <div class="mb-3">
+            {{ form_start(comment_form, {'attr': {'class': 'comment-form', 'autocomplete': 'off'}}) }}
+                <div class="mb-3" style="position: relative;">
                     {{ form_widget(comment_form.content, {
                         'attr': {
                             'class': 'form-control-modern comment-textarea',
+                            'id': 'comment-textarea',
                             'rows': 3,
-                            'placeholder': 'Напишите ваш комментарий...'
+                            'placeholder': 'Напишите ваш комментарий... Используйте @имя для упоминания'
                         }
                     }) }}
                     {{ form_errors(comment_form.content) }}
+                    <!-- Mention autocomplete dropdown -->
+                    <div id="mention-dropdown" style="display:none; position:absolute; z-index:1000; background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,0.15); min-width:220px; max-height:220px; overflow-y:auto; margin-top:4px;"></div>
                 </div>
-                <div class="d-flex justify-content-end">
+                <div class="d-flex justify-content-between align-items-center">
+                    <small style="color:var(--text-secondary); font-size:12px;">
+                        <i class="fas fa-at me-1"></i>Введите @, чтобы упомянуть пользователя
+                    </small>
                     <button type="submit" class="btn btn-primary-modern btn-comment-submit">
                         <i class="fas fa-paper-plane me-2"></i>
                         Отправить
@@ -265,4 +271,162 @@
     from { opacity: 0; }
     to { opacity: 1; }
 }
+
+/* @mention styles */
+.mention-tag {
+    display: inline-block;
+    background: rgba(102, 126, 234, 0.15);
+    color: #667eea;
+    border-radius: 4px;
+    padding: 0 4px;
+    font-weight: 600;
+    font-size: 0.9em;
+    cursor: default;
+    transition: background 0.2s;
+}
+.mention-tag:hover {
+    background: rgba(102, 126, 234, 0.3);
+}
+.mention-suggestion-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 14px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.mention-suggestion-item:hover,
+.mention-suggestion-item.active {
+    background: var(--bg-secondary);
+}
+.mention-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+.mention-info { line-height: 1.2; }
+.mention-username { font-weight: 600; font-size: 13px; color: var(--text-primary); }
+.mention-fullname { font-size: 11px; color: var(--text-secondary); }
 </style>
+
+<script>
+(function () {
+    const textarea = document.getElementById('comment-textarea');
+    const dropdown = document.getElementById('mention-dropdown');
+    if (!textarea || !dropdown) return;
+
+    let mentionStart = -1;
+    let activeIndex = -1;
+    let currentQuery = '';
+    let suggestions = [];
+
+    function showDropdown(items) {
+        suggestions = items;
+        activeIndex = -1;
+        dropdown.innerHTML = '';
+
+        if (!items.length) { hideDropdown(); return; }
+
+        items.forEach((user, i) => {
+            const item = document.createElement('div');
+            item.className = 'mention-suggestion-item';
+            item.innerHTML = `
+                <div class="mention-avatar">${user.initials}</div>
+                <div class="mention-info">
+                    <div class="mention-username">@${user.username}</div>
+                    <div class="mention-fullname">${user.name}</div>
+                </div>`;
+            item.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                insertMention(user.username);
+            });
+            dropdown.appendChild(item);
+        });
+
+        dropdown.style.display = 'block';
+    }
+
+    function hideDropdown() {
+        dropdown.style.display = 'none';
+        mentionStart = -1;
+        activeIndex = -1;
+        suggestions = [];
+    }
+
+    function setActive(index) {
+        const items = dropdown.querySelectorAll('.mention-suggestion-item');
+        items.forEach(el => el.classList.remove('active'));
+        if (index >= 0 && index < items.length) {
+            items[index].classList.add('active');
+            activeIndex = index;
+        }
+    }
+
+    function insertMention(username) {
+        const pos = textarea.selectionStart;
+        const before = textarea.value.substring(0, mentionStart);
+        const after = textarea.value.substring(pos);
+        textarea.value = before + '@' + username + ' ' + after;
+        const newCursor = mentionStart + username.length + 2;
+        textarea.setSelectionRange(newCursor, newCursor);
+        textarea.focus();
+        hideDropdown();
+    }
+
+    let debounceTimer;
+    textarea.addEventListener('input', function () {
+        const pos = this.selectionStart;
+        const text = this.value.substring(0, pos);
+        const atIndex = text.lastIndexOf('@');
+
+        if (atIndex === -1) { hideDropdown(); return; }
+
+        const query = text.substring(atIndex + 1);
+        if (/\s/.test(query)) { hideDropdown(); return; }
+
+        mentionStart = atIndex;
+        currentQuery = query;
+
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            if (query.length === 0) { hideDropdown(); return; }
+            fetch('/api/mentions?q=' + encodeURIComponent(query))
+                .then(r => r.json())
+                .then(data => showDropdown(data))
+                .catch(() => hideDropdown());
+        }, 200);
+    });
+
+    textarea.addEventListener('keydown', function (e) {
+        if (dropdown.style.display === 'none') return;
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setActive(Math.min(activeIndex + 1, suggestions.length - 1));
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setActive(Math.max(activeIndex - 1, 0));
+        } else if (e.key === 'Enter' || e.key === 'Tab') {
+            if (activeIndex >= 0) {
+                e.preventDefault();
+                insertMention(suggestions[activeIndex].username);
+            }
+        } else if (e.key === 'Escape') {
+            hideDropdown();
+        }
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!dropdown.contains(e.target) && e.target !== textarea) {
+            hideDropdown();
+        }
+    });
+})();
+</script>

@@ -107,9 +107,10 @@ class SmartSearchService
     private function searchUsers(string $query, array $options): array
     {
         $qb = $this->userRepository->createQueryBuilder('u')
-            ->where('u.username LIKE :query OR u.email LIKE :query OR u.fullName LIKE :query')
+            ->where('u.username LIKE :query OR u.email LIKE :query OR CONCAT(u.firstName, \' \', u.lastName) LIKE :query')
             ->setParameter('query', '%' . $query . '%')
-            ->orderBy('u.fullName', 'ASC');
+            ->orderBy('u.firstName', 'ASC')
+            ->addOrderBy('u.lastName', 'ASC');
 
         $limit = $options['limit'] ?? 10;
         $qb->setMaxResults($limit);

@@ -191,6 +191,7 @@ class TaskController extends AbstractController
     public function new(
         Request $request,
         EntityManagerInterface $entityManager,
+        TaskRepository $taskRepository,
         TaskCategoryRepository $categoryRepository,
         NotificationService $notificationService,
         ?PerformanceMonitorService $performanceMonitor = null,
@@ -204,6 +205,16 @@ class TaskController extends AbstractController
         $task->setStatus('pending');
         $task->setPriority('medium');
 
+        // Support creating subtasks via ?parent=ID
+        $parentTask = null;
+        $parentId = $request->query->get('parent');
+        if ($parentId) {
+            $parentTask = $taskRepository->find((int) $parentId);
+            if ($parentTask && $parentTask->getUser() === $this->getUser()) {
+                $task->setParent($parentTask);
+            }
+        }
+
         $form = $this->createForm(TaskType::class, $task, ['user' => $this->getUser()]);
         $form->handleRequest($request);
 
@@ -214,6 +225,11 @@ class TaskController extends AbstractController
             // Send notification to assigned user
             if ($task->getAssignedUser() && $task->getAssignedUser() !== $this->getUser()) {
                 $notificationService->sendTaskAssignmentNotification($task->getAssignedUser(), $this->getUser(), $task->getId(), $task->getName(), $task->getPriority());
+            }
+
+            if ($task->isSubtask()) {
+                $this->flashCreated('Подзадача успешно создана');
+                return $this->redirectToRoute('app_task_show', ['id' => $task->getParent()->getId()], Response::HTTP_SEE_OTHER);
             }
 
             $this->flashCreated('Задача успешно создана');
@@ -229,6 +245,7 @@ class TaskController extends AbstractController
                 'task' => $task,
                 'form' => $form,
                 'categories' => $categories,
+                'parentTask' => $parentTask,
             ]);
         } finally {
             if ($performanceMonitor) {
@@ -259,6 +276,7 @@ class TaskController extends AbstractController
             return $this->render('task/show.html.twig', [
                 'task' => $task,
                 'categories' => $categories,
+                'subtasks' => $task->getChildren(),
             ]);
         } finally {
             if ($performanceMonitor) {
@@ -840,115 +858,7 @@ class TaskController extends AbstractController
         return $response;
     }
 
-    #[Route('/export-with-tags', name: 'app_task_export_with_tags', methods: ['GET'])]
-    public function exportWithTags(
-        Request $request,
-        TaskRepository $taskRepository,
-    ): Response {
-        $user = $this->getUser();
 
-        // Get filter parameters
-        $status = $request->query->get('status');
-        $priority = $request->query->get('priority');
-        $categoryId = $request->query->get('category');
-        $startDate = $request->query->get('start_date');
-        $endDate = $request->query->get('end_date');
-
-        // Build query with eager loading of tags
-        $qb = $taskRepository->createQueryBuilder('t')
-            ->select('t, tg') // Select tasks and tags
-            ->leftJoin('t.user', 'u')
-            ->leftJoin('t.assignedUser', 'au')
-            ->leftJoin('t.category', 'c')
-            ->leftJoin('t.tags', 'tg') // Left join to include tags
-            ->andWhere('t.user = :user OR t.assignedUser = :user')
-            ->setParameter('user', $user)
-            ->orderBy('t.createdAt', 'DESC');
-
-        // Apply filters
-        if ($status) {
-            $qb->andWhere('t.status = :status')
-               ->setParameter('status', $status);
-        }
-
-        if ($priority) {
-            $qb->andWhere('t.priority = :priority')
-               ->setParameter('priority', $priority);
-        }
-
-        if ($categoryId) {
-            $qb->andWhere('t.category = :category')
-               ->setParameter('category', $categoryId);
-        }
-
-        if ($startDate) {
-            $qb->andWhere('t.createdAt >= :startDate')
-               ->setParameter('startDate', new \DateTime($startDate));
-        }
-
-        if ($endDate) {
-            $qb->andWhere('t.createdAt <= :endDate')
-               ->setParameter('endDate', new \DateTime($endDate));
-        }
-
-        // Use StreamedResponse to avoid memory issues with large datasets
-        $response = new \Symfony\Component\HttpFoundation\StreamedResponse();
-        $response->headers->set('Content-Type', 'text/csv; charset=utf-8');
-        $response->headers->set('Content-Disposition', 'attachment; filename="tasks_with_tags_export_' . date('Y-m-d_H-i-s') . '.csv"');
-        
-        $response->setCallback(function() use ($qb) {
-            $handle = fopen('php://output', 'w');
-            
-            // Write BOM for UTF-8
-            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
-            
-            // Write header
-            fputcsv($handle, ['ID', 'Название', 'Описание', 'Статус', 'Приоритет', 'Дата создания', 'Срок выполнения', 'Категория', 'Назначен пользователю', 'Теги']);
-            
-            // Process tasks in batches to avoid memory issues
-            $batchSize = 100;
-            $offset = 0;
-            
-            while (true) {
-                $tasks = $qb->setFirstResult($offset)
-                    ->setMaxResults($batchSize)
-                    ->getQuery()
-                    ->getResult();
-                
-                if (empty($tasks)) {
-                    break;
-                }
-                
-                foreach ($tasks as $task) {
-                    $tagNames = [];
-                    foreach ($task->getTags() as $tag) {
-                        $tagNames[] = $tag->getName();
-                    }
-                    
-                    fputcsv($handle, [
-                        $task->getId(),
-                        $task->getTitle(),
-                        strip_tags($task->getDescription() ?? ''),
-                        $task->getStatus(),
-                        $task->getPriority(),
-                        $task->getCreatedAt()->format('d.m.Y H:i'),
-                        $task->getDueDate() ? $task->getDueDate()->format('d.m.Y') : '',
-                        $task->getCategory() ? $task->getCategory()->getName() : '',
-                        $task->getAssignedUser() ? $task->getAssignedUser()->getFullName() : '',
-                        implode(', ', $tagNames),
-                    ]);
-                }
-                
-                // Clear entity manager to free memory
-                $qb->getEntityManager()->clear();
-                $offset += $batchSize;
-            }
-            
-            fclose($handle);
-        });
-
-        return $response;
-    }
 
     #[Route('/quick-create', name: 'app_task_quick_create', methods: ['POST'])]
     public function quickCreate(Request $request, EntityManagerInterface $entityManager, ?PerformanceMonitorService $performanceMonitor = null, ?SanitizationService $sanitizationService = null): Response

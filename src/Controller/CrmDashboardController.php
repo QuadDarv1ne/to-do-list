@@ -25,12 +25,12 @@ class CrmDashboardController extends AbstractController
 
         // Статистика по клиентам
         $totalClients = $isAdmin 
-            ? count($clientRepository->findAll())
-            : count($clientRepository->findByManager($user));
+            ? $clientRepository->getTotalCount()
+            : $clientRepository->getTotalCount($user);
 
         $vipClients = $isAdmin
-            ? count($clientRepository->findBy(['category' => 'vip']))
-            : count($clientRepository->findBy(['category' => 'vip', 'manager' => $user]));
+            ? $clientRepository->countByCategory('vip')
+            : $clientRepository->countByCategory('vip', $user);
 
         // Статистика по сделкам
         $deals = $isAdmin
@@ -68,8 +68,8 @@ class CrmDashboardController extends AbstractController
         $recentDeals = array_slice($deals, 0, 5);
 
         // Статистика по товарам
-        $totalProducts = count($productRepository->findAll());
-        $activeProducts = count($productRepository->findActive());
+        $totalProducts = $productRepository->countAll();
+        $activeProducts = $productRepository->countActive();
 
         return $this->render('crm/dashboard.html.twig', [
             'totalClients' => $totalClients,

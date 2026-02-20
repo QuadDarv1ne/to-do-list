@@ -94,12 +94,12 @@ class ReportGeneratorService
     public function generateTeamReport(\DateTime $startDate, \DateTime $endDate): array
     {
         $qb = $this->taskRepository->createQueryBuilder('t')
-            ->select('u.id, u.fullName, u.email, COUNT(t.id) as total_tasks,
+            ->select('u.id, u.firstName, u.lastName, u.email, COUNT(t.id) as total_tasks,
                      SUM(CASE WHEN t.status = :completed THEN 1 ELSE 0 END) as completed_tasks')
             ->leftJoin('t.assignedUser', 'u')
             ->where('t.createdAt BETWEEN :start AND :end')
             ->andWhere('u.id IS NOT NULL')
-            ->groupBy('u.id, u.fullName, u.email')
+            ->groupBy('u.id, u.firstName, u.lastName, u.email')
             ->orderBy('completed_tasks', 'DESC')
             ->setParameter('start', $startDate)
             ->setParameter('end', $endDate)
@@ -115,7 +115,7 @@ class ReportGeneratorService
 
             $teamMembers[] = [
                 'user_id' => $result['id'],
-                'name' => $result['fullName'],
+                'name' => trim($result['firstName'] . ' ' . $result['lastName']),
                 'email' => $result['email'],
                 'total_tasks' => (int)$result['total_tasks'],
                 'completed_tasks' => (int)$result['completed_tasks'],

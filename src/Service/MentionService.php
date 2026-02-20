@@ -96,7 +96,7 @@ class MentionService
     public function getSuggestions(string $query, int $limit = 5): array
     {
         return $this->userRepository->createQueryBuilder('u')
-            ->where('u.username LIKE :query OR u.fullName LIKE :query')
+            ->where('u.username LIKE :query OR CONCAT(u.firstName, \' \', u.lastName) LIKE :query')
             ->andWhere('u.isActive = :active')
             ->setParameter('query', $query . '%')
             ->setParameter('active', true)

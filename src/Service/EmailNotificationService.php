@@ -16,7 +16,7 @@ class EmailNotificationService
         private Environment $twig,
         private UrlGeneratorInterface $urlGenerator,
         private ?PerformanceMonitorService $performanceMonitor = null,
-        private string $fromEmail = 'noreply@todolist.local',
+        private string $fromEmail = '',
     ) {
     }
 

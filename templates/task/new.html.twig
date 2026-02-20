@@ -9,15 +9,30 @@
         <li><a href="{{ path('app_dashboard') }}" style="color: var(--text-secondary); text-decoration: none;">Панель</a></li>
         <li>/</li>
         <li><a href="{{ path('app_task_index') }}" style="color: var(--text-secondary); text-decoration: none;">Задачи</a></li>
+        {% if parentTask %}
         <li>/</li>
-        <li style="color: var(--text-primary);">Создать</li>
+        <li><a href="{{ path('app_task_show', {'id': parentTask.id}) }}" style="color: var(--text-secondary); text-decoration: none;">{{ parentTask.title }}</a></li>
+        {% endif %}
+        <li>/</li>
+        <li style="color: var(--text-primary);">{% if parentTask %}Подзадача{% else %}Создать{% endif %}</li>
     </ol>
 </nav>
 
 <!-- Header -->
 <div style="margin-bottom: 30px;">
-    <h2 style="margin: 0 0 10px 0; font-size: 32px; font-weight: 600;">Создать задачу</h2>
-    <p style="color: var(--text-secondary); margin: 0;">Заполните форму для создания новой задачи</p>
+    {% if parentTask %}
+        <h2 style="margin: 0 0 10px 0; font-size: 32px; font-weight: 600;">Создать подзадачу</h2>
+        <div style="display: flex; align-items: center; gap: 10px; color: var(--text-secondary);">
+            <i class="fas fa-sitemap"></i>
+            <span>Родительская задача:</span>
+            <a href="{{ path('app_task_show', {'id': parentTask.id}) }}" style="color: var(--color-sales); text-decoration: none; font-weight: 600;">
+                {{ parentTask.title }}
+            </a>
+        </div>
+    {% else %}
+        <h2 style="margin: 0 0 10px 0; font-size: 32px; font-weight: 600;">Создать задачу</h2>
+        <p style="color: var(--text-secondary); margin: 0;">Заполните форму для создания новой задачи</p>
+    {% endif %}
 </div>
 
 <!-- Form -->
@@ -146,12 +161,32 @@
                 {{ form_errors(form.tags) }}
             </div>
             {% endif %}
-            
+
+            {% if form.progress is defined %}
+            <div style="margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <label style="color: var(--text-secondary); font-size: 13px; font-weight: 600; text-transform: uppercase;">
+                        Прогресс
+                    </label>
+                    <span id="progress-value" style="font-size: 18px; font-weight: 700; color: var(--text-primary);">0%</span>
+                </div>
+                {{ form_widget(form.progress, {
+                    'attr': {
+                        'style': 'width: 100%; accent-color: var(--color-sales);',
+                        'id': 'task_progress'
+                    }
+                }) }}
+                <div style="height: 6px; background: var(--bg-secondary); border-radius: 3px; overflow: hidden; margin-top: 8px;">
+                    <div id="progress-bar" style="height: 100%; width: 0%; background: var(--color-sales); border-radius: 3px; transition: width 0.2s;"></div>
+                </div>
+            </div>
+            {% endif %}
+
             <div style="display: flex; gap: 12px; margin-top: 32px;">
                 <button type="submit" class="btn" style="background: var(--color-sales); border: none; color: #000; padding: 14px 32px; border-radius: 10px; font-weight: 600; font-size: 16px;">
-                    <i class="fas fa-check me-2"></i>Создать задачу
+                    <i class="fas fa-check me-2"></i>{% if parentTask %}Создать подзадачу{% else %}Создать задачу{% endif %}
                 </button>
-                <a href="{{ path('app_task_index') }}" class="btn" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 14px 32px; border-radius: 10px; font-weight: 600; font-size: 16px; text-decoration: none; display: inline-flex; align-items: center;">
+                <a href="{{ parentTask ? path('app_task_show', {'id': parentTask.id}) : path('app_task_index') }}" class="btn" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 14px 32px; border-radius: 10px; font-weight: 600; font-size: 16px; text-decoration: none; display: inline-flex; align-items: center;">
                     <i class="fas fa-times me-2"></i>Отмена
                 </a>
             </div>
@@ -267,5 +302,22 @@ form.addEventListener('submit', () => {
         localStorage.removeItem('task_form_' + input.name);
     });
 });
+
+// Слайдер прогресса
+const progressSlider = document.getElementById('task_progress');
+if (progressSlider) {
+    const progressValue = document.getElementById('progress-value');
+    const progressBar = document.getElementById('progress-bar');
+
+    function updateProgress(val) {
+        progressValue.textContent = val + '%';
+        progressBar.style.width = val + '%';
+        const color = val == 100 ? 'var(--color-sales)' : val >= 50 ? 'var(--color-orders)' : 'var(--color-bonuses)';
+        progressBar.style.background = color;
+    }
+
+    progressSlider.addEventListener('input', () => updateProgress(progressSlider.value));
+    updateProgress(progressSlider.value);
+}
 </script>
 {% endblock %}

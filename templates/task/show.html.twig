@@ -9,6 +9,10 @@
         <li><a href="{{ path('app_dashboard') }}" style="color: var(--text-secondary); text-decoration: none;">Панель</a></li>
         <li>/</li>
         <li><a href="{{ path('app_task_index') }}" style="color: var(--text-secondary); text-decoration: none;">Задачи</a></li>
+        {% if task.parent %}
+        <li>/</li>
+        <li><a href="{{ path('app_task_show', {'id': task.parent.id}) }}" style="color: var(--text-secondary); text-decoration: none;">{{ task.parent.title }}</a></li>
+        {% endif %}
         <li>/</li>
         <li style="color: var(--text-primary);">{{ task.title }}</li>
     </ol>
@@ -80,6 +84,83 @@
             </div>
         </div>
         
+        <!-- Subtasks -->
+        <div class="card" style="margin-bottom: 20px;">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 class="card-title" style="margin: 0;">
+                    Подзадачи
+                    {% if subtasks is not empty %}
+                        <span style="font-size: 12px; background: var(--bg-secondary); padding: 2px 8px; border-radius: 10px; margin-left: 8px; color: var(--text-secondary);">{{ subtasks|length }}</span>
+                    {% endif %}
+                </h3>
+                <a href="{{ path('app_task_new', {'parent': task.id}) }}"
+                   style="font-size: 13px; background: var(--color-sales); color: #000; padding: 6px 14px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+                    <i class="fas fa-plus me-1"></i>Добавить
+                </a>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                {% if subtasks is empty %}
+                    <p style="color: var(--text-secondary); margin: 0; padding: 20px; text-align: center; font-size: 14px;">
+                        <i class="fas fa-sitemap me-2" style="opacity: 0.4;"></i>Подзадач нет
+                    </p>
+                {% else %}
+                    <!-- Progress bar -->
+                    {% set pct = task.completionPercentage %}
+                    <div style="padding: 16px 20px 8px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; color: var(--text-secondary);">
+                            <span>Прогресс</span>
+                            <span style="font-weight: 600; color: var(--text-primary);">{{ pct }}%</span>
+                        </div>
+                        <div style="height: 6px; background: var(--bg-secondary); border-radius: 3px; overflow: hidden;">
+                            <div style="height: 100%; width: {{ pct }}%; background: var(--color-sales); border-radius: 3px; transition: width 0.3s;"></div>
+                        </div>
+                    </div>
+                    <!-- Subtask list -->
+                    <ul style="list-style: none; margin: 0; padding: 8px 0 4px;">
+                        {% for subtask in subtasks %}
+                        <li style="display: flex; align-items: center; gap: 12px; padding: 10px 20px; border-top: 1px solid var(--border-color);">
+                            <!-- Complete toggle -->
+                            {% if subtask.status != 'completed' %}
+                            <form method="post" action="{{ path('app_task_complete', {'id': subtask.id}) }}" style="margin: 0;">
+                                <input type="hidden" name="_token" value="{{ csrf_token('complete' ~ subtask.id) }}">
+                                <button type="submit" title="Завершить" style="width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border-color); background: transparent; cursor: pointer; flex-shrink: 0;"></button>
+                            </form>
+                            {% else %}
+                            <span style="width: 20px; height: 20px; border-radius: 50%; background: var(--color-sales); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fas fa-check" style="font-size: 10px; color: #000;"></i>
+                            </span>
+                            {% endif %}
+
+                            <!-- Title -->
+                            <a href="{{ path('app_task_show', {'id': subtask.id}) }}"
+                               style="flex: 1; color: var(--text-primary); text-decoration: none; font-size: 14px; {% if subtask.status == 'completed' %}opacity: 0.5; text-decoration: line-through;{% endif %}">
+                                {{ subtask.title }}
+                            </a>
+
+                            <!-- Priority badge -->
+                            {% if subtask.priority == 'urgent' %}
+                                <span style="font-size: 11px; padding: 2px 8px; border-radius: 6px; background: rgba(255,107,203,0.15); color: var(--color-bonuses);">Критический</span>
+                            {% elseif subtask.priority == 'high' %}
+                                <span style="font-size: 11px; padding: 2px 8px; border-radius: 6px; background: rgba(255,107,203,0.15); color: var(--color-bonuses);">Высокий</span>
+                            {% elseif subtask.priority == 'medium' %}
+                                <span style="font-size: 11px; padding: 2px 8px; border-radius: 6px; background: rgba(255,217,61,0.15); color: var(--color-orders);">Средний</span>
+                            {% else %}
+                                <span style="font-size: 11px; padding: 2px 8px; border-radius: 6px; background: rgba(77,212,172,0.15); color: var(--color-sales);">Низкий</span>
+                            {% endif %}
+
+                            <!-- Due date -->
+                            {% if subtask.dueDate %}
+                                <span style="font-size: 12px; color: {% if subtask.isOverdue %}var(--color-bonuses){% else %}var(--text-secondary){% endif %};">
+                                    <i class="fas fa-clock me-1"></i>{{ subtask.dueDate|date('d.m.Y') }}
+                                </span>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        </div>
+
         <!-- Tags -->
         {% if task.tags is not empty %}
         <div class="card">
@@ -108,6 +189,18 @@
             </div>
             <div class="card-body">
                 <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <!-- Progress -->
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <div style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase;">Прогресс</div>
+                            <span style="font-size: 13px; font-weight: 700; color: var(--text-primary);">{{ task.progress }}%</span>
+                        </div>
+                        <div style="height: 8px; background: var(--bg-secondary); border-radius: 4px; overflow: hidden;">
+                            <div style="height: 100%; width: {{ task.progress }}%; border-radius: 4px; transition: width 0.4s ease;
+                                background: {% if task.progress == 100 %}var(--color-sales){% elseif task.progress >= 50 %}var(--color-orders){% else %}var(--color-bonuses){% endif %};"></div>
+                        </div>
+                    </div>
+
                     <!-- Category -->
                     <div>
                         <div style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; margin-bottom: 4px;">Категория</div>

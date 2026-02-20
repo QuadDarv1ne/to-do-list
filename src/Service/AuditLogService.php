@@ -283,11 +283,11 @@ class AuditLogService
 
         // Most active users
         $mostActiveUsers = $this->entityManager->createQueryBuilder()
-            ->select('u.id, u.fullName, COUNT(a.id) as activity_count')
+            ->select('u.id, u.firstName, u.lastName, COUNT(a.id) as activity_count')
             ->from(ActivityLog::class, 'a')
             ->join('a.user', 'u')
             ->where('a.createdAt BETWEEN :start AND :end')
-            ->groupBy('u.id, u.fullName')
+            ->groupBy('u.id, u.firstName, u.lastName')
             ->orderBy('activity_count', 'DESC')
             ->setMaxResults(10)
             ->setParameter('start', $startDate)
