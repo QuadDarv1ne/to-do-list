@@ -154,7 +154,7 @@ class PerformanceMetricsService
             ->select('COUNT(t.id)')
             ->where('t.assignedUser = :user')
             ->andWhere('t.createdAt BETWEEN :from AND :to')
-            ->andWhere('t.deadline < :now')
+            ->andWhere('t.dueDate < :now')
             ->andWhere('t.status != :completed')
             ->setParameter('user', $user)
             ->setParameter('from', $from)

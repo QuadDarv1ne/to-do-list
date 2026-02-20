@@ -54,7 +54,7 @@ class MobileAPIService
             'today_tasks' => $this->taskRepository->createQueryBuilder('t')
                 ->select('COUNT(t.id)')
                 ->where('t.assignedUser = :user')
-                ->andWhere('t.deadline BETWEEN :today AND :tomorrow')
+                ->andWhere('t.dueDate BETWEEN :today AND :tomorrow')
                 ->setParameter('user', $user)
                 ->setParameter('today', $today)
                 ->setParameter('tomorrow', $tomorrow)
@@ -63,7 +63,7 @@ class MobileAPIService
             'overdue_tasks' => $this->taskRepository->createQueryBuilder('t')
                 ->select('COUNT(t.id)')
                 ->where('t.assignedUser = :user')
-                ->andWhere('t.deadline < :now')
+                ->andWhere('t.dueDate < :now')
                 ->andWhere('t.status != :completed')
                 ->setParameter('user', $user)
                 ->setParameter('now', new \DateTime())
@@ -84,7 +84,7 @@ class MobileAPIService
 
         $tasks = $this->taskRepository->createQueryBuilder('t')
             ->where('t.assignedUser = :user')
-            ->andWhere('t.deadline BETWEEN :today AND :tomorrow')
+            ->andWhere('t.dueDate BETWEEN :today AND :tomorrow')
             ->setParameter('user', $user)
             ->setParameter('today', $today)
             ->setParameter('tomorrow', $tomorrow)
@@ -108,7 +108,7 @@ class MobileAPIService
             ->setParameter('user', $user)
             ->setParameter('urgent', 'urgent')
             ->setParameter('completed', 'completed')
-            ->orderBy('t.deadline', 'ASC')
+            ->orderBy('t.dueDate', 'ASC')
             ->setMaxResults(5)
             ->getQuery()
             ->getResult();
@@ -303,7 +303,7 @@ class MobileAPIService
         }
 
         if (isset($filters['is_overdue']) && $filters['is_overdue']) {
-            $qb->andWhere('t.deadline < :now')
+            $qb->andWhere('t.dueDate < :now')
                ->andWhere('t.status != :completed')
                ->setParameter('now', new \DateTime())
                ->setParameter('completed', 'completed');

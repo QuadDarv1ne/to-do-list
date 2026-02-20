@@ -135,17 +135,17 @@ class SearchService
         }
 
         if (!empty($criteria['deadline_from'])) {
-            $qb->andWhere('t.deadline >= :deadlineFrom')
+            $qb->andWhere('t.dueDate >= :deadlineFrom')
                ->setParameter('deadlineFrom', new \DateTime($criteria['deadline_from']));
         }
 
         if (!empty($criteria['deadline_to'])) {
-            $qb->andWhere('t.deadline <= :deadlineTo')
+            $qb->andWhere('t.dueDate <= :deadlineTo')
                ->setParameter('deadlineTo', new \DateTime($criteria['deadline_to']));
         }
 
         if (!empty($criteria['overdue']) || !empty($criteria['is_overdue'])) {
-            $qb->andWhere('t.deadline < :now')
+            $qb->andWhere('t.dueDate < :now')
                ->andWhere('t.status != :completed')
                ->setParameter('now', new \DateTime())
                ->setParameter('completed', 'completed');
@@ -153,9 +153,9 @@ class SearchService
 
         if (isset($criteria['has_deadline'])) {
             if ($criteria['has_deadline']) {
-                $qb->andWhere('t.deadline IS NOT NULL');
+                $qb->andWhere('t.dueDate IS NOT NULL');
             } else {
-                $qb->andWhere('t.deadline IS NULL');
+                $qb->andWhere('t.dueDate IS NULL');
             }
         }
 

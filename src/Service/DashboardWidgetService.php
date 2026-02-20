@@ -160,12 +160,12 @@ class DashboardWidgetService
 
         $tasks = $this->taskRepository->createQueryBuilder('t')
             ->where('t.user = :user OR t.assignedUser = :user')
-            ->andWhere('t.deadline < :now')
+            ->andWhere('t.dueDate < :now')
             ->andWhere('t.status != :completed')
             ->setParameter('user', $user)
             ->setParameter('now', $now)
             ->setParameter('completed', 'completed')
-            ->orderBy('t.deadline', 'ASC')
+            ->orderBy('t.dueDate', 'ASC')
             ->setMaxResults(10)
             ->getQuery()
             ->getResult();
@@ -183,13 +183,13 @@ class DashboardWidgetService
 
         $tasks = $this->taskRepository->createQueryBuilder('t')
             ->where('t.user = :user OR t.assignedUser = :user')
-            ->andWhere('t.deadline BETWEEN :now AND :nextWeek')
+            ->andWhere('t.dueDate BETWEEN :now AND :nextWeek')
             ->andWhere('t.status != :completed')
             ->setParameter('user', $user)
             ->setParameter('now', $now)
             ->setParameter('nextWeek', $nextWeek)
             ->setParameter('completed', 'completed')
-            ->orderBy('t.deadline', 'ASC')
+            ->orderBy('t.dueDate', 'ASC')
             ->setMaxResults(10)
             ->getQuery()
             ->getResult();

@@ -20,7 +20,7 @@ class CalendarService
         $tasks = $this->taskRepository->createQueryBuilder('t')
             ->leftJoin('t.category', 'c')->addSelect('c')
             ->where('t.user = :user OR t.assignedUser = :user')
-            ->andWhere('t.deadline BETWEEN :start AND :end')
+            ->andWhere('t.dueDate BETWEEN :start AND :end')
             ->setParameter('user', $user)
             ->setParameter('start', $start)
             ->setParameter('end', $end)
@@ -60,11 +60,11 @@ class CalendarService
             ->leftJoin('t.category', 'c')->addSelect('c')
             ->leftJoin('t.assignedUser', 'au')->addSelect('au')
             ->where('t.user = :user OR t.assignedUser = :user')
-            ->andWhere('t.deadline BETWEEN :start AND :end')
+            ->andWhere('t.dueDate BETWEEN :start AND :end')
             ->setParameter('user', $user)
             ->setParameter('start', $start)
             ->setParameter('end', $end)
-            ->orderBy('t.deadline', 'ASC')
+            ->orderBy('t.dueDate', 'ASC')
             ->getQuery()
             ->getResult();
 
@@ -99,11 +99,11 @@ class CalendarService
             ->leftJoin('t.category', 'c')->addSelect('c')
             ->leftJoin('t.assignedUser', 'au')->addSelect('au')
             ->where('t.user = :user OR t.assignedUser = :user')
-            ->andWhere('t.deadline BETWEEN :start AND :end')
+            ->andWhere('t.dueDate BETWEEN :start AND :end')
             ->setParameter('user', $user)
             ->setParameter('start', $weekStart)
             ->setParameter('end', $weekEnd)
-            ->orderBy('t.deadline', 'ASC')
+            ->orderBy('t.dueDate', 'ASC')
             ->getQuery()
             ->getResult();
 
@@ -146,12 +146,12 @@ class CalendarService
             ->leftJoin('t.category', 'c')->addSelect('c')
             ->leftJoin('t.assignedUser', 'au')->addSelect('au')
             ->where('t.user = :user OR t.assignedUser = :user')
-            ->andWhere('t.deadline BETWEEN :start AND :end')
+            ->andWhere('t.dueDate BETWEEN :start AND :end')
             ->setParameter('user', $user)
             ->setParameter('start', $start)
             ->setParameter('end', $end)
             ->orderBy('t.priority', 'DESC')
-            ->addOrderBy('t.deadline', 'ASC')
+            ->addOrderBy('t.dueDate', 'ASC')
             ->getQuery()
             ->getResult();
 
@@ -176,13 +176,13 @@ class CalendarService
             ->leftJoin('t.category', 'c')->addSelect('c')
             ->leftJoin('t.assignedUser', 'au')->addSelect('au')
             ->where('t.user = :user OR t.assignedUser = :user')
-            ->andWhere('t.deadline BETWEEN :now AND :future')
+            ->andWhere('t.dueDate BETWEEN :now AND :future')
             ->andWhere('t.status != :completed')
             ->setParameter('user', $user)
             ->setParameter('now', $now)
             ->setParameter('future', $future)
             ->setParameter('completed', 'completed')
-            ->orderBy('t.deadline', 'ASC')
+            ->orderBy('t.dueDate', 'ASC')
             ->getQuery()
             ->getResult();
 
@@ -275,7 +275,7 @@ class CalendarService
     {
         $tasks = $this->taskRepository->createQueryBuilder('t')
             ->where('t.user = :user OR t.assignedUser = :user')
-            ->andWhere('t.deadline BETWEEN :start AND :end')
+            ->andWhere('t.dueDate BETWEEN :start AND :end')
             ->setParameter('user', $user)
             ->setParameter('start', $start)
             ->setParameter('end', $end)

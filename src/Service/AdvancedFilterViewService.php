@@ -184,7 +184,7 @@ class AdvancedFilterViewService
                         ->setParameter('priorities', $value)
                     : $qb->andWhere('t.priority = :priority')
                         ->setParameter('priority', $value),
-                'is_overdue' => $qb->andWhere('t.deadline < :now')
+                'is_overdue' => $qb->andWhere('t.dueDate < :now')
                     ->andWhere('t.status != :completed')
                     ->setParameter('now', new \DateTime())
                     ->setParameter('completed', 'completed'),
@@ -202,12 +202,12 @@ class AdvancedFilterViewService
     private function applyDeadlineFilter($qb, string $value): void
     {
         match($value) {
-            'today' => $qb->andWhere('DATE(t.deadline) = :today')
+            'today' => $qb->andWhere('DATE(t.dueDate) = :today')
                 ->setParameter('today', (new \DateTime())->format('Y-m-d')),
-            'this_week' => $qb->andWhere('t.deadline BETWEEN :week_start AND :week_end')
+            'this_week' => $qb->andWhere('t.dueDate BETWEEN :week_start AND :week_end')
                 ->setParameter('week_start', new \DateTime('monday this week'))
                 ->setParameter('week_end', new \DateTime('sunday this week')),
-            'this_month' => $qb->andWhere('t.deadline BETWEEN :month_start AND :month_end')
+            'this_month' => $qb->andWhere('t.dueDate BETWEEN :month_start AND :month_end')
                 ->setParameter('month_start', new \DateTime('first day of this month'))
                 ->setParameter('month_end', new \DateTime('last day of this month')),
             default => null

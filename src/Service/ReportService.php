@@ -146,13 +146,13 @@ class ReportService
         $now = new \DateTime();
 
         $overdueTasks = $this->taskRepository->createQueryBuilder('t')
-            ->where('t.deadline < :now')
+            ->where('t.dueDate < :now')
             ->andWhere('t.status != :completed')
             ->andWhere('t.status != :cancelled')
             ->setParameter('now', $now)
             ->setParameter('completed', 'completed')
             ->setParameter('cancelled', 'cancelled')
-            ->orderBy('t.deadline', 'ASC')
+            ->orderBy('t.dueDate', 'ASC')
             ->getQuery()
             ->getResult();
 
@@ -320,7 +320,7 @@ class ReportService
             ->select('COUNT(t.id)')
             ->where('t.user = :user OR t.assignedUser = :user')
             ->andWhere('t.createdAt BETWEEN :from AND :to')
-            ->andWhere('t.deadline < :now')
+            ->andWhere('t.dueDate < :now')
             ->andWhere('t.status != :completed')
             ->setParameter('user', $user)
             ->setParameter('from', $from)
