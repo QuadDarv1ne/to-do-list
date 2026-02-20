@@ -29,7 +29,7 @@ class DashboardController extends AbstractController
     ): Response {
         $user = $this->getUser();
 
-        // Cache dashboard data for 2 minutes
+        // Cache dashboard data for 5 minutes
         $cacheKey = 'dashboard_data_' . $user->getId();
         $dashboardData = $cacheService->cacheQuery($cacheKey, function () use (
             $user,
@@ -53,7 +53,7 @@ class DashboardController extends AbstractController
                 $activityLogRepository,
                 $performanceMonitor,
             );
-        }, 120); // 2 minutes cache
+        }, 300); // 5 minutes cache
 
         return $this->render('dashboard/index.html.twig', $dashboardData);
     }

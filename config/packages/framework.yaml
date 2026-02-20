@@ -5,7 +5,7 @@ framework:
     # HTTP Cache configuration (Spotify-style)
     http_cache:
         enabled: true
-        default_ttl: 3600
+        default_ttl: 7200
     
     # HTTP Method Override for REST API
     http_method_override: true
