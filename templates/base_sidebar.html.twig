@@ -280,11 +280,23 @@
         function toggleSidebar() {
             const sidebar     = document.getElementById('sidebar');
             const mainContent = document.querySelector('.main-content');
+            const toggleBtn   = document.querySelector('.sidebar-toggle i');
             const collapsed   = sidebar.classList.toggle('collapsed');
             const btn         = document.querySelector('.mobile-menu-btn');
 
             localStorage.setItem('sidebarCollapsed', collapsed);
             if (btn) btn.setAttribute('aria-expanded', String(!collapsed));
+
+            // Переключаем иконку стрелочки
+            if (toggleBtn) {
+                if (collapsed) {
+                    toggleBtn.classList.remove('fa-chevron-left');
+                    toggleBtn.classList.add('fa-chevron-right');
+                } else {
+                    toggleBtn.classList.remove('fa-chevron-right');
+                    toggleBtn.classList.add('fa-chevron-left');
+                }
+            }
 
             // Resize для графиков после анимации
             setTimeout(() => {
@@ -324,7 +336,16 @@
 
         // Восстанавливаем состояние sidebar
         if (localStorage.getItem('sidebarCollapsed') === 'true') {
-            document.getElementById('sidebar').classList.add('collapsed');
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.querySelector('.sidebar-toggle i');
+            
+            sidebar.classList.add('collapsed');
+            
+            // Восстанавливаем иконку стрелочки
+            if (toggleBtn) {
+                toggleBtn.classList.remove('fa-chevron-left');
+                toggleBtn.classList.add('fa-chevron-right');
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {

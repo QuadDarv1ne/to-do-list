@@ -11,10 +11,24 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/2fa')]
-#[IsGranted('ROLE_USER')]
 class TwoFactorController extends AbstractController
 {
+    #[Route('/login', name: '2fa_login', methods: ['GET'])]
+    public function login(): Response
+    {
+        // This route is used by the security system to display the 2FA form
+        return $this->render('2fa/form.html.twig');
+    }
+
+    #[Route('/login_check', name: '2fa_login_check', methods: ['POST'])]
+    public function loginCheck(): never
+    {
+        // This route is intercepted by the security system
+        throw new \LogicException('This code should never be reached');
+    }
+
     #[Route('/setup', name: 'app_2fa_setup', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
     public function setup(TwoFactorAuthService $twoFactorAuthService): Response
     {
         $user = $this->getUser();
@@ -34,6 +48,7 @@ class TwoFactorController extends AbstractController
     }
 
     #[Route('/verify-setup', name: 'app_2fa_verify_setup', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
     public function verifySetup(
         Request $request,
         TwoFactorAuthService $twoFactorAuthService,
@@ -65,6 +80,7 @@ class TwoFactorController extends AbstractController
     }
 
     #[Route('/status', name: 'app_2fa_status', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
     public function status(TwoFactorAuthService $twoFactorAuthService): Response
     {
         $user = $this->getUser();
@@ -76,6 +92,7 @@ class TwoFactorController extends AbstractController
     }
 
     #[Route('/disable', name: 'app_2fa_disable', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
     public function disable(
         Request $request,
         TwoFactorAuthService $twoFactorAuthService,
@@ -95,6 +112,7 @@ class TwoFactorController extends AbstractController
     }
 
     #[Route('/backup-codes', name: 'app_2fa_backup_codes', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
     public function showBackupCodes(TwoFactorAuthService $twoFactorAuthService): Response
     {
         $user = $this->getUser();
@@ -113,6 +131,7 @@ class TwoFactorController extends AbstractController
     }
 
     #[Route('/regenerate-backup-codes', name: 'app_2fa_regenerate_backup_codes', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
     public function regenerateBackupCodes(
         Request $request,
         TwoFactorAuthService $twoFactorAuthService,
@@ -133,6 +152,7 @@ class TwoFactorController extends AbstractController
     }
 
     #[Route('/api/verify', name: 'app_2fa_api_verify', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
     public function apiVerify(
         Request $request,
         TwoFactorAuthService $twoFactorAuthService,
@@ -163,6 +183,7 @@ class TwoFactorController extends AbstractController
     }
 
     #[Route('/recovery', name: 'app_2fa_recovery', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
     public function recoveryInfo(TwoFactorAuthService $twoFactorAuthService): Response
     {
         $user = $this->getUser();

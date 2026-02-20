@@ -2,22 +2,35 @@
 
 namespace App\Form;
 
+use App\Entity\Task;
 use App\Entity\TaskRecurrence;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\FormEvent;
-use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints as Assert;
 
 class TaskRecurrenceType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
+            ->add('task', EntityType::class, [
+                'class' => Task::class,
+                'label' => 'Шаблон задачи',
+                'placeholder' => 'Выберите задачу как шаблон',
+                'attr' => [
+                    'class' => 'form-select',
+                ],
+                'constraints' => [
+                    new Assert\NotBlank([
+                        'message' => 'Выберите задачу как шаблон',
+                    ]),
+                ],
+            ])
             ->add('frequency', ChoiceType::class, [
                 'label' => 'Частота повторения',
                 'choices' => [
@@ -28,6 +41,12 @@ class TaskRecurrenceType extends AbstractType
                 ],
                 'attr' => [
                     'class' => 'form-select',
+                    'data-frequency-selector' => 'true',
+                ],
+                'constraints' => [
+                    new Assert\NotBlank([
+                        'message' => 'Выберите частоту повторения',
+                    ]),
                 ],
             ])
             ->add('interval', IntegerType::class, [
@@ -36,96 +55,81 @@ class TaskRecurrenceType extends AbstractType
                 'attr' => [
                     'class' => 'form-control',
                     'min' => 1,
-                    'placeholder' => 'Например: 1 (каждый день), 2 (каждые 2 дня)',
+                    'max' => 365,
                 ],
+                'help' => 'Например: 1 = каждый день, 2 = каждые 2 дня',
             ])
             ->add('endDate', DateType::class, [
-                'label' => 'Дата окончания (необязательно)',
+                'label' => 'Дата окончания',
                 'required' => false,
                 'widget' => 'single_text',
                 'attr' => [
                     'class' => 'form-control',
+                    'placeholder' => 'ДД.ММ.ГГГГ',
                 ],
+                'help' => 'Оставьте пустым для бесконечного повторения',
             ])
             ->add('daysOfWeek', ChoiceType::class, [
-                'label' => 'Дни недели (для еженедельного повторения)',
+                'label' => 'Дни недели',
                 'choices' => [
-                    'Понедельник' => '1',
-                    'Вторник' => '2',
-                    'Среда' => '3',
-                    'Четверг' => '4',
-                    'Пятница' => '5',
-                    'Суббота' => '6',
-                    'Воскресенье' => '7',
+                    'Понедельник' => 1,
+                    'Вторник' => 2,
+                    'Среда' => 3,
+                    'Четверг' => 4,
+                    'Пятница' => 5,
+                    'Суббота' => 6,
+                    'Воскресенье' => 7,
                 ],
-                'multiple' => true,
                 'required' => false,
+                'multiple' => true,
                 'expanded' => true,
                 'attr' => [
-                    'class' => 'form-check-input',
+                    'class' => 'days-checkbox-group',
                 ],
+                'help' => 'Выберите дни недели для еженедельного повторения',
             ])
             ->add('daysOfMonth', ChoiceType::class, [
-                'label' => 'Дни месяца (для ежемесячного повторения)',
-                'choices' => array_combine(range(1, 31), range(1, 31)),
-                'multiple' => true,
+                'label' => 'Дни месяца',
+                'choices' => $this->getDaysOfMonthChoices(),
                 'required' => false,
+                'multiple' => true,
+                'expanded' => true,
                 'attr' => [
-                    'class' => 'form-select',
+                    'class' => 'days-checkbox-group',
                 ],
+                'help' => 'Выберите дни месяца для ежемесячного повторения',
             ])
-            ->add('save', SubmitType::class, [
-                'label' => 'Сохранить повторение',
-                'attr' => [
-                    'class' => 'btn btn-primary',
-                ],
-            ]);
+        ;
+    }
 
-        // Transform daysOfWeek from comma-separated string to array for form
-        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) {
-            $data = $event->getData();
-            $form = $event->getForm();
+    private function getDaysOfMonthChoices(): array
+    {
+        $choices = [];
+        $ordinals = [
+            1 => 'первое', 2 => 'второе', 3 => 'третье', 4 => 'четвёртое', 5 => 'пятое',
+            6 => 'шестое', 7 => 'седьмое', 8 => 'восьмое', 9 => 'девятое', 10 => 'десятое',
+            11 => 'одиннадцатое', 12 => 'двенадцатое', 13 => 'тринадцатое', 14 => 'четырнадцатое',
+            15 => 'пятнадцатое', 16 => 'шестнадцатое', 17 => 'семнадцатое', 18 => 'восемнадцатое',
+            19 => 'девятнадцатое', 20 => 'двадцатое', 21 => 'двадцать первое', 22 => 'двадцать второе',
+            23 => 'двадцать третье', 24 => 'двадцать четвёртое', 25 => 'двадцать пятое',
+            26 => 'двадцать шестое', 27 => 'двадцать седьмое', 28 => 'двадцать восьмое',
+            29 => 'двадцать девятое', 30 => 'тридцатое', 31 => 'тридцать первое',
+        ];
 
-            // Transform daysOfWeek
-            if ($data && $data->getDaysOfWeek()) {
-                $daysOfWeekArray = $data->getDaysOfWeekArray();
-                $form->get('daysOfWeek')->setData($daysOfWeekArray);
-            }
+        for ($i = 1; $i <= 31; $i++) {
+            $choices["{$i}-е ({$ordinals[$i]})"] = $i;
+        }
 
-            // Transform daysOfMonth
-            if ($data && $data->getDaysOfMonth()) {
-                $daysOfMonthArray = $data->getDaysOfMonthArray();
-                $form->get('daysOfMonth')->setData($daysOfMonthArray);
-            }
-        });
-
-        // Transform daysOfWeek from array to comma-separated string on submit
-        $builder->get('daysOfWeek')->addEventListener(FormEvents::SUBMIT, function (FormEvent $event) {
-            $data = $event->getData();
-            $parent = $event->getForm()->getParent();
-
-            if ($parent && $data && \is_array($data)) {
-                $recurrence = $parent->getData();
-                $recurrence->setDaysOfWeekFromArray($data);
-            }
-        });
-
-        // Transform daysOfMonth from array to comma-separated string on submit
-        $builder->get('daysOfMonth')->addEventListener(FormEvents::SUBMIT, function (FormEvent $event) {
-            $data = $event->getData();
-            $parent = $event->getForm()->getParent();
-
-            if ($parent && $data && \is_array($data)) {
-                $recurrence = $parent->getData();
-                $recurrence->setDaysOfMonthFromArray($data);
-            }
-        });
+        return $choices;
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
             'data_class' => TaskRecurrence::class,
+            'attr' => [
+                'class' => 'task-recurrence-form',
+            ],
         ]);
     }
 }

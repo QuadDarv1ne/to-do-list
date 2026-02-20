@@ -3,79 +3,102 @@
 namespace App\Service;
 
 use App\Entity\Task;
+use App\Entity\TaskRecurrence;
 use App\Entity\User;
+use App\Repository\TaskRecurrenceRepository;
 use App\Repository\TaskRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 
 class RecurringTaskService
 {
     public function __construct(
+        private TaskRecurrenceRepository $recurrenceRepository,
         private TaskRepository $taskRepository,
         private EntityManagerInterface $entityManager,
+        private LoggerInterface $logger,
     ) {
     }
 
     /**
-     * Create recurring task
-     * TODO: Реализовать повторяющиеся задачи
-     * - Создать таблицу task_recurrence (task_id, frequency, interval, end_date, last_created, next_creation)
-     * - Поддержка сложных паттернов (каждый второй понедельник, последний день месяца)
-     * - Настройка времени создания задачи
-     * - Пропуск выходных дней
-     * - Автоматическое завершение серии при достижении end_date
+     * Create recurring task rule
      */
-    public function createRecurring(Task $template, string $frequency, ?\DateTime $endDate = null): array
-    {
-        $config = [
-            'template_id' => $template->getId(),
-            'frequency' => $frequency, // daily, weekly, monthly, yearly
-            'end_date' => $endDate,
-            'last_created' => new \DateTime(),
-            'next_creation' => $this->calculateNextDate(new \DateTime(), $frequency),
-        ];
+    public function createRecurring(
+        Task $template,
+        User $user,
+        string $frequency,
+        int $interval = 1,
+        ?\DateTimeImmutable $endDate = null,
+        ?array $daysOfWeek = null,
+        ?array $daysOfMonth = null,
+    ): TaskRecurrence {
+        $recurrence = new TaskRecurrence();
+        $recurrence->setTask($template);
+        $recurrence->setUser($user);
+        $recurrence->setFrequency($frequency);
+        $recurrence->setInterval($interval);
+        $recurrence->setEndDate($endDate);
+        
+        if ($daysOfWeek !== null) {
+            $recurrence->setDaysOfWeekFromArray($daysOfWeek);
+        }
+        
+        if ($daysOfMonth !== null) {
+            $recurrence->setDaysOfMonthFromArray($daysOfMonth);
+        }
 
-        // TODO: Save to database
+        $this->entityManager->persist($recurrence);
+        $this->entityManager->flush();
 
-        return $config;
-    }
+        $this->logger->info('Recurring task created', [
+            'recurrence_id' => $recurrence->getId(),
+            'task_id' => $template->getId(),
+            'frequency' => $frequency,
+            'user_id' => $user->getId(),
+        ]);
 
-    /**
-     * Calculate next creation date
-     */
-    private function calculateNextDate(\DateTime $from, string $frequency): \DateTime
-    {
-        $next = clone $from;
-
-        return match($frequency) {
-            'daily' => $next->modify('+1 day'),
-            'weekly' => $next->modify('+1 week'),
-            'monthly' => $next->modify('+1 month'),
-            'yearly' => $next->modify('+1 year'),
-            default => $next->modify('+1 day')
-        };
+        return $recurrence;
     }
 
     /**
      * Process recurring tasks (should be run by cron)
-     * TODO: Реализовать обработку повторяющихся задач
-     * - Создать Symfony Command для запуска через cron
-     * - Использовать Messenger для асинхронной обработки
-     * - Обработка ошибок и retry логика
-     * - Уведомления при создании новых задач
-     * - Логирование созданных задач
-     * - Добавить в crontab.example команду для запуска
      */
     public function processRecurringTasks(): array
     {
         $created = [];
+        $now = new \DateTimeImmutable();
 
-        // TODO: Get recurring task configs from database
-        $configs = [];
+        // Get all active recurrences
+        $recurrences = $this->recurrenceRepository->findActiveRecurrences();
 
-        foreach ($configs as $config) {
-            if ($this->shouldCreateTask($config)) {
-                $task = $this->createTaskFromConfig($config);
-                $created[] = $task;
+        foreach ($recurrences as $recurrence) {
+            /** @var TaskRecurrence $recurrence */
+            
+            // Check if end date has passed
+            if ($recurrence->getEndDate() !== null && $recurrence->getEndDate() < $now) {
+                continue;
+            }
+
+            // Check if we should create a new task
+            if ($this->shouldCreateTask($recurrence, $now)) {
+                try {
+                    $task = $this->createTaskFromRecurrence($recurrence);
+                    $created[] = $task;
+
+                    // Update last generated date
+                    $recurrence->setLastGenerated($now);
+                    $this->entityManager->flush();
+
+                    $this->logger->info('Recurring task created', [
+                        'task_id' => $task->getId(),
+                        'recurrence_id' => $recurrence->getId(),
+                    ]);
+                } catch (\Exception $e) {
+                    $this->logger->error('Failed to create recurring task', [
+                        'recurrence_id' => $recurrence->getId(),
+                        'error' => $e->getMessage(),
+                    ]);
+                }
             }
         }
 
@@ -85,41 +108,81 @@ class RecurringTaskService
     /**
      * Check if task should be created
      */
-    private function shouldCreateTask(array $config): bool
+    private function shouldCreateTask(TaskRecurrence $recurrence, \DateTimeImmutable $now): bool
     {
-        $now = new \DateTime();
+        $lastGenerated = $recurrence->getLastGenerated();
+        $frequency = $recurrence->getFrequency();
+        $interval = $recurrence->getInterval() ?? 1;
 
-        // Check if next creation date has passed
-        if ($config['next_creation'] > $now) {
-            return false;
+        // If never generated, create now
+        if ($lastGenerated === null) {
+            return true;
         }
 
-        // Check if end date has passed
-        return !($config['end_date'] && $config['end_date'] < $now)
+        // Calculate next creation date based on frequency
+        $nextDate = $this->calculateNextDate($lastGenerated, $frequency, $interval);
 
+        // Check for specific days (weekly/monthly)
+        if ($frequency === 'weekly' && $recurrence->getDaysOfWeekArray() !== null) {
+            return $this->shouldCreateOnSpecificDays($now, $recurrence->getDaysOfWeekArray(), 'week');
+        }
 
+        if ($frequency === 'monthly' && $recurrence->getDaysOfMonthArray() !== null) {
+            return $this->shouldCreateOnSpecificDays($now, $recurrence->getDaysOfMonthArray(), 'month');
+        }
 
-        ;
+        return $now >= $nextDate;
     }
 
     /**
-     * Create task from config
+     * Check if current date matches specific days
      */
-    private function createTaskFromConfig(array $config): Task
+    private function shouldCreateOnSpecificDays(\DateTimeImmutable $now, array $days, string $type): bool
     {
-        $template = $this->taskRepository->find($config['template_id']);
+        $currentDay = match($type) {
+            'week' => (int) $now->format('N'), // 1 (Monday) to 7 (Sunday)
+            'month' => (int) $now->format('j'), // 1 to 31
+            default => 0
+        };
+
+        return in_array($currentDay, array_map('intval', $days));
+    }
+
+    /**
+     * Calculate next date based on frequency
+     */
+    private function calculateNextDate(
+        \DateTimeImmutable $from,
+        string $frequency,
+        int $interval = 1,
+    ): \DateTimeImmutable {
+        return match($frequency) {
+            'daily' => $from->modify("+{$interval} days"),
+            'weekly' => $from->modify("+{$interval} weeks"),
+            'monthly' => $from->modify("+{$interval} months"),
+            'yearly' => $from->modify("+{$interval} years"),
+            default => $from->modify("+{$interval} days")
+        };
+    }
+
+    /**
+     * Create task from recurrence
+     */
+    private function createTaskFromRecurrence(TaskRecurrence $recurrence): Task
+    {
+        $template = $recurrence->getTask();
 
         $task = new Task();
-        $task->setTitle($template->getTitle());
+        $task->setTitle($this->generateTitle($template, $recurrence));
         $task->setDescription($template->getDescription());
         $task->setPriority($template->getPriority());
         $task->setStatus('pending');
-        $task->setUser($template->getUser());
+        $task->setUser($recurrence->getUser());
         $task->setCategory($template->getCategory());
 
         // Set deadline based on frequency
-        $deadline = $this->calculateDeadline($config['frequency']);
-        $task->setDeadline($deadline);
+        $deadline = $this->calculateDeadline($recurrence->getFrequency(), $recurrence->getInterval() ?? 1);
+        $task->setDueDate($deadline);
 
         $this->entityManager->persist($task);
         $this->entityManager->flush();
@@ -128,18 +191,34 @@ class RecurringTaskService
     }
 
     /**
+     * Generate title for recurring task
+     */
+    private function generateTitle(Task $template, TaskRecurrence $recurrence): string
+    {
+        $today = new \DateTimeImmutable();
+        $dateStr = $today->format('d.m.Y');
+        
+        // Check if title already contains date
+        if (preg_match('/\d{2}\.\d{2}\.\d{4}/', $template->getTitle())) {
+            return $template->getTitle();
+        }
+
+        return "{$template->getTitle()} ({$dateStr})";
+    }
+
+    /**
      * Calculate deadline for new task
      */
-    private function calculateDeadline(string $frequency): \DateTime
+    private function calculateDeadline(string $frequency, int $interval = 1): \DateTimeImmutable
     {
-        $deadline = new \DateTime();
+        $deadline = new \DateTimeImmutable();
 
         return match($frequency) {
-            'daily' => $deadline->modify('+1 day'),
-            'weekly' => $deadline->modify('+1 week'),
-            'monthly' => $deadline->modify('+1 month'),
-            'yearly' => $deadline->modify('+1 year'),
-            default => $deadline->modify('+1 day')
+            'daily' => $deadline->modify("+{$interval} days"),
+            'weekly' => $deadline->modify("+{$interval} weeks"),
+            'monthly' => $deadline->modify("+{$interval} months"),
+            'yearly' => $deadline->modify("+{$interval} years"),
+            default => $deadline->modify("+{$interval} days")
         };
     }
 
@@ -153,50 +232,189 @@ class RecurringTaskService
                 'name' => 'Ежедневно',
                 'description' => 'Создавать задачу каждый день',
                 'icon' => 'fa-calendar-day',
+                'supportsInterval' => true,
             ],
             'weekly' => [
                 'name' => 'Еженедельно',
                 'description' => 'Создавать задачу каждую неделю',
                 'icon' => 'fa-calendar-week',
+                'supportsInterval' => true,
+                'supportsDaysOfWeek' => true,
             ],
             'monthly' => [
                 'name' => 'Ежемесячно',
                 'description' => 'Создавать задачу каждый месяц',
                 'icon' => 'fa-calendar-alt',
+                'supportsInterval' => true,
+                'supportsDaysOfMonth' => true,
             ],
             'yearly' => [
                 'name' => 'Ежегодно',
                 'description' => 'Создавать задачу каждый год',
                 'icon' => 'fa-calendar',
+                'supportsInterval' => true,
+            ],
+            'custom' => [
+                'name' => 'Пользовательский',
+                'description' => 'Настроить свой паттерн повторения',
+                'icon' => 'fa-cog',
+                'supportsInterval' => true,
             ],
         ];
     }
 
     /**
      * Get user's recurring tasks
-     * TODO: Реализовать получение повторяющихся задач пользователя
-     * - Запрос к таблице task_recurrence с JOIN к tasks
-     * - Показывать следующую дату создания
-     * - Статистика созданных задач по каждому правилу
-     * - Возможность редактирования правил
      */
     public function getUserRecurringTasks(User $user): array
     {
-        // TODO: Get from database
-        return [];
+        return $this->recurrenceRepository->findByUser($user);
+    }
+
+    /**
+     * Get upcoming recurring tasks for user
+     */
+    public function getUpcomingRecurringTasks(User $user, int $limit = 5): array
+    {
+        return $this->recurrenceRepository->findUpcomingForUser($user, $limit);
     }
 
     /**
      * Delete recurring task
-     * TODO: Реализовать удаление повторяющихся задач
-     * - Удаление записи из task_recurrence
-     * - Опция: удалить все созданные задачи или только правило
-     * - Подтверждение перед удалением
-     * - Логирование удаления
      */
-    public function deleteRecurring(int $configId): bool
+    public function deleteRecurring(TaskRecurrence $recurrence, bool $deleteCreatedTasks = false): bool
     {
-        // TODO: Delete from database
+        if ($deleteCreatedTasks) {
+            // TODO: Find and delete all tasks created from this recurrence
+            // This would require tracking parent recurrence in Task entity
+        }
+
+        $this->entityManager->remove($recurrence);
+        $this->entityManager->flush();
+
+        $this->logger->info('Recurring task deleted', [
+            'recurrence_id' => $recurrence->getId(),
+        ]);
+
         return true;
+    }
+
+    /**
+     * Update recurring task
+     */
+    public function updateRecurring(
+        TaskRecurrence $recurrence,
+        ?string $frequency = null,
+        ?int $interval = null,
+        ?\DateTimeImmutable $endDate = null,
+        ?array $daysOfWeek = null,
+        ?array $daysOfMonth = null,
+    ): TaskRecurrence {
+        if ($frequency !== null) {
+            $recurrence->setFrequency($frequency);
+        }
+
+        if ($interval !== null) {
+            $recurrence->setInterval($interval);
+        }
+
+        if ($endDate !== null) {
+            $recurrence->setEndDate($endDate);
+        }
+
+        if ($daysOfWeek !== null) {
+            $recurrence->setDaysOfWeekFromArray($daysOfWeek);
+        }
+
+        if ($daysOfMonth !== null) {
+            $recurrence->setDaysOfMonthFromArray($daysOfMonth);
+        }
+
+        $recurrence->setUpdatedAt();
+        $this->entityManager->flush();
+
+        return $recurrence;
+    }
+
+    /**
+     * Get statistics for user's recurring tasks
+     */
+    public function getStatistics(User $user): array
+    {
+        $recurrences = $this->getUserRecurringTasks($user);
+        
+        $total = count($recurrences);
+        $active = 0;
+        $byFrequency = [];
+
+        foreach ($recurrences as $recurrence) {
+            /** @var TaskRecurrence $recurrence */
+            $freq = $recurrence->getFrequency();
+            
+            if (!isset($byFrequency[$freq])) {
+                $byFrequency[$freq] = 0;
+            }
+            $byFrequency[$freq]++;
+
+            // Check if active
+            if ($recurrence->getEndDate() === null || $recurrence->getEndDate() >= new \DateTimeImmutable()) {
+                $active++;
+            }
+        }
+
+        return [
+            'total' => $total,
+            'active' => $active,
+            'inactive' => $total - $active,
+            'by_frequency' => $byFrequency,
+        ];
+    }
+
+    /**
+     * Get days of week options
+     */
+    public function getDaysOfWeekOptions(): array
+    {
+        return [
+            1 => 'Понедельник',
+            2 => 'Вторник',
+            3 => 'Среда',
+            4 => 'Четверг',
+            5 => 'Пятница',
+            6 => 'Суббота',
+            7 => 'Воскресенье',
+        ];
+    }
+
+    /**
+     * Get days of month options
+     */
+    public function getDaysOfMonthOptions(): array
+    {
+        $days = [];
+        for ($i = 1; $i <= 31; $i++) {
+            $days[$i] = "{$i}-е число";
+        }
+        return $days;
+    }
+
+    /**
+     * Skip weekend option
+     */
+    public function skipWeekend(\DateTimeImmutable $date): \DateTimeImmutable
+    {
+        $dayOfWeek = (int) $date->format('N');
+        
+        // If Saturday (6), move to Friday (5)
+        if ($dayOfWeek === 6) {
+            return $date->modify('-1 day');
+        }
+        
+        // If Sunday (7), move to Monday (1)
+        if ($dayOfWeek === 7) {
+            return $date->modify('+1 day');
+        }
+
+        return $date;
     }
 }

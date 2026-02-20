@@ -1,0 +1,117 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Двухфакторная аутентификация{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row justify-content-center align-items-center min-vh-100">
+        <div class="col-md-5">
+            <div class="card shadow">
+                <div class="card-header text-center">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-shield-alt me-2"></i>
+                        Двухфакторная аутентификация
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-center mb-4">
+                        Введите 6-значный код из приложения Google Authenticator
+                    </p>
+
+                    {% if error %}
+                        <div class="alert alert-danger">
+                            {{ error.messageKey|trans(error.messageData, 'security') }}
+                        </div>
+                    {% endif %}
+
+                    <form method="post" action="{{ path('2fa_login_check') }}">
+                        <div class="mb-3">
+                            <label for="auth_code" class="form-label">Код аутентификации</label>
+                            <input type="text" 
+                                   class="form-control form-control-lg text-center" 
+                                   id="auth_code" 
+                                   name="_auth_code" 
+                                   maxlength="6" 
+                                   placeholder="123456"
+                                   autocomplete="off"
+                                   inputmode="numeric"
+                                   pattern="[0-9]{6}"
+                                   autofocus
+                                   required>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="trusted" name="_trusted">
+                            <label class="form-check-label" for="trusted">
+                                Доверять этому устройству на 30 дней
+                            </label>
+                        </div>
+
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-sign-in-alt me-2"></i>Войти
+                            </button>
+                        </div>
+                    </form>
+
+                    <hr class="my-4">
+
+                    <div class="text-center">
+                        <p class="mb-2">Нет доступа к приложению?</p>
+                        <button type="button" class="btn btn-link" data-bs-toggle="collapse" data-bs-target="#backupCodeForm">
+                            Использовать резервный код
+                        </button>
+                    </div>
+
+                    <div class="collapse mt-3" id="backupCodeForm">
+                        <form method="post" action="{{ path('2fa_login_check') }}">
+                            <div class="mb-3">
+                                <label for="backup_code" class="form-label">Резервный код</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="backup_code" 
+                                       name="_auth_code" 
+                                       placeholder="XXXXXXXX"
+                                       autocomplete="off"
+                                       required>
+                                <small class="form-text text-muted">
+                                    Введите один из резервных кодов, полученных при настройке 2FA
+                                </small>
+                            </div>
+
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-secondary">
+                                    <i class="fas fa-key me-2"></i>Использовать резервный код
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const authCodeInput = document.getElementById('auth_code');
+            
+            if (authCodeInput) {
+                // Auto-submit when 6 digits entered
+                authCodeInput.addEventListener('input', function() {
+                    this.value = this.value.replace(/[^0-9]/g, '');
+                    if (this.value.length === 6) {
+                        this.form.requestSubmit();
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %}
