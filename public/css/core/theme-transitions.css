@@ -1,27 +1,30 @@
 /**
- * Theme Transitions
- * Плавные переходы между темами
+ * Theme Transitions - Optimized
+ * Плавные переходы между темами с оптимизацией производительности
  */
-
-/* Базовые переходы для всех элементов */
-body.theme-transitioning,
-body.theme-transitioning * {
-    transition: background-color 0.3s ease, 
-                color 0.3s ease, 
-                border-color 0.3s ease,
-                box-shadow 0.3s ease !important;
-}
-
-/* Отключаем переходы для элементов, которые не должны анимироваться */
-body.theme-transitioning .no-transition,
-body.theme-transitioning [data-no-transition] {
-    transition: none !important;
-}
 
 /* CSS переменные для плавных переходов */
 :root {
     --theme-transition-duration: 0.3s;
-    --theme-transition-timing: ease;
+    --theme-transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Базовые переходы для всех элементов - оптимизированные */
+body.theme-transitioning,
+body.theme-transitioning * {
+    transition: background-color var(--theme-transition-duration) var(--theme-transition-timing), 
+                color var(--theme-transition-duration) var(--theme-transition-timing), 
+                border-color var(--theme-transition-duration) var(--theme-transition-timing),
+                box-shadow var(--theme-transition-duration) var(--theme-transition-timing);
+}
+
+/* Отключаем переходы для элементов, которые не должны анимироваться */
+body.theme-transitioning .no-transition,
+body.theme-transitioning [data-no-transition],
+body.theme-transitioning img,
+body.theme-transitioning video,
+body.theme-transitioning iframe {
+    transition: none !important;
 }
 
 /* Применяем переходы к основным элементам */
@@ -68,11 +71,12 @@ body,
 
 /* Переходы для кнопок */
 .btn {
-    transition: background-color 0.2s ease,
-                color 0.2s ease,
-                border-color 0.2s ease,
-                box-shadow 0.2s ease,
-                transform 0.1s ease;
+    transition: background-color 0.2s var(--theme-transition-timing),
+                color 0.2s var(--theme-transition-timing),
+                border-color 0.2s var(--theme-transition-timing),
+                box-shadow 0.2s var(--theme-transition-timing),
+                transform 0.15s var(--theme-transition-timing);
+    will-change: transform;
 }
 
 /* Переходы для форм */
@@ -80,8 +84,13 @@ body,
 .form-select {
     transition: background-color var(--theme-transition-duration) var(--theme-transition-timing),
                 color var(--theme-transition-duration) var(--theme-transition-timing),
-                border-color 0.2s ease,
-                box-shadow 0.2s ease;
+                border-color 0.2s var(--theme-transition-timing),
+                box-shadow 0.2s var(--theme-transition-timing);
+}
+
+.form-control:focus,
+.form-select:focus {
+    transition-duration: 0.15s;
 }
 
 /* Переходы для модальных окон */
@@ -98,14 +107,21 @@ body,
 }
 
 .table tbody tr {
-    transition: background-color 0.2s ease;
+    transition: background-color 0.2s var(--theme-transition-timing);
+    will-change: background-color;
 }
 
 /* Переходы для навигации */
 .nav-link,
 .navbar-nav .nav-link {
-    transition: background-color 0.2s ease,
-                color 0.2s ease;
+    transition: background-color 0.2s var(--theme-transition-timing),
+                color 0.2s var(--theme-transition-timing),
+                transform 0.15s var(--theme-transition-timing);
+}
+
+.nav-link:hover,
+.navbar-nav .nav-link:hover {
+    transform: translateX(2px);
 }
 
 /* Переходы для дропдаунов */
@@ -135,16 +151,26 @@ body,
 
 /* Переходы для списков */
 .list-group-item {
-    transition: background-color 0.2s ease,
-                color 0.2s ease,
-                border-color var(--theme-transition-duration) var(--theme-transition-timing);
+    transition: background-color 0.2s var(--theme-transition-timing),
+                color 0.2s var(--theme-transition-timing),
+                border-color var(--theme-transition-duration) var(--theme-transition-timing),
+                transform 0.15s var(--theme-transition-timing);
+}
+
+.list-group-item:hover {
+    transform: translateX(4px);
 }
 
 /* Переходы для пагинации */
 .pagination .page-link {
-    transition: background-color 0.2s ease,
-                color 0.2s ease,
-                border-color 0.2s ease;
+    transition: background-color 0.2s var(--theme-transition-timing),
+                color 0.2s var(--theme-transition-timing),
+                border-color 0.2s var(--theme-transition-timing),
+                transform 0.15s var(--theme-transition-timing);
+}
+
+.pagination .page-link:hover:not(.disabled) {
+    transform: scale(1.05);
 }
 
 /* Переходы для breadcrumbs */
@@ -153,7 +179,12 @@ body,
 }
 
 .breadcrumb-item a {
-    transition: color 0.2s ease;
+    transition: color 0.2s var(--theme-transition-timing),
+                opacity 0.15s var(--theme-transition-timing);
+}
+
+.breadcrumb-item a:hover {
+    opacity: 0.8;
 }
 
 /* Переходы для tooltips и popovers */
@@ -174,6 +205,14 @@ body,
 
 /* Оптимизация производительности */
 @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
     body.theme-transitioning,
     body.theme-transitioning * {
         transition: none !important;
@@ -188,7 +227,7 @@ html:not(.theme-ready) * {
 /* Анимация появления при смене темы */
 @keyframes themeChange {
     0% {
-        opacity: 0.95;
+        opacity: 0.98;
     }
     100% {
         opacity: 1;
@@ -196,5 +235,15 @@ html:not(.theme-ready) * {
 }
 
 body.theme-transitioning {
-    animation: themeChange 0.3s ease;
+    animation: themeChange var(--theme-transition-duration) var(--theme-transition-timing);
+}
+
+/* Оптимизация GPU для плавных переходов */
+.card-modern,
+.stat-card-modern,
+.btn,
+.nav-link,
+.list-group-item {
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }

@@ -1,0 +1,214 @@
+/**
+ * Performance Optimizations
+ * Оптимизации производительности для анимаций и переходов
+ * 
+ * ВАЖНО: Этот файл содержит оптимизированные классы для замены transition: all
+ */
+
+/* ============================================
+   TRANSITION UTILITIES - Оптимизированные переходы
+   ============================================ */
+
+/* Базовые переходы для интерактивных элементов */
+.transition-interactive {
+    transition: 
+        background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+        color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+        border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+        transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Переходы для карточек */
+.transition-card {
+    transition: 
+        box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Переходы для кнопок */
+.transition-button {
+    transition: 
+        background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+        color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+        transform 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Переходы для форм */
+.transition-form {
+    transition: 
+        border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+        background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Переходы для навигации */
+.transition-nav {
+    transition: 
+        background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+        color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+        transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================
+   WILL-CHANGE OPTIMIZATION
+   ============================================ */
+
+/* Применять will-change только к элементам, которые будут анимироваться */
+.will-animate-transform {
+    will-change: transform;
+}
+
+.will-animate-opacity {
+    will-change: opacity;
+}
+
+.will-animate-colors {
+    will-change: background-color, color, border-color;
+}
+
+/* Убираем will-change после анимации */
+.animation-complete {
+    will-change: auto;
+}
+
+/* ============================================
+   GPU ACCELERATION
+   ============================================ */
+
+/* Принудительное использование GPU для плавных анимаций */
+.gpu-accelerated {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+}
+
+/* ============================================
+   REDUCED MOTION SUPPORT
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    
+    /* Отключаем will-change для экономии ресурсов */
+    .will-animate-transform,
+    .will-animate-opacity,
+    .will-animate-colors {
+        will-change: auto;
+    }
+}
+
+/* ============================================
+   PERFORMANCE HINTS
+   ============================================ */
+
+/* Оптимизация для элементов с частыми изменениями */
+.frequent-updates {
+    contain: layout style paint;
+}
+
+/* Изоляция для независимых компонентов */
+.isolated-component {
+    isolation: isolate;
+    contain: layout style;
+}
+
+/* ============================================
+   SCROLL PERFORMANCE
+   ============================================ */
+
+/* Оптимизация скролла для больших списков */
+.optimized-scroll {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    will-change: scroll-position;
+}
+
+/* Виртуализация для длинных списков */
+.virtual-scroll-container {
+    overflow-y: auto;
+    position: relative;
+    contain: strict;
+}
+
+/* ============================================
+   ANIMATION PERFORMANCE
+   ============================================ */
+
+/* Оптимизированные классы для частых анимаций */
+.animate-hover {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-hover:hover {
+    transform: translateY(-2px);
+}
+
+.animate-scale {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-scale:hover {
+    transform: scale(1.05);
+}
+
+.animate-fade {
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================
+   COMPOSITE LAYERS
+   ============================================ */
+
+/* Создание отдельного композитного слоя для сложных элементов */
+.composite-layer {
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+/* Для модальных окон и оверлеев */
+.overlay-layer {
+    transform: translateZ(0);
+    isolation: isolate;
+}
+
+/* ============================================
+   PAINT OPTIMIZATION
+   ============================================ */
+
+/* Оптимизация перерисовки */
+.no-repaint {
+    contain: paint;
+}
+
+/* Для элементов с фиксированным размером */
+.fixed-size {
+    contain: size layout;
+}
+
+/* ============================================
+   BEST PRACTICES NOTES
+   ============================================ */
+
+/*
+ * РЕКОМЕНДАЦИИ ПО ИСПОЛЬЗОВАНИЮ:
+ * 
+ * 1. НЕ используйте transition: all - указывайте конкретные свойства
+ * 2. Используйте will-change только перед анимацией, убирайте после
+ * 3. Анимируйте только transform и opacity для лучшей производительности
+ * 4. Используйте contain для изоляции компонентов
+ * 5. Добавляйте @media (prefers-reduced-motion) для доступности
+ * 6. Используйте GPU acceleration (translateZ(0)) для сложных анимаций
+ * 7. Избегайте анимации width, height, top, left - используйте transform
+ * 8. Используйте requestAnimationFrame для JS анимаций
+ * 9. Дебаунсьте события resize и scroll
+ * 10. Используйте IntersectionObserver для ленивой загрузки
+ */

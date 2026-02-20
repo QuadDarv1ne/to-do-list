@@ -23,6 +23,7 @@ class DashboardController extends AbstractController
         \App\Repository\HabitRepository $habitRepository,
         \App\Repository\DealRepository $dealRepository,
         \App\Repository\ClientRepository $clientRepository,
+        \App\Repository\ActivityLogRepository $activityLogRepository,
         QueryCacheService $cacheService,
         ?PerformanceMonitorService $performanceMonitor = null,
     ): Response {
@@ -38,6 +39,7 @@ class DashboardController extends AbstractController
             $habitRepository,
             $dealRepository,
             $clientRepository,
+            $activityLogRepository,
             $performanceMonitor
         ) {
             return $this->loadDashboardData(
@@ -48,6 +50,7 @@ class DashboardController extends AbstractController
                 $habitRepository,
                 $dealRepository,
                 $clientRepository,
+                $activityLogRepository,
                 $performanceMonitor,
             );
         }, 120); // 2 minutes cache
@@ -66,6 +69,7 @@ class DashboardController extends AbstractController
         $habitRepository,
         $dealRepository,
         $clientRepository,
+        $activityLogRepository,
         ?PerformanceMonitorService $performanceMonitor,
     ): array {
 
@@ -158,6 +162,15 @@ class DashboardController extends AbstractController
         $totalClients = $clientRepository->getTotalCount($manager);
         $newClientsThisMonth = $clientRepository->getNewClientsCount($startOfMonth, $endOfMonth, $manager);
 
+        // Get recent activity logs
+        $recentActivities = $activityLogRepository->createQueryBuilder('a')
+            ->where('a.user = :user')
+            ->setParameter('user', $user)
+            ->orderBy('a.createdAt', 'DESC')
+            ->setMaxResults(10)
+            ->getQuery()
+            ->getResult();
+
         // Prepare dashboard data with defaults
         $dashboardData = [
             'task_stats' => $taskStats,
@@ -182,6 +195,7 @@ class DashboardController extends AbstractController
             'tag_completion_rates' => $analyticsData['tag_completion_rates'] ?? [],
             'categories' => $analyticsData['categories'] ?? [],
             'recent_tasks' => $analyticsData['recent_tasks'] ?? [],
+            'recent_activities' => $recentActivities,
             // Pass activity stats if user is admin
             'platform_activity_stats' => $analyticsData['platform_activity_stats'] ?? null,
             'user_activity_stats' => $analyticsData['user_activity_stats'] ?? null,
