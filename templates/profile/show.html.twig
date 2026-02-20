@@ -2,18 +2,23 @@
 
 {% block title %}Профиль{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/pages/profile-enhanced.css') }}">
+{% endblock %}
+
 {% block body %}
 <div class="container py-4">
     <!-- Profile Header -->
     <div class="card-modern shadow-lg mb-4">
-        <div class="profile-cover rounded-top-4" style="height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <div class="profile-cover rounded-top-4">
             <div class="profile-cover-pattern"></div>
         </div>
         <div class="card-body-modern position-relative" style="margin-top: -60px; padding-top: 80px;">
             <div class="d-flex flex-column flex-md-row align-items-center gap-4">
                 <div class="position-relative">
-                    <div class="profile-avatar-container rounded-circle overflow-hidden border border-4 border-white shadow-lg" style="width: 120px; height: 120px;">
-                        <div class="profile-avatar bg-primary d-flex align-items-center justify-content-center text-white fs-1 fw-bold w-100 h-100">
+                    <div class="profile-avatar-container rounded-circle overflow-hidden">
+                        <div class="profile-avatar d-flex align-items-center justify-content-center w-100 h-100">
                             {% if app.user.avatar %}
                                 <img src="{{ asset('uploads/avatars/' ~ app.user.avatar) }}" alt="{{ app.user.fullName }}" class="w-100 h-100 object-fit-cover">
                             {% else %}
@@ -22,8 +27,8 @@
                         </div>
                     </div>
                     {% if app.user.isActive %}
-                    <div class="position-absolute bottom-0 end-0 bg-primary rounded-circle p-1 border border-2 border-white">
-                        <i class="fas fa-check text-white fs-6"></i>
+                    <div class="position-absolute bottom-0 end-0 rounded-circle p-1 border border-2" style="background: var(--color-success); border-color: var(--bg-primary) !important;">
+                        <i class="fas fa-check fs-6" style="color: var(--text-inverse);"></i>
                     </div>
                     {% endif %}
                 </div>
@@ -233,9 +238,9 @@
                     {% set recentTasks = app.user.tasks|slice(0, 5) %}
                     {% if recentTasks is not empty %}
                         {% for task in recentTasks %}
-                        <div class="activity-item d-flex align-items-center justify-content-between p-3 bg-light rounded mb-2">
+                        <div class="activity-item d-flex align-items-center justify-content-between">
                             <div class="d-flex align-items-center gap-3">
-                                <div class="status-indicator" style="width: 8px; height: 8px; border-radius: 50%; background: {{ task.status == 'completed' ? '#28a745' : (task.status == 'in_progress' ? '#ffc107' : '#6c757d') }};"></div>
+                                <div class="status-indicator {{ task.status == 'completed' ? 'completed' : (task.status == 'in_progress' ? 'in-progress' : 'pending') }}"></div>
                                 <div>
                                     <div class="fw-medium">{{ task.title }}</div>
                                     <small class="text-muted">{{ task.createdAt|date('d.m.Y H:i') }}</small>

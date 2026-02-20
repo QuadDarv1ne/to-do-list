@@ -8,14 +8,195 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initSettingsPage() {
-    initSettingsTabs();
-    initFormValidation();
-    initPasswordToggle();
-    initAvatarUpload();
-    initNotificationSettings();
-    initThemeSettings();
-    initShortcutSettings();
+    // Apply current theme immediately
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    
+    initSettingsNavigation();
+    initThemeSelection();
+    initNotificationToggles();
 }
+
+/**
+ * Settings Navigation
+ */
+function initSettingsNavigation() {
+    const navItems = document.querySelectorAll('.settings-nav-item');
+    const sections = document.querySelectorAll('.settings-section');
+    
+    navItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Update active state
+            navItems.forEach(i => i.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Show section
+            const section = this.dataset.section;
+            sections.forEach(s => {
+                s.style.display = s.id === section ? 'block' : 'none';
+            });
+            
+            // Update URL hash
+            window.location.hash = section;
+            
+            // Save active section
+            localStorage.setItem('activeSettingsSection', section);
+        });
+    });
+    
+    // Restore active section from hash or localStorage
+    const hash = window.location.hash.substring(1);
+    const savedSection = hash || localStorage.getItem('activeSettingsSection');
+    
+    if (savedSection) {
+        const item = document.querySelector(`[data-section="${savedSection}"]`);
+        if (item) {
+            item.click();
+        }
+    }
+}
+
+/**
+ * Theme Selection
+ */
+function initThemeSelection() {
+    const themeOptions = document.querySelectorAll('.theme-option');
+    
+    // Get current theme
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    
+    // Mark current theme as selected
+    themeOptions.forEach(option => {
+        if (option.dataset.theme === currentTheme) {
+            option.classList.add('selected');
+        }
+    });
+    
+    // Handle theme selection
+    themeOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            const theme = this.dataset.theme;
+            
+            // Update selected state
+            themeOptions.forEach(opt => opt.classList.remove('selected'));
+            this.classList.add('selected');
+            
+            // Apply theme using theme manager or fallback
+            if (window.themeManager) {
+                window.themeManager.setTheme(theme);
+            } else {
+                applyTheme(theme);
+                localStorage.setItem('theme', theme);
+            }
+            
+            // Show success message
+            showNotification('Тема изменена', 'success');
+        });
+    });
+}
+
+/**
+ * Apply theme
+ */
+function applyTheme(theme) {
+    // Use theme manager if available
+    if (window.themeManager) {
+        window.themeManager.setTheme(theme);
+    } else {
+        // Fallback: set data-theme attribute directly
+        document.documentElement.setAttribute('data-theme', theme);
+    }
+}
+
+/**
+ * Notification Toggles
+ */
+function initNotificationToggles() {
+    const toggles = document.querySelectorAll('.switch input[type="checkbox"]');
+    
+    toggles.forEach(toggle => {
+        toggle.addEventListener('change', function() {
+            const setting = this.closest('.settings-option')?.querySelector('.settings-option-title')?.textContent;
+            const enabled = this.checked;
+            
+            // Save setting (можно добавить AJAX запрос)
+            console.log(`Setting "${setting}" changed to:`, enabled);
+            
+            // Show notification
+            showNotification(
+                enabled ? 'Уведомления включены' : 'Уведомления выключены',
+                'info'
+            );
+        });
+    });
+}
+
+/**
+ * Show notification
+ */
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        padding: 1rem 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        border-left: 4px solid var(--color-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'primary'});
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
+    `;
+    notification.textContent = message;
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// Add animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(style);
+
+// Export for use in other scripts
+window.SettingsEnhanced = {
+    applyTheme,
+    showNotification
+};
 
 /**
  * Settings Tabs

@@ -9,14 +9,18 @@
     --bg-secondary: #3730a3;
     --bg-tertiary: #4338ca;
     --bg-hover: #4338ca;
+    --bg-card: #312e81;
+    --bg-elevated: #3730a3;
     
     --text-primary: #ede9fe;
     --text-secondary: #c4b5fd;
     --text-tertiary: #a78bfa;
+    --text-muted: #a78bfa;
     --text-inverse: #ffffff;
     
     --border-primary: #4338ca;
     --border-secondary: #4f46e5;
+    --border: #4338ca;
     
     --color-primary: #a78bfa;
     --color-primary-light: rgba(167, 139, 250, 0.2);
@@ -27,6 +31,32 @@
     --color-warning-light: rgba(251, 191, 36, 0.2);
     --color-danger: #f87171;
     --color-danger-light: rgba(248, 113, 113, 0.2);
+    
+    --primary: #a78bfa;
+    --success: #34d399;
+    --warning: #fbbf24;
+    --danger: #f87171;
+    
+    --gradient-primary: linear-gradient(135deg, #a78bfa 0%, #c4b5fd 100%);
+    
+    --shadow: 0 2px 8px rgba(167, 139, 250, 0.3);
+    --shadow-hover: 0 8px 24px rgba(167, 139, 250, 0.4);
+    --shadow-lg: 0 12px 32px rgba(167, 139, 250, 0.5);
+    
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-full: 9999px;
+    
+    --dash-welcome-radius: 20px;
+    --dash-card-radius: 16px;
+    --dash-inner-radius: 12px;
+    --dash-icon-radius: 12px;
+    --dash-fab-size: 56px;
+    
+    --dash-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --dash-transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: 0.2s ease;
 }
 
 /* Header */

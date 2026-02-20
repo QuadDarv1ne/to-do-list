@@ -1,0 +1,313 @@
+/**
+ * Profile Page - Enhanced Styles
+ * Улучшенные стили для страницы профиля
+ */
+
+/* ============================================
+   PROFILE HEADER
+   ============================================ */
+
+.profile-cover {
+    height: 200px;
+    background: var(--gradient-primary);
+    position: relative;
+    overflow: hidden;
+}
+
+.profile-cover-pattern {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,.05) 10px, rgba(255,255,255,.05) 20px);
+    opacity: 0.5;
+}
+
+.profile-avatar-container {
+    width: 120px;
+    height: 120px;
+    border: 4px solid var(--bg-primary) !important;
+    box-shadow: var(--shadow-lg);
+    background: var(--bg-card);
+}
+
+.profile-avatar {
+    background: var(--gradient-primary);
+    color: var(--text-inverse);
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
+.profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-name {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.profile-role .badge {
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+}
+
+.profile-meta {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+}
+
+.profile-meta i {
+    color: var(--color-primary);
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+
+.btn-primary-modern {
+    background: var(--gradient-primary);
+    border: none;
+    color: var(--text-inverse);
+    padding: 0.625rem 1.5rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    transition: all var(--transition-fast);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.btn-primary-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+    color: var(--text-inverse);
+}
+
+.btn-outline-secondary-modern {
+    background: transparent;
+    border: 2px solid var(--border-primary);
+    color: var(--text-primary);
+    padding: 0.625rem 1.5rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    transition: all var(--transition-fast);
+}
+
+.btn-outline-secondary-modern:hover {
+    background: var(--bg-secondary);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    transform: translateY(-2px);
+}
+
+/* ============================================
+   CARDS
+   ============================================ */
+
+.card-modern {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    transition: all var(--transition-fast);
+}
+
+.card-modern:hover {
+    box-shadow: var(--shadow-hover);
+}
+
+.card-header-modern {
+    background: transparent;
+    border-bottom: 1px solid var(--border-primary);
+    padding: 1.25rem 1.5rem;
+}
+
+.card-header-modern h5 {
+    color: var(--text-primary);
+    font-weight: 600;
+    margin: 0;
+}
+
+.card-body-modern {
+    padding: 1.5rem;
+}
+
+/* ============================================
+   STATS CARDS
+   ============================================ */
+
+.stat-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+}
+
+.stat-icon i {
+    font-size: 2rem;
+}
+
+/* ============================================
+   INFO GROUPS
+   ============================================ */
+
+.info-group {
+    padding: 0.75rem;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+}
+
+.info-group:hover {
+    background: var(--bg-hover);
+}
+
+.info-group label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.info-group p {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+/* ============================================
+   ACTIVITY ITEMS
+   ============================================ */
+
+.activity-item {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    transition: all var(--transition-fast);
+}
+
+.activity-item:hover {
+    background: var(--bg-hover);
+    border-color: var(--color-primary);
+    transform: translateX(4px);
+}
+
+.activity-item:last-child {
+    margin-bottom: 0;
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.status-indicator.completed {
+    background: var(--color-success);
+}
+
+.status-indicator.in-progress {
+    background: var(--color-warning);
+}
+
+.status-indicator.pending {
+    background: var(--text-tertiary);
+}
+
+/* ============================================
+   BADGES
+   ============================================ */
+
+.badge {
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.bg-warning {
+    background: var(--color-warning) !important;
+}
+
+.bg-info {
+    background: var(--color-primary) !important;
+}
+
+.bg-secondary {
+    background: var(--text-tertiary) !important;
+}
+
+.bg-success {
+    background: var(--color-success) !important;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+    .profile-cover {
+        height: 150px;
+    }
+    
+    .profile-avatar-container {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .profile-avatar {
+        font-size: 2rem;
+    }
+    
+    .profile-name {
+        font-size: 1.5rem;
+    }
+    
+    .card-body-modern {
+        padding: 1rem;
+    }
+    
+    .card-header-modern {
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-cover {
+        height: 120px;
+    }
+    
+    .profile-avatar-container {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .profile-avatar {
+        font-size: 1.5rem;
+    }
+    
+    .profile-name {
+        font-size: 1.25rem;
+    }
+    
+    .btn-primary-modern,
+    .btn-outline-secondary-modern {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+}
