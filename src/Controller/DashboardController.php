@@ -52,11 +52,7 @@ class DashboardController extends AbstractController
             );
         }, 120); // 2 minutes cache
 
-        // Use modern theme if enabled
-        $useModernTheme = $this->getParameter('app.use_modern_theme') ?? false;
-        $template = $useModernTheme ? 'dashboard/index_modern.html.twig' : 'dashboard/index.html.twig';
-
-        return $this->render($template, $dashboardData);
+        return $this->render('dashboard/index.html.twig', $dashboardData);
     }
 
     /**

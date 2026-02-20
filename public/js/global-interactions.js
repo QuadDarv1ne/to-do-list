@@ -350,12 +350,43 @@
             });
         });
 
-        // AJAX loading indicator
+        // AJAX loading indicator - modern approach with fetch interception
+        const originalFetch = window.fetch;
+        let activeRequests = 0;
+        
+        window.fetch = function(...args) {
+            activeRequests++;
+            if (activeRequests === 1) {
+                showLoadingIndicator();
+            }
+            
+            return originalFetch.apply(this, args)
+                .then(response => {
+                    activeRequests--;
+                    if (activeRequests === 0) {
+                        hideLoadingIndicator();
+                    }
+                    return response;
+                })
+                .catch(error => {
+                    activeRequests--;
+                    if (activeRequests === 0) {
+                        hideLoadingIndicator();
+                    }
+                    throw error;
+                });
+        };
+        
+        // Legacy support for jQuery AJAX (if used)
         document.addEventListener('ajaxStart', function() {
             showLoadingIndicator();
         });
         
         document.addEventListener('ajaxComplete', function() {
+            hideLoadingIndicator();
+        });
+        
+        document.addEventListener('ajaxError', function() {
             hideLoadingIndicator();
         });
     }

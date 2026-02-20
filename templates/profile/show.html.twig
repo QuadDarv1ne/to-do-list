@@ -1,20 +1,9 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Мой профиль{% endblock %}
-
-{% block stylesheets %}
-{{ parent() }}
-{% endblock %}
+{% block title %}Профиль{% endblock %}
 
 {% block body %}
-{{ include('components/breadcrumbs.html.twig', {
-    items: [
-        {label: 'Главная', url: path('app_dashboard')},
-        {label: 'Профиль', active: true}
-    ]
-}) }}
-
-<div class="container mt-4 profile-container">
+<div class="container py-4">
     <!-- Profile Header -->
     <div class="card-modern shadow-lg mb-4">
         <div class="profile-cover rounded-top-4" style="height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
@@ -25,14 +14,14 @@
                 <div class="position-relative">
                     <div class="profile-avatar-container rounded-circle overflow-hidden border border-4 border-white shadow-lg" style="width: 120px; height: 120px;">
                         <div class="profile-avatar bg-primary d-flex align-items-center justify-content-center text-white fs-1 fw-bold w-100 h-100">
-                            {% if user.avatar %}
-                                <img src="{{ asset('uploads/avatars/' ~ user.avatar) }}" alt="{{ user.fullName }}" class="w-100 h-100 object-fit-cover">
+                            {% if app.user.avatar %}
+                                <img src="{{ asset('uploads/avatars/' ~ app.user.avatar) }}" alt="{{ app.user.fullName }}" class="w-100 h-100 object-fit-cover">
                             {% else %}
-                                {{ user.firstName|first }}{{ user.lastName|first }}
+                                {{ app.user.firstName|first }}{{ app.user.lastName|first }}
                             {% endif %}
                         </div>
                     </div>
-                    {% if user.isActive %}
+                    {% if app.user.isActive %}
                     <div class="position-absolute bottom-0 end-0 bg-primary rounded-circle p-1 border border-2 border-white">
                         <i class="fas fa-check text-white fs-6"></i>
                     </div>
@@ -41,28 +30,28 @@
                 
                 <div class="flex-grow-1 text-center text-md-start">
                     <h1 class="profile-name mb-2">
-                        {{ user.fullName }}
+                        {{ app.user.fullName }}
                     </h1>
                     <div class="profile-role d-flex flex-wrap justify-content-center justify-content-md-start gap-2 mb-3">
-                        {% if user.hasRole('ROLE_ADMIN') %}
+                        {% if app.user.hasRole('ROLE_ADMIN') %}
                             <span class="badge bg-warning text-dark"><i class="fas fa-crown me-1"></i>Администратор</span>
-                        {% elseif user.hasRole('ROLE_MANAGER') %}
+                        {% elseif app.user.hasRole('ROLE_MANAGER') %}
                             <span class="badge bg-info"><i class="fas fa-user-tie me-1"></i>Менеджер</span>
                         {% else %}
                             <span class="badge bg-secondary"><i class="fas fa-user me-1"></i>Пользователь</span>
                         {% endif %}
-                        {% if user.isTotpEnabled %}
+                        {% if app.user.isTotpEnabled %}
                             <span class="badge bg-success"><i class="fas fa-shield-alt me-1"></i>2FA включена</span>
                         {% endif %}
                     </div>
                     <div class="profile-meta d-flex flex-wrap justify-content-center justify-content-md-start gap-3 text-muted">
                         <div class="d-flex align-items-center gap-1">
                             <i class="fas fa-at"></i>
-                            <span>{{ user.username }}</span>
+                            <span>{{ app.user.username }}</span>
                         </div>
                         <div class="d-flex align-items-center gap-1">
                             <i class="fas fa-envelope"></i>
-                            <span>{{ user.email }}</span>
+                            <span>{{ app.user.email }}</span>
                         </div>
                     </div>
                 </div>
@@ -71,206 +60,195 @@
                     <a href="{{ path('app_profile_edit') }}" class="btn btn-primary-modern">
                         <i class="fas fa-edit me-1"></i>Редактировать
                     </a>
-                    <a href="{{ path('app_settings') }}" class="btn btn-outline-secondary-modern">
-                        <i class="fas fa-cog me-1"></i>Настройки
+                    <a href="{{ path('app_profile_change_password') }}" class="btn btn-outline-secondary-modern">
+                        <i class="fas fa-key me-1"></i>Сменить пароль
                     </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Stats Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3 col-6 mb-3">
-            <div class="card-modern text-center h-100">
-                <div class="card-body-modern p-4">
-                    <div class="profile-stat-icon rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                        <i class="fas fa-tasks fs-3 text-white"></i>
-                    </div>
-                    <div class="profile-stat-value h3 mb-1">{{ user.tasks|length }}</div>
-                    <div class="profile-stat-label text-muted">Всего задач</div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3 col-6 mb-3">
-            <div class="card-modern text-center h-100">
-                <div class="card-body-modern p-4">
-                    <div class="profile-stat-icon rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
-                        <i class="fas fa-check-circle fs-3 text-white"></i>
-                    </div>
-                    <div class="profile-stat-value h3 mb-1">{{ user.tasks|filter(t => t.isCompleted)|length }}</div>
-                    <div class="profile-stat-label text-muted">Завершено</div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3 col-6 mb-3">
-            <div class="card-modern text-center h-100">
-                <div class="card-body-modern p-4">
-                    <div class="profile-stat-icon rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);">
-                        <i class="fas fa-play-circle fs-3 text-white"></i>
-                    </div>
-                    <div class="profile-stat-value h3 mb-1">{{ user.tasks|filter(t => t.status == 'in_progress')|length }}</div>
-                    <div class="profile-stat-label text-muted">В работе</div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3 col-6 mb-3">
-            <div class="card-modern text-center h-100">
-                <div class="card-body-modern p-4">
-                    <div class="profile-stat-icon rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
-                        <i class="fas fa-clock fs-3 text-white"></i>
-                    </div>
-                    <div class="profile-stat-value h3 mb-1">{{ user.tasks|filter(t => t.status == 'pending')|length }}</div>
-                    <div class="profile-stat-label text-muted">В ожидании</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Contact Information -->
-    <div class="card-modern mb-4">
-        <div class="card-header-modern">
-            <h3 class="profile-section-title mb-0">
-                <i class="fas fa-address-card me-2"></i>
-                Контактная информация
-            </h3>
-        </div>
-        <div class="card-body-modern">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <div class="card-modern p-3 h-100">
-                        <div class="d-flex align-items-center">
-                            <div class="me-3 bg-primary bg-opacity-10 rounded-circle p-2">
-                                <i class="fas fa-envelope text-primary"></i>
+    <div class="row g-4">
+        <!-- Left Column - Avatar and Stats -->
+        <div class="col-lg-4">
+            <!-- Stats Cards -->
+            <div class="row g-4">
+                <div class="col-md-12">
+                    <div class="card-modern text-center h-100">
+                        <div class="card-body-modern p-4">
+                            <div class="stat-icon mb-3">
+                                <i class="fas fa-tasks text-primary fs-1"></i>
                             </div>
-                            <div>
-                                <div class="text-muted small">Email</div>
-                                <div>
-                                    <a href="mailto:{{ user.email }}" class="text-decoration-none">{{ user.email }}</a>
-                                </div>
-                            </div>
+                            <h3 class="text-primary mb-1">{{ app.user.createdTasks|length }}</h3>
+                            <p class="text-muted mb-0">Создано задач</p>
                         </div>
                     </div>
                 </div>
-                
-                <div class="col-md-6">
-                    <div class="card-modern p-3 h-100">
-                        <div class="d-flex align-items-center">
-                            <div class="me-3 bg-success bg-opacity-10 rounded-circle p-2">
-                                <i class="fas fa-phone text-success"></i>
+                <div class="col-md-12">
+                    <div class="card-modern text-center h-100">
+                        <div class="card-body-modern p-4">
+                            <div class="stat-icon mb-3">
+                                <i class="fas fa-user-check text-success fs-1"></i>
                             </div>
-                            <div>
-                                <div class="text-muted small">Телефон</div>
-                                <div>
-                                    {% if user.phone %}
-                                        <a href="tel:{{ user.phone }}" class="text-decoration-none">{{ user.phone }}</a>
+                            <h3 class="text-success mb-1">{{ app.user.assignedTasks|length }}</h3>
+                            <p class="text-muted mb-0">Назначено задач</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="card-modern text-center h-100">
+                        <div class="card-body-modern p-4">
+                            <div class="stat-icon mb-3">
+                                <i class="fas fa-check-circle text-info fs-1"></i>
+                            </div>
+                            <h3 class="text-info mb-1">{{ app.user.assignedTasks|filter(t => t.status == 'completed')|length }}</h3>
+                            <p class="text-muted mb-0">Завершено</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Column - Info Cards -->
+        <div class="col-lg-8">
+            <!-- Personal Info Card -->
+            <div class="card-modern mb-4">
+                <div class="card-header-modern">
+                    <h5 class="mb-0 text-primary">
+                        <i class="fas fa-user-circle me-2"></i>
+                        Личная информация
+                    </h5>
+                </div>
+                <div class="card-body-modern">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="form-label text-muted small">Имя</label>
+                                <p class="mb-0">{{ app.user.firstName }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="form-label text-muted small">Фамилия</label>
+                                <p class="mb-0">{{ app.user.lastName }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="form-label text-muted small">Email</label>
+                                <p class="mb-0">{{ app.user.email }}</p>
+                            </div>
+                        </div>
+                        {% if app.user.phone %}
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="form-label text-muted small">Телефон</label>
+                                <p class="mb-0">{{ app.user.phone }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if app.user.position %}
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="form-label text-muted small">Должность</label>
+                                <p class="mb-0">{{ app.user.position }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if app.user.department %}
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="form-label text-muted small">Отдел</label>
+                                <p class="mb-0">{{ app.user.department }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Account Info Card -->
+            <div class="card-modern mb-4">
+                <div class="card-header-modern">
+                    <h5 class="mb-0 text-primary">
+                        <i class="fas fa-shield-alt me-2"></i>
+                        Информация об аккаунте
+                    </h5>
+                </div>
+                <div class="card-body-modern">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="form-label text-muted small">Роль</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    {% if is_granted('ROLE_ADMIN') %}
+                                        <span class="badge bg-warning text-dark"><i class="fas fa-crown me-1"></i>Администратор</span>
+                                    {% elseif is_granted('ROLE_MANAGER') %}
+                                        <span class="badge bg-info"><i class="fas fa-user-tie me-1"></i>Менеджер</span>
                                     {% else %}
-                                        <span class="text-muted">Не указан</span>
+                                        <span class="badge bg-secondary"><i class="fas fa-user me-1"></i>Пользователь</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="form-label text-muted small">Дата регистрации</label>
+                                <p class="mb-0"><i class="fas fa-calendar me-2 text-primary"></i>{{ app.user.createdAt|date('d.m.Y') }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="form-label text-muted small">Статус</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Активен</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="form-label text-muted small">2FA</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    {% if app.user.isTotpAuthenticationEnabled %}
+                                        <span class="badge bg-success"><i class="fas fa-shield-alt me-1"></i>Включена</span>
+                                    {% else %}
+                                        <span class="badge bg-warning"><i class="fas fa-shield-alt me-1"></i>Отключена</span>
                                     {% endif %}
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                
-                <div class="col-md-6">
-                    <div class="card-modern p-3 h-100">
-                        <div class="d-flex align-items-center">
-                            <div class="me-3 bg-info bg-opacity-10 rounded-circle p-2">
-                                <i class="fas fa-calendar-plus text-info"></i>
-                            </div>
-                            <div>
-                                <div class="text-muted small">Дата регистрации</div>
-                                <div>{{ user.createdAt ? user.createdAt|date('d.m.Y H:i') : 'N/A' }}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-6">
-                    <div class="card-modern p-3 h-100">
-                        <div class="d-flex align-items-center">
-                            <div class="me-3 bg-warning bg-opacity-10 rounded-circle p-2">
-                                <i class="fas fa-sign-in-alt text-warning"></i>
-                            </div>
-                            <div>
-                                <div class="text-muted small">Последний вход</div>
-                                <div>
-                                    {% if user.lastLoginAt %}
-                                        {{ user.lastLoginAt|date('d.m.Y H:i') }}
-                                    {% else %}
-                                        <span class="text-muted">Еще не входил</span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Security Settings -->
-    <div class="card-modern">
-        <div class="card-header-modern d-flex justify-content-between align-items-center">
-            <h3 class="profile-section-title mb-0">
-                <i class="fas fa-shield-alt me-2"></i>
-                Безопасность
-            </h3>
-            <a href="{{ path('app_2fa_setup') }}" class="btn btn-outline-primary-modern">
-                Настроить <i class="fas fa-arrow-right ms-1"></i>
-            </a>
-        </div>
-        <div class="card-body-modern">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <div class="card-modern p-3 h-100">
-                        <div class="d-flex align-items-center">
-                            <div class="me-3 bg-success bg-opacity-10 rounded-circle p-2">
-                                <i class="fas fa-lock text-success"></i>
-                            </div>
-                            <div>
-                                <div class="text-muted small">Двухфакторная аутентификация</div>
-                                <div>
-                                    {% if user.isTotpEnabled %}
-                                        <span class="badge-modern badge-success-modern">Включена</span>
-                                    {% else %}
-                                        <span class="badge-modern badge-secondary-modern">Выключена</span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            
+            <!-- Recent Activity Card -->
+            <div class="card-modern">
+                <div class="card-header-modern">
+                    <h5 class="mb-0 text-primary">
+                        <i class="fas fa-history me-2"></i>
+                        Последняя активность
+                    </h5>
                 </div>
-                
-                <div class="col-md-6">
-                    <div class="card-modern p-3 h-100">
-                        <div class="d-flex align-items-center">
-                            <div class="me-3 bg-info bg-opacity-10 rounded-circle p-2">
-                                <i class="fas fa-percentage text-info"></i>
-                            </div>
-                            <div>
-                                <div class="text-muted small">Процент завершения задач</div>
+                <div class="card-body-modern">
+                    {% set recentTasks = app.user.createdTasks|slice(0, 5) %}
+                    {% if recentTasks is not empty %}
+                        {% for task in recentTasks %}
+                        <div class="activity-item d-flex align-items-center justify-content-between p-3 bg-light rounded mb-2">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="status-indicator" style="width: 8px; height: 8px; border-radius: 50%; background: {{ task.status == 'completed' ? '#28a745' : (task.status == 'in_progress' ? '#ffc107' : '#6c757d') }};"></div>
                                 <div>
-                                    {% set total = user.tasks|length %}
-                                    {% set completed = user.tasks|filter(t => t.isCompleted)|length %}
-                                    {% set percentage = total > 0 ? (completed / total * 100)|round(1) : 0 %}
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div class="progress flex-grow-1" style="height: 8px;">
-                                            <div class="progress-bar bg-success" 
-                                                 role="progressbar" 
-                                                 style="width: {{ percentage }}%">
-                                            </div>
-                                        </div>
-                                        <strong>{{ percentage }}%</strong>
-                                    </div>
+                                    <div class="fw-medium">{{ task.title }}</div>
+                                    <small class="text-muted">{{ task.createdAt|date('d.m.Y H:i') }}</small>
                                 </div>
                             </div>
+                            <a href="{{ path('app_task_show', {'id': task.id}) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-arrow-right"></i>
+                            </a>
                         </div>
-                    </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-center text-muted mb-0 py-4">Нет активности</p>
+                    {% endif %}
                 </div>
             </div>
         </div>

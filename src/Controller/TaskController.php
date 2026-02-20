@@ -170,12 +170,8 @@ class TaskController extends AbstractController
         // Get all tags for filter dropdown
         $tags = $tagRepository->findByUser($user);
 
-        // Check if modern theme is enabled
-        $useModernTheme = $this->getParameter('app.use_modern_theme') ?? false;
-        $template = $useModernTheme ? 'task/index_modern.html.twig' : 'task/index.html.twig';
-
         try {
-            return $this->render($template, [
+            return $this->render('task/index.html.twig', [
                 'tasks' => $tasks,
                 'categories' => $categories,
                 'tags' => $tags,
@@ -228,12 +224,8 @@ class TaskController extends AbstractController
         // Get user's categories for form
         $categories = $categoryRepository->findByUser($this->getUser());
 
-        // Check if modern theme is enabled
-        $useModernTheme = $this->getParameter('app.use_modern_theme') ?? false;
-        $template = $useModernTheme ? 'task/new_modern.html.twig' : 'task/new.html.twig';
-
         try {
-            return $this->render($template, [
+            return $this->render('task/new.html.twig', [
                 'task' => $task,
                 'form' => $form,
                 'categories' => $categories,
@@ -263,12 +255,8 @@ class TaskController extends AbstractController
 
         $categories = $categoryRepository->findByUser($this->getUser());
 
-        // Check if modern theme is enabled
-        $useModernTheme = $this->getParameter('app.use_modern_theme') ?? false;
-        $template = $useModernTheme ? 'task/show_modern.html.twig' : 'task/show.html.twig';
-
         try {
-            return $this->render($template, [
+            return $this->render('task/show.html.twig', [
                 'task' => $task,
                 'categories' => $categories,
             ]);
@@ -903,38 +891,61 @@ class TaskController extends AbstractController
                ->setParameter('endDate', new \DateTime($endDate));
         }
 
-        $tasks = $qb->getQuery()->getResult();
-
-        // Create CSV content
-        $csvContent = "ID,Название,Описание,Статус,Приоритет,Дата создания,Срок выполнения,Категория,Назначен пользователю,Теги\n";
-
-        foreach ($tasks as $task) {
-            // Collect tag names
-            $tagNames = [];
-            foreach ($task->getTags() as $tag) {
-                $tagNames[] = htmlspecialchars($tag->getName(), ENT_QUOTES, 'UTF-8');
-            }
-            $tagsString = implode(', ', $tagNames);
-
-            $csvContent .= \sprintf(
-                '"%s","%s","%s","%s","%s","%s","%s","%s","%s","%s"' . "\n",
-                $task->getId(),
-                str_replace('"', '""', htmlspecialchars($task->getTitle(), ENT_QUOTES, 'UTF-8')),
-                str_replace('"', '""', htmlspecialchars(strip_tags($task->getDescription() ?? ''), ENT_QUOTES, 'UTF-8')),
-                $task->getStatus(),
-                $task->getPriority(),
-                $task->getCreatedAt()->format('d.m.Y H:i'),
-                $task->getDueDate() ? $task->getDueDate()->format('d.m.Y') : '',
-                $task->getCategory() ? htmlspecialchars($task->getCategory()->getName(), ENT_QUOTES, 'UTF-8') : '',
-                $task->getAssignedUser() ? htmlspecialchars($task->getAssignedUser()->getFullName(), ENT_QUOTES, 'UTF-8') : '',
-                str_replace('"', '""', htmlspecialchars($tagsString, ENT_QUOTES, 'UTF-8')),
-            );
-        }
-
-        // Return CSV response
-        $response = new Response($csvContent);
+        // Use StreamedResponse to avoid memory issues with large datasets
+        $response = new \Symfony\Component\HttpFoundation\StreamedResponse();
         $response->headers->set('Content-Type', 'text/csv; charset=utf-8');
         $response->headers->set('Content-Disposition', 'attachment; filename="tasks_with_tags_export_' . date('Y-m-d_H-i-s') . '.csv"');
+        
+        $response->setCallback(function() use ($qb) {
+            $handle = fopen('php://output', 'w');
+            
+            // Write BOM for UTF-8
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
+            
+            // Write header
+            fputcsv($handle, ['ID', 'Название', 'Описание', 'Статус', 'Приоритет', 'Дата создания', 'Срок выполнения', 'Категория', 'Назначен пользователю', 'Теги']);
+            
+            // Process tasks in batches to avoid memory issues
+            $batchSize = 100;
+            $offset = 0;
+            
+            while (true) {
+                $tasks = $qb->setFirstResult($offset)
+                    ->setMaxResults($batchSize)
+                    ->getQuery()
+                    ->getResult();
+                
+                if (empty($tasks)) {
+                    break;
+                }
+                
+                foreach ($tasks as $task) {
+                    $tagNames = [];
+                    foreach ($task->getTags() as $tag) {
+                        $tagNames[] = $tag->getName();
+                    }
+                    
+                    fputcsv($handle, [
+                        $task->getId(),
+                        $task->getTitle(),
+                        strip_tags($task->getDescription() ?? ''),
+                        $task->getStatus(),
+                        $task->getPriority(),
+                        $task->getCreatedAt()->format('d.m.Y H:i'),
+                        $task->getDueDate() ? $task->getDueDate()->format('d.m.Y') : '',
+                        $task->getCategory() ? $task->getCategory()->getName() : '',
+                        $task->getAssignedUser() ? $task->getAssignedUser()->getFullName() : '',
+                        implode(', ', $tagNames),
+                    ]);
+                }
+                
+                // Clear entity manager to free memory
+                $qb->getEntityManager()->clear();
+                $offset += $batchSize;
+            }
+            
+            fclose($handle);
+        });
 
         return $response;
     }

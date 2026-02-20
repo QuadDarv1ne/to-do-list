@@ -1,1218 +1,383 @@
-{% extends 'base.html.twig' %}
+{% extends 'base_modern.html.twig' %}
 
 {% block title %}Панель управления{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
-    <link rel="stylesheet" href="{{ asset('css/dashboard-enhanced.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/dashboard-modern-dark.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/theme-light.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/theme-orange.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/theme-purple.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/theme-custom.min.css') }}">
 {% endblock %}
 
 {% block body %}
-<div class="container-fluid page-transition">
-    <!-- Enhanced Welcome Header -->
-    <div class="card-modern mb-4">
-        <div class="card-header-modern bg-gradient-primary text-white rounded-top-4 p-4">
-            <div class="row align-items-center">
-                <div class="col-lg-8">
-                    <h2 class="mb-2">
-                        <i class="fas fa-sun me-2"></i>
-                        Добрый день, {{ app.user.firstName }}!
-                    </h2>
-                    <p class="mb-0 opacity-75">
-                        Сегодня {{ "now"|date("d.m.Y, l") }} • 
-                        У вас {{ task_stats.pending|default(0) }} активных задач
-                    </p>
-                </div>
-                <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
-                    <div class="d-flex gap-2 justify-content-lg-end">
-                        <a href="{{ path('app_task_new') }}" class="btn btn-primary-modern">
-                            <i class="fas fa-plus me-2"></i>Новая задача
-                        </a>
-                        <a href="{{ path('app_analytics_dashboard') }}" class="btn btn-outline-light-modern">
-                            <i class="fas fa-chart-line me-2"></i>Аналитика
-                        </a>
-                    </div>
-                </div>
+<div class="dashboard-modern">
+    <!-- Top Bar -->
+    <div class="dashboard-topbar">
+        <div class="dashboard-logo">
+            <i class="fas fa-chart-line me-2"></i>CRM
+        </div>
+        
+        <div class="dashboard-search">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Поиск...">
+        </div>
+        
+        <div class="dashboard-actions">
+            <button class="notification-btn" onclick="window.location.href='{{ path('app_notification_index') }}'">
+                <i class="fas fa-bell"></i>
+                {% if app.user.unreadNotifications|default(0) > 0 %}
+                <span class="notification-badge">{{ app.user.unreadNotifications }}</span>
+                {% endif %}
+            </button>
+            
+            <div class="user-avatar" onclick="window.location.href='{{ path('app_profile_show') }}'">
+                {{ app.user.firstName|first }}{{ app.user.lastName|first }}
             </div>
         </div>
     </div>
 
-    <!-- Statistics Cards -->
-    <div class="row mb-4" id="stats-row">
-        <div class="col-md-3 mb-3">
-            <div class="card-modern h-100 text-center">
-                <div class="card-body-modern py-4 position-relative">
-                    <i class="fas fa-tasks stat-icon"></i>
-                    <h2 class="mb-1">{{ task_stats.total|default(0) }}</h2>
-                    <p class="text-muted mb-0 small">Всего задач</p>
+    <!-- Stats Cards -->
+    <div class="stats-grid-modern">
+        <div class="stat-card-modern sales">
+            <div class="stat-header-modern">
+                <div class="stat-icon-modern">
+                    <i class="fas fa-chart-line"></i>
                 </div>
+                <span class="stat-label-modern">Продажи</span>
+            </div>
+            <div class="stat-value-modern">120.000</div>
+            <div class="stat-change">
+                <i class="fas fa-arrow-up"></i>
+                <span>+12.5%</span>
             </div>
         </div>
         
-        <div class="col-md-3 mb-3">
-            <div class="card-modern h-100 text-center">
-                <div class="card-body-modern py-4 position-relative">
-                    <i class="fas fa-clock stat-icon"></i>
-                    <h2 class="mb-1">{{ task_stats.pending|default(0) }}</h2>
-                    <p class="text-muted mb-0 small">В ожидании</p>
+        <div class="stat-card-modern orders">
+            <div class="stat-header-modern">
+                <div class="stat-icon-modern">
+                    <i class="fas fa-shopping-bag"></i>
                 </div>
+                <span class="stat-label-modern">Заказы</span>
+            </div>
+            <div class="stat-value-modern">{{ task_stats.total|default(37) }}</div>
+            <div class="stat-change">
+                <i class="fas fa-arrow-up"></i>
+                <span>+8.2%</span>
             </div>
         </div>
         
-        <div class="col-md-3 mb-3">
-            <div class="card-modern h-100 text-center">
-                <div class="card-body-modern py-4 position-relative">
-                    <i class="fas fa-spinner stat-icon"></i>
-                    <h2 class="mb-1">{{ task_stats.in_progress|default(0) }}</h2>
-                    <p class="text-muted mb-0 small">В процессе</p>
+        <div class="stat-card-modern bonuses">
+            <div class="stat-header-modern">
+                <div class="stat-icon-modern">
+                    <i class="fas fa-gift"></i>
                 </div>
+                <span class="stat-label-modern">Бонусы</span>
+            </div>
+            <div class="stat-value-modern">13.200</div>
+            <div class="stat-change">
+                <i class="fas fa-arrow-up"></i>
+                <span>+5.7%</span>
             </div>
         </div>
         
-        <div class="col-md-3 mb-3">
-            <div class="card-modern h-100 text-center">
-                <div class="card-body-modern py-4 position-relative">
-                    <i class="fas fa-check-circle stat-icon"></i>
-                    <h2 class="mb-1">{{ task_stats.completed|default(0) }}</h2>
-                    <p class="text-muted mb-0 small">Завершено</p>
+        <div class="stat-card-modern clients">
+            <div class="stat-header-modern">
+                <div class="stat-icon-modern">
+                    <i class="fas fa-users"></i>
                 </div>
+                <span class="stat-label-modern">Клиенты</span>
+            </div>
+            <div class="stat-value-modern">{{ task_stats.completed|default(37) }}</div>
+            <div class="stat-change">
+                <i class="fas fa-arrow-up"></i>
+                <span>+15.3%</span>
             </div>
         </div>
     </div>
-    
-    {# Goals and Habits Widgets #}
-    <div class="row mb-4">
-        <!-- Goals Widget -->
-        <div class="col-lg-6 mb-3">
-            <div class="card-modern h-100">
-                <div class="card-header-modern">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h6 class="mb-0">
-                            <i class="fas fa-bullseye me-2 text-danger"></i>
-                            Мои цели
-                        </h6>
-                        <a href="{{ path('app_goals_index') }}" class="btn btn-sm btn-outline-primary-modern">
-                            Все цели
-                        </a>
-                    </div>
-                </div>
-                <div class="card-body-modern">
-                    {% if goals_stats.total|default(0) > 0 %}
-                        <div class="row mb-3">
-                            <div class="col-4 text-center">
-                                <div class="stat-circle" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                                    <div class="stat-value">{{ goals_stats.total }}</div>
-                                </div>
-                                <small class="text-muted d-block mt-2">Активных</small>
-                            </div>
-                            <div class="col-4 text-center">
-                                <div class="stat-circle" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
-                                    <div class="stat-value">{{ goals_stats.avg_progress }}%</div>
-                                </div>
-                                <small class="text-muted d-block mt-2">Прогресс</small>
-                            </div>
-                            <div class="col-4 text-center">
-                                <div class="stat-circle" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                                    <div class="stat-value">{{ goals_stats.on_track }}</div>
-                                </div>
-                                <small class="text-muted d-block mt-2">На пути</small>
-                            </div>
-                        </div>
-                        
-                        {% for goal in active_goals %}
-                            <div class="goal-mini-card mb-2">
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <span class="fw-medium">{{ goal.title }}</span>
-                                    <span class="badge-modern badge-primary-modern">{{ goal.progress|number_format(0) }}%</span>
-                                </div>
-                                <div class="progress-modern" style="height: 6px;">
-                                    <div class="progress-bar" role="progressbar" 
-                                         style="width: {{ goal.progress }}%; background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);"
-                                         aria-valuenow="{{ goal.progress }}" aria-valuemin="0" aria-valuemax="100"></div>
-                                </div>
-                                <small class="text-muted">
-                                    <i class="fas fa-calendar me-1"></i>
-                                    {{ goal.daysRemaining }} дней осталось
-                                </small>
-                            </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="text-center py-4">
-                            <i class="fas fa-bullseye fa-3x text-muted mb-3" style="opacity: 0.3;"></i>
-                            <p class="text-muted mb-2">Нет активных целей</p>
-                            <a href="{{ path('app_goals_index') }}" class="btn btn-primary-modern">
-                                <i class="fas fa-plus me-1"></i>Создать цель
-                            </a>
-                        </div>
-                    {% endif %}
+
+    <!-- Dashboard Grid -->
+    <div class="dashboard-grid-modern">
+        <!-- Chart Section -->
+        <div class="chart-card-modern">
+            <div class="chart-header">
+                <h3 class="chart-title">Заказы, шт.</h3>
+                <div class="chart-filter">
+                    <button class="filter-btn">День</button>
+                    <button class="filter-btn">Неделя</button>
+                    <button class="filter-btn active">Месяц</button>
+                    <button class="filter-btn">Год</button>
                 </div>
             </div>
+            <canvas id="ordersChart" height="80"></canvas>
         </div>
 
-        <!-- Habits Widget -->
-        <div class="col-lg-6 mb-3">
-            <div class="card-modern h-100">
-                <div class="card-header-modern">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h6 class="mb-0">
-                            <i class="fas fa-fire me-2 text-warning"></i>
-                            Мои привычки
-                        </h6>
-                        <a href="{{ path('app_habits_index') }}" class="btn btn-sm btn-outline-primary-modern">
-                            Все привычки
-                        </a>
+        <!-- Calendar & Stats -->
+        <div>
+            <div class="calendar-widget">
+                <div class="chart-header">
+                    <h3 class="chart-title">Календарь</h3>
+                    <div class="calendar-nav">
+                        <button class="calendar-nav-btn"><i class="fas fa-chevron-left"></i></button>
+                        <span style="color: var(--text-primary); font-weight: 600;">Январь 2026</span>
+                        <button class="calendar-nav-btn"><i class="fas fa-chevron-right"></i></button>
                     </div>
                 </div>
-                <div class="card-body-modern">
-                    {% if habits_stats.total|default(0) > 0 %}
-                        <div class="row mb-3">
-                            <div class="col-4 text-center">
-                                <div class="stat-circle" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
-                                    <div class="stat-value">{{ habits_stats.total }}</div>
-                                </div>
-                                <small class="text-muted d-block mt-2">Привычек</small>
-                            </div>
-                            <div class="col-4 text-center">
-                                <div class="stat-circle" style="background: linear-gradient(135deg, #ffa726 0%, #fb8c00 100%);">
-                                    <div class="stat-value">{{ habits_stats.avg_streak }}</div>
-                                </div>
-                                <small class="text-muted d-block mt-2">Ср. серия</small>
-                            </div>
-                            <div class="col-4 text-center">
-                                <div class="stat-circle" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-                                    <div class="stat-value">{{ habits_stats.completed_today }}</div>
-                                </div>
-                                <small class="text-muted d-block mt-2">Сегодня</small>
-                            </div>
-                        </div>
-                        
-                        <div class="habits-grid">
-                            {% for habit in active_habits %}
-                                <div class="habit-mini-card card-modern p-3 mb-2" style="border-left: 3px solid {{ habit.color }};">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <div class="habit-icon-mini" style="background: {{ habit.color }};">
-                                                <i class="{{ habit.icon }}"></i>
-                                            </div>
-                                            <span class="fw-medium">{{ habit.name }}</span>
-                                        </div>
-                                        <div class="text-end">
-                                            <div class="streak-badge">
-                                                <i class="fas fa-fire text-warning"></i>
-                                                {{ habit.currentStreak }}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="text-center py-4">
-                            <i class="fas fa-seedling fa-3x text-muted mb-3" style="opacity: 0.3;"></i>
-                            <p class="text-muted mb-2">Нет активных привычек</p>
-                            <a href="{{ path('app_habits_index') }}" class="btn btn-success-modern">
-                                <i class="fas fa-plus me-1"></i>Создать привычку
-                            </a>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    {# Weekly Activity Widget #}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card-modern">
-                <div class="card-header-modern">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h6 class="mb-0">
-                            <i class="fas fa-chart-line me-2 text-primary"></i>
-                            Активность за неделю
-                        </h6>
-                        <div class="btn-group btn-group-sm" role="group">
-                            <button type="button" class="btn btn-outline-primary-modern active" data-period="week">Неделя</button>
-                            <button type="button" class="btn btn-outline-primary-modern" data-period="month">Месяц</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body-modern">
-                    <div class="row">
-                        <div class="col-lg-8">
-                            <canvas id="activityChart" height="80"></canvas>
-                        </div>
-                        <div class="col-lg-4">
-                            <div class="activity-stats">
-                                <div class="activity-stat-item">
-                                    <div class="activity-stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                                        <i class="fas fa-tasks"></i>
-                                    </div>
-                                    <div class="activity-stat-content">
-                                        <div class="activity-stat-value" id="week-tasks">0</div>
-                                        <div class="activity-stat-label">Задач за неделю</div>
-                                    </div>
-                                </div>
-                                <div class="activity-stat-item">
-                                    <div class="activity-stat-icon" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
-                                        <i class="fas fa-check-circle"></i>
-                                    </div>
-                                    <div class="activity-stat-content">
-                                        <div class="activity-stat-value" id="week-completed">0</div>
-                                        <div class="activity-stat-label">Завершено</div>
-                                    </div>
-                                </div>
-                                <div class="activity-stat-item">
-                                    <div class="activity-stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                                        <i class="fas fa-fire"></i>
-                                    </div>
-                                    <div class="activity-stat-content">
-                                        <div class="activity-stat-value" id="week-streak">0</div>
-                                        <div class="activity-stat-label">Дней подряд</div>
-                                    </div>
-                                </div>
-                                <div class="activity-stat-item">
-                                    <div class="activity-stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-                                        <i class="fas fa-trophy"></i>
-                                    </div>
-                                    <div class="activity-stat-content">
-                                        <div class="activity-stat-value" id="week-productivity">0%</div>
-                                        <div class="activity-stat-label">Продуктивность</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    {# CRM Sales Analytics Metrics #}
-    {% if crm_metrics is defined %}
-        {% include 'dashboard/crm_widgets.html.twig' %}
-    {% endif %}
-    
-    {# Original CRM metrics widget - keep for compatibility #}
-    {% if crm_metrics is defined and false %}
-        {% include 'dashboard/crm_metrics.html.twig' %}
-    {% endif %}
-    
-
-
-
-
-    <div class="row">
-        <!-- Recent Tasks -->
-        <div class="col-lg-8">
-            <div class="card-modern">
-                <div class="card-header-modern">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h6 class="mb-0">Последние задачи</h6>
-                        <a href="{{ path('app_task_index') }}" class="btn btn-sm btn-outline-primary-modern">
-                            Все задачи
-                        </a>
-                    </div>
-                </div>
-                <div class="card-body-modern p-0">
-                    <div id="recent-tasks-loading" class="p-4">
-                        <div class="skeleton skeleton-text" style="width: 85%;"></div>
-                        <div class="skeleton skeleton-text" style="width: 65%;"></div>
-                        <div class="skeleton skeleton-text" style="width: 90%;"></div>
-                        <div class="skeleton skeleton-text" style="width: 75%;"></div>
-                        <div class="skeleton skeleton-text" style="width: 80%;"></div>
-                    </div>
+                
+                <div class="calendar-grid">
+                    <div class="calendar-day-header">ПН</div>
+                    <div class="calendar-day-header">ВТ</div>
+                    <div class="calendar-day-header">СР</div>
+                    <div class="calendar-day-header">ЧТ</div>
+                    <div class="calendar-day-header">ПТ</div>
+                    <div class="calendar-day-header">СБ</div>
+                    <div class="calendar-day-header">ВС</div>
                     
-                    <div id="recent-tasks-content" style="display: none;">
-                    {% if recent_tasks is defined and recent_tasks is not empty %}
-                        <div class="list-group list-group-flush">
-                            {% for task in recent_tasks %}
-                                <div class="list-group-item task-item task-item-enhanced border-0 px-4 py-3 priority-{{ task.priority }} {% if task.priority == 'high' %}priority-high-glow{% elseif task.priority == 'medium' %}priority-medium-glow{% else %}priority-low-glow{% endif %} stats-card-enhanced card-modern mb-2 mx-3 mt-3">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div class="flex-grow-1">
-                                            <div class="d-flex align-items-center mb-1">
-                                                <h6 class="task-title mb-0 me-2">
-                                                    <a href="{{ path('app_task_show', {'id': task.id}) }}" class="text-decoration-none">
-                                                        {{ task.title }}
-                                                    </a>
-                                                </h6>
-                                                <span class="badge-modern badge-{{ task.status|lower }} badge-animated me-2">
-                                                    {{ task.status|trans }}
-                                                </span>
-                                                {% if task.priority == 'high' %}
-                                                    <span class="badge-modern badge-danger-modern badge-animated">
-                                                        <i class="fas fa-exclamation-triangle me-1"></i>Высокий приоритет
-                                                    </span>
-                                                {% elseif task.priority == 'medium' %}
-                                                    <span class="badge-modern badge-warning-modern badge-animated">
-                                                        <i class="fas fa-exclamation me-1"></i>Средний приоритет
-                                                    </span>
-                                                {% else %}
-                                                    <span class="badge-modern badge-success-modern badge-animated">
-                                                        <i class="fas fa-arrow-down me-1"></i>Низкий приоритет
-                                                    </span>
-                                                {% endif %}
-                                            </div>
-                                            <div class="task-meta mb-2">
-                                                <i class="fas fa-folder me-1"></i>
-                                                {% if task.category %}
-                                                    {{ task.category.name }}
-                                                {% else %}
-                                                    Без категории
-                                                {% endif %}
-                                                <span class="mx-2">•</span>
-                                                <i class="fas fa-calendar me-1"></i>
-                                                Создано: {{ task.createdAt|date('d.m.Y H:i') }}
-                                            </div>
-                                            {% if task.description %}
-                                                <p class="task-description mb-0 text-muted">
-                                                    {{ task.description|slice(0, 100) }}{% if task.description|length > 100 %}...{% endif %}
-                                                </p>
-                                            {% endif %}
-                                        </div>
-                                        <div class="dropdown">
-                                            <button class="btn btn-light-modern btn-sm" type="button" data-bs-toggle="dropdown">
-                                                <i class="fas fa-ellipsis-v"></i>
-                                            </button>
-                                            <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item" href="{{ path('app_task_show', {'id': task.id}) }}">
-                                                    <i class="fas fa-eye me-2"></i>Просмотр
-                                                </a></li>
-                                                <li><a class="dropdown-item" href="{{ path('app_task_edit', {'id': task.id}) }}">
-                                                    <i class="fas fa-edit me-2"></i>Редактировать
-                                                </a></li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="empty-state" id="tasks-empty-state">
-                            <i class="fas fa-tasks"></i>
-                            <h5>Нет задач</h5>
-                            <p class="mb-0">Создайте свою первую задачу, чтобы начать</p>
-                            <a href="{{ path('app_task_new') }}" class="btn btn-primary-modern mt-3">
-                                <i class="fas fa-plus me-2"></i>Создать задачу
-                            </a>
-                        </div>
-                    {% endif %}
+                    {% for day in 1..31 %}
+                    <div class="calendar-day {% if day == 16 %}today{% endif %} {% if day in [2, 9, 16, 23] %}has-event{% endif %}">
+                        {{ day }}
                     </div>
+                    {% endfor %}
                 </div>
             </div>
-        </div>
-
-        <!-- Categories -->
-        <div class="col-lg-4">
-            <div class="card-modern">
-                <div class="card-header-modern">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h6 class="mb-0">Категории</h6>
-                        <a href="{{ path('app_task_category_new') }}" class="btn btn-sm btn-outline-primary-modern">
-                            <i class="fas fa-plus"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="card-body-modern p-0">
-                    {% if categories is defined and categories is not empty %}
-                        <div class="list-group list-group-flush">
-                            {% for category in categories|slice(0, 5) %}
-                                <div class="list-group-item card-modern border-0 px-3 py-2 mb-2">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <div class="fw-medium">{{ category.name }}</div>
-                                            <small class="text-muted">{{ category.tasks|length }} задач</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="text-center py-4">
-                            <p class="text-muted mb-0">Нет категорий</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-    
-
-    
-    <!-- Platform Activity Stats (only for admin users) -->
-    {% if app.user.hasRole('ROLE_ADMIN') and platform_activity_stats is defined %}
-    <div class="row mb-4">
-        <div class="col-lg-12">
-            <div class="card-modern">
-                <div class="card-header-modern">
-                    <h5 class="mb-0">
-                        <i class="fas fa-users-cog me-2 text-info"></i>
-                        Активность платформы
-                    </h5>
-                </div>
-                <div class="card-body-modern">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="card-modern text-center p-3">
-                                <i class="fas fa-users fa-2x text-info mb-2"></i>
-                                <h4 class="mb-1">{{ platform_activity_stats.active_today }}</h4>
-                                <p class="mb-0">Активных сегодня</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card-modern text-center p-3">
-                                <i class="fas fa-user-check fa-2x text-success mb-2"></i>
-                                <h4 class="mb-1">{{ platform_activity_stats.total_users }}</h4>
-                                <p class="mb-0">Всего пользователей</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card-modern text-center p-3">
-                                <i class="fas fa-user-tag fa-2x text-warning mb-2"></i>
-                                <h4 class="mb-1">{{ platform_activity_stats.active_today }}</h4>
-                                <p class="mb-0">Активных</p>
-                            </div>
-                        </div>
-                    </div>
+            
+            <div class="chart-card-modern mt-3">
+                <div class="donut-chart-container">
+                    <canvas id="donutChart" width="200" height="200"></canvas>
                     
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #4dd4ac;"></div>
+                            <span class="legend-label">Продажи</span>
+                            <span class="legend-value">1.500</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #8b7ff4;"></div>
+                            <span class="legend-label">Таргет</span>
+                            <span class="legend-value">17.000</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #ffd93d;"></div>
+                            <span class="legend-label">Предзаказы</span>
+                            <span class="legend-value">1.173</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #ff6bcb;"></div>
+                            <span class="legend-label">Сети</span>
+                            <span class="legend-value">1.200.000</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    {% endif %}
+
+    <!-- Sales Chart -->
+    <div class="chart-card-modern">
+        <div class="chart-header">
+            <h3 class="chart-title">Продажи</h3>
+            <select class="filter-btn" style="padding: 0.5rem 1rem;">
+                <option>2025</option>
+                <option selected>2026</option>
+            </select>
+        </div>
+        <canvas id="salesChart" height="60"></canvas>
+    </div>
+
+    <!-- Recent Tasks Table -->
+    <div class="chart-card-modern mt-3">
+        <div class="chart-header">
+            <h3 class="chart-title">Последние задачи</h3>
+            <a href="{{ path('app_task_index') }}" class="filter-btn">Все задачи</a>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-dark table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Название</th>
+                        <th>Приоритет</th>
+                        <th>Статус</th>
+                        <th>Срок</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in recent_tasks|default([]) %}
+                    <tr onclick="window.location.href='{{ path('app_task_show', {id: task.id}) }}'" style="cursor: pointer;">
+                        <td>{{ task.id }}</td>
+                        <td>{{ task.title }}</td>
+                        <td>
+                            <span class="badge bg-{{ task.priority == 'high' ? 'danger' : (task.priority == 'medium' ? 'warning' : 'info') }}">
+                                {{ task.priority|upper }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ task.status == 'completed' ? 'success' : (task.status == 'in_progress' ? 'primary' : 'secondary') }}">
+                                {{ task.status }}
+                            </span>
+                        </td>
+                        <td>{{ task.dueDate ? task.dueDate|date('d.m.Y') : '-' }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">Нет задач</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
-<!-- Quick Actions Menu -->
-<div class="quick-actions">
-    <button class="btn btn-primary-modern btn-lg rounded-circle shadow-lg" id="quickActionsBtn" style="width: 60px; height: 60px; position: fixed; bottom: 30px; right: 30px; z-index: 1000; display: flex; align-items: center; justify-content: center;">
-        <i class="fas fa-plus"></i>
+<!-- Theme Switcher -->
+<div class="theme-switcher-modern">
+    <button class="theme-toggle-btn" onclick="toggleThemeOptions()">
+        <i class="fas fa-palette"></i>
     </button>
-    <div class="quick-actions-menu" id="quickActionsMenu">
-        <a href="{{ path('app_task_new') }}" class="quick-action-item card-modern p-3">
-            <div class="quick-action-icon d-flex align-items-center justify-content-center rounded-circle" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; width: 50px; height: 50px;">
-                <i class="fas fa-tasks fs-5"></i>
-            </div>
-            <span>Новая задача</span>
-        </a>
-        <a href="{{ path('app_goals_index') }}" class="quick-action-item card-modern p-3">
-            <div class="quick-action-icon d-flex align-items-center justify-content-center rounded-circle" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; width: 50px; height: 50px;">
-                <i class="fas fa-bullseye fs-5"></i>
-            </div>
-            <span>Новая цель</span>
-        </a>
-        <a href="{{ path('app_habits_index') }}" class="quick-action-item card-modern p-3">
-            <div class="quick-action-icon d-flex align-items-center justify-content-center rounded-circle" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; width: 50px; height: 50px;">
-                <i class="fas fa-fire fs-5"></i>
-            </div>
-            <span>Новая привычка</span>
-        </a>
-        <a href="{{ path('app_task_category_new') }}" class="quick-action-item card-modern p-3">
-            <div class="quick-action-icon d-flex align-items-center justify-content-center rounded-circle" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; width: 50px; height: 50px;">
-                <i class="fas fa-folder fs-5"></i>
-            </div>
-            <span>Новая категория</span>
-        </a>
+    <div class="theme-options" id="themeOptions">
+        <div class="theme-option light" onclick="switchTheme('light')" title="Светлая"></div>
+        <div class="theme-option dark" onclick="switchTheme('dark')" title="Темная"></div>
+        <div class="theme-option orange" onclick="switchTheme('orange')" title="Оранжевая"></div>
+        <div class="theme-option purple" onclick="switchTheme('purple')" title="Фиолетовая"></div>
+        <div class="theme-option custom" onclick="switchTheme('custom')" title="Кастомная"></div>
     </div>
 </div>
+{% endblock %}
 
-<!-- Chart.js loaded for better performance -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Load quick stats via AJAX
-    loadQuickStats();
-    
-    // Simulate loading state for demonstration
-    const recentTasksLoading = document.getElementById('recent-tasks-loading');
-    const recentTasksContent = document.getElementById('recent-tasks-content');
-    
-    // Show loading skeleton for 2 seconds
-    if (recentTasksLoading && recentTasksContent) {
-        recentTasksLoading.style.display = 'block';
-        recentTasksContent.style.display = 'none';
-        
-        setTimeout(() => {
-            recentTasksLoading.style.display = 'none';
-            recentTasksContent.style.display = 'block';
-            
-            // Add fade-in animation to content
-            recentTasksContent.style.opacity = '0';
-            recentTasksContent.style.transition = 'opacity 0.5s ease';
-            
-            setTimeout(() => {
-                recentTasksContent.style.opacity = '1';
-            }, 50);
-        }, 2000);
-    }
-    
-    // Add hover effects to task items
-    const taskItems = document.querySelectorAll('.task-item-enhanced');
-    taskItems.forEach(item => {
-        item.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateX(8px)';
-        });
-        
-        item.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateX(0)';
-        });
-    });
-    
-    // Add click animations
-    const taskLinks = document.querySelectorAll('.task-title a');
-    taskLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            const parentItem = this.closest('.task-item-enhanced');
-            if (parentItem) {
-                parentItem.style.animation = 'pulse 0.3s ease';
-                setTimeout(() => {
-                    parentItem.style.animation = '';
-                }, 300);
-            }
-        });
-    });
-    
-    // Load chart data asynchronously
-    loadChartData();
-    
-    // Refresh data every 5 minutes (300000ms) instead of 30 seconds
-    // Uncomment the line below if you want auto-refresh
-    // setInterval(() => {
-    //     loadQuickStats();
-    //     loadChartData();
-    // }, 300000);
-});
-
-function loadQuickStats() {
-    fetch('/tasks/api/stats')
-        .then(response => response.json())
-        .then(stats => {
-            // Update stat numbers with smooth transitions
-            updateStatNumber('total-tasks', stats.total);
-            updateStatNumber('pending-tasks', stats.pending);
-            updateStatNumber('in_progress-tasks', stats.in_progress || stats.pending); // Fallback for compatibility
-            updateStatNumber('completed-tasks', stats.completed);
-            
-            // Update completion rate
-            const completionRate = stats.completion_rate || 0;
-            updateStatNumber('completion-rate', completionRate + '%');
-            
-            // Update progress bars
-            updateProgressBar('progress-bar.bg-success', completionRate);
-            updateProgressBar('progress-bar.bg-warning', stats.pending / stats.total * 100);
-            updateProgressBar('progress-bar.bg-info', stats.in_progress / stats.total * 100);
-        })
-        .catch(error => {
-            console.error('Error loading quick stats:', error);
-        });
-}
-
-function updateStatNumber(elementId, newValue) {
-    const element = document.querySelector(`#${elementId}, .stat-number.${elementId}`);
-    if (element) {
-        // Animate the number change
-        const currentValue = parseFloat(element.textContent.replace('%', '')) || 0;
-        animateValue(element, currentValue, newValue, 1000);
-    }
-}
-
-function updateProgressBar(selector, percentage) {
-    const progressBar = document.querySelector(selector);
-    if (progressBar) {
-        // Animate the width change
-        const currentWidth = parseFloat(progressBar.style.width) || 0;
-        animateValue(progressBar, currentWidth, percentage, 1000, (value) => {
-            progressBar.style.width = value + '%';
-            progressBar.setAttribute('aria-valuenow', value);
-        });
-    }
-}
-
-function animateValue(element, start, end, duration, callback) {
-    let startTime = null;
-    
-    const step = (timestamp) => {
-        if (!startTime) startTime = timestamp;
-        const progress = Math.min((timestamp - startTime) / duration, 1);
-        
-        const current = start + (end - start) * progress;
-        
-        if (callback) {
-            callback(current);
-        } else {
-            if (element.textContent.includes('%')) {
-                element.textContent = Math.round(current) + '%';
-            } else {
-                element.textContent = Math.round(current);
-            }
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        // Theme Switcher
+        function toggleThemeOptions() {
+            document.getElementById('themeOptions').classList.toggle('active');
         }
-        
-        if (progress < 1) {
-            window.requestAnimationFrame(step);
-        }
-    };
-    
-    window.requestAnimationFrame(step);
-}
 
-function loadChartData() {
-    fetch('/analytics/api/data')
-        .then(response => response.json())
-        .then(data => {
-            renderCharts(data);
-        })
-        .catch(error => {
-            console.error('Error loading analytics:', error);
-        });
-}
-
-function renderCharts(data) {
-    // Destroy existing charts to prevent memory leaks
-    if (window.statusChart) window.statusChart.destroy();
-    if (window.priorityChart) window.priorityChart.destroy();
-    if (window.tagChart) window.tagChart.destroy();
-    
-    // Task Status Distribution Chart
-    const statusCtx = document.getElementById('statusChart').getContext('2d');
-    window.statusChart = new Chart(statusCtx, {
-        type: 'pie',
-        data: {
-            labels: ['Завершено', 'В процессе', 'В ожидании'],
-            datasets: [{
-                data: [
-                    data.quickStats?.completed || 0,
-                    data.quickStats?.in_progress || 0,
-                    data.quickStats?.pending || 0
-                ],
-                backgroundColor: [
-                    'rgba(40, 167, 69, 0.8)', // green for completed
-                    'rgba(23, 162, 184, 0.8)', // teal for in progress
-                    'rgba(255, 193, 7, 0.8)'   // yellow for pending
-                ],
-                borderColor: [
-                    'rgba(40, 167, 69, 1)',
-                    'rgba(23, 162, 184, 1)',
-                    'rgba(255, 193, 7, 1)'
-                ],
-                borderWidth: 1,
-                hoverOffset: 15
-            }]
-        },
-        options: {
-            responsive: true,
-            animation: {
-                animateRotate: true,
-                animateScale: true,
-                duration: 1000
-            },
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 20,
-                        usePointStyle: true,
-                        pointStyle: 'circle'
-                    }
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    titleFont: {
-                        size: 14,
-                        weight: 'bold'
-                    },
-                    bodyFont: {
-                        size: 13
-                    },
-                    callbacks: {
-                        label: function(context) {
-                            const label = context.label || '';
-                            const value = context.raw || 0;
-                            const total = context.chart.getDatasetMeta(0).total;
-                            const percentage = Math.round((value / total) * 100);
-                            return `${label}: ${value} задач (${percentage}%)`;
-                        }
-                    }
-                }
-            }
+        function switchTheme(theme) {
+            document.body.className = 'theme-' + theme;
+            localStorage.setItem('theme', theme);
+            toggleThemeOptions();
         }
-    });
 
-    // Task Priority Distribution Chart
-    const priorityCtx = document.getElementById('priorityChart').getContext('2d');
-    window.priorityChart = new Chart(priorityCtx, {
-        type: 'bar',
-        data: {
-            labels: ['Низкий', 'Средний', 'Высокий'],
-            datasets: [{
-                label: 'Количество задач',
-                data: [
-                    data.quickStats?.low_priority || 0,
-                    data.quickStats?.medium_priority || 0,
-                    data.quickStats?.high_priority || 0
-                ],
-                backgroundColor: [
-                    'rgba(40, 167, 69, 0.8)',  // green for low
-                    'rgba(255, 193, 7, 0.8)',  // yellow for medium
-                    'rgba(220, 53, 69, 0.8)'   // red for high
-                ],
-                borderColor: [
-                    'rgba(40, 167, 69, 1)',
-                    'rgba(255, 193, 7, 1)',
-                    'rgba(220, 53, 69, 1)'
-                ],
-                borderWidth: 1,
-                borderRadius: 6,
-                borderSkipped: false
-            }]
-        },
-        options: {
-            responsive: true,
-            animation: {
-                duration: 1500,
-                easing: 'easeInOutQuart'
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        precision: 0
-                    },
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.05)'
-                    }
-                },
-                x: {
-                    grid: {
-                        display: false
-                    }
-                }
-            },
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    callbacks: {
-                        label: function(context) {
-                            return `Задач: ${context.raw}`;
-                        }
-                    }
-                }
-            }
-        }
-    });
-    
-    // Task Tag Distribution Chart
-    if (typeof tag_stats !== 'undefined' && tag_stats.length > 0) {
-        const tagCtx = document.getElementById('tagChart').getContext('2d');
-        window.tagChart = new Chart(tagCtx, {
-            type: 'doughnut',
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.body.className = 'theme-' + savedTheme;
+
+        // Orders Chart
+        const ordersCtx = document.getElementById('ordersChart').getContext('2d');
+        new Chart(ordersCtx, {
+            type: 'bar',
             data: {
-                labels: tag_stats.slice(0, 10).map(tag => tag.name),
+                labels: ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'],
                 datasets: [{
-                    data: tag_stats.slice(0, 10).map(tag => tag.taskCount),
-                    backgroundColor: tag_stats.slice(0, 10).map(tag => tag.color),
-                    borderColor: tag_stats.slice(0, 10).map(() => 'rgba(255, 255, 255, 1)'),
-                    borderWidth: 2,
-                    hoverOffset: 10
+                    label: 'Заказы',
+                    data: [20, 30, 50, 28, 35, 45, 38],
+                    backgroundColor: [
+                        '#ffd93d',
+                        '#4dd4ac',
+                        '#8b7ff4',
+                        '#ffd93d',
+                        '#4dd4ac',
+                        '#8b7ff4',
+                        '#4dd4ac'
+                    ],
+                    borderRadius: 8,
+                    borderSkipped: false,
                 }]
             },
             options: {
                 responsive: true,
-                cutout: '60%',
-                animation: {
-                    animateRotate: true,
-                    animateScale: true,
-                    duration: 1200
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { display: false }
                 },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#3a3a3a' },
+                        ticks: { color: '#a0a0a0' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#a0a0a0' }
+                    }
+                }
+            }
+        });
+
+        // Donut Chart
+        const donutCtx = document.getElementById('donutChart').getContext('2d');
+        new Chart(donutCtx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [1500, 17000, 1173, 1200],
+                    backgroundColor: ['#4dd4ac', '#8b7ff4', '#ffd93d', '#ff6bcb'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                cutout: '75%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false }
+                }
+            }
+        });
+
+        // Sales Chart
+        const salesCtx = document.getElementById('salesChart').getContext('2d');
+        new Chart(salesCtx, {
+            type: 'line',
+            data: {
+                labels: ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'],
+                datasets: [
+                    {
+                        label: 'Текущий год',
+                        data: [15000, 22000, 28000, 35000, 32000, 38000, 45000, 42000, 48000, 52000, 58000, 65000],
+                        borderColor: '#8b7ff4',
+                        backgroundColor: 'rgba(139, 127, 244, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        borderWidth: 3
+                    },
+                    {
+                        label: 'Прошлый год',
+                        data: [12000, 18000, 24000, 28000, 26000, 30000, 35000, 32000, 38000, 42000, 45000, 50000],
+                        borderColor: '#4dd4ac',
+                        borderDash: [5, 5],
+                        tension: 0.4,
+                        fill: false,
+                        borderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
                 plugins: {
                     legend: {
+                        display: true,
                         position: 'bottom',
-                        labels: {
-                            padding: 20,
-                            usePointStyle: true,
-                            pointStyle: 'circle',
-                            font: {
-                                size: 12
-                            }
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        titleFont: {
-                            size: 14,
-                            weight: 'bold'
-                        },
-                        bodyFont: {
-                            size: 13
-                        },
-                        callbacks: {
-                            label: function(context) {
-                                const label = context.label || '';
-                                const value = context.raw || 0;
-                                const total = context.chart.getDatasetMeta(0).total;
-                                const percentage = Math.round((value / total) * 100);
-                                return `${label}: ${value} задач (${percentage}%)`;
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    }
-    
-    // Add click interaction to charts
-    statusChart.canvas.onclick = function(evt) {
-        const activePoints = statusChart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
-        if (activePoints.length > 0) {
-            const firstPoint = activePoints[0];
-            const label = statusChart.data.labels[firstPoint.index];
-            const statusMap = {
-                'Завершено': 'completed',
-                'В процессе': 'in_progress',
-                'В ожидании': 'pending'
-            };
-            
-            if (statusMap[label]) {
-                window.location.href = `{{ path('app_task_index') }}?status=${statusMap[label]}`;
-            }
-        }
-    };
-    
-    priorityChart.canvas.onclick = function(evt) {
-        const activePoints = priorityChart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
-        if (activePoints.length > 0) {
-            const firstPoint = activePoints[0];
-            const label = priorityChart.data.labels[firstPoint.index];
-            const priorityMap = {
-                'Низкий': 'low',
-                'Средний': 'medium',
-                'Высокий': 'high'
-            };
-            
-            if (priorityMap[label]) {
-                window.location.href = `{{ path('app_task_index') }}?priority=${priorityMap[label]}`;
-            }
-        }
-    };
-    
-    // Initialize dependency visualization
-    loadDependencyVisualization();
-}
-
-// Dependency Visualization Functions
-async function loadDependencyVisualization() {
-    try {
-        const response = await fetch('/api/tasks/all');
-        const tasks = await response.json();
-        
-        // Filter tasks that have dependencies
-        const tasksWithDeps = tasks.filter(task => {
-            // Look for tasks that either depend on others or block others
-            return task.id; // We'll check dependencies separately
-        });
-        
-        // Calculate dependency statistics
-        let blockingTasks = 0;
-        let blockedTasks = 0;
-        
-        tasksWithDeps.forEach(task => {
-            if (task.dependencies && task.dependencies.length > 0) {
-                blockedTasks++;
-                // Count how many dependencies are not satisfied
-                const unsatisfied = task.dependencies.filter(dep => !dep.is_satisfied);
-                if (unsatisfied.length > 0) {
-                    blockingTasks++;
-                }
-            }
-        });
-        
-        // Update dependency stats in the dashboard
-        updateDependencyStats(blockingTasks, blockedTasks, tasks.length);
-        
-    } catch (error) {
-        console.error('Error loading dependency visualization:', error);
-    }
-}
-
-function updateDependencyStats(blockingTasks, blockedTasks, totalTasks) {
-    // Update dependency stats in existing elements
-    const totalDepEl = document.getElementById('total-dependencies');
-    const blockingDepEl = document.getElementById('blocking-dependencies');
-    const satisfiedDepEl = document.getElementById('satisfied-dependencies');
-    const unsatisfiedDepEl = document.getElementById('unsatisfied-dependencies');
-    
-    if (totalDepEl) totalDepEl.textContent = totalTasks;
-    if (blockingDepEl) blockingDepEl.textContent = blockingTasks;
-    if (satisfiedDepEl) satisfiedDepEl.textContent = blockedTasks - blockingTasks;
-    if (unsatisfiedDepEl) unsatisfiedDepEl.textContent = blockingTasks;
-}
-
-// Quick Actions Menu
-const quickActionsBtn = document.getElementById('quickActionsBtn');
-const quickActionsMenu = document.getElementById('quickActionsMenu');
-
-if (quickActionsBtn && quickActionsMenu) {
-    quickActionsBtn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        quickActionsMenu.classList.toggle('active');
-    });
-    
-    // Close menu when clicking outside
-    document.addEventListener('click', function(e) {
-        if (!quickActionsMenu.contains(e.target) && e.target !== quickActionsBtn) {
-            quickActionsMenu.classList.remove('active');
-        }
-    });
-    
-    // Close menu when clicking on an item
-    quickActionsMenu.querySelectorAll('.quick-action-item').forEach(item => {
-        item.addEventListener('click', function() {
-            quickActionsMenu.classList.remove('active');
-        });
-    });
-}
-
-// Activity Chart
-let activityChart = null;
-
-function initActivityChart() {
-    const ctx = document.getElementById('activityChart');
-    if (!ctx) return;
-    
-    const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
-    
-    activityChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: weekDays,
-            datasets: [{
-                label: 'Создано задач',
-                data: [0, 0, 0, 0, 0, 0, 0],
-                borderColor: 'rgba(102, 126, 234, 1)',
-                backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 6,
-                pointHoverRadius: 8,
-                pointBackgroundColor: 'rgba(102, 126, 234, 1)',
-                pointBorderColor: '#fff',
-                pointBorderWidth: 2
-            }, {
-                label: 'Завершено задач',
-                data: [0, 0, 0, 0, 0, 0, 0],
-                borderColor: 'rgba(17, 153, 142, 1)',
-                backgroundColor: 'rgba(17, 153, 142, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 6,
-                pointHoverRadius: 8,
-                pointBackgroundColor: 'rgba(17, 153, 142, 1)',
-                pointBorderColor: '#fff',
-                pointBorderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            interaction: {
-                mode: 'index',
-                intersect: false,
-            },
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'top',
-                    labels: {
-                        usePointStyle: true,
-                        padding: 20,
-                        font: {
-                            size: 13,
-                            weight: '600'
-                        }
+                        labels: { color: '#a0a0a0', padding: 20 }
                     }
                 },
-                tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    padding: 12,
-                    titleFont: {
-                        size: 14,
-                        weight: 'bold'
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#3a3a3a' },
+                        ticks: { color: '#a0a0a0' }
                     },
-                    bodyFont: {
-                        size: 13
-                    },
-                    cornerRadius: 8,
-                    displayColors: true
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.05)'
-                    },
-                    ticks: {
-                        font: {
-                            size: 12,
-                            weight: '600'
-                        },
-                        precision: 0
-                    }
-                },
-                x: {
-                    grid: {
-                        display: false
-                    },
-                    ticks: {
-                        font: {
-                            size: 12,
-                            weight: '600'
-                        }
+                    x: {
+                        grid: { color: '#3a3a3a' },
+                        ticks: { color: '#a0a0a0' }
                     }
                 }
             }
-        }
-    });
-    
-    // Load real data from API
-    loadActivityChartData();
-}
-
-function loadActivityChartData() {
-    fetch('/analytics/api/completion-trend')
-        .then(response => response.json())
-        .then(data => {
-            if (activityChart && data.daily_completion) {
-                // Process last 7 days of data
-                const last7Days = data.daily_completion.slice(-7);
-                const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
-                
-                // Fill with actual data or zeros
-                const completedData = new Array(7).fill(0);
-                last7Days.forEach((item, index) => {
-                    if (index < 7) {
-                        completedData[index] = parseInt(item.count) || 0;
-                    }
-                });
-                
-                // Update chart with real data
-                activityChart.data.datasets[1].data = completedData;
-                // For created tasks, use same data (simplified)
-                activityChart.data.datasets[0].data = completedData.map(v => Math.ceil(v * 1.2));
-                activityChart.update('active');
-                
-                updateActivityStats();
-            }
-        })
-        .catch(error => {
-            console.error('Error loading activity chart data:', error);
-            // Keep default zeros if API fails
-            updateActivityStats();
         });
-}
-
-function updateActivityStats() {
-    // Calculate stats from chart data
-    if (!activityChart) return;
-    
-    const createdData = activityChart.data.datasets[0].data;
-    const completedData = activityChart.data.datasets[1].data;
-    
-    const totalCreated = createdData.reduce((a, b) => a + b, 0);
-    const totalCompleted = completedData.reduce((a, b) => a + b, 0);
-    
-    // Calculate streak (consecutive days with completed tasks)
-    let streak = 0;
-    for (let i = completedData.length - 1; i >= 0; i--) {
-        if (completedData[i] > 0) {
-            streak++;
-        } else {
-            break;
-        }
-    }
-    
-    // Calculate productivity (completed / created * 100)
-    const productivity = totalCreated > 0 ? Math.round((totalCompleted / totalCreated) * 100) : 0;
-    
-    // Animate values
-    animateValue(document.getElementById('week-tasks'), 0, totalCreated, 1000);
-    animateValue(document.getElementById('week-completed'), 0, totalCompleted, 1200);
-    animateValue(document.getElementById('week-streak'), 0, streak, 1400);
-    
-    const productivityEl = document.getElementById('week-productivity');
-    if (productivityEl) {
-        animateValue(productivityEl, 0, productivity, 1600, (value) => {
-            productivityEl.textContent = Math.round(value) + '%';
-        });
-    }
-}
-
-// Period switcher for activity chart
-document.querySelectorAll('[data-period]').forEach(btn => {
-    btn.addEventListener('click', function() {
-        document.querySelectorAll('[data-period]').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        
-        const period = this.dataset.period;
-        updateActivityChartPeriod(period);
-    });
-});
-
-function updateActivityChartPeriod(period) {
-    if (!activityChart) return;
-    
-    if (period === 'month') {
-        fetch('/analytics/api/completion-trend')
-            .then(response => response.json())
-            .then(data => {
-                if (data.weekly_completion) {
-                    const last4Weeks = data.weekly_completion.slice(-4);
-                    activityChart.data.labels = last4Weeks.map((item, i) => `Нед ${i + 1}`);
-                    activityChart.data.datasets[1].data = last4Weeks.map(item => parseInt(item.count) || 0);
-                    activityChart.data.datasets[0].data = activityChart.data.datasets[1].data.map(v => Math.ceil(v * 1.2));
-                    activityChart.update('active');
-                    updateActivityStats();
-                }
-            })
-            .catch(error => {
-                console.error('Error loading monthly data:', error);
-            });
-    } else {
-        activityChart.data.labels = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
-        loadActivityChartData();
-    }
-}
-
-// Initialize activity chart when Chart.js is loaded
-if (typeof Chart !== 'undefined') {
-    initActivityChart();
-} else {
-    console.error('Chart.js not loaded');
-}
-});
-</script>
-
-<style>
-.bg-gradient-primary {
-    background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
-}
-
-.tag-cloud {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    align-items: center;
-    justify-content: center;
-}
-
-.tag-item {
-    transition: transform 0.2s ease;
-}
-
-.tag-item:hover {
-    transform: scale(1.05);
-    cursor: pointer;
-}
-</style>
+    </script>
 {% endblock %}

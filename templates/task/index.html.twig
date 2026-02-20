@@ -1,46 +1,77 @@
-{% extends 'base.html.twig' %}
+{% extends 'base_modern.html.twig' %}
 
 {% block title %}Задачи{% endblock %}
 
-{% block stylesheets %}
-{{ parent() }}
-<link rel="stylesheet" href="{{ asset('css/tasks-enhanced.min.css') }}">
-<link rel="stylesheet" href="{{ asset('css/task-design-enhancements.css') }}">
-<script src="{{ asset('js/table-enhancements.js') }}" defer></script>
-{% endblock %}
-
 {% block body %}
-{{ include('components/breadcrumbs.html.twig', {
-    items: [
-        {label: 'Главная', url: path('app_dashboard')},
-        {label: 'Задачи', active: true}
-    ]
-}) }}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <h2 class="mb-0">Задачи</h2>
-                <a href="{{ path('app_task_new') }}" class="btn btn-primary">
-                    <i class="fas fa-plus me-2"></i>Создать
-                </a>
-            </div>
-        </div>
+<!-- Page Header -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+    <div>
+        <h2 style="margin: 0; font-size: 28px; font-weight: 600;">Задачи</h2>
+        <p style="color: var(--text-secondary); margin: 5px 0 0 0;">Управление заказами и сделками</p>
     </div>
+    <a href="{{ path('app_task_new') }}" class="btn btn-primary" style="background: var(--color-sales); border: none; padding: 12px 24px; border-radius: 12px; font-weight: 600;">
+        <i class="fas fa-plus me-2"></i>Создать задачу
+    </a>
+</div>
 
-    <!-- Simple Filters -->
-    <div class="filter-panel-modern animate-fade-in">
+<!-- Stats Overview -->
+<div class="stats-grid" style="margin-bottom: 30px;">
+    <div class="stat-card" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+        <div class="stat-header">
+            <div class="stat-icon" style="background: var(--color-sales); color: #000;">
+                <i class="fas fa-tasks"></i>
+            </div>
+            <span>Всего</span>
+        </div>
+        <div class="stat-value">{{ tasks|length }}</div>
+    </div>
+    
+    <div class="stat-card" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+        <div class="stat-header">
+            <div class="stat-icon" style="background: var(--color-orders); color: #000;">
+                <i class="fas fa-clock"></i>
+            </div>
+            <span>В ожидании</span>
+        </div>
+        <div class="stat-value">{{ tasks|filter(t => t.status == 'pending')|length }}</div>
+    </div>
+    
+    <div class="stat-card" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+        <div class="stat-header">
+            <div class="stat-icon" style="background: var(--color-bonuses); color: #fff;">
+                <i class="fas fa-spinner"></i>
+            </div>
+            <span>В процессе</span>
+        </div>
+        <div class="stat-value">{{ tasks|filter(t => t.status == 'in_progress')|length }}</div>
+    </div>
+    
+    <div class="stat-card" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+        <div class="stat-header">
+            <div class="stat-icon" style="background: var(--color-clients); color: #fff;">
+                <i class="fas fa-check"></i>
+            </div>
+            <span>Завершено</span>
+        </div>
+        <div class="stat-value">{{ tasks|filter(t => t.status == 'completed')|length }}</div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card" style="margin-bottom: 20px;">
+    <div class="card-body">
         <form method="get" class="row g-3">
             <div class="col-md-4">
                 <input type="text" 
-                       class="form-control-modern" 
+                       class="form-control" 
                        name="search" 
                        value="{{ app.request.query.get('search') }}" 
-                       placeholder="Поиск задач...">
+                       placeholder="Поиск по названию..."
+                       style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 12px 16px; border-radius: 10px;">
             </div>
             
             <div class="col-md-2">
-                <select class="form-select-modern" name="status">
+                <select class="form-select" name="status" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 12px 16px; border-radius: 10px;">
                     <option value="">Все статусы</option>
                     <option value="pending" {{ app.request.query.get('status') == 'pending' ? 'selected' : '' }}>В ожидании</option>
                     <option value="in_progress" {{ app.request.query.get('status') == 'in_progress' ? 'selected' : '' }}>В процессе</option>
@@ -49,7 +80,7 @@
             </div>
             
             <div class="col-md-2">
-                <select class="form-select-modern" name="priority">
+                <select class="form-select" name="priority" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 12px 16px; border-radius: 10px;">
                     <option value="">Все приоритеты</option>
                     <option value="low" {{ app.request.query.get('priority') == 'low' ? 'selected' : '' }}>Низкий</option>
                     <option value="medium" {{ app.request.query.get('priority') == 'medium' ? 'selected' : '' }}>Средний</option>
@@ -58,944 +89,146 @@
             </div>
             
             <div class="col-md-2">
-                <select class="form-select-modern" name="category">
-                    <option value="">Все категории</option>
-                    {% for category in categories %}
-                        <option value="{{ category.id }}" {{ app.request.query.get('category') == category.id ? 'selected' : '' }}>
-                            {{ category.name }}
-                        </option>
-                    {% endfor %}
-                </select>
+                <button type="submit" class="btn w-100" style="background: var(--color-sales); border: none; color: #000; padding: 12px; border-radius: 10px; font-weight: 600;">
+                    <i class="fas fa-filter me-1"></i>Применить
+                </button>
             </div>
             
             <div class="col-md-2">
-                <select class="form-select-modern" name="tag">
-                    <option value="">Все теги</option>
-                    {% for tag in tags %}
-                        <option value="{{ tag.id }}" {{ app.request.query.get('tag') == tag.id ? 'selected' : '' }}>
-                            {{ tag.name }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-            
-            <div class="col-md-2 d-flex align-items-end">
-                <div class="btn-group w-100" role="group">
-                    <button type="submit" class="btn-modern btn-primary-modern">
-                        <i class="fas fa-filter me-2"></i>
-                        Фильтровать
-                    </button>
-                    <a href="{{ path('app_task_index') }}" class="btn-modern btn-outline-modern">
-                        <i class="fas fa-times"></i>
-                    </a>
-                </div>
-            </div>
-            
-            <div class="col-md-2 d-flex align-items-end">
-                <a href="{{ path('app_task_export', app.request.query.all) }}" class="btn-modern btn-success-modern w-100">
-                    <i class="fas fa-download me-2"></i>
-                    Экспорт
-                </a>
-            </div>
-            
-            <div class="col-md-2 d-flex align-items-end">
-                <a href="{{ path('app_task_export_with_tags', app.request.query.all) }}" class="btn-modern btn-modern w-100" style="background: var(--gradient-info); color: white;">
-                    <i class="fas fa-tags me-2"></i>
-                    Экспорт с тегами
+                <a href="{{ path('app_task_index') }}" class="btn w-100" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 12px; border-radius: 10px; font-weight: 600;">
+                    <i class="fas fa-times me-1"></i>Сбросить
                 </a>
             </div>
         </form>
     </div>
-    
-    <!-- Advanced Filters -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-light">
-            <h5 class="mb-0">
-                <i class="fas fa-sliders-h me-2 text-secondary"></i>
-                Расширенные фильтры
-                <button class="btn btn-sm btn-link float-end" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters">
-                    <i class="fas fa-chevron-down"></i>
+</div>
+
+<!-- Tasks List -->
+<div class="card">
+    <div class="card-header" style="border-bottom: 1px solid var(--border-color);">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="card-title">Список задач</h3>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-sm" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px 16px; border-radius: 8px;">
+                    <i class="fas fa-th-large me-1"></i>Сетка
                 </button>
-            </h5>
-        </div>
-        <div class="collapse" id="advancedFilters">
-            <div class="card-body">
-                <form method="get" class="row g-3">
-                    <!-- Preserve existing filters -->
-                    <input type="hidden" name="search" value="{{ app.request.query.get('search') ?: searchQuery }}">
-                    <input type="hidden" name="status" value="{{ app.request.query.get('status') }}">
-                    <input type="hidden" name="priority" value="{{ app.request.query.get('priority') }}">
-                    <input type="hidden" name="category" value="{{ app.request.query.get('category') }}">
-                    <input type="hidden" name="tag" value="{{ app.request.query.get('tag') }}">
-                    <input type="hidden" name="hide_completed" value="{{ app.request.query.get('hide_completed') }}">
-                    <input type="hidden" name="start_date" value="{{ app.request.query.get('start_date') }}">
-                    <input type="hidden" name="end_date" value="{{ app.request.query.get('end_date') }}">
-                    
-                    <div class="col-md-3">
-                        <label for="created_after" class="form-label">Создано после</label>
-                        <input type="date" class="form-control" id="created_after" name="created_after" 
-                               value="{{ app.request.query.get('created_after') }}">
-                    </div>
-                    
-                    <div class="col-md-3">
-                        <label for="created_before" class="form-label">Создано до</label>
-                        <input type="date" class="form-control" id="created_before" name="created_before" 
-                               value="{{ app.request.query.get('created_before') }}">
-                    </div>
-                    
-                    <div class="col-md-2">
-                        <label for="sort_by" class="form-label">Сортировать по</label>
-                        <select class="form-select" id="sort_by" name="sort_by">
-                            <option value="" {{ app.request.query.get('sort_by') == '' ? 'selected' : '' }}>По умолчанию</option>
-                            <option value="title" {{ app.request.query.get('sort_by') == 'title' ? 'selected' : '' }}>Название</option>
-                            <option value="createdAt" {{ app.request.query.get('sort_by') == 'createdAt' ? 'selected' : '' }}>Дата создания</option>
-                            <option value="dueDate" {{ app.request.query.get('sort_by') == 'dueDate' ? 'selected' : '' }}>Срок выполнения</option>
-                            <option value="priority" {{ app.request.query.get('sort_by') == 'priority' ? 'selected' : '' }}>Приоритет</option>
-                            <option value="status" {{ app.request.query.get('sort_by') == 'status' ? 'selected' : '' }}>Статус</option>
-                            <option value="tag_count" {{ app.request.query.get('sort_by') == 'tag_count' ? 'selected' : '' }}>Количество тегов</option>
-                        </select>
-                    </div>
-                    
-                    <div class="col-md-2">
-                        <label for="sort_direction" class="form-label">Направление</label>
-                        <select class="form-select" id="sort_direction" name="sort_direction">
-                            <option value="DESC" {{ app.request.query.get('sort_direction') == 'DESC' ? 'selected' : '' }}>По убыванию</option>
-                            <option value="ASC" {{ app.request.query.get('sort_direction') == 'ASC' ? 'selected' : '' }}>По возрастанию</option>
-                        </select>
-                    </div>
-                    
-                    <div class="col-md-2">
-                        <label class="form-label">&nbsp;</label>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="assigned_to_me" name="assigned_to_me" 
-                                   value="1" {{ app.request.query.get('assigned_to_me') == '1' ? 'checked' : '' }}>
-                            <label class="form-check-label" for="assigned_to_me">
-                                Назначено мне
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="created_by_me" name="created_by_me" 
-                                   value="1" {{ app.request.query.get('created_by_me') == '1' ? 'checked' : '' }}>
-                            <label class="form-check-label" for="created_by_me">
-                                Создано мной
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="overdue" name="overdue" 
-                                   value="1" {{ app.request.query.get('overdue') == '1' ? 'checked' : '' }}>
-                            <label class="form-check-label" for="overdue">
-                                Просрочено
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-12">
-                        <div class="d-flex justify-content-end">
-                            <button type="submit" class="btn btn-primary me-2">
-                                <i class="fas fa-filter me-1"></i>
-                                Применить фильтры
-                            </button>
-                            <a href="{{ path('app_task_index') }}" class="btn btn-outline-secondary">
-                                <i class="fas fa-times me-1"></i>
-                                Сбросить все фильтры
-                            </a>
-                        </div>
-                    </div>
-                </form>
+                <button class="btn btn-sm" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px 16px; border-radius: 8px;">
+                    <i class="fas fa-list me-1"></i>Список
+                </button>
             </div>
         </div>
     </div>
-
-    <!-- Task Statistics -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card dashboard-card dashboard-card-enhanced border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="rounded-circle bg-primary bg-opacity-10 p-3 d-inline-block mb-3">
-                        <i class="fas fa-tasks fa-2x text-primary"></i>
-                    </div>
-                    <h3 class="stat-number mb-0 text-primary">{{ tasks|length }}</h3>
-                    <p class="stat-label mb-0">Всего задач</p>
-                    <div class="progress mt-2" style="height: 5px;">
-                        <div class="progress-bar bg-primary" role="progressbar" style="width: 100%"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="card dashboard-card dashboard-card-enhanced border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="rounded-circle bg-warning bg-opacity-10 p-3 d-inline-block mb-3">
-                        <i class="fas fa-clock fa-2x text-warning"></i>
-                    </div>
-                    <h3 class="stat-number mb-0 text-warning">
-                        {{ tasks|filter(t => t.status == 'pending')|length }}
-                    </h3>
-                    <p class="stat-label mb-0">В ожидании</p>
-                    <div class="progress mt-2" style="height: 5px;">
-                        <div class="progress-bar bg-warning" role="progressbar" style="width: {{ tasks|length > 0 ? (tasks|filter(t => t.status == 'pending')|length / tasks|length * 100)|round(0) : 0 }}%"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="card dashboard-card dashboard-card-enhanced border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="rounded-circle bg-info bg-opacity-10 p-3 d-inline-block mb-3">
-                        <i class="fas fa-play-circle fa-2x text-info"></i>
-                    </div>
-                    <h3 class="stat-number mb-0 text-info">
-                        {{ tasks|filter(t => t.status == 'in_progress')|length }}
-                    </h3>
-                    <p class="stat-label mb-0">В процессе</p>
-                    <div class="progress mt-2" style="height: 5px;">
-                        <div class="progress-bar bg-info" role="progressbar" style="width: {{ tasks|length > 0 ? (tasks|filter(t => t.status == 'in_progress')|length / tasks|length * 100)|round(0) : 0 }}%"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="card dashboard-card dashboard-card-enhanced border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="rounded-circle bg-success bg-opacity-10 p-3 d-inline-block mb-3">
-                        <i class="fas fa-check-circle fa-2x text-success"></i>
-                    </div>
-                    <h3 class="stat-number mb-0 text-success">
-                        {{ tasks|filter(t => t.status == 'completed')|length }}
-                    </h3>
-                    <p class="stat-label mb-0">Завершено</p>
-                    <div class="progress mt-2" style="height: 5px;">
-                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ tasks|length > 0 ? (tasks|filter(t => t.status == 'completed')|length / tasks|length * 100)|round(0) : 0 }}%"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Tasks List -->
-    <form method="post" action="{{ path('app_task_bulk_action') }}" id="bulk-actions-form">
-    <div class="card border-0 shadow-sm" data-controller="drag-drop" data-drag-drop-reorder-url-value="{{ path('app_api_task_reorder') }}">
-        <div class="card-header bg-white">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <div class="d-flex align-items-center">
-                    <div class="form-check me-3">
-                        <input type="checkbox" class="form-check-input" id="select-all-tasks">
-                        <label class="form-check-label" for="select-all-tasks"></label>
-                    </div>
-                    <h5 class="mb-0">
-                        <i class="fas fa-list me-2 text-secondary"></i>
-                        Список задач
-                    </h5>
-                </div>
-                <div class="d-flex gap-2 flex-wrap">
-                    <button type="button" class="btn btn-outline-primary btn-sm" id="dragModeToggle" title="Режим перетаскивания" data-action="click->drag-drop#enable">
-                        <i class="fas fa-arrows-alt me-1"></i>Перетаскивание
-                    </button>
-                <div class="btn-group" role="group">
-                    <a href="{{ path('app_task_index', app.request.query.all|merge({'sort': 'createdAt', 'direction': app.request.query.get('direction') == 'ASC' ? 'DESC' : 'ASC'})) }}" 
-                       class="btn btn-outline-secondary btn-sm" data-bs-toggle="tooltip" title="Сортировать по дате создания">
-                        <i class="fas fa-sort-amount-{{ app.request.query.get('direction') == 'ASC' ? 'up' : 'down' }} me-1"></i>
-                        По дате
-                    </a>
-                    <a href="{{ path('app_task_index', app.request.query.all|merge({'sort': 'priority', 'direction': app.request.query.get('direction') == 'ASC' ? 'DESC' : 'ASC'})) }}" 
-                       class="btn btn-outline-secondary btn-sm" data-bs-toggle="tooltip" title="Сортировать по приоритету">
-                        <i class="fas fa-exclamation-triangle me-1"></i>
-                        Приоритет
-                    </a>
-                    <a href="{{ path('app_task_index', app.request.query.all|merge({'sort': 'tag_count', 'direction': app.request.query.get('direction') == 'ASC' ? 'DESC' : 'ASC'})) }}" 
-                       class="btn btn-outline-secondary btn-sm" data-bs-toggle="tooltip" title="Сортировать по количеству тегов">
-                        <i class="fas fa-tags me-1"></i>
-                        Теги
-                    </a>
-                </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Bulk Action Controls -->
-        <div id="bulk-actions-container" class="card-header bg-light d-none">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <span id="selected-count">Выбрано: 0</span>
-                </div>
-                <div class="btn-group" role="group">
-                    <select name="action" class="form-select me-2" style="width: auto;" id="bulk-action-select">
-                        <option value="">Действие с выбранными</option>
-                        <option value="mark_completed">Отметить как выполненные</option>
-                        <option value="mark_in_progress">Отметить как в процессе</option>
-                        <option value="mark_pending">Отметить как ожидаемые</option>
-                        <option value="set_priority_high">Установить высокий приоритет</option>
-                        <option value="set_priority_medium">Установить средний приоритет</option>
-                        <option value="set_priority_low">Установить низкий приоритет</option>
-                        <option value="assign_tag">Назначить теги</option>
-                        <option value="delete">Удалить</option>
-                    </select>
-                    <div id="tag-selection-container" class="me-2" style="display: none;">
-                        <select name="tag_ids[]" multiple class="form-select" size="3">
-                            {% for tag in tags %}
-                                <option value="{{ tag.id }}">{{ tag.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-sm" id="execute-bulk-action">
-                        <i class="fas fa-play me-1"></i>
-                        Выполнить
-                    </button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm" id="cancel-bulk-selection">
-                        <i class="fas fa-times me-1"></i>
-                        Отмена
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <div class="card-body p-0">
-            {% if tasks is not empty %}
-                <div class="sortable-list data-table" 
-                     data-drag-drop-target="container"
-                     data-export-filename="tasks"
-                     data-print-title="Список задач">
+    
+    <div class="table-container">
+        {% if tasks is not empty %}
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">
+                            <input type="checkbox" style="width: 18px; height: 18px; cursor: pointer;">
+                        </th>
+                        <th>Название</th>
+                        <th>Категория</th>
+                        <th>Приоритет</th>
+                        <th>Статус</th>
+                        <th>Дата создания</th>
+                        <th style="width: 100px;">Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
                     {% for task in tasks %}
-                        <div class="task-card-modern animate-slide-up" 
-                             data-drag-drop-target="item" 
-                             data-id="{{ task.id }}"
-                             draggable="false"
-                             data-action="dragstart->drag-drop#handleDragStart dragover->drag-drop#handleDragOver dragleave->drag-drop#handleDragLeave drop->drag-drop#handleDrop dragend->drag-drop#handleDragEnd">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div class="form-check me-3">
-                                    <input type="checkbox" class="form-check-input task-checkbox" name="task_ids[]" value="{{ task.id }}" id="task-{{ task.id }}">
-                                    <label class="form-check-label" for="task-{{ task.id }}"></label>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="d-flex align-items-center mb-2">
-                                        <h5 class="task-title mb-0 me-3">
-                                            <a href="{{ path('app_task_show', {'id': task.id}) }}" class="text-decoration-none">
-                                                {{ task.title }}
-                                            </a>
-                                        </h5>
-                                        
-                                        <div class="d-flex gap-2">
-                                            <span class="status-indicator status-{{ task.status|lower }}" data-bs-toggle="tooltip" title="Статус задачи"></span>
-                                            
-                                            <span class="priority-badge priority-{{ task.priority }}" data-bs-toggle="tooltip" title="Приоритет задачи">
-                                                {{ task.priority|trans }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="task-meta mb-2">
-                                        <i class="fas fa-folder me-1"></i>
-                                        {% if task.category %}
-                                            <span class="badge-modern badge-primary-modern me-2">{{ task.category.name }}</span>
-                                        {% else %}
-                                            <span class="text-muted me-2">Без категории</span>
-                                        {% endif %}
-                                        
-                                        <i class="fas fa-calendar me-1"></i>
-                                        Создано: {{ task.createdAt|date('d.m.Y H:i') }}
-                                        
-                                        {% if task.dueDate %}
-                                            <span class="mx-2">•</span>
-                                            <i class="fas fa-clock me-1"></i>
-                                            Срок: {{ task.dueDate|date('d.m.Y') }}
-                                            {% if task.isOverdue %}
-                                                <span class="badge-modern badge-danger-modern ms-1">
-                                                    <i class="fas fa-exclamation-circle me-1"></i>
-                                                    Просрочено
-                                                </span>
-                                            {% endif %}
-                                        {% endif %}
-                                        
-                                        <!-- Dependencies Indicator -->
-                                        {% set dependencies = task.dependencies %}
-                                        {% set dependents = task.dependents %}
-                                        {% if dependencies|length > 0 or dependents|length > 0 %}
-                                            <span class="mx-2">•</span>
-                                            <i class="fas fa-code-branch text-info" data-bs-toggle="tooltip" title="Зависимости: {{ dependencies|length }}, Блокирует: {{ dependents|length }}"></i>
-                                            {% if dependencies|length > 0 %}
-                                                <span class="badge-modern badge-info" data-bs-toggle="tooltip" title="Зависит от {{ dependencies|length }} задач(и)">
-                                                    <i class="fas fa-arrow-up"></i>{{ dependencies|length }}
-                                                </span>
-                                            {% endif %}
-                                            {% if dependents|length > 0 %}
-                                                <span class="badge-modern badge-warning-modern" data-bs-toggle="tooltip" title="Блокирует {{ dependents|length }} задач(и)">
-                                                    <i class="fas fa-arrow-down"></i>{{ dependents|length }}
-                                                </span>
-                                            {% endif %}
-                                        {% endif %}
-                                    </div>
-                                    
+                    <tr style="cursor: pointer;" onclick="window.location='{{ path('app_task_show', {'id': task.id}) }}'">
+                        <td onclick="event.stopPropagation();">
+                            <input type="checkbox" style="width: 18px; height: 18px; cursor: pointer;">
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 8px; height: 8px; border-radius: 50%; background: {{ task.priority == 'high' ? 'var(--color-bonuses)' : (task.priority == 'medium' ? 'var(--color-orders)' : 'var(--color-sales)') }};"></div>
+                                <div>
+                                    <div style="font-weight: 500;">{{ task.title }}</div>
                                     {% if task.description %}
-                                        <p class="task-description mb-0">
-                                            {{ task.description|slice(0, 150) }}{% if task.description|length > 150 %}...{% endif %}
-                                        </p>
+                                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">
+                                            {{ task.description|slice(0, 60) }}{% if task.description|length > 60 %}...{% endif %}
+                                        </div>
                                     {% endif %}
-                                    
-                                    {% if task.tags is not empty %}
-                                    <div class="mt-2">
-                                        {% for tag in task.tags %}
-                                            <span class="tag-modern" style="background-color: {{ tag.color }}; color: white;">{{ tag.name }}</span>
-                                        {% endfor %}
-                                    </div>
-                                    {% endif %}
-                                </div>
-                                
-                                <div class="dropdown">
-                                    <button class="btn btn-outline-modern" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="fas fa-ellipsis-h"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-enhanced">
-                                        <li>
-                                            <a class="dropdown-item dropdown-item-enhanced" href="{{ path('app_task_show', {'id': task.id}) }}">
-                                                <i class="fas fa-eye me-2"></i>Просмотр
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item dropdown-item-enhanced" href="{{ path('app_task_edit', {'id': task.id}) }}">
-                                                <i class="fas fa-edit me-2"></i>Редактировать
-                                            </a>
-                                        </li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li>
-                                            <form method="post" action="{{ path('app_task_delete', {'id': task.id}) }}" class="d-inline" onsubmit="return confirm('Удалить задачу?')">
-                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ task.id) }}">
-                                                <button type="submit" class="dropdown-item dropdown-item-enhanced text-danger">
-                                                    <i class="fas fa-trash me-2"></i>Удалить
-                                                </button>
-                                            </form>
-                                        </li>
-                                    </ul>
                                 </div>
                             </div>
-                        </div>
+                        </td>
+                        <td>
+                            {% if task.category %}
+                                <span style="padding: 6px 12px; background: var(--bg-secondary); border-radius: 8px; font-size: 13px;">
+                                    {{ task.category.name }}
+                                </span>
+                            {% else %}
+                                <span style="color: var(--text-secondary);">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if task.priority == 'high' %}
+                                <span class="status-badge" style="background: rgba(255, 107, 203, 0.2); color: var(--color-bonuses);">
+                                    <i class="fas fa-arrow-up me-1"></i>Высокий
+                                </span>
+                            {% elseif task.priority == 'medium' %}
+                                <span class="status-badge" style="background: rgba(255, 217, 61, 0.2); color: var(--color-orders);">
+                                    <i class="fas fa-minus me-1"></i>Средний
+                                </span>
+                            {% else %}
+                                <span class="status-badge" style="background: rgba(77, 212, 172, 0.2); color: var(--color-sales);">
+                                    <i class="fas fa-arrow-down me-1"></i>Низкий
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if task.status == 'completed' %}
+                                <span class="status-badge success">
+                                    <i class="fas fa-check me-1"></i>Завершено
+                                </span>
+                            {% elseif task.status == 'in_progress' %}
+                                <span class="status-badge warning">
+                                    <i class="fas fa-spinner me-1"></i>В процессе
+                                </span>
+                            {% else %}
+                                <span class="status-badge danger">
+                                    <i class="fas fa-clock me-1"></i>В ожидании
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td style="color: var(--text-secondary);">
+                            {{ task.createdAt|date('d.m.Y') }}
+                        </td>
+                        <td onclick="event.stopPropagation();">
+                            <div style="display: flex; gap: 8px;">
+                                <a href="{{ path('app_task_edit', {'id': task.id}) }}" 
+                                   class="btn btn-sm" 
+                                   style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 12px; border-radius: 6px;"
+                                   title="Редактировать">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form method="post" action="{{ path('app_task_delete', {'id': task.id}) }}" style="display: inline;" onsubmit="return confirm('Удалить задачу?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ task.id) }}">
+                                    <button type="submit" 
+                                            class="btn btn-sm" 
+                                            style="background: rgba(255, 107, 203, 0.1); border: 1px solid var(--color-bonuses); color: var(--color-bonuses); padding: 6px 12px; border-radius: 6px;"
+                                            title="Удалить">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
                     {% endfor %}
-                </div>
-                
-                <!-- Table Enhancement Controls -->
-                <div class="card-footer bg-white border-top">
-                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                        <div class="btn-group" role="group">
-                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="exportTableToCSV()">
-                                <i class="fas fa-file-csv me-1"></i>Экспорт CSV
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="printTable()">
-                                <i class="fas fa-print me-1"></i>Печать
-                            </button>
-                        </div>
-                        <div class="text-muted small">
-                            Всего записей: <strong>{{ tasks|length }}</strong>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Pagination -->
-                {% if totalPages > 1 %}
-                    <div class="card-footer bg-white">
-                        <nav>
-                            <ul class="pagination justify-content-center mb-0">
-                                {% if currentPage > 1 %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="{{ path('app_task_index', app.request.query.all|merge({'page': currentPage - 1})) }}">
-                                            <i class="fas fa-chevron-left"></i>
-                                        </a>
-                                    </li>
-                                {% endif %}
-                                
-                                {% for i in 1..totalPages %}
-                                    <li class="page-item {{ i == currentPage ? 'active' : '' }}">
-                                        <a class="page-link" href="{{ path('app_task_index', app.request.query.all|merge({'page': i})) }}">{{ i }}</a>
-                                    </li>
-                                {% endfor %}
-                                
-                                {% if currentPage < totalPages %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="{{ path('app_task_index', app.request.query.all|merge({'page': currentPage + 1})) }}">
-                                            <i class="fas fa-chevron-right"></i>
-                                        </a>
-                                    </li>
-                                {% endif %}
-                            </ul>
-                        </nav>
-                    </div>
-                {% endif %}
-            {% else %}
-                {{ include('components/empty_state.html.twig', {
-                    icon: 'fa-tasks',
-                    title: 'Задачи не найдены',
-                    message: 'Попробуйте изменить параметры поиска или фильтрации',
-                    actionText: 'Создать задачу',
-                    actionUrl: path('app_task_new'),
-                    secondaryActionText: 'Сбросить фильтры',
-                    secondaryActionUrl: path('app_task_index')
-                }) }}
-            {% endif %}
-        </div>
+                </tbody>
+            </table>
+        {% else %}
+            <div style="text-align: center; padding: 60px 20px;">
+                <i class="fas fa-tasks" style="font-size: 64px; color: var(--text-secondary); opacity: 0.3; margin-bottom: 20px;"></i>
+                <h5 style="color: var(--text-secondary); margin-bottom: 10px;">Нет задач</h5>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">Создайте свою первую задачу</p>
+                <a href="{{ path('app_task_new') }}" class="btn" style="background: var(--color-sales); border: none; color: #000; padding: 12px 24px; border-radius: 10px; font-weight: 600;">
+                    <i class="fas fa-plus me-2"></i>Создать задачу
+                </a>
+            </div>
+        {% endif %}
     </div>
-</form>
 </div>
-{% endblock %}
-
-{% block javascripts %}
-{{ parent() }}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Filter toggle functionality
-    const toggleFiltersBtn = document.getElementById('toggleFilters');
-    const filtersBody = document.getElementById('filtersBody');
-    const clearFiltersBtn = document.getElementById('clearFilters');
-    
-    if (toggleFiltersBtn && filtersBody) {
-        toggleFiltersBtn.addEventListener('click', function() {
-            const isHidden = filtersBody.style.display === 'none';
-            filtersBody.style.display = isHidden ? 'block' : 'none';
-            this.innerHTML = isHidden ? 
-                '<i class="fas fa-sliders-h me-1"></i>Скрыть фильтры' : 
-                '<i class="fas fa-sliders-h me-1"></i>Фильтры';
-        });
-    }
-    
-    // Clear filters functionality
-    if (clearFiltersBtn) {
-        clearFiltersBtn.addEventListener('click', function() {
-            const form = filtersBody.querySelector('form');
-            const inputs = form.querySelectorAll('input, select, textarea');
-            
-            inputs.forEach(input => {
-                if (input.type === 'checkbox') {
-                    input.checked = false;
-                } else {
-                    input.value = '';
-                }
-            });
-            
-            // Reset to default page
-            window.location.href = '{{ path('app_task_index') }}';
-        });
-    }
-    
-    // Auto-submit on filter change (optional)
-    const filterInputs = document.querySelectorAll('#filtersBody input, #filtersBody select');
-    filterInputs.forEach(input => {
-        if (input.type !== 'submit' && input.type !== 'button') {
-            input.addEventListener('change', function() {
-                // Uncomment the next line to auto-submit on filter change
-                // this.form.submit();
-            });
-        }
-    });
-    
-    // Enhanced task item interactions
-    const taskItems = document.querySelectorAll('.task-item');
-    taskItems.forEach(item => {
-        // Add hover effect
-        item.addEventListener('mouseenter', function() {
-            this.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
-        });
-        
-        item.addEventListener('mouseleave', function() {
-            this.style.boxShadow = '';
-        });
-        
-        // Add click effect
-        const taskLink = item.querySelector('.task-title a');
-        if (taskLink) {
-            taskLink.addEventListener('click', function(e) {
-                item.style.transform = 'scale(0.98)';
-                setTimeout(() => {
-                    item.style.transform = '';
-                }, 150);
-            });
-        }
-    });
-    
-    // Keyboard shortcuts for task list
-    document.addEventListener('keydown', function(e) {
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-        
-        switch(e.key.toLowerCase()) {
-            case 'r':
-                e.preventDefault();
-                window.location.reload();
-                break;
-            case 'f':
-                e.preventDefault();
-                document.getElementById('search')?.focus();
-                break;
-        }
-    });
-    
-    // Add tooltips to action buttons
-    const actionButtons = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-    actionButtons.forEach(button => {
-        new bootstrap.Tooltip(button);
-    });
-    
-    // Autocomplete search functionality
-    const searchInput = document.getElementById('search');
-    const autocompleteDropdown = document.getElementById('searchAutocomplete');
-    const autocompleteList = autocompleteDropdown.querySelector('.autocomplete-list');
-    let searchTimeout;
-    let currentIndex = -1;
-    
-    // Sample search data (in real app, this would come from API)
-    const searchData = [
-        { id: 1, title: 'Подготовить отчет по проекту', description: 'Собрать данные и подготовить еженедельный отчет' },
-        { id: 2, title: 'Позвонить клиенту', description: 'Обсудить детали нового проекта' },
-        { id: 3, title: 'Обновить документацию', description: 'Актуализировать техническую документацию' },
-        { id: 4, title: 'Провести код-ревью', description: 'Проверить pull request от разработчика' },
-        { id: 5, title: 'Запланировать встречу', description: 'Организовать встречу команды на следующую неделю' },
-        { id: 6, title: 'Тестирование функционала', description: 'Провести тестирование новой функции' },
-        { id: 7, title: 'Обучение новому сотруднику', description: 'Провести онбординг для нового члена команды' }
-    ];
-    
-    searchInput.addEventListener('input', function() {
-        const query = this.value.trim();
-        
-        // Clear previous timeout
-        clearTimeout(searchTimeout);
-        
-        if (query.length < 3) {
-            hideAutocomplete();
-            return;
-        }
-        
-        // Debounce search
-        searchTimeout = setTimeout(() => {
-            performSearch(query);
-        }, 300);
-    });
-    
-    searchInput.addEventListener('keydown', function(e) {
-        if (!autocompleteDropdown.style.display || autocompleteDropdown.style.display === 'none') return;
-        
-        const items = autocompleteList.querySelectorAll('.autocomplete-item');
-        
-        switch(e.key) {
-            case 'ArrowDown':
-                e.preventDefault();
-                currentIndex = Math.min(currentIndex + 1, items.length - 1);
-                updateActiveItem(items);
-                break;
-            case 'ArrowUp':
-                e.preventDefault();
-                currentIndex = Math.max(currentIndex - 1, -1);
-                updateActiveItem(items);
-                break;
-            case 'Enter':
-                e.preventDefault();
-                if (currentIndex >= 0 && currentIndex < items.length) {
-                    items[currentIndex].click();
-                }
-                break;
-            case 'Escape':
-                hideAutocomplete();
-                this.blur();
-                break;
-        }
-    });
-    
-    function performSearch(query) {
-        // In real application, this would be an API call
-        const results = fuzzySearch(query, searchData);
-        showAutocomplete(results, query);
-    }
-    
-    function fuzzySearch(query, data) {
-        const lowerQuery = query.toLowerCase();
-        return data.filter(item => {
-            const titleMatch = item.title.toLowerCase().includes(lowerQuery);
-            const descMatch = item.description.toLowerCase().includes(lowerQuery);
-            return titleMatch || descMatch;
-        }).slice(0, 8); // Limit to 8 results
-    }
-    
-    function showAutocomplete(results, query) {
-        if (results.length === 0) {
-            autocompleteList.innerHTML = `
-                <div class="autocomplete-no-results">
-                    <i class="fas fa-search me-2"></i>
-                    Ничего не найдено
-                </div>
-            `;
-        } else {
-            autocompleteList.innerHTML = results.map((item, index) => `
-                <div class="autocomplete-item" data-index="${index}" data-id="${item.id}">
-                    <div class="fw-bold">${highlightMatch(item.title, query)}</div>
-                    <div class="small text-muted">${highlightMatch(item.description, query)}</div>
-                </div>
-            `).join('');
-            
-            // Add click handlers
-            autocompleteList.querySelectorAll('.autocomplete-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    const title = this.querySelector('.fw-bold').textContent;
-                    searchInput.value = title.replace(/<[^>]*>/g, ''); // Remove HTML tags
-                    hideAutocomplete();
-                    searchInput.form.submit();
-                });
-            });
-        }
-        
-        autocompleteDropdown.style.display = 'block';
-        currentIndex = -1;
-    }
-    
-    function hideAutocomplete() {
-        autocompleteDropdown.style.display = 'none';
-        currentIndex = -1;
-    }
-    
-    function updateActiveItem(items) {
-        items.forEach((item, index) => {
-            if (index === currentIndex) {
-                item.classList.add('active');
-            } else {
-                item.classList.remove('active');
-            }
-        });
-        
-        // Scroll to active item
-        if (currentIndex >= 0 && items[currentIndex]) {
-            items[currentIndex].scrollIntoView({ block: 'nearest' });
-        }
-    }
-    
-    function highlightMatch(text, query) {
-        if (!query) return text;
-        const regex = new RegExp(`(${escapeRegExp(query)})`, 'gi');
-        return text.replace(regex, '<strong>$1</strong>');
-    }
-    
-    function escapeRegExp(string) {
-        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    }
-    
-    // Hide autocomplete when clicking outside
-    document.addEventListener('click', function(e) {
-        if (!searchInput.contains(e.target) && !autocompleteDropdown.contains(e.target)) {
-            hideAutocomplete();
-        }
-    });
-    
-    // Add search help text
-    const searchWrapper = searchInput.closest('.search-autocomplete-wrapper');
-    const helpText = document.createElement('div');
-    helpText.className = 'search-help';
-    helpText.innerHTML = '↑↓ для навигации, Enter для выбора';
-    searchWrapper.appendChild(helpText);
-    
-    // Enhanced drag mode toggle with Stimulus controller
-    const dragModeToggle = document.getElementById('dragModeToggle');
-    const dragDropController = document.querySelector('[data-controller="drag-drop"]');
-    
-    if (dragModeToggle && dragDropController) {
-        let dragModeEnabled = false;
-        
-        dragModeToggle.addEventListener('click', function() {
-            dragModeEnabled = !dragModeEnabled;
-            
-            if (dragModeEnabled) {
-                this.classList.add('btn-primary');
-                this.classList.remove('btn-outline-primary');
-                this.innerHTML = '<i class="fas fa-lock me-1"></i>Перетаскивание вкл';
-                
-                // Enable drag and drop via Stimulus controller
-                const items = dragDropController.querySelectorAll('[data-drag-drop-target="item"]');
-                items.forEach(item => {
-                    item.setAttribute('draggable', 'true');
-                    item.classList.add('draggable');
-                });
-                
-                showToast('Режим перетаскивания включен. Перетаскивайте задачи для изменения порядка.', 'info');
-            } else {
-                this.classList.remove('btn-primary');
-                this.classList.add('btn-outline-primary');
-                this.innerHTML = '<i class="fas fa-arrows-alt me-1"></i>Перетаскивание';
-                
-                // Disable drag and drop
-                const items = dragDropController.querySelectorAll('[data-drag-drop-target="item"]');
-                items.forEach(item => {
-                    item.setAttribute('draggable', 'false');
-                    item.classList.remove('draggable', 'drop-zone', 'drag-over');
-                });
-                
-                showToast('Режим перетаскивания выключен', 'info');
-            }
-        });
-    }
-    
-    let draggedItem = null;
-    
-    function handleDragStart(e) {
-        draggedItem = this;
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/html', this.innerHTML);
-        this.classList.add('opacity-50');
-    }
-    
-    function handleDragOver(e) {
-        if (e.preventDefault) {
-            e.preventDefault();
-        }
-        e.dataTransfer.dropEffect = 'move';
-        return false;
-    }
-    
-    function handleDragEnter(e) {
-        this.classList.add('drag-over');
-    }
-    
-    function handleDragLeave(e) {
-        this.classList.remove('drag-over');
-    }
-    
-    function handleDrop(e) {
-        if (e.stopPropagation) {
-            e.stopPropagation();
-        }
-        
-        if (draggedItem !== this) {
-            // Swap the elements
-            const temp = this.innerHTML;
-            this.innerHTML = draggedItem.innerHTML;
-            draggedItem.innerHTML = temp;
-            
-            // Show success feedback
-            this.classList.add('bg-success', 'bg-opacity-10');
-            draggedItem.classList.add('bg-success', 'bg-opacity-10');
-            
-            setTimeout(() => {
-                this.classList.remove('bg-success', 'bg-opacity-10');
-                draggedItem.classList.remove('bg-success', 'bg-opacity-10');
-            }, 1000);
-            
-            showToast('Порядок задач изменен', 'success');
-        }
-        
-        return false;
-    }
-    
-    // Enhanced bulk actions with confirmation
-    const bulkActionForm = document.getElementById('bulk-actions-form');
-    if (bulkActionForm) {
-        bulkActionForm.addEventListener('submit', function(e) {
-            const action = bulkActionForm.querySelector('select[name="action"]').value;
-            const checkedCount = document.querySelectorAll('.task-checkbox:checked').length;
-            
-            if (checkedCount === 0) {
-                e.preventDefault();
-                showToast('Пожалуйста, выберите хотя бы одну задачу', 'warning');
-                return;
-            }
-            
-            if (action === 'delete') {
-                if (!confirm(`Вы уверены, что хотите удалить ${checkedCount} задач(и)? Это действие нельзя отменить.`)) {
-                    e.preventDefault();
-                }
-            } else if (action) {
-                showToast(`Выполняется действие: ${getActionName(action)} для ${checkedCount} задач(и)...`, 'info');
-            }
-        });
-    }
-    
-    function getActionName(action) {
-        const actions = {
-            'mark_completed': 'Отметить как выполненные',
-            'mark_in_progress': 'Отметить как в процессе',
-            'mark_pending': 'Отметить как ожидаемые',
-            'set_priority_high': 'Установить высокий приоритет',
-            'set_priority_medium': 'Установить средний приоритет',
-            'set_priority_low': 'Установить низкий приоритет',
-            'assign_tag': 'Назначить теги',
-            'delete': 'Удалить'
-        };
-        return actions[action] || action;
-    }
-    const selectAllCheckbox = document.getElementById('select-all-tasks');
-    const taskCheckboxes = document.querySelectorAll('.task-checkbox');
-    const bulkActionsContainer = document.getElementById('bulk-actions-container');
-    const selectedCountSpan = document.getElementById('selected-count');
-    const cancelBulkSelectionBtn = document.getElementById('cancel-bulk-selection');
-    
-    // Select/deselect all tasks
-    if (selectAllCheckbox) {
-        selectAllCheckbox.addEventListener('change', function() {
-            taskCheckboxes.forEach(checkbox => {
-                checkbox.checked = this.checked;
-            });
-            updateBulkActionsVisibility();
-        });
-    }
-    
-    // Handle individual task checkbox changes
-    taskCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            updateBulkActionsVisibility();
-        });
-    });
-    
-    // Show/hide bulk actions container and update count
-    function updateBulkActionsVisibility() {
-        const checkedCount = document.querySelectorAll('.task-checkbox:checked').length;
-        
-        if (checkedCount > 0) {
-            bulkActionsContainer.classList.remove('d-none');
-            selectedCountSpan.textContent = `Выбрано: ${checkedCount}`;
-        } else {
-            bulkActionsContainer.classList.add('d-none');
-        }
-        
-        // Update select all checkbox state
-        if (selectAllCheckbox) {
-            const allChecked = taskCheckboxes.length > 0 && 
-                              [...taskCheckboxes].every(cb => cb.checked);
-            selectAllCheckbox.checked = allChecked;
-        }
-    }
-    
-    // Cancel bulk selection
-    if (cancelBulkSelectionBtn) {
-        cancelBulkSelectionBtn.addEventListener('click', function() {
-            taskCheckboxes.forEach(checkbox => {
-                checkbox.checked = false;
-            });
-            if (selectAllCheckbox) {
-                selectAllCheckbox.checked = false;
-            }
-            bulkActionsContainer.classList.add('d-none');
-        });
-    }
-    
-    // Confirmation for delete action
-    const bulkActionForm = document.getElementById('bulk-actions-form');
-    if (bulkActionForm) {
-        bulkActionForm.addEventListener('submit', function(e) {
-            const action = bulkActionForm.querySelector('select[name="action"]').value;
-            if (action === 'delete') {
-                const checkedCount = document.querySelectorAll('.task-checkbox:checked').length;
-                if (!confirm(`Вы уверены, что хотите удалить ${checkedCount} задач(и)?`)) {
-                    e.preventDefault();
-                }
-            }
-        });
-    }
-    
-    // Handle tag selection visibility based on selected action
-    const bulkActionSelect = document.getElementById('bulk-action-select');
-    const tagSelectionContainer = document.getElementById('tag-selection-container');
-    
-    if (bulkActionSelect && tagSelectionContainer) {
-        bulkActionSelect.addEventListener('change', function() {
-            if (this.value === 'assign_tag') {
-                tagSelectionContainer.style.display = 'block';
-            } else {
-                tagSelectionContainer.style.display = 'none';
-            }
-        });
-    }
-});
-</script>
 {% endblock %}

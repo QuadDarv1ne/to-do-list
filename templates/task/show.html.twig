@@ -1,541 +1,192 @@
-{% extends 'base.html.twig' %}
+{% extends 'base_modern.html.twig' %}
 
 {% block title %}{{ task.title }}{% endblock %}
 
-{% block stylesheets %}
-{{ parent() }}
-<style>
-.task-detail-container {
-    animation: fadeInUp 0.6s ease-out;
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.task-header {
-    background: var(--gradient-primary);
-    color: white;
-    padding: 2rem;
-    border-radius: 16px 16px 0 0;
-    margin-bottom: 0;
-}
-
-.task-content {
-    background: var(--bg-card);
-    border-radius: 0 0 16px 16px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-}
-
-.info-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.info-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
-}
-
-.info-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid var(--border);
-}
-
-.info-row:last-child {
-    border-bottom: none;
-}
-
-.info-label {
-    font-weight: 600;
-    color: var(--text-secondary);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.info-value {
-    font-weight: 500;
-    color: var(--text-primary);
-}
-
-.description-box {
-    background: var(--bg-card);
-    border-left: 4px solid var(--primary);
-    padding: 1.5rem;
-    border-radius: 8px;
-    margin: 1.5rem 0;
-    border: 1px solid var(--border);
-}
-
-.action-buttons {
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-}
-
-.timeline-item {
-    position: relative;
-    padding-left: 2rem;
-    padding-bottom: 1.5rem;
-}
-
-.timeline-item::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: var(--border);
-}
-
-.timeline-item::after {
-    content: '';
-    position: absolute;
-    left: -4px;
-    top: 0;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--primary);
-}
-
-.timeline-item:last-child::before {
-    display: none;
-}
-</style>
-{% endblock %}
-
 {% block body %}
-{{ include('components/breadcrumbs.html.twig', {
-    items: [
-        {label: 'Главная', url: path('app_dashboard')},
-        {label: 'Задачи', url: path('app_task_index')},
-        {label: task.title, active: true}
-    ]
-}) }}
+<!-- Breadcrumb -->
+<nav style="margin-bottom: 20px;">
+    <ol style="list-style: none; padding: 0; display: flex; gap: 10px; color: var(--text-secondary); font-size: 14px;">
+        <li><a href="{{ path('app_dashboard') }}" style="color: var(--text-secondary); text-decoration: none;">Панель</a></li>
+        <li>/</li>
+        <li><a href="{{ path('app_task_index') }}" style="color: var(--text-secondary); text-decoration: none;">Задачи</a></li>
+        <li>/</li>
+        <li style="color: var(--text-primary);">{{ task.title }}</li>
+    </ol>
+</nav>
 
-<div class="container task-detail-container">
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <div class="card-modern shadow-lg mb-4">
-                <div class="card-header-modern bg-gradient-primary text-white rounded-top-4 p-4">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div class="flex-grow-1">
-                            <h1 class="mb-2">
-                                <i class="fas fa-tasks me-2"></i>{{ task.title }}
-                            </h1>
-                            <div class="d-flex gap-2 flex-wrap">
-                                <span class="status-indicator status-{{ task.status|lower }}" data-bs-toggle="tooltip" title="Статус задачи"></span>
-                                <span class="badge-modern badge-{{ task.priority }}-modern" data-bs-toggle="tooltip" title="Приоритет задачи">
-                                    {{ task.priority|trans }}
-                                </span>
-                                {% if task.isOverdue %}
-                                    <span class="badge-modern badge-danger-modern">
-                                        <i class="fas fa-exclamation-circle me-1"></i>Просрочено
-                                    </span>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
+<!-- Header -->
+<div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 30px;">
+    <div style="flex: 1;">
+        <h2 style="margin: 0 0 10px 0; font-size: 32px; font-weight: 600;">{{ task.title }}</h2>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            {% if task.status == 'completed' %}
+                <span class="status-badge success">
+                    <i class="fas fa-check me-1"></i>Завершено
+                </span>
+            {% elseif task.status == 'in_progress' %}
+                <span class="status-badge warning">
+                    <i class="fas fa-spinner me-1"></i>В процессе
+                </span>
+            {% else %}
+                <span class="status-badge danger">
+                    <i class="fas fa-clock me-1"></i>В ожидании
+                </span>
+            {% endif %}
+            
+            {% if task.priority == 'high' %}
+                <span class="status-badge" style="background: rgba(255, 107, 203, 0.2); color: var(--color-bonuses);">
+                    <i class="fas fa-arrow-up me-1"></i>Высокий приоритет
+                </span>
+            {% elseif task.priority == 'medium' %}
+                <span class="status-badge" style="background: rgba(255, 217, 61, 0.2); color: var(--color-orders);">
+                    <i class="fas fa-minus me-1"></i>Средний приоритет
+                </span>
+            {% else %}
+                <span class="status-badge" style="background: rgba(77, 212, 172, 0.2); color: var(--color-sales);">
+                    <i class="fas fa-arrow-down me-1"></i>Низкий приоритет
+                </span>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div style="display: flex; gap: 10px;">
+        <a href="{{ path('app_task_edit', {'id': task.id}) }}" class="btn" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 12px 20px; border-radius: 10px; font-weight: 600;">
+            <i class="fas fa-edit me-2"></i>Редактировать
+        </a>
+        <form method="post" action="{{ path('app_task_delete', {'id': task.id}) }}" style="display: inline;" onsubmit="return confirm('Удалить задачу?');">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ task.id) }}">
+            <button type="submit" class="btn" style="background: rgba(255, 107, 203, 0.1); border: 1px solid var(--color-bonuses); color: var(--color-bonuses); padding: 12px 20px; border-radius: 10px; font-weight: 600;">
+                <i class="fas fa-trash me-2"></i>Удалить
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Content Grid -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+    <!-- Main Content -->
+    <div>
+        <!-- Description -->
+        <div class="card" style="margin-bottom: 20px;">
+            <div class="card-header">
+                <h3 class="card-title">Описание</h3>
+            </div>
+            <div class="card-body">
+                {% if task.description %}
+                    <p style="color: var(--text-primary); line-height: 1.6; margin: 0;">{{ task.description }}</p>
+                {% else %}
+                    <p style="color: var(--text-secondary); margin: 0;">Описание отсутствует</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Tags -->
+        {% if task.tags is not empty %}
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Теги</h3>
+            </div>
+            <div class="card-body">
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    {% for tag in task.tags %}
+                        <span style="padding: 8px 16px; background: {{ tag.color }}; color: #fff; border-radius: 8px; font-size: 13px; font-weight: 500;">
+                            {{ tag.name }}
+                        </span>
+                    {% endfor %}
                 </div>
-                
-                <div class="card-body-modern p-4">
-                    <div class="row">
-                        <div class="col-lg-8">
-                            <!-- Description -->
-                            <div class="mb-4">
-                                <h5 class="mb-3">
-                                    <i class="fas fa-align-left me-2 text-primary"></i>
-                                    Описание
-                                </h5>
-                                <div class="card-modern p-4">
-                                    {% if task.description %}
-                                        {{ task.description|nl2br }}
-                                    {% else %}
-                                        <span class="text-muted">Описание отсутствует</span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            
-                            <!-- Tags -->
-                            {% if task.tags is not empty %}
-                            <div class="mb-4">
-                                <h5 class="mb-3">
-                                    <i class="fas fa-tags me-2 text-primary"></i>
-                                    Теги
-                                </h5>
-                                <div class="d-flex gap-2 flex-wrap">
-                                    {% for tag in task.tags %}
-                                        <span class="badge-modern" style="background-color: {{ tag.color }}; color: white;">
-                                            {{ tag.name }}
-                                        </span>
-                                    {% endfor %}
-                                </div>
-                            </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Sidebar -->
+    <div>
+        <!-- Details Card -->
+        <div class="card" style="margin-bottom: 20px;">
+            <div class="card-header">
+                <h3 class="card-title">Детали</h3>
+            </div>
+            <div class="card-body">
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <!-- Category -->
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; margin-bottom: 4px;">Категория</div>
+                        <div style="color: var(--text-primary); font-weight: 500;">
+                            {% if task.category %}
+                                <i class="fas fa-folder me-2" style="color: var(--color-orders);"></i>{{ task.category.name }}
+                            {% else %}
+                                <span style="color: var(--text-secondary);">Не указана</span>
                             {% endif %}
-                            
-                            <!-- Dependencies -->
-                            <div class="mb-4">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <h5 class="mb-0">
-                                        <i class="fas fa-link me-2 text-primary"></i>
-                                        Зависимости
-                                    </h5>
-                                    <button class="btn btn-primary-modern btn-sm" data-bs-toggle="modal" data-bs-target="#addDependencyModal">
-                                        <i class="fas fa-plus me-1"></i>Добавить
-                                    </button>
-                                </div>
-                                <div id="dependencies-container" class="card-modern p-3">
-                                    {{ include('components/loading_skeleton.html.twig', {type: 'list', count: 2}) }}
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-lg-4">
-                            <!-- Info Card -->
-                            <div class="card-modern mb-4">
-                                <div class="card-header-modern">
-                                    <h6 class="mb-0">
-                                        <i class="fas fa-info-circle me-2"></i>
-                                        Информация
-                                    </h6>
-                                </div>
-                                <div class="card-body-modern p-0">
-                                    <div class="info-row">
-                                        <span class="info-label">
-                                            <i class="fas fa-user"></i>
-                                            Назначена
-                                        </span>
-                                        <span class="info-value">
-                                            {% if task.assignedUser %}
-                                                {{ task.assignedUser.fullName }}
-                                            {% else %}
-                                                <span class="text-muted">Не назначена</span>
-                                            {% endif %}
-                                        </span>
-                                    </div>
-                                    
-                                    <div class="info-row">
-                                        <span class="info-label">
-                                            <i class="fas fa-calendar-plus"></i>
-                                            Создана
-                                        </span>
-                                        <span class="info-value">
-                                            {{ task.createdAt|date('d.m.Y H:i') }}
-                                        </span>
-                                    </div>
-                                    
-                                    <div class="info-row">
-                                        <span class="info-label">
-                                            <i class="fas fa-calendar-check"></i>
-                                            Обновлена
-                                        </span>
-                                        <span class="info-value">
-                                            {{ task.updatedAt|date('d.m.Y H:i') }}
-                                        </span>
-                                    </div>
-                                    
-                                    {% if task.dueDate %}
-                                    <div class="info-row">
-                                        <span class="info-label">
-                                            <i class="fas fa-clock"></i>
-                                            Срок
-                                        </span>
-                                        <span class="info-value {% if task.isOverdue %}text-danger fw-bold{% endif %}">
-                                            {{ task.dueDate|date('d.m.Y') }}
-                                        </span>
-                                    </div>
-                                    {% endif %}
-                                    
-                                    {% if task.category %}
-                                    <div class="info-row">
-                                        <span class="info-label">
-                                            <i class="fas fa-folder"></i>
-                                            Категория
-                                        </span>
-                                        <span class="info-value">
-                                            <span class="badge-modern badge-secondary-modern">{{ task.category.name }}</span>
-                                        </span>
-                                    </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            
-                            <!-- Actions -->
-                            <div class="d-flex gap-2 flex-wrap">
-                                <a href="{{ path('app_task_edit', {'id': task.id}) }}" class="btn btn-warning-modern flex-fill">
-                                    <i class="fas fa-edit me-2"></i>Редактировать
-                                </a>
-                                
-                                {% if task.status != 'completed' %}
-                                    <form action="{{ path('app_task_toggle', {'id': task.id}) }}" method="post" class="flex-fill">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ task.id) }}">
-                                        <button type="submit" class="btn btn-success-modern w-100">
-                                            <i class="fas fa-check me-2"></i>Завершить
-                                        </button>
-                                    </form>
-                                {% else %}
-                                    <form action="{{ path('app_task_toggle', {'id': task.id}) }}" method="post" class="flex-fill">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ task.id) }}">
-                                        <button type="submit" class="btn btn-secondary-modern w-100">
-                                            <i class="fas fa-redo me-2"></i>Вернуть
-                                        </button>
-                                    </form>
-                                {% endif %}
-                                
-                                <form action="{{ path('app_task_clone', {'id': task.id}) }}" method="post" class="flex-fill">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('clone' ~ task.id) }}">
-                                    <button type="submit" class="btn btn-info-modern w-100" 
-                                            onclick="return confirm('Клонировать задачу?')">
-                                        <i class="fas fa-copy me-2"></i>Клонировать
-                                    </button>
-                                </form>
-                                
-                                <a href="{{ path('app_task_index') }}" class="btn btn-outline-secondary-modern flex-fill">
-                                    <i class="fas fa-arrow-left me-2"></i>Назад
-                                </a>
-                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Add Dependency Modal -->
-<div class="modal fade" id="addDependencyModal" tabindex="-1" aria-labelledby="addDependencyModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content card-modern">
-            <div class="modal-header card-header-modern">
-                <h5 class="modal-title" id="addDependencyModalLabel">Добавить зависимость</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
-            </div>
-            <div class="modal-body card-body-modern">
-                <form id="addDependencyForm">
-                    <div class="mb-3">
-                        <label for="dependencyTaskSelect" class="form-label">Выберите задачу</label>
-                        <select class="form-select-enhanced" id="dependencyTaskSelect" required>
-                            <option value="">Выберите задачу...</option>
-                            <!-- Options will be populated by JavaScript -->
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="dependencyType" class="form-label">Тип зависимости</label>
-                        <select class="form-select-enhanced" id="dependencyType" required>
-                            <option value="blocking">Блокирующая</option>
-                            <option value="related">Связанная</option>
-                        </select>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer card-footer-modern">
-                <button type="button" class="btn btn-secondary-modern" data-bs-dismiss="modal">Отмена</button>
-                <button type="button" class="btn btn-primary-modern" id="saveDependencyBtn">
-                    <i class="fas fa-save me-1"></i>Сохранить
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-{% endblock %}
-
-{% block javascripts %}
-    {{ parent() }}
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const taskId = {{ task.id }};
-            
-            // Load dependencies
-            loadDependencies(taskId);
-            
-            // Load available tasks for dependency selection
-            loadAvailableTasks(taskId);
-            
-            // Bind events
-            document.getElementById('saveDependencyBtn').addEventListener('click', function() {
-                addDependency(taskId);
-            });
-        });
-        
-        function loadDependencies(taskId) {
-            fetch(`/api/tasks/${taskId}/dependencies`)
-                .then(response => response.json())
-                .then(data => {
-                    displayDependencies(data);
-                })
-                .catch(error => {
-                    console.error('Error loading dependencies:', error);
-                    document.getElementById('dependencies-container').innerHTML = 
-                        '<div class="alert alert-danger">Ошибка загрузки зависимостей</div>';
-                });
-        }
-        
-        function displayDependencies(dependencies) {
-            const container = document.getElementById('dependencies-container');
-            
-            if (dependencies.length === 0) {
-                container.innerHTML = '<div class="text-center py-4 text-muted">Нет зависимостей</div>';
-                return;
-            }
-            
-            let html = '<div class="list-group">';
-            
-            dependencies.forEach(dep => {
-                const statusClass = dep.is_satisfied ? 'success' : 'warning';
-                const statusText = dep.is_satisfied ? 'Выполнена' : 'Не выполнена';
-                const typeText = dep.type === 'blocking' ? 'Блокирующая' : 'Связанная';
-                
-                html += `
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="mb-1">${dep.dependency_task_name}</h6>
-                            <small class="text-muted">
-                                <span class="badge bg-secondary me-2">${typeText}</span>
-                                <span class="badge bg-${statusClass}">${statusText}</span>
-                            </small>
-                        </div>
-                        <button class="btn btn-danger btn-enhanced btn-sm" onclick="removeDependency(${dep.id}, ${taskId})">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                `;
-            });
-            
-            html += '</div>';
-            container.innerHTML = html;
-        }
-        
-        function loadAvailableTasks(currentTaskId) {
-            fetch('/api/tasks')
-                .then(response => response.json())
-                .then(data => {
-                    const select = document.getElementById('dependencyTaskSelect');
-                    select.innerHTML = '<option value="">Выберите задачу...</option>';
                     
-                    data.forEach(task => {
-                        if (task.id != currentTaskId) {
-                            const option = document.createElement('option');
-                            option.value = task.id;
-                            option.textContent = task.title;
-                            select.appendChild(option);
-                        }
-                    });
-                })
-                .catch(error => {
-                    console.error('Error loading tasks:', error);
-                });
-        }
-        
-        function addDependency(taskId) {
-            const dependencyTaskId = document.getElementById('dependencyTaskSelect').value;
-            const type = document.getElementById('dependencyType').value;
-            
-            if (!dependencyTaskId) {
-                showToast('Выберите задачу для зависимости', 'warning');
-                return;
-            }
-            
-            const btn = document.getElementById('saveDependencyBtn');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Сохранение...';
-            btn.disabled = true;
-            
-            fetch(`/api/tasks/${taskId}/dependencies`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify({
-                    dependency_task_id: dependencyTaskId,
-                    type: type
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    showToast(data.error, 'error');
-                } else {
-                    showToast('Зависимость добавлена', 'success');
-                    document.getElementById('addDependencyModal').querySelector('.btn-close').click();
-                    loadDependencies(taskId);
-                    document.getElementById('addDependencyForm').reset();
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('Ошибка при добавлении зависимости', 'error');
-            })
-            .finally(() => {
-                btn.innerHTML = '<i class="fas fa-save me-1"></i>Сохранить';
-                btn.disabled = false;
-            });
-        }
-        
-        function removeDependency(dependencyId, taskId) {
-            if (!confirm('Вы уверены, что хотите удалить эту зависимость?')) {
-                return;
-            }
-            
-            fetch(`/api/tasks/${taskId}/dependencies/${dependencyId}`, {
-                method: 'DELETE',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showToast('Зависимость удалена', 'success');
-                    loadDependencies(taskId);
-                } else {
-                    showToast('Ошибка при удалении зависимости', 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('Ошибка при удалении зависимости', 'error');
-            });
-        }
-        
-        function showToast(message, type = 'info') {
-            const toast = document.createElement('div');
-            toast.className = `toast align-items-center text-white bg-${type === 'error' ? 'danger' : type} border-0`;
-            toast.setAttribute('role', 'alert');
-            toast.innerHTML = `
-                <div class="d-flex">
-                    <div class="toast-body">${message}</div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    <!-- Created -->
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; margin-bottom: 4px;">Создано</div>
+                        <div style="color: var(--text-primary); font-weight: 500;">
+                            <i class="fas fa-calendar me-2" style="color: var(--color-sales);"></i>{{ task.createdAt|date('d.m.Y H:i') }}
+                        </div>
+                    </div>
+                    
+                    <!-- Due Date -->
+                    {% if task.dueDate %}
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; margin-bottom: 4px;">Срок выполнения</div>
+                        <div style="color: var(--text-primary); font-weight: 500;">
+                            <i class="fas fa-clock me-2" style="color: var(--color-bonuses);"></i>{{ task.dueDate|date('d.m.Y') }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Assigned To -->
+                    {% if task.assignedUser %}
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; margin-bottom: 4px;">Назначено</div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 600;">
+                                {{ task.assignedUser.firstName|first }}
+                            </div>
+                            <div style="color: var(--text-primary); font-weight: 500;">{{ task.assignedUser.fullName }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Created By -->
+                    <div>
+                        <div style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; margin-bottom: 4px;">Автор</div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #4dd4ac 0%, #38ef7d 100%); display: flex; align-items: center; justify-content: center; color: #000; font-weight: 600;">
+                                {{ task.createdBy.firstName|first }}
+                            </div>
+                            <div style="color: var(--text-primary); font-weight: 500;">{{ task.createdBy.fullName }}</div>
+                        </div>
+                    </div>
                 </div>
-            `;
-            
-            document.querySelector('.toast-container').appendChild(toast);
-            const bsToast = new bootstrap.Toast(toast);
-            bsToast.show();
-            
-            toast.addEventListener('hidden.bs.toast', () => {
-                toast.remove();
-            });
-        }
-    </script>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Быстрые действия</h3>
+            </div>
+            <div class="card-body">
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    {% if task.status != 'completed' %}
+                    <form method="post" action="{{ path('app_task_complete', {'id': task.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('complete' ~ task.id) }}">
+                        <button type="submit" class="btn w-100" style="background: var(--color-sales); border: none; color: #000; padding: 12px; border-radius: 10px; font-weight: 600;">
+                            <i class="fas fa-check me-2"></i>Завершить задачу
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                    <a href="{{ path('app_task_index') }}" class="btn w-100" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 12px; border-radius: 10px; font-weight: 600; text-align: center; text-decoration: none;">
+                        <i class="fas fa-arrow-left me-2"></i>Назад к списку
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

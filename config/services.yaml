@@ -1,5 +1,4 @@
 parameters:
-    app.use_modern_theme: true
     uploads_directory: '%kernel.project_dir%/public/uploads'
 
 services:
