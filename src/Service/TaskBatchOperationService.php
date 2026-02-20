@@ -10,7 +10,7 @@ class TaskBatchOperationService
 {
     public function __construct(
         private TaskRepository $taskRepository,
-        private EntityManagerInterface $entityManager,
+        private EntityManagerInterface $em,
     ) {
     }
 
@@ -34,7 +34,7 @@ class TaskBatchOperationService
             $task->setStatus($status);
         }
 
-        $this->entityManager->flush();
+        $this->em->flush();
 
         return \count($tasks);
     }
@@ -58,7 +58,7 @@ class TaskBatchOperationService
             $task->setPriority($priority);
         }
 
-        $this->entityManager->flush();
+        $this->em->flush();
 
         return \count($tasks);
     }
@@ -82,7 +82,7 @@ class TaskBatchOperationService
             $task->setAssignedUser($user);
         }
 
-        $this->entityManager->flush();
+        $this->em->flush();
 
         return \count($tasks);
     }
@@ -103,10 +103,10 @@ class TaskBatchOperationService
             ->getResult();
 
         foreach ($tasks as $task) {
-            $this->entityManager->remove($task);
+            $this->em->remove($task);
         }
 
-        $this->entityManager->flush();
+        $this->em->flush();
 
         return \count($tasks);
     }
@@ -132,7 +132,7 @@ class TaskBatchOperationService
             }
         }
 
-        $this->entityManager->flush();
+        $this->em->flush();
 
         return \count($tasks);
     }
@@ -156,7 +156,7 @@ class TaskBatchOperationService
             $task->setDeadline($deadline);
         }
 
-        $this->entityManager->flush();
+        $this->em->flush();
 
         return \count($tasks);
     }
@@ -180,7 +180,7 @@ class TaskBatchOperationService
             $task->setCategory($category);
         }
 
-        $this->entityManager->flush();
+        $this->em->flush();
 
         return \count($tasks);
     }
@@ -206,7 +206,7 @@ class TaskBatchOperationService
             $task->setCompletedAt($now);
         }
 
-        $this->entityManager->flush();
+        $this->em->flush();
 
         return \count($tasks);
     }
@@ -216,10 +216,43 @@ class TaskBatchOperationService
      */
     public function getStatistics(): array
     {
+        // Получаем статистику из истории задач
+        $qb = $this->em->createQueryBuilder();
+        
+        // Количество изменений статусов
+        $statusChanges = (int) $qb->select('COUNT(h.id)')
+            ->from(\App\Entity\TaskHistory::class, 'h')
+            ->where('h.action = :action')
+            ->setParameter('action', 'status_changed')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // Последняя операция
+        $lastOp = $qb->select('h')
+            ->from(\App\Entity\TaskHistory::class, 'h')
+            ->where('h.action = :action')
+            ->setParameter('action', 'status_changed')
+            ->orderBy('h.createdAt', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        // Самая частая операция
+        $mostCommon = $qb->select('h.action, COUNT(h.id) as count')
+            ->from(\App\Entity\TaskHistory::class, 'h')
+            ->groupBy('h.action')
+            ->orderBy('count', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
         return [
-            'total_operations' => 0, // TODO: Track in database
-            'last_operation' => null,
-            'most_common_operation' => null,
+            'total_operations' => $statusChanges,
+            'last_operation' => $lastOp ? [
+                'action' => $lastOp->getAction(),
+                'created_at' => $lastOp->getCreatedAt()->format('Y-m-d H:i:s'),
+            ] : null,
+            'most_common_operation' => $mostCommon ? $mostCommon['action'] : null,
         ];
     }
 }
