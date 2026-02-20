@@ -24,10 +24,33 @@ body {
     height: 100vh;
     width: var(--sidebar-width);
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 1000;
+    z-index: 100;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.sidebar.collapsed {
+    width: var(--sidebar-collapsed-width);
+}
+
+/* Скрываем scrollbar но оставляем функциональность */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
 }
 
 .sidebar.collapsed {
@@ -41,6 +64,8 @@ body {
     gap: 1rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     min-height: 80px;
+    flex-shrink: 0;
+    background: inherit;
 }
 
 .sidebar-logo {
@@ -77,6 +102,25 @@ body {
     flex: 1;
     padding: 1rem 0;
     overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Скрываем scrollbar в nav */
+.sidebar-nav::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
 }
 
 .nav-item {
@@ -134,6 +178,9 @@ body {
 
 .sidebar-footer {
     padding: 1rem;
+    flex-shrink: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: inherit;
 }
 
 .theme-selector {
@@ -250,9 +297,7 @@ body {
     min-height: 100vh;
     transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     padding: 2rem;
-    position: relative;
-    z-index: 1;
-    max-width: 100%;
+    background: var(--bg-secondary, #f9fafb);
 }
 
 .sidebar.collapsed ~ .main-content {
@@ -269,6 +314,7 @@ body {
     gap: 1rem;
     padding-bottom: 1.5rem;
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .page-title {
@@ -380,19 +426,32 @@ body {
 
 @media (max-width: 1024px) {
     .sidebar {
-        transform: translateX(-100%);
-        z-index: 1100;
-        --sidebar-width: 280px;
+        --sidebar-width: 70px;
+        z-index: 100;
     }
     
     .sidebar.mobile-open {
-        transform: translateX(0);
-        box-shadow: 4px 0 20px rgba(0,0,0,0.3);
+        --sidebar-width: 280px;
     }
     
     .main-content {
-        margin-left: 0 !important;
+        margin-left: 70px;
         padding: 1.5rem;
+    }
+    
+    .sidebar.mobile-open ~ .main-content {
+        margin-left: 280px;
+        padding: 1.5rem 2rem;
+    }
+    
+    /* Скрываем текст в collapsed состоянии */
+    .sidebar:not(.mobile-open) .nav-text,
+    .sidebar:not(.mobile-open) .sidebar-title,
+    .sidebar:not(.mobile-open) .user-info,
+    .sidebar:not(.mobile-open) .theme-selector small {
+        opacity: 0;
+        width: 0;
+        overflow: hidden;
     }
     
     .search-input {
@@ -403,13 +462,13 @@ body {
         font-size: 1.5rem;
     }
     
-    /* Mobile menu button */
+    /* Mobile menu button - теперь toggle для раскрытия */
     .mobile-menu-btn {
         display: flex !important;
         position: fixed;
         top: 1rem;
         left: 1rem;
-        z-index: 1050;
+        z-index: 150;
         width: 48px;
         height: 48px;
         border-radius: 12px;
@@ -418,36 +477,44 @@ body {
         align-items: center;
         justify-content: center;
         font-size: 1.25rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
-    /* Backdrop for mobile sidebar */
+    .mobile-menu-btn:hover {
+        transform: scale(1.05);
+    }
+    
+    /* Backdrop больше не нужен - контент сдвигается */
     .sidebar-backdrop {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.5);
-        z-index: 1090;
-        opacity: 0;
-        transition: opacity 0.3s;
+        display: none !important;
     }
     
-    .sidebar-backdrop.active {
-        display: block;
-        opacity: 1;
-    }
-    
-    /* Adjust top bar for mobile menu button */
+    /* Adjust top bar */
     .top-bar {
-        margin-left: 60px;
+        margin-left: 0;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 }
 
 @media (max-width: 768px) {
     .main-content {
         padding: 1rem;
+    }
+    
+    .sidebar {
+        --sidebar-width: 60px;
+    }
+    
+    .sidebar.mobile-open {
+        --sidebar-width: 260px;
+    }
+    
+    .main-content {
+        margin-left: 60px;
+    }
+    
+    .sidebar.mobile-open ~ .main-content {
+        margin-left: 260px;
     }
     
     .top-bar {
@@ -504,6 +571,22 @@ body {
         padding: 0.75rem;
     }
     
+    .sidebar {
+        --sidebar-width: 60px;
+    }
+    
+    .sidebar.mobile-open {
+        --sidebar-width: 240px;
+    }
+    
+    .main-content {
+        margin-left: 60px;
+    }
+    
+    .sidebar.mobile-open ~ .main-content {
+        margin-left: 240px;
+    }
+    
     .mobile-menu-btn {
         width: 44px;
         height: 44px;
@@ -512,7 +595,6 @@ body {
     }
     
     .top-bar {
-        margin-left: 52px;
         gap: 0.5rem;
     }
     
@@ -546,10 +628,6 @@ body {
     }
     
     /* Compact sidebar for small screens */
-    .sidebar {
-        --sidebar-width: 260px;
-    }
-    
     .sidebar-header {
         padding: 1rem;
     }
@@ -663,5 +741,214 @@ body {
     .main-content {
         margin-left: 0 !important;
         padding: 0 !important;
+    }
+}
+
+
+/* ============================================
+   SMOOTH CONTENT ADAPTATION
+   ============================================ */
+
+/* Предотвращаем горизонтальный скролл */
+body {
+    overflow-x: hidden;
+}
+
+.main-content {
+    overflow-x: hidden;
+}
+
+/* Плавная адаптация всех элементов при изменении sidebar */
+.main-content > * {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform, opacity;
+}
+
+/* Плавное изменение ширины карточек и grid элементов */
+.dashboard-grid,
+.quick-stats,
+.stats-grid,
+.card-enhanced,
+.stat-card,
+.top-bar {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+}
+
+/* Анимация для графиков при изменении размера */
+canvas {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Плавное изменение таблиц */
+.table-responsive {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Адаптация grid при изменении ширины */
+.quick-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+    gap: 1.5rem;
+    transition: gap 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* При collapsed sidebar - больше места для карточек */
+.sidebar.collapsed ~ .main-content .quick-stats {
+    grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+    gap: 2rem;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 1.5rem;
+}
+
+/* Responsive grid columns */
+@media (max-width: 1600px) {
+    .col-span-8 {
+        grid-column: span 12;
+    }
+    
+    .col-span-4 {
+        grid-column: span 12;
+    }
+}
+
+@media (min-width: 1601px) {
+    /* При collapsed sidebar на больших экранах - оптимизируем layout */
+    .sidebar.collapsed ~ .main-content .col-span-8 {
+        grid-column: span 8;
+    }
+    
+    .sidebar.collapsed ~ .main-content .col-span-4 {
+        grid-column: span 4;
+    }
+}
+
+/* Плавное изменение размеров текста */
+.page-title {
+    transition: font-size 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar.collapsed ~ .main-content .page-title {
+    font-size: 2rem;
+}
+
+.sidebar:not(.collapsed) ~ .main-content .page-title {
+    font-size: 1.875rem;
+}
+
+/* Оптимизация производительности анимаций */
+.sidebar,
+.main-content {
+    will-change: width, margin-left;
+}
+
+/* После завершения анимации убираем will-change */
+.sidebar.animation-complete,
+.main-content.animation-complete {
+    will-change: auto;
+}
+
+/* Плавное масштабирование карточек */
+.stat-card,
+.card-enhanced {
+    transform-origin: center;
+}
+
+/* Адаптация spacing при изменении sidebar - уже определено выше */
+
+/* Плавное изменение gap в grid */
+.dashboard-grid {
+    transition: gap 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar.collapsed ~ .main-content .dashboard-grid {
+    gap: 2rem;
+}
+
+.sidebar:not(.collapsed) ~ .main-content .dashboard-grid {
+    gap: 1.5rem;
+}
+
+/* Оптимизация карточек при разных размерах sidebar */
+.sidebar.collapsed ~ .main-content .stat-card {
+    padding: 1.75rem;
+}
+
+.sidebar:not(.collapsed) ~ .main-content .stat-card {
+    padding: 1.5rem;
+}
+
+/* Адаптация размера иконок */
+.sidebar.collapsed ~ .main-content .stat-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 1.875rem;
+}
+
+/* Адаптация размера значений */
+.sidebar.collapsed ~ .main-content .stat-value {
+    font-size: 2.5rem;
+}
+
+/* Адаптация search box */
+.search-input {
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar.collapsed ~ .main-content .search-input {
+    width: 400px;
+}
+
+@media (max-width: 1600px) {
+    .sidebar.collapsed ~ .main-content .search-input {
+        width: 320px;
+    }
+}
+
+@media (max-width: 1400px) {
+    .sidebar.collapsed ~ .main-content .search-input {
+        width: 280px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .search-input {
+        width: 200px;
+    }
+}
+
+/* Адаптация top-bar при изменении sidebar */
+.top-bar {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar.collapsed ~ .main-content .top-bar {
+    padding-bottom: 2rem;
+}
+
+/* Плавная адаптация графиков */
+.card-enhanced canvas,
+.chart-container {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    max-width: 100%;
+    height: auto !important;
+}
+
+/* Оптимизация для контейнеров с графиками */
+.sidebar.collapsed ~ .main-content .card-enhanced {
+    padding: 2rem;
+}
+
+.sidebar:not(.collapsed) ~ .main-content .card-enhanced {
+    padding: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+    .card-enhanced {
+        padding: 1.25rem !important;
     }
 }

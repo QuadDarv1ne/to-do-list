@@ -8,7 +8,7 @@
 
 .quick-stats {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 1.5rem;
     margin-bottom: 2rem;
 }
@@ -18,10 +18,11 @@
     border: 1px solid var(--border-primary);
     border-radius: var(--radius-lg);
     padding: 1.5rem;
-    transition: all var(--transition-base);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
     cursor: pointer;
+    min-width: 0;
 }
 
 .stat-card::before {
@@ -43,8 +44,8 @@
 }
 
 .stat-card:hover {
-    transform: translateY(-8px);
-    box-shadow: var(--shadow-xl);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
     border-color: var(--stat-color, var(--color-primary));
 }
 
@@ -52,19 +53,19 @@
 .stat-card::after {
     content: '';
     position: absolute;
-    right: -20px;
-    bottom: -20px;
-    width: 120px;
-    height: 120px;
+    right: -30px;
+    bottom: -30px;
+    width: 140px;
+    height: 140px;
     background: var(--stat-bg, var(--color-primary-light));
     border-radius: 50%;
-    opacity: 0.1;
-    transition: all 0.3s ease;
+    opacity: 0.08;
+    transition: all 0.4s ease;
 }
 
 .stat-card:hover::after {
-    transform: scale(1.2);
-    opacity: 0.15;
+    transform: scale(1.3) rotate(15deg);
+    opacity: 0.12;
 }
 
 .stat-header {
@@ -566,6 +567,48 @@
     .chart-filter {
         width: 100%;
         overflow-x: auto;
+    }
+}
+
+/* Адаптация для узких sidebar состояний */
+@media (min-width: 769px) and (max-width: 1200px) {
+    .quick-stats {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+    
+    .stat-card {
+        padding: 1.25rem;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+    }
+    
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+    }
+}
+
+/* Оптимизация для широких экранов с collapsed sidebar */
+@media (min-width: 1400px) {
+    .sidebar.collapsed ~ .main-content .quick-stats {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+    
+    .sidebar.collapsed ~ .main-content .stat-card {
+        padding: 2rem;
+    }
+    
+    .sidebar.collapsed ~ .main-content .stat-value {
+        font-size: 2.75rem;
+    }
+    
+    .sidebar.collapsed ~ .main-content .stat-icon {
+        width: 64px;
+        height: 64px;
+        font-size: 2rem;
     }
 }
 

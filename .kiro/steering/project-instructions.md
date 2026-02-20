@@ -177,6 +177,11 @@ php bin/console messenger:consume async
    - Боковое меню слева
    - Структура: public/css/themes/sidebar-layout.css (общие стили)
    - Темы: public/css/themes/sidebar-theme-*.css (цвета для каждой темы)
+   - Адаптивное поведение:
+     * Desktop (>1024px): sidebar раскрывается/сворачивается (280px / 70px)
+     * Tablet/Mobile (≤1024px): sidebar всегда видим, но узкий (70px по умолчанию)
+     * При раскрытии sidebar контент плавно сдвигается и масштабируется
+     * Графики автоматически пересчитываются при изменении размера
 
 2. **Topbar Layout** (base.html.twig) - для остальных страниц
    - Верхнее меню
@@ -206,6 +211,13 @@ php bin/console messenger:consume async
 - JavaScript: public/js/core/theme-manager-enhanced.js
 - Выбор темы сохраняется в localStorage
 - Переключение через кнопки в sidebar footer или FAB меню
+
+#### Адаптивная система масштабирования
+- Контент плавно адаптируется при изменении ширины sidebar
+- Grid автоматически пересчитывает колонки (280px → 300px при collapsed)
+- Графики триггерят resize event для корректного отображения
+- Используется will-change для оптимизации производительности
+- Все анимации через cubic-bezier(0.4, 0, 0.2, 1) для плавности
 
 ## WORKFLOW ПРИ РАБОТЕ
 

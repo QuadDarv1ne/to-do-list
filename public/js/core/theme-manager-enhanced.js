@@ -102,6 +102,9 @@ class ThemeManager {
             .replace(/mode-\w+/g, '');
         document.body.classList.add(`theme-${theme}`, `mode-${mode}`);
         
+        // Динамически загружаем CSS файл темы
+        this.loadThemeCSS(theme, mode);
+        
         // Обновляем meta theme-color для PWA
         this.updateMetaThemeColor(theme, mode);
         
@@ -109,6 +112,25 @@ class ThemeManager {
         if (animate) {
             this.animateThemeChange();
         }
+    }
+
+    loadThemeCSS(theme, mode) {
+        // Определяем тип layout (sidebar или topbar)
+        const isSidebar = document.querySelector('.sidebar') !== null;
+        const layoutType = isSidebar ? 'sidebar' : 'topbar';
+        
+        // Удаляем старые темы
+        const oldThemeLinks = document.querySelectorAll('link[data-theme-css]');
+        oldThemeLinks.forEach(link => link.remove());
+        
+        // Создаем новый link для темы
+        const themeLink = document.createElement('link');
+        themeLink.rel = 'stylesheet';
+        themeLink.href = `/css/themes/${layoutType}-theme-${theme}.css`;
+        themeLink.setAttribute('data-theme-css', 'true');
+        
+        // Добавляем в head
+        document.head.appendChild(themeLink);
     }
 
     updateMetaThemeColor(theme, mode) {
