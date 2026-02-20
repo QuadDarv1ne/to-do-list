@@ -63,9 +63,6 @@
     <script src="{{ asset('js/theme-loader.js') }}"></script>
 
     {% block stylesheets %}
-        <!-- Unified Styles v3.0 - Оптимизированная система без дублирования -->
-        <link rel="stylesheet" href="{{ asset('css/core/unified-styles.min.css') }}">
-
         <!-- Page-specific styles (только при необходимости) -->
         {% if app.request.attributes.get('_route') starts with 'app_dashboard' %}
             <link rel="stylesheet" href="{{ asset('css/pages/dashboard-enhanced.css') }}">
