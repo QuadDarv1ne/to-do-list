@@ -1,0 +1,628 @@
+/**
+ * Advanced Animations & Effects — Improved
+ *
+ * Изменения:
+ * - Все анимации сгруппированы через @layer
+ * - transform заменён на отдельные свойства translate/rotate/scale где возможно
+ * - Убраны дублирующиеся @keyframes (slideInRight был объявлен дважды)
+ * - transition: all заменён на конкретные свойства
+ * - Добавлены CSS Custom Properties для длительностей
+ * - prefers-reduced-motion вынесен наверх через @layer, чтобы гарантированно работал
+ * - Улучшен ripple: теперь работает через JS-переменные для точки клика
+ * - Добавлен will-change там, где это реально нужно
+ */
+
+/* ── Токены длительностей ───────────────────── */
+:root {
+  --dur-instant:  0.15s;
+  --dur-fast:     0.3s;
+  --dur-normal:   0.5s;
+  --dur-slow:     0.8s;
+  --dur-xslow:    1.5s;
+
+  --ease-out:     cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring:  cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --ease-bounce:  cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+/* ── Слои ───────────────────────────────────── */
+@layer animations.keyframes,
+       animations.loading,
+       animations.entrance,
+       animations.hover,
+       animations.cards,
+       animations.progress,
+       animations.notifications,
+       animations.buttons,
+       animations.text,
+       animations.scroll,
+       animations.micro,
+       animations.special,
+       animations.utilities,
+       animations.motion-safe;
+
+/* ============================================
+   KEYFRAMES
+   ============================================ */
+@layer animations.keyframes {
+
+  @keyframes shimmer {
+    from { background-position: -1000px 0; }
+    to   { background-position:  1000px 0; }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1;   scale: 1;    }
+    50%       { opacity: 0.7; scale: 0.95; }
+  }
+
+  @keyframes spin {
+    to { rotate: 360deg; }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; translate: 0 30px; }
+    to   { opacity: 1; translate: 0 0;    }
+  }
+
+  @keyframes fadeInDown {
+    from { opacity: 0; translate: 0 -30px; }
+    to   { opacity: 1; translate: 0 0;     }
+  }
+
+  @keyframes fadeInLeft {
+    from { opacity: 0; translate: -30px 0; }
+    to   { opacity: 1; translate: 0 0;     }
+  }
+
+  @keyframes fadeInRight {
+    from { opacity: 0; translate: 30px 0; }
+    to   { opacity: 1; translate: 0 0;    }
+  }
+
+  @keyframes scaleIn {
+    from { opacity: 0; scale: 0.9; }
+    to   { opacity: 1; scale: 1;   }
+  }
+
+  @keyframes slideInUp {
+    from { translate: 0 100%; }
+    to   { translate: 0 0;    }
+  }
+
+  @keyframes slideInRight {
+    from { translate: 100% 0; opacity: 0; }
+    to   { translate: 0 0;    opacity: 1; }
+  }
+
+  @keyframes slideOutRight {
+    from { translate: 0 0;    opacity: 1; }
+    to   { translate: 100% 0; opacity: 0; }
+  }
+
+  @keyframes glow {
+    0%, 100% { box-shadow: 0 0 5px  var(--clr-interactive), 0 0 10px var(--clr-interactive); }
+    50%       { box-shadow: 0 0 20px var(--clr-interactive), 0 0 30px var(--clr-interactive); }
+  }
+
+  @keyframes bounce-y {
+    0%, 100% { translate: 0 0;     }
+    50%       { translate: 0 -10px; }
+  }
+
+  @keyframes progress-fill {
+    from { width: 0%; }
+  }
+
+  /* SVG circular progress */
+  @keyframes svg-rotate {
+    to { rotate: 360deg; }
+  }
+
+  @keyframes dash {
+    0%   { stroke-dasharray: 1,   150; stroke-dashoffset: 0;    }
+    50%  { stroke-dasharray: 90,  150; stroke-dashoffset: -35;  }
+    100% { stroke-dasharray: 90,  150; stroke-dashoffset: -124; }
+  }
+
+  @keyframes toast-in {
+    from { translate: 0 100%; scale: 0.8; opacity: 0; }
+    to   { translate: 0 0;    scale: 1;   opacity: 1; }
+  }
+
+  @keyframes pulse-ring {
+    from { scale: 0.8; opacity: 1; }
+    to   { scale: 1.4; opacity: 0; }
+  }
+
+  @keyframes typing {
+    from { width: 0; }
+    to   { width: 100%; }
+  }
+
+  @keyframes blink {
+    50% { border-color: transparent; }
+  }
+
+  @keyframes gradient-shift {
+    0%   { background-position: 0%   50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0%   50%; }
+  }
+
+  @keyframes float {
+    0%, 100% { translate: 0 0;     }
+    50%       { translate: 0 -20px; }
+  }
+
+  @keyframes shake {
+    0%, 100%                         { translate: 0 0;     }
+    10%, 30%, 50%, 70%, 90%          { translate: -10px 0; }
+    20%, 40%, 60%, 80%               { translate:  10px 0; }
+  }
+
+  @keyframes wobble {
+    0%, 100% { translate: 0 0;      rotate:  0deg; }
+    15%       { translate: -25px 0; rotate: -5deg; }
+    30%       { translate:  20px 0; rotate:  3deg; }
+    45%       { translate: -15px 0; rotate: -3deg; }
+    60%       { translate:  10px 0; rotate:  2deg; }
+    75%       { translate:  -5px 0; rotate: -1deg; }
+  }
+
+  @keyframes heartbeat {
+    0%, 100%  { scale: 1;   }
+    10%, 30%  { scale: 0.9; }
+    20%, 40%  { scale: 1.1; }
+  }
+
+  @keyframes dot-pulse {
+    0%, 80%, 100% { opacity: 0.3; scale: 0.8; }
+    40%            { opacity: 1;   scale: 1;   }
+  }
+
+  @keyframes check-mark {
+    0%   { scale: 0;   rotate: 45deg; }
+    50%  { scale: 1.2; rotate: 45deg; }
+    100% { scale: 1;   rotate: 45deg; }
+  }
+}
+
+/* ============================================
+   LOADING ANIMATIONS
+   ============================================ */
+@layer animations.loading {
+
+  .skeleton-loader {
+    background: linear-gradient(
+      90deg,
+      rgba(255,255,255,0.05) 0%,
+      rgba(255,255,255,0.15) 50%,
+      rgba(255,255,255,0.05) 100%
+    );
+    background-size: 1000px 100%;
+    border-radius: 8px;
+    animation: shimmer 2s infinite;
+    will-change: background-position;
+  }
+
+  .pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .spin {
+    animation: spin 1s linear infinite;
+    will-change: rotate;
+  }
+
+  /* Dots */
+  .loading-dots {
+    display: inline-flex;
+    gap: 4px;
+  }
+
+  .loading-dots span {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: var(--clr-interactive);
+    border-radius: 50%;
+    animation: dot-pulse 1.4s infinite ease-in-out;
+  }
+
+  .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+  .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+  /* Spinner */
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid color-mix(in srgb, var(--clr-interactive) 20%, transparent);
+    border-top-color: var(--clr-interactive);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    will-change: rotate;
+  }
+}
+
+/* ============================================
+   ENTRANCE ANIMATIONS
+   ============================================ */
+@layer animations.entrance {
+
+  .animate-fade-in       { animation: fadeIn      var(--dur-normal) ease-out both; }
+  .animate-fade-in-up    { animation: fadeInUp    0.6s ease-out both; }
+  .animate-fade-in-down  { animation: fadeInDown  0.6s ease-out both; }
+  .animate-fade-in-left  { animation: fadeInLeft  0.6s ease-out both; }
+  .animate-fade-in-right { animation: fadeInRight 0.6s ease-out both; }
+  .animate-scale-in      { animation: scaleIn     0.4s ease-out both; }
+
+  /* Stagger */
+  .stagger-item {
+    opacity: 0;
+    animation: fadeInUp 0.6s ease-out forwards;
+  }
+
+  .stagger-item:nth-child(1) { animation-delay: 0.1s; }
+  .stagger-item:nth-child(2) { animation-delay: 0.2s; }
+  .stagger-item:nth-child(3) { animation-delay: 0.3s; }
+  .stagger-item:nth-child(4) { animation-delay: 0.4s; }
+  .stagger-item:nth-child(5) { animation-delay: 0.5s; }
+  .stagger-item:nth-child(6) { animation-delay: 0.6s; }
+}
+
+/* ============================================
+   HOVER EFFECTS
+   ============================================ */
+@layer animations.hover {
+
+  .hover-lift {
+    transition:
+      translate    var(--dur-fast) ease,
+      box-shadow   var(--dur-fast) ease;
+  }
+
+  .hover-lift:hover {
+    translate: 0 -8px;
+    box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+  }
+
+  .hover-glow:hover {
+    animation: glow 2s ease-in-out infinite;
+  }
+
+  /* Shine sweep */
+  .hover-shine {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hover-shine::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    translate: -100% 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,0.25),
+      transparent
+    );
+    transition: translate var(--dur-slow) ease;
+    pointer-events: none;
+  }
+
+  .hover-shine:hover::before {
+    translate: 100% 0;
+  }
+
+  .hover-bounce:hover {
+    animation: bounce-y var(--dur-slow) ease;
+  }
+
+  .hover-rotate {
+    transition: rotate var(--dur-fast) ease, scale var(--dur-fast) ease;
+  }
+
+  .hover-rotate:hover {
+    rotate: 5deg;
+    scale: 1.05;
+  }
+}
+
+/* ============================================
+   CARD ANIMATIONS
+   ============================================ */
+@layer animations.cards {
+
+  .card-animated {
+    position: relative;
+    overflow: hidden;
+    transition:
+      translate    0.4s var(--ease-out),
+      box-shadow   0.4s var(--ease-out);
+  }
+
+  .card-animated::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--clr-interactive), var(--clr-interactive-hover, var(--clr-interactive)));
+    scale: 1 1;
+    transform-origin: left;
+    transition: scale var(--dur-fast) ease;
+    /* используем scale X через transform, т.к. scale — shorthand для обеих осей */
+    transform: scaleX(0);
+    transition: transform var(--dur-fast) ease;
+  }
+
+  .card-animated:hover::before { transform: scaleX(1); }
+
+  .card-animated:hover {
+    translate: 0 -4px;
+    box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+  }
+
+  /* Flip Card */
+  .flip-card {
+    perspective: 1000px;
+    height: 300px;
+  }
+
+  .flip-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: rotate var(--dur-slow);
+    transform-style: preserve-3d;
+    will-change: rotate;
+  }
+
+  .flip-card:hover .flip-card-inner,
+  .flip-card:focus-within .flip-card-inner {
+    rotate: y 180deg;
+  }
+
+  .flip-card-front,
+  .flip-card-back {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    border-radius: 12px;
+  }
+
+  .flip-card-back { rotate: y 180deg; }
+}
+
+/* ============================================
+   PROGRESS ANIMATIONS
+   ============================================ */
+@layer animations.progress {
+
+  .progress-animated {
+    animation: progress-fill var(--dur-xslow) ease-out;
+  }
+
+  .circular-progress { animation: svg-rotate 2s linear infinite; }
+  .circular-progress circle { animation: dash var(--dur-xslow) ease-in-out infinite; }
+}
+
+/* ============================================
+   NOTIFICATIONS
+   ============================================ */
+@layer animations.notifications {
+
+  .notification-enter { animation: slideInRight var(--dur-fast) ease-out; }
+  .notification-exit  { animation: slideOutRight var(--dur-fast) ease-out; }
+
+  .toast-notification {
+    animation: toast-in var(--dur-fast) var(--ease-spring);
+    will-change: translate, scale, opacity;
+  }
+}
+
+/* ============================================
+   BUTTON ANIMATIONS
+   ============================================ */
+@layer animations.buttons {
+
+  /* Ripple — координаты устанавливаются через JS:
+     el.style.setProperty('--x', e.offsetX + 'px');
+     el.style.setProperty('--y', e.offsetY + 'px');  */
+  .btn-ripple {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .btn-ripple::after {
+    content: '';
+    position: absolute;
+    top:  var(--y, 50%);
+    left: var(--x, 50%);
+    width: 0;
+    height: 0;
+    translate: -50% -50%;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.4);
+    transition: width 0.6s ease, height 0.6s ease, opacity 0.6s ease;
+    opacity: 1;
+    pointer-events: none;
+  }
+
+  .btn-ripple:active::after {
+    width: 400px;
+    height: 400px;
+    opacity: 0;
+  }
+
+  /* Pulse ring */
+  .btn-pulse {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .btn-pulse::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: inherit;
+    animation: pulse-ring var(--dur-xslow) var(--ease-bounce) infinite;
+    z-index: -1;
+  }
+}
+
+/* ============================================
+   TEXT ANIMATIONS
+   ============================================ */
+@layer animations.text {
+
+  .typing-effect {
+    overflow: hidden;
+    border-right: 2px solid var(--clr-interactive);
+    white-space: nowrap;
+    animation:
+      typing 3.5s steps(40, end),
+      blink  0.75s step-end infinite;
+  }
+
+  .gradient-text {
+    background: linear-gradient(
+      90deg,
+      var(--clr-interactive),
+      var(--clr-interactive-light),
+      var(--clr-interactive)
+    );
+    background-size: 200% auto;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradient-shift 3s ease infinite;
+  }
+}
+
+/* ============================================
+   SCROLL ANIMATIONS
+   ============================================ */
+@layer animations.scroll {
+
+  /* Используй IntersectionObserver для добавления .revealed */
+  .scroll-reveal {
+    opacity: 0;
+    translate: 0 50px;
+    transition:
+      opacity   0.6s ease,
+      translate 0.6s ease;
+  }
+
+  .scroll-reveal.revealed {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  /* Parallax-смещение задаётся через JS: el.style.setProperty('--offset', val + 'px') */
+  .parallax {
+    translate: 0 var(--offset, 0);
+    transition: translate 0.1s ease-out;
+    will-change: translate;
+  }
+}
+
+/* ============================================
+   MICRO INTERACTIONS
+   ============================================ */
+@layer animations.micro {
+
+  .checkbox-animated:checked + label::after {
+    animation: check-mark var(--dur-fast) ease;
+  }
+
+  /* Toggle Switch */
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 26px;
+    background: var(--clr-border, #334155);
+    border-radius: 13px;
+    cursor: pointer;
+    transition: background-color var(--dur-fast) ease;
+  }
+
+  .toggle-switch::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: translate var(--dur-fast) var(--ease-spring);
+  }
+
+  .toggle-switch.active {
+    background: var(--clr-interactive);
+  }
+
+  .toggle-switch.active::after {
+    translate: 24px 0;
+  }
+}
+
+/* ============================================
+   SPECIAL EFFECTS
+   ============================================ */
+@layer animations.special {
+
+  .float     { animation: float     3s ease-in-out infinite; }
+  .shake     { animation: shake     var(--dur-slow) ease; }
+  .wobble    { animation: wobble    var(--dur-slow) ease; }
+  .heartbeat { animation: heartbeat 1.3s ease-in-out infinite; }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+@layer animations.utilities {
+
+  /* Конкретные свойства вместо all */
+  .transition-base { transition: background-color var(--dur-fast) ease, color var(--dur-fast) ease, box-shadow var(--dur-fast) ease; }
+  .transition-fast { transition: background-color var(--dur-instant) ease, color var(--dur-instant) ease; }
+  .transition-slow { transition: background-color var(--dur-normal) ease, color var(--dur-normal) ease, box-shadow var(--dur-normal) ease; }
+
+  .delay-100 { animation-delay: 0.1s; }
+  .delay-200 { animation-delay: 0.2s; }
+  .delay-300 { animation-delay: 0.3s; }
+  .delay-400 { animation-delay: 0.4s; }
+  .delay-500 { animation-delay: 0.5s; }
+}
+
+/* ============================================
+   REDUCED MOTION
+   Объявлен последним в @layer, чтобы гарантированно
+   перебить все анимации выше.
+   ============================================ */
+@layer animations.motion-safe {
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration:        0.01ms !important;
+      animation-iteration-count: 1      !important;
+      transition-duration:       0.01ms !important;
+      scroll-behavior:           auto   !important;
+    }
+
+    /* Scroll-reveal показываем сразу, без анимации */
+    .scroll-reveal {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+}

@@ -23,6 +23,15 @@
     --accent-danger: #ef4444;
     --accent-info: #3b82f6;
     
+    /* Дополнительные акцентные цвета для dashboard */
+    --accent-purple: #8b7ff4;
+    --accent-blue: #5b9cff;
+    --accent-cyan: #4dd4ac;
+    --accent-green: #26de81;
+    --accent-yellow: #ffd93d;
+    --accent-orange: #ff9f43;
+    --accent-pink: #ff6bcb;
+    
     /* Цвета текста */
     --text-primary: #1f2937;
     --text-secondary: #6b7280;
@@ -84,6 +93,15 @@ body.theme-dark,
     --accent-warning: #fbbf24;
     --accent-danger: #f87171;
     --accent-info: #60a5fa;
+    
+    /* Дополнительные акцентные цвета для dashboard */
+    --accent-purple: #a78bfa;
+    --accent-blue: #60a5fa;
+    --accent-cyan: #22d3ee;
+    --accent-green: #34d399;
+    --accent-yellow: #fbbf24;
+    --accent-orange: #fb923c;
+    --accent-pink: #f472b6;
     
     /* Цвета текста */
     --text-primary: #f1f5f9;

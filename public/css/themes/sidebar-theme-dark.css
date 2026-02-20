@@ -1,0 +1,136 @@
+/**
+ * Sidebar Theme - Dark
+ * Тёмная тема для страниц с боковым меню
+ */
+
+/* Sidebar Colors */
+.sidebar {
+    background: #1e293b;
+    border-right: 1px solid #334155;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
+}
+
+.sidebar-logo {
+    background: linear-gradient(135deg, #818cf8, #a78bfa);
+    color: #ffffff;
+}
+
+.sidebar-title {
+    color: #f1f5f9;
+}
+
+/* Navigation */
+.nav-link {
+    color: #cbd5e1;
+}
+
+.nav-link:hover {
+    background: #334155;
+    color: #f1f5f9;
+}
+
+.nav-link.active {
+    background: linear-gradient(135deg, rgba(129, 140, 248, 0.2), rgba(167, 139, 250, 0.2));
+    color: #a78bfa;
+}
+
+.nav-link.active::before {
+    background: linear-gradient(180deg, #818cf8, #a78bfa);
+}
+
+/* Theme Selector */
+.theme-selector {
+    background: #334155;
+    border: 1px solid #475569;
+}
+
+.theme-selector small {
+    color: #94a3b8;
+}
+
+/* User Profile */
+.user-profile {
+    background: transparent;
+}
+
+.user-profile:hover {
+    background: #334155;
+}
+
+.user-avatar {
+    background: linear-gradient(135deg, #818cf8, #a78bfa);
+    color: #ffffff;
+}
+
+.user-name {
+    color: #f1f5f9;
+}
+
+.user-role {
+    color: #94a3b8;
+}
+
+/* Sidebar Toggle */
+.sidebar-toggle {
+    background: #1e293b;
+    color: #a78bfa;
+    border: 1px solid #334155;
+}
+
+.sidebar-toggle:hover {
+    background: #334155;
+}
+
+/* Main Content */
+.main-content {
+    background: #0f172a;
+}
+
+/* Top Bar */
+.page-title {
+    color: #f1f5f9;
+}
+
+/* Search Box */
+.search-input {
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #f1f5f9;
+}
+
+.search-input::placeholder {
+    color: #64748b;
+}
+
+.search-icon {
+    color: #94a3b8;
+}
+
+/* Icon Buttons */
+.icon-btn {
+    background: #1e293b;
+    color: #cbd5e1;
+    border: 1px solid #334155;
+}
+
+.icon-btn:hover {
+    background: #334155;
+    color: #a78bfa;
+}
+
+.icon-btn .badge {
+    background: #f87171;
+    color: #ffffff;
+}
+
+/* Mobile Menu Button */
+.mobile-menu-btn {
+    background: #1e293b;
+    color: #a78bfa;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.mobile-menu-btn:hover {
+    background: #818cf8;
+    color: #ffffff;
+}

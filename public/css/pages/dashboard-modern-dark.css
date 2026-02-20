@@ -1,54 +1,7 @@
 /**
- * Modern Dark Dashboard Design
- * Inspired by modern CRM interfaces
+ * Modern Dashboard Design
+ * Адаптирован для работы с unified theme system
  */
-
-:root {
-    /* Dark Theme Colors */
-    --bg-primary: #1a1a1a;
-    --bg-secondary: #242424;
-    --bg-card: #2a2a2a;
-    --bg-hover: #333333;
-    
-    /* Accent Colors */
-    --accent-cyan: #4dd4ac;
-    --accent-yellow: #ffd93d;
-    --accent-pink: #ff6bcb;
-    --accent-purple: #8b7ff4;
-    --accent-blue: #5b9cff;
-    --accent-orange: #ff9f43;
-    --accent-green: #26de81;
-    
-    /* Text Colors */
-    --text-primary: #ffffff;
-    --text-secondary: #a0a0a0;
-    --text-muted: #666666;
-    
-    /* Border & Shadow */
-    --border-color: #3a3a3a;
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
-    
-    /* Spacing */
-    --spacing-xs: 0.5rem;
-    --spacing-sm: 1rem;
-    --spacing-md: 1.5rem;
-    --spacing-lg: 2rem;
-    --spacing-xl: 3rem;
-    
-    /* Border Radius */
-    --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 16px;
-    --radius-xl: 24px;
-}
-
-/* Global Dark Theme */
-body.theme-dark {
-    background: var(--bg-primary);
-    color: var(--text-primary);
-}
 
 /* Dashboard Layout */
 .dashboard-modern {

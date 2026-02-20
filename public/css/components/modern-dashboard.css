@@ -1,0 +1,473 @@
+/**
+ * Modern Dashboard Design System — Improved
+ */
+
+/* ── Токены ─────────────────────────────────── */
+:root {
+  /* Градиенты */
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-success: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  --gradient-warning: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --gradient-info:    linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+
+  /* Тени */
+  --shadow-sm: 0 2px 4px  rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.15);
+  --shadow-xl: 0 12px 48px rgba(0,0,0,0.2);
+
+  /* Семантические токены статусов */
+  --clr-success: #10b981;
+  --clr-warning: #f59e0b;
+  --clr-danger:  #ef4444;
+  --clr-info:    #3b82f6;
+
+  /* Переходы */
+  --dur-fast:   0.2s;
+  --dur-normal: 0.3s;
+  --ease-out:   cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================
+   KEYFRAMES
+   Объявлены один раз — используются везде
+   ============================================ */
+
+@keyframes shimmer {
+  from { translate: -100% 0; }
+  to   { translate:  100% 0; }
+}
+
+@keyframes status-pulse {
+  0%, 100% { opacity: 1;   }
+  50%       { opacity: 0.5; }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; translate: 0 20px; }
+  to   { opacity: 1; translate: 0 0;    }
+}
+
+/* ============================================
+   GLASSMORPHISM CARD
+   ============================================ */
+
+.glass-card {
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--shadow-lg);
+  transition:
+    translate   var(--dur-normal) ease,
+    box-shadow  var(--dur-normal) ease;
+}
+
+.glass-card:hover {
+  translate: 0 -4px;
+  box-shadow: var(--shadow-xl);
+}
+
+/* ============================================
+   METRIC CARDS
+   ============================================ */
+
+.metric-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  padding: 24px;
+  color: white;
+  /* transition только для нужных свойств */
+  transition: box-shadow var(--dur-normal) var(--ease-out);
+}
+
+/* Псевдоэлемент для эффекта затемнения при hover */
+.metric-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: inherit;
+  opacity: 0.9;
+  transition: opacity var(--dur-normal) ease;
+  pointer-events: none;
+}
+
+.metric-card:hover::before { opacity: 1; }
+
+.metric-card.primary { background: var(--gradient-primary); }
+.metric-card.success { background: var(--gradient-success); }
+.metric-card.warning { background: var(--gradient-warning); }
+.metric-card.info    { background: var(--gradient-info);    }
+
+.metric-content {
+  position: relative;
+  z-index: 1;
+}
+
+.metric-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-bottom: 16px;
+}
+
+.metric-value {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  /* Предотвращаем обрезание длинных чисел */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metric-label {
+  font-size: 14px;
+  opacity: 0.9;
+  margin-bottom: 12px;
+}
+
+.metric-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.2);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ============================================
+   CHART CONTAINER
+   ============================================ */
+
+.chart-container {
+  background: var(--card-bg, white);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--shadow-md);
+  transition: box-shadow var(--dur-normal) ease;
+}
+
+.chart-container:hover { box-shadow: var(--shadow-lg); }
+
+.chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.chart-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary, #333);
+}
+
+.chart-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-chip {
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color, #e0e0e0);
+  background: transparent;
+  color: var(--text-secondary, #666);
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-fast) ease,
+    color            var(--dur-fast) ease,
+    border-color     var(--dur-fast) ease;
+}
+
+.filter-chip:hover { background: var(--bg-secondary, #f5f5f5); }
+
+.filter-chip.active {
+  background: var(--primary-color, #6366f1);
+  color: white;
+  border-color: var(--primary-color, #6366f1);
+}
+
+.filter-chip:focus-visible {
+  outline: 2px solid var(--primary-color, #6366f1);
+  outline-offset: 2px;
+}
+
+/* ============================================
+   MODERN TABLE
+   ============================================ */
+
+.modern-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 8px;
+}
+
+.modern-table thead th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted, #999);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  /* Кликабельные заголовки */
+  cursor: default;
+}
+
+.modern-table tbody tr {
+  background: var(--card-bg, white);
+  cursor: pointer;
+  transition:
+    translate   var(--dur-fast) ease,
+    box-shadow  var(--dur-fast) ease;
+}
+
+.modern-table tbody tr:hover {
+  translate: 4px 0;
+  box-shadow: var(--shadow-md);
+}
+
+.modern-table tbody tr:focus-visible {
+  outline: 2px solid var(--primary-color, #6366f1);
+  outline-offset: 2px;
+}
+
+.modern-table tbody td {
+  padding: 16px;
+  border-top: 1px solid var(--border-color, #f0f0f0);
+  border-bottom: 1px solid var(--border-color, #f0f0f0);
+}
+
+.modern-table tbody td:first-child {
+  border-left: 1px solid var(--border-color, #f0f0f0);
+  border-radius: 8px 0 0 8px;
+}
+
+.modern-table tbody td:last-child {
+  border-right: 1px solid var(--border-color, #f0f0f0);
+  border-radius: 0 8px 8px 0;
+}
+
+/* ============================================
+   PROGRESS BAR
+   ============================================ */
+
+.progress-modern {
+  position: relative;
+  height: 8px;
+  border-radius: 10px;
+  background: var(--bg-secondary, #f0f0f0);
+  overflow: hidden;
+}
+
+/* Shimmer поверх заполнения */
+.progress-modern::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,0.3),
+    transparent
+  );
+  animation: shimmer 2s infinite;
+}
+
+/* ============================================
+   STATUS BADGES
+   ============================================ */
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Цветной dot через box-shadow — не нужен дополнительный тег */
+.status-badge::before {
+  content: '';
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: status-pulse 2s infinite;
+}
+
+.status-badge.success { background: rgba(16,185,129,0.1); color: var(--clr-success); }
+.status-badge.warning { background: rgba(245,158,11,0.1); color: var(--clr-warning); }
+.status-badge.danger  { background: rgba(239,68,68,0.1);  color: var(--clr-danger);  }
+.status-badge.info    { background: rgba(59,130,246,0.1); color: var(--clr-info);    }
+
+/* ============================================
+   CALENDAR WIDGET
+   ============================================ */
+
+.calendar-widget-modern {
+  background: var(--card-bg, white);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: var(--shadow-md);
+}
+
+.calendar-header-modern {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.calendar-month {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #333);
+}
+
+.calendar-nav-modern {
+  display: flex;
+  gap: 8px;
+}
+
+.calendar-nav-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: var(--bg-secondary, #f5f5f5);
+  color: var(--text-primary, #333);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background-color var(--dur-fast) ease,
+    color            var(--dur-fast) ease;
+}
+
+.calendar-nav-btn:hover {
+  background: var(--primary-color, #6366f1);
+  color: white;
+}
+
+.calendar-nav-btn:focus-visible {
+  outline: 2px solid var(--primary-color, #6366f1);
+  outline-offset: 2px;
+}
+
+.calendar-grid-modern {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.calendar-day-modern {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  position: relative;
+  transition:
+    background-color var(--dur-fast) ease,
+    color            var(--dur-fast) ease;
+}
+
+.calendar-day-modern:hover { background: var(--bg-secondary, #f5f5f5); }
+
+.calendar-day-modern:focus-visible {
+  outline: 2px solid var(--primary-color, #6366f1);
+  outline-offset: 2px;
+}
+
+.calendar-day-modern.today {
+  background: var(--primary-color, #6366f1);
+  color: white;
+  font-weight: 600;
+}
+
+/* Точка-индикатор события */
+.calendar-day-modern.has-event::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  translate: -50% 0;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--primary-color, #6366f1);
+}
+
+.calendar-day-modern.today.has-event::after {
+  background: white;
+}
+
+/* ============================================
+   УТИЛИТА
+   ============================================ */
+
+.fade-in-up {
+  animation: fade-in-up var(--dur-normal) ease both;
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-card,
+  .metric-card,
+  .metric-card::before,
+  .chart-container,
+  .filter-chip,
+  .modern-table tbody tr,
+  .calendar-nav-btn,
+  .calendar-day-modern {
+    transition: none;
+  }
+
+  .status-badge::before { animation: none; }
+  .progress-modern::after { animation: none; }
+  .fade-in-up { animation: none; }
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .metric-card  { padding: 16px; }
+  .metric-value { font-size: 24px; }
+  .chart-container { padding: 16px; }
+
+  /* Убираем hover-смещение строк таблицы на тач-устройствах */
+  .modern-table tbody tr:hover {
+    translate: 0 0;
+    box-shadow: none;
+  }
+
+  .calendar-grid-modern { gap: 4px; }
+}

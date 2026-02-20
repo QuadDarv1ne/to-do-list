@@ -1,0 +1,136 @@
+/**
+ * Sidebar Theme - Custom (Green)
+ * Настраиваемая (зелёная) тема для страниц с боковым меню
+ */
+
+/* Sidebar Colors */
+.sidebar {
+    background: #065f46;
+    border-right: 1px solid #059669;
+    box-shadow: 2px 0 8px rgba(16, 185, 129, 0.2);
+}
+
+.sidebar-logo {
+    background: linear-gradient(135deg, #10b981, #34d399);
+    color: #ffffff;
+}
+
+.sidebar-title {
+    color: #d1fae5;
+}
+
+/* Navigation */
+.nav-link {
+    color: #a7f3d0;
+}
+
+.nav-link:hover {
+    background: #047857;
+    color: #d1fae5;
+}
+
+.nav-link.active {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(52, 211, 153, 0.2));
+    color: #34d399;
+}
+
+.nav-link.active::before {
+    background: linear-gradient(180deg, #10b981, #34d399);
+}
+
+/* Theme Selector */
+.theme-selector {
+    background: #047857;
+    border: 1px solid #059669;
+}
+
+.theme-selector small {
+    color: #6ee7b7;
+}
+
+/* User Profile */
+.user-profile {
+    background: transparent;
+}
+
+.user-profile:hover {
+    background: #047857;
+}
+
+.user-avatar {
+    background: linear-gradient(135deg, #10b981, #34d399);
+    color: #ffffff;
+}
+
+.user-name {
+    color: #d1fae5;
+}
+
+.user-role {
+    color: #6ee7b7;
+}
+
+/* Sidebar Toggle */
+.sidebar-toggle {
+    background: #065f46;
+    color: #34d399;
+    border: 1px solid #059669;
+}
+
+.sidebar-toggle:hover {
+    background: #047857;
+}
+
+/* Main Content */
+.main-content {
+    background: #064e3b;
+}
+
+/* Top Bar */
+.page-title {
+    color: #d1fae5;
+}
+
+/* Search Box */
+.search-input {
+    background: #065f46;
+    border: 1px solid #059669;
+    color: #d1fae5;
+}
+
+.search-input::placeholder {
+    color: #34d399;
+}
+
+.search-icon {
+    color: #6ee7b7;
+}
+
+/* Icon Buttons */
+.icon-btn {
+    background: #065f46;
+    color: #a7f3d0;
+    border: 1px solid #059669;
+}
+
+.icon-btn:hover {
+    background: #047857;
+    color: #34d399;
+}
+
+.icon-btn .badge {
+    background: #f87171;
+    color: #ffffff;
+}
+
+/* Mobile Menu Button */
+.mobile-menu-btn {
+    background: #065f46;
+    color: #34d399;
+    box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);
+}
+
+.mobile-menu-btn:hover {
+    background: #10b981;
+    color: #ffffff;
+}
