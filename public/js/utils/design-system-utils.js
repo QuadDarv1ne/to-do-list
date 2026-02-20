@@ -453,7 +453,7 @@ class ScrollManager {
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Theme management handled by core/theme-loader.js
+    // Theme management handled by core/theme-manager-enhanced.js
     
     // Initialize toast manager
     window.toastManager = new ToastManager();

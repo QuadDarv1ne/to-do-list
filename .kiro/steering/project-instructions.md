@@ -29,6 +29,8 @@ inclusion: always
 - Точечные изменения - минимум кода для решения задачи
 - Исправлять только то, что требуется
 - Избегать избыточных изменений
+- НЕ создавать новые файлы, если изменения можно добавить в существующие
+- Использовать существующую структуру файлов максимально эффективно
 
 ## АРХИТЕКТУРА ПРОЕКТА
 
@@ -166,6 +168,44 @@ php bin/console messenger:consume async
 - Turbo для SPA-like навигации
 - Messenger для асинхронных задач
 - Supervisor для обработки очередей (в продакшене)
+
+### Система тем оформления
+Проект использует двухуровневую систему тем с поддержкой 5 цветовых схем:
+
+#### Типы layout
+1. **Sidebar Layout** (base_sidebar.html.twig) - для дашборда
+   - Боковое меню слева
+   - Структура: public/css/themes/sidebar-layout.css (общие стили)
+   - Темы: public/css/themes/sidebar-theme-*.css (цвета для каждой темы)
+
+2. **Topbar Layout** (base.html.twig) - для остальных страниц
+   - Верхнее меню
+   - Структура: public/css/themes/topbar-layout.css (общие стили)
+   - Темы: public/css/themes/topbar-theme-*.css (цвета для каждой темы)
+
+#### Доступные темы (5 вариантов)
+1. **Light** (светлая) - по умолчанию
+   - Файлы: sidebar-theme-light.css, topbar-theme-light.css
+   
+2. **Dark** (тёмная)
+   - Файлы: sidebar-theme-dark.css, topbar-theme-dark.css
+   
+3. **Orange** (оранжевая)
+   - Файлы: sidebar-theme-orange.css, topbar-theme-orange.css
+   
+4. **Purple** (фиолетовая)
+   - Файлы: sidebar-theme-purple.css, topbar-theme-purple.css
+   
+5. **Custom** (настраиваемая пользователем)
+   - Файлы: sidebar-theme-custom.css, topbar-theme-custom.css
+   - Пользователь может регулировать цвета через настройки
+
+#### Управление темами
+- Layout файлы: sidebar-layout.css, topbar-layout.css (общие стили структуры)
+- Файлы тем: sidebar-theme-{color}.css, topbar-theme-{color}.css (цветовые схемы)
+- JavaScript: public/js/core/theme-manager-enhanced.js
+- Выбор темы сохраняется в localStorage
+- Переключение через кнопки в sidebar footer или FAB меню
 
 ## WORKFLOW ПРИ РАБОТЕ
 

@@ -8,19 +8,21 @@
     <link rel="stylesheet" href="{{ asset('css/vendor/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/vendor/fontawesome.min.css') }}">
     
-    <!-- Unified Theme System - загружается первым -->
-    <link rel="stylesheet" href="{{ asset('css/core/themes-unified.css') }}">
+    <!-- Theme System -->
     <link rel="stylesheet" href="{{ asset('css/themes/sidebar-layout.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/core/ui-improvements.css') }}">
     <link rel="stylesheet" href="{{ asset('css/core/theme-transitions.css') }}">
     <link rel="stylesheet" href="{{ asset('css/core/advanced-animations.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/core/responsive.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/core/adaptive-grid.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components/enhanced-stats.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components/fab-menu.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components/modern-dashboard.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components/pipeline-view.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components/enhanced-cards.css') }}">
     
-    <!-- Theme Loader - динамическое подключение тем -->
-    <script src="{{ asset('js/core/theme-loader.js') }}"></script>
+    <!-- Enhanced Theme Manager -->
+    <script src="{{ asset('js/core/theme-manager-enhanced.js') }}"></script>
     
     {% block stylesheets %}{% endblock %}
 </head>

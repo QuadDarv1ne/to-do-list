@@ -55,12 +55,17 @@
     <!-- Bootstrap CSS (локальная копия) -->
     <link rel="stylesheet" href="{{ asset('css/vendor/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/vendor/fontawesome.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/core/themes-unified.css') }}">
+    
+    <!-- Theme System -->
+    <link rel="stylesheet" href="{{ asset('css/themes/topbar-layout.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/core/ui-improvements.css') }}">
     <link rel="stylesheet" href="{{ asset('css/core/common-styles.css') }}">
     <link rel="stylesheet" href="{{ asset('css/core/advanced-animations.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/core/responsive.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/core/adaptive-grid.css') }}">
     
-    <!-- Theme Loader - динамическое подключение тем -->
-    <script src="{{ asset('js/core/theme-loader.js') }}"></script>
+    <!-- Enhanced Theme Manager -->
+    <script src="{{ asset('js/core/theme-manager-enhanced.js') }}"></script>
 
     {% block stylesheets %}
         <!-- Page-specific styles (только при необходимости) -->

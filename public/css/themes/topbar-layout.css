@@ -1,0 +1,433 @@
+/**
+ * Topbar Layout Styles
+ * Базовые стили для layout с верхним меню (независимо от темы)
+ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    overflow-x: hidden;
+}
+
+/* ============================================
+   MODERN HEADER (TOPBAR)
+   ============================================ */
+
+.modern-header {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    padding: 0;
+    position: sticky;
+    top: 0;
+    z-index: var(--z-sticky, 1020);
+}
+
+.modern-header .container-fluid {
+    padding: 1rem 2rem;
+}
+
+/* Brand */
+.modern-brand {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1.5rem;
+    transition: transform var(--transition-fast, 0.2s);
+}
+
+.modern-brand:hover {
+    transform: scale(1.05);
+}
+
+.modern-brand-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    backdrop-filter: blur(10px);
+}
+
+/* Navigation Links */
+.modern-nav-link {
+    padding: 0.75rem 1.25rem !important;
+    border-radius: 10px;
+    transition: all var(--transition-fast, 0.2s);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.modern-nav-link:hover {
+    transform: translateY(-2px);
+}
+
+/* Action Buttons */
+.modern-action-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition-fast, 0.2s);
+    position: relative;
+    backdrop-filter: blur(10px);
+}
+
+.modern-action-btn:hover {
+    transform: scale(1.1);
+}
+
+.modern-notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    border-radius: 10px;
+    padding: 0.125rem 0.4rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    min-width: 20px;
+    text-align: center;
+}
+
+/* User Avatar */
+.modern-user-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all var(--transition-fast, 0.2s);
+    border: 2px solid;
+}
+
+.modern-user-avatar:hover {
+    transform: scale(1.1);
+}
+
+/* Search */
+.modern-search {
+    position: relative;
+    max-width: 400px;
+}
+
+.modern-search input {
+    border-radius: 12px;
+    padding: 0.75rem 1rem 0.75rem 3rem;
+    backdrop-filter: blur(10px);
+    transition: all var(--transition-fast, 0.2s);
+    border: 1px solid;
+}
+
+.modern-search input:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+.modern-search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Navbar Toggler */
+.navbar-toggler {
+    border-color: rgba(255, 255, 255, 0.3);
+    padding: 0.5rem;
+}
+
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 0.9)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+
+.footer {
+    margin-top: 5rem;
+    padding: 2rem 0;
+    border-top: 1px solid;
+}
+
+.footer h5,
+.footer h6 {
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.footer a {
+    text-decoration: none;
+    transition: color var(--transition-fast, 0.2s);
+}
+
+.footer .list-unstyled {
+    margin: 0;
+    padding: 0;
+}
+
+.footer .list-unstyled li {
+    margin-bottom: 0.5rem;
+}
+
+/* ============================================
+   DROPDOWN MENUS
+   ============================================ */
+
+.dropdown-menu {
+    border-radius: 12px;
+    padding: 0.5rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    border: 1px solid;
+}
+
+.dropdown-item {
+    border-radius: 8px;
+    padding: 0.625rem 1rem;
+    transition: all var(--transition-fast, 0.2s);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.dropdown-header {
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+}
+
+.dropdown-divider {
+    margin: 0.5rem 0;
+}
+
+/* ============================================
+   MOBILE BOTTOM NAVIGATION
+   ============================================ */
+
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: var(--z-fixed, 1030);
+    display: none;
+    border-top: 1px solid;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.bottom-nav-items {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0.5rem 0;
+}
+
+.bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    transition: all var(--transition-fast, 0.2s);
+    border-radius: 8px;
+}
+
+.bottom-nav-item-icon {
+    font-size: 1.25rem;
+}
+
+.bottom-nav-item-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.bottom-nav-item.quick-action {
+    border-radius: 12px;
+    padding: 0.75rem 1.25rem;
+}
+
+/* FAB Button */
+.bottom-nav-fab {
+    position: fixed;
+    bottom: 80px;
+    right: 1.5rem;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: none;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: var(--z-fixed, 1030);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transition: all var(--transition-fast, 0.2s);
+}
+
+.bottom-nav-fab:hover {
+    transform: scale(1.1);
+}
+
+.bottom-nav-fab-menu {
+    position: fixed;
+    bottom: 150px;
+    right: 1.5rem;
+    border-radius: 12px;
+    padding: 0.5rem;
+    display: none;
+    flex-direction: column;
+    gap: 0.5rem;
+    z-index: var(--z-fixed, 1030);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    border: 1px solid;
+}
+
+.bottom-nav-fab-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all var(--transition-fast, 0.2s);
+    white-space: nowrap;
+}
+
+.bottom-nav-fab-menu-item i {
+    width: 20px;
+    text-align: center;
+}
+
+.bottom-nav-fab-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: calc(var(--z-fixed, 1030) - 1);
+    display: none;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 991px) {
+    .modern-header .container-fluid {
+        padding: 1rem;
+    }
+    
+    .modern-nav-link {
+        margin: 0.25rem 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .bottom-nav {
+        display: block;
+    }
+    
+    .bottom-nav-fab {
+        display: flex;
+    }
+    
+    /* Add padding to body to account for bottom nav */
+    body {
+        padding-bottom: 70px;
+    }
+    
+    .modern-header .container-fluid {
+        padding: 0.75rem 1rem;
+    }
+    
+    .modern-brand {
+        font-size: 1.25rem;
+    }
+    
+    .modern-brand-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .modern-search {
+        max-width: 100%;
+    }
+    
+    .modern-action-btn {
+        width: 38px;
+        height: 38px;
+    }
+    
+    .modern-user-avatar {
+        width: 38px;
+        height: 38px;
+    }
+    
+    .bottom-nav-fab {
+        width: 52px;
+        height: 52px;
+        bottom: 75px;
+        right: 1rem;
+    }
+    
+    .bottom-nav-fab-menu {
+        right: 1rem;
+        bottom: 140px;
+    }
+}
+
+/* Landscape orientation on mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+    .bottom-nav {
+        padding: 0.25rem 0;
+    }
+    
+    .bottom-nav-item {
+        padding: 0.375rem 0.75rem;
+    }
+    
+    .bottom-nav-item-icon {
+        font-size: 1.125rem;
+    }
+    
+    .bottom-nav-item-label {
+        font-size: 0.6875rem;
+    }
+}
+
+/* Print styles */
+@media print {
+    .modern-header,
+    .bottom-nav,
+    .bottom-nav-fab,
+    .bottom-nav-fab-menu,
+    .bottom-nav-fab-backdrop,
+    .footer {
+        display: none !important;
+    }
+    
+    body {
+        padding-bottom: 0 !important;
+    }
+}
