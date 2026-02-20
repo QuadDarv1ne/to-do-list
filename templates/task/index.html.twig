@@ -3,8 +3,9 @@
 {% block page_title %}Задачи{% endblock %}
 
 {% block body %}
+<div class="animate-fade-in">
 <!-- Page Header -->
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+<div class="stagger-item" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
     <div>
         <h2 style="margin: 0; font-size: 28px; font-weight: 600;">Задачи</h2>
         <p style="color: var(--text-secondary); margin: 5px 0 0 0;">Управление заказами и сделками</p>
@@ -15,8 +16,8 @@
 </div>
 
 <!-- Stats Overview -->
-<div class="stats-grid" style="margin-bottom: 30px;">
-    <div class="stat-card" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+<div class="stats-grid stagger-item delay-100" style="margin-bottom: 30px;">
+    <div class="stat-card hover-lift" style="background: var(--bg-card); border: 1px solid var(--border-color);">
         <div class="stat-header">
             <div class="stat-icon" style="background: var(--color-sales); color: #000;">
                 <i class="fas fa-tasks"></i>
@@ -58,7 +59,7 @@
 </div>
 
 <!-- Filters -->
-<div class="card" style="margin-bottom: 20px;">
+<div class="card stagger-item delay-200" style="margin-bottom: 20px;">
     <div class="card-body">
         <form method="get" class="row g-3">
             <div class="col-md-4">
@@ -104,7 +105,7 @@
 </div>
 
 <!-- Tasks List -->
-<div class="card">
+<div class="card stagger-item delay-300 card-animated">
     <div class="card-header" style="border-bottom: 1px solid var(--border-color);">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <h3 class="card-title">Список задач</h3>
@@ -137,7 +138,7 @@
                 </thead>
                 <tbody>
                     {% for task in tasks %}
-                    <tr style="cursor: pointer;" onclick="window.location='{{ path('app_task_show', {'id': task.id}) }}'">
+                    <tr class="hover-lift transition-fast" style="cursor: pointer;" onclick="window.location='{{ path('app_task_show', {'id': task.id}) }}'">
                         <td onclick="event.stopPropagation();">
                             <input type="checkbox" style="width: 18px; height: 18px; cursor: pointer;">
                         </td>
