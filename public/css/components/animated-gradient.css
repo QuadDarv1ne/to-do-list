@@ -142,6 +142,19 @@
     );
 }
 
+/* Зелёная тема */
+[data-theme="green"] .animated-gradient-bg::before,
+[data-theme="green"] .animated-gradient-bg::after {
+    --rainbow: repeating-linear-gradient(
+        100deg,
+        #bbf7d0 10%,
+        #d9f99d 15%,
+        #a7f3d0 20%,
+        #86efac 25%,
+        #bbf7d0 30%
+    );
+}
+
 /* Адаптивность */
 @media (max-width: 768px) {
     .animated-gradient-bg::before {

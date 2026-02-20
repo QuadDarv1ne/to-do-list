@@ -1,0 +1,382 @@
+/**
+ * Sidebar Theme - Green
+ * Зелёная тема для дашборда с боковым меню
+ */
+
+/* CSS Variables */
+:root,
+[data-theme="green"] {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f0fdf4;
+    --bg-tertiary: #dcfce7;
+    --bg-hover: #f7fee7;
+    --bg-card: #ffffff;
+    --bg-elevated: #f0fdf4;
+    
+    --text-primary: #14532d;
+    --text-secondary: #166534;
+    --text-tertiary: #22c55e;
+    --text-muted: #86efac;
+    --text-inverse: #ffffff;
+    
+    --border-primary: #bbf7d0;
+    --border-secondary: #86efac;
+    --border: #bbf7d0;
+    --border-color: #bbf7d0;
+    
+    --bg-input: #ffffff;
+    
+    --color-primary: #22c55e;
+    --color-primary-light: rgba(34, 197, 94, 0.1);
+    --color-primary-rgb: 34, 197, 94;
+    --color-secondary: #16a34a;
+    --color-accent: #16a34a;
+    --color-success: #10b981;
+    --color-success-light: rgba(16, 185, 129, 0.1);
+    --color-success-rgb: 16, 185, 129;
+    --color-warning: #f59e0b;
+    --color-warning-light: rgba(245, 158, 11, 0.1);
+    --color-danger: #ef4444;
+    --color-danger-light: rgba(239, 68, 68, 0.1);
+    --color-danger-rgb: 239, 68, 68;
+    --color-info: #3b82f6;
+    --color-info-rgb: 59, 130, 246;
+    
+    --primary: #22c55e;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    
+    --gradient-primary: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    
+    --shadow: 0 2px 8px rgba(34, 197, 94, 0.08);
+    --shadow-hover: 0 8px 24px rgba(34, 197, 94, 0.12);
+    --shadow-lg: 0 12px 32px rgba(34, 197, 94, 0.15);
+    
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-full: 9999px;
+    
+    --dash-welcome-radius: 20px;
+    --dash-card-radius: 16px;
+    --dash-inner-radius: 12px;
+    --dash-icon-radius: 12px;
+    --dash-fab-size: 56px;
+    
+    --dash-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --dash-transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: 0.2s ease;
+}
+
+/* Sidebar */
+.sidebar {
+    background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-brand {
+    color: #ffffff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-brand:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-brand-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+.sidebar-brand-text {
+    color: #ffffff;
+}
+
+/* Sidebar Navigation */
+.sidebar-nav-item {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.sidebar-nav-item:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+}
+
+.sidebar-nav-item.active {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+}
+
+.sidebar-nav-item.active::before {
+    background: #ffffff;
+}
+
+.sidebar-nav-icon {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.sidebar-nav-item.active .sidebar-nav-icon {
+    color: #ffffff;
+}
+
+.sidebar-nav-badge {
+    background: #ef4444;
+    color: #ffffff;
+}
+
+/* Sidebar Footer */
+.sidebar-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-user {
+    color: #ffffff;
+}
+
+.sidebar-user:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-user-avatar {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.sidebar-user-name {
+    color: #ffffff;
+}
+
+.sidebar-user-role {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Theme Buttons */
+.sidebar-theme-btn {
+    background: rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.sidebar-theme-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+}
+
+.sidebar-theme-btn.active {
+    background: rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+}
+
+/* Sidebar Toggle */
+.sidebar-toggle {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+}
+
+.sidebar-toggle:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+/* Main Content */
+.main-content {
+    background: #f0fdf4;
+}
+
+/* Dashboard Cards */
+.dash-card {
+    background: #ffffff;
+    border: 1px solid #bbf7d0;
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.08);
+}
+
+.dash-card:hover {
+    box-shadow: 0 8px 24px rgba(34, 197, 94, 0.12);
+}
+
+.dash-card-header {
+    border-bottom: 1px solid #bbf7d0;
+    color: #14532d;
+}
+
+.dash-card-title {
+    color: #14532d;
+}
+
+.dash-card-body {
+    color: #166534;
+}
+
+/* Stats Cards */
+.stat-card {
+    background: #ffffff;
+    border: 1px solid #bbf7d0;
+}
+
+.stat-card-icon {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+}
+
+.stat-card-value {
+    color: #14532d;
+}
+
+.stat-card-label {
+    color: #166534;
+}
+
+.stat-card-trend {
+    color: #22c55e;
+}
+
+.stat-card-trend.down {
+    color: #ef4444;
+}
+
+/* Welcome Card */
+.welcome-card {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: #ffffff;
+}
+
+.welcome-card-title {
+    color: #ffffff;
+}
+
+.welcome-card-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Quick Actions */
+.quick-action-btn {
+    background: #ffffff;
+    border: 1px solid #bbf7d0;
+    color: #14532d;
+}
+
+.quick-action-btn:hover {
+    background: #f0fdf4;
+    border-color: #22c55e;
+    color: #22c55e;
+}
+
+.quick-action-icon {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+}
+
+/* FAB Button */
+.fab-button {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+}
+
+.fab-button:hover {
+    box-shadow: 0 6px 16px rgba(34, 197, 94, 0.5);
+}
+
+/* Tables */
+.table {
+    color: #14532d;
+}
+
+.table thead th {
+    background: #f0fdf4;
+    color: #14532d;
+    border-bottom: 2px solid #bbf7d0;
+}
+
+.table tbody tr {
+    border-bottom: 1px solid #bbf7d0;
+}
+
+.table tbody tr:hover {
+    background: #f0fdf4;
+}
+
+/* Badges */
+.badge-primary {
+    background: #22c55e;
+    color: #ffffff;
+}
+
+.badge-success {
+    background: #10b981;
+    color: #ffffff;
+}
+
+.badge-warning {
+    background: #f59e0b;
+    color: #ffffff;
+}
+
+.badge-danger {
+    background: #ef4444;
+    color: #ffffff;
+}
+
+.badge-info {
+    background: #3b82f6;
+    color: #ffffff;
+}
+
+/* Buttons */
+.btn-primary {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    border: none;
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+}
+
+.btn-outline-primary {
+    border-color: #22c55e;
+    color: #22c55e;
+}
+
+.btn-outline-primary:hover {
+    background: #22c55e;
+    color: #ffffff;
+}
+
+/* Forms */
+.form-control:focus {
+    border-color: #22c55e;
+    box-shadow: 0 0 0 0.2rem rgba(34, 197, 94, 0.25);
+}
+
+.form-check-input:checked {
+    background-color: #22c55e;
+    border-color: #22c55e;
+}
+
+/* Progress Bars */
+.progress-bar {
+    background: linear-gradient(90deg, #22c55e, #16a34a);
+}
+
+/* Alerts */
+.alert-primary {
+    background: rgba(34, 197, 94, 0.1);
+    border-color: #22c55e;
+    color: #14532d;
+}
+
+.alert-success {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: #10b981;
+    color: #14532d;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar-thumb {
+    background: #22c55e;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #16a34a;
+}

@@ -5,6 +5,7 @@
 {% block stylesheets %}
     {{ parent() }}
     <link rel="stylesheet" href="{{ asset('css/pages/profile-enhanced.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/components/profile-icons.css') }}">
 {% endblock %}
 
 {% block body %}
@@ -61,13 +62,34 @@
                     </div>
                 </div>
                 
-                <div class="d-flex gap-2 flex-wrap justify-content-center">
-                    <a href="{{ path('app_profile_edit') }}" class="btn btn-primary-modern">
-                        <i class="fas fa-edit me-1"></i>Редактировать
-                    </a>
-                    <a href="{{ path('app_profile_change_password') }}" class="btn btn-outline-secondary-modern">
-                        <i class="fas fa-key me-1"></i>Сменить пароль
-                    </a>
+                <div class="d-flex gap-2 flex-wrap justify-content-center align-items-center">
+                    <!-- Анимированные иконки профиля -->
+                    <ul class="profile-icons-menu horizontal mb-0">
+                        <li class="profile-icon-item" data-color="blue">
+                            <a href="{{ path('app_dashboard') }}">
+                                <i class="fa-solid fa-house"></i>
+                                <span>Главная</span>
+                            </a>
+                        </li>
+                        <li class="profile-icon-item active" data-color="yellow">
+                            <a href="{{ path('app_profile_show') }}">
+                                <i class="fa-solid fa-user"></i>
+                                <span>Профиль</span>
+                            </a>
+                        </li>
+                        <li class="profile-icon-item" data-color="green">
+                            <a href="{{ path('app_profile_edit') }}">
+                                <i class="fa-solid fa-gear"></i>
+                                <span>Настройки</span>
+                            </a>
+                        </li>
+                        <li class="profile-icon-item" data-color="purple">
+                            <a href="{{ path('app_profile_change_password') }}">
+                                <i class="fa-solid fa-key"></i>
+                                <span>Пароль</span>
+                            </a>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>

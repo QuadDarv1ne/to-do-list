@@ -83,7 +83,7 @@ class ThemeManager {
     }
 
     cycleTheme() {
-        const themes = ['light', 'dark', 'orange', 'purple'];
+        const themes = ['light', 'dark', 'orange', 'purple', 'green'];
         const currentIndex = themes.indexOf(this.currentTheme);
         const nextIndex = (currentIndex + 1) % themes.length;
         this.setTheme(themes[nextIndex]);
@@ -145,6 +145,9 @@ class ThemeManager {
                     break;
                 case 'purple':
                     themeColor = '#a855f7';
+                    break;
+                case 'green':
+                    themeColor = '#22c55e';
                     break;
                 case 'dark':
                     themeColor = '#1e293b';

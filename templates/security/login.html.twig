@@ -117,29 +117,40 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Login page loaded');
+    
     // Password toggle with better error handling
     const togglePassword = document.getElementById('togglePassword');
     const passwordInput = document.getElementById('inputPassword');
+    
+    console.log('Toggle button:', togglePassword);
+    console.log('Password input:', passwordInput);
     
     if (togglePassword && passwordInput) {
         togglePassword.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
             
+            console.log('Toggle clicked!');
+            console.log('Current type:', passwordInput.type);
+            
+            const icon = this.querySelector('i');
+            
             // Toggle password visibility
-            const currentType = passwordInput.getAttribute('type');
-            if (currentType === 'password') {
-                passwordInput.setAttribute('type', 'text');
-                this.classList.remove('fa-eye');
-                this.classList.add('fa-eye-slash');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
                 this.setAttribute('title', 'Скрыть пароль');
                 this.setAttribute('aria-label', 'Скрыть пароль');
+                console.log('Changed to text');
             } else {
-                passwordInput.setAttribute('type', 'password');
-                this.classList.remove('fa-eye-slash');
-                this.classList.add('fa-eye');
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
                 this.setAttribute('title', 'Показать пароль');
                 this.setAttribute('aria-label', 'Показать пароль');
+                console.log('Changed to password');
             }
         });
         
@@ -151,8 +162,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Add cursor pointer
-        togglePassword.style.cursor = 'pointer';
+        console.log('Password toggle initialized');
+    } else {
+        console.error('Toggle button or password input not found!');
     }
     
     // Form submission with loading state

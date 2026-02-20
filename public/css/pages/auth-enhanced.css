@@ -275,14 +275,19 @@ body {
     color: var(--text-muted);
     transition: all 0.3s ease;
     font-size: 1.1rem;
-    z-index: 10;
+    z-index: 100;
     user-select: none;
     outline: none;
     border: none;
-    background: none;
-    padding: 5px;
+    background: transparent;
+    padding: 8px;
     -webkit-tap-highlight-color: transparent;
     border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
 }
 
 .password-toggle:focus {
@@ -297,15 +302,19 @@ body {
 
 .password-toggle:hover {
     color: var(--color-primary);
-    transform: translateY(-50%) scale(1.15);
+    background: rgba(var(--color-primary-rgb), 0.1);
 }
 
 .password-toggle:active {
     transform: translateY(-50%) scale(0.95);
 }
 
+.password-toggle i {
+    pointer-events: none;
+}
+
 .password-wrapper .form-control {
-    padding-right: 45px;
+    padding-right: 50px;
 }
 
 /* Убираем outline у иконок Font Awesome */
@@ -712,6 +721,9 @@ a:hover {
     margin-bottom: 1.5rem;
     border: none;
     animation: slideDown 0.5s ease-out;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 @keyframes slideDown {
@@ -725,6 +737,17 @@ a:hover {
     }
 }
 
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
 .alert-danger {
     background: linear-gradient(135deg, #fee 0%, #fdd 100%);
     color: #c33;
@@ -735,6 +758,18 @@ a:hover {
     background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
     color: #92400e;
     border-left: 4px solid var(--color-warning);
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    color: #065f46;
+    border-left: 4px solid var(--color-success);
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    color: #1e40af;
+    border-left: 4px solid var(--color-info);
 }
 
 /* === Loading Spinner === */
@@ -761,13 +796,14 @@ a:hover {
     .reset-card,
     .success-card {
         max-width: 100%;
+        border-radius: 20px;
     }
     
     .auth-body,
     .register-body,
     .reset-body,
     .success-body {
-        padding: 2rem 1.5rem;
+        padding: 1.75rem 1.25rem;
     }
     
     .row {
@@ -779,17 +815,113 @@ a:hover {
     .register-header,
     .reset-header,
     .success-header {
-        padding: 2.5rem 1.5rem;
+        padding: 2rem 1.5rem;
     }
     
     .auth-icon,
     .register-icon,
     .reset-icon {
-        font-size: 3rem;
+        font-size: 2.5rem;
     }
     
     .auth-header h2,
     .register-header h2 {
-        font-size: 1.75rem;
+        font-size: 1.5rem;
+    }
+    
+    .form-control {
+        font-size: 16px; /* Предотвращает zoom на iOS */
+    }
+    
+    .btn-auth,
+    .btn-register,
+    .btn-reset {
+        font-size: 1rem;
+        padding: 0.875rem;
+    }
+}
+
+/* Улучшенная адаптивность для планшетов */
+@media (min-width: 577px) and (max-width: 768px) {
+    .auth-card,
+    .register-container,
+    .reset-card,
+    .success-card {
+        max-width: 480px;
+    }
+}
+
+/* Оптимизация для landscape режима на мобильных */
+@media (max-height: 600px) and (orientation: landscape) {
+    body {
+        padding: 15px 20px;
+    }
+    
+    .auth-header,
+    .register-header,
+    .reset-header,
+    .success-header {
+        padding: 1.5rem 1.5rem;
+    }
+    
+    .auth-icon,
+    .register-icon,
+    .reset-icon,
+    .success-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .auth-header h2,
+    .register-header h2 {
+        font-size: 1.25rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .auth-header p,
+    .register-header p {
+        font-size: 0.8rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Темная тема для системных настроек */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) {
+        --bg-card: rgba(30, 41, 59, 0.95);
+        --text-primary: #f1f5f9;
+        --text-secondary: #cbd5e1;
+        --text-muted: #94a3b8;
+        --border-color: #334155;
+        --bg-input: #1e293b;
+    }
+}
+
+/* Улучшенная доступность */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Высокая контрастность */
+@media (prefers-contrast: high) {
+    .form-control {
+        border-width: 2px;
+    }
+    
+    .btn-auth,
+    .btn-register,
+    .btn-reset {
+        border: 2px solid transparent;
+    }
+    
+    .password-toggle {
+        border: 1px solid var(--border-color);
     }
 }
