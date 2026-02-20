@@ -223,6 +223,40 @@ class PerformanceOptimizerService
     }
 
     /**
+     * Get optimized dashboard statistics for user (from TaskPerformanceOptimizerService)
+     */
+    public function getUserDashboardStats($user, $taskRepository): array
+    {
+        $cacheKey = "dashboard_stats_user_{$user->getId()}";
+
+        return $this->cacheQuery($cacheKey, function () use ($user, $taskRepository) {
+            $repositoryStats = $taskRepository->getDashboardStats($user);
+
+            $stats = [
+                'total_tasks' => $repositoryStats['total_tasks'] ?? $taskRepository->count(['user' => $user]),
+                'completed_tasks' => $repositoryStats['completed_tasks'] ?? $taskRepository->countByStatus($user, null, 'completed'),
+                'pending_tasks' => $repositoryStats['pending_tasks'] ?? $taskRepository->countByStatus($user, null, 'pending'),
+                'in_progress_tasks' => $repositoryStats['in_progress_tasks'] ?? $taskRepository->countByStatus($user, null, 'in_progress'),
+                'last_updated' => date('Y-m-d H:i:s'),
+            ];
+
+            $stats['completion_percentage'] = $stats['total_tasks'] > 0 ?
+                round(($stats['completed_tasks'] / $stats['total_tasks']) * 100, 1) : 0;
+
+            return $stats;
+        }, 300, ['user_dashboard_stats', "user_{$user->getId()}"]);
+    }
+
+    /**
+     * Invalidate dashboard cache for user
+     */
+    public function invalidateUserCache($user): void
+    {
+        $userId = $user->getId();
+        $this->invalidateByTags(["user_{$userId}", 'user_dashboard_stats', 'dashboard']);
+    }
+
+    /**
      * Деструктор для сохранения статистики
      */
     public function __destruct()

@@ -152,6 +152,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Webhook::class, orphanRemoval: true)]
     private Collection $webhooks;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: FilterView::class, orphanRemoval: true)]
+    private Collection $filterViews;
+
     public function __construct()
     {
         $this->tasks = new ArrayCollection();
@@ -166,6 +169,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
         $this->tags = new ArrayCollection();
         $this->articles = new ArrayCollection();
         $this->webhooks = new ArrayCollection();
+        $this->filterViews = new ArrayCollection();
         $this->createdAt = new \DateTime();
     }
 
@@ -959,6 +963,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
             // set the owning side to null (unless already changed)
             if ($webhook->getUser() === $this) {
                 $webhook->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, FilterView>
+     */
+    public function getFilterViews(): Collection
+    {
+        return $this->filterViews;
+    }
+
+    public function addFilterView(FilterView $filterView): static
+    {
+        if (!$this->filterViews->contains($filterView)) {
+            $this->filterViews->add($filterView);
+            $filterView->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFilterView(FilterView $filterView): static
+    {
+        if ($this->filterViews->removeElement($filterView)) {
+            // set the owning side to null (unless already changed)
+            if ($filterView->getUser() === $this) {
+                $filterView->setUser(null);
             }
         }
 

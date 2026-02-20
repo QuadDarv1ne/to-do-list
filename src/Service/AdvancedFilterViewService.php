@@ -2,31 +2,38 @@
 
 namespace App\Service;
 
+use App\Entity\FilterView;
 use App\Entity\User;
+use App\Repository\FilterViewRepository;
 use App\Repository\TaskRepository;
+use Doctrine\ORM\EntityManagerInterface;
 
 class AdvancedFilterViewService
 {
     public function __construct(
         private TaskRepository $taskRepository,
+        private FilterViewRepository $filterViewRepository,
+        private EntityManagerInterface $em,
     ) {
     }
 
     /**
      * Create custom view
      */
-    public function createCustomView(string $name, array $filters, array $columns, User $user): array
+    public function createCustomView(string $name, array $filters, array $columns, User $user, ?array $sort = null, ?string $groupBy = null, ?string $icon = null): FilterView
     {
-        // TODO: Save to database
-        return [
-            'id' => uniqid(),
-            'name' => $name,
-            'filters' => $filters,
-            'columns' => $columns,
-            'user_id' => $user->getId(),
-            'is_default' => false,
-            'created_at' => new \DateTime(),
-        ];
+        $filterView = new FilterView();
+        $filterView->setName($name);
+        $filterView->setFilters($filters);
+        $filterView->setColumns($columns);
+        $filterView->setSort($sort);
+        $filterView->setGroupBy($groupBy);
+        $filterView->setIcon($icon ?? 'fa-filter');
+        $filterView->setUser($user);
+
+        $this->filterViewRepository->save($filterView);
+
+        return $filterView;
     }
 
     /**
@@ -34,8 +41,27 @@ class AdvancedFilterViewService
      */
     public function getUserViews(User $user): array
     {
-        // TODO: Get from database
-        return $this->getDefaultViews();
+        $views = [];
+        
+        // Добавляем стандартные views
+        $views = $this->getDefaultViews();
+        
+        // Добавляем пользовательские views из БД
+        $userViews = $this->filterViewRepository->findByUser($user);
+        foreach ($userViews as $view) {
+            $views['custom_' . $view->getId()] = [
+                'name' => $view->getName(),
+                'icon' => $view->getIcon() ?? 'fa-filter',
+                'filters' => $view->getFilters(),
+                'columns' => $view->getColumns(),
+                'sort' => $view->getSort() ?? ['createdAt' => 'DESC'],
+                'group_by' => $view->getGroupBy(),
+                'is_custom' => true,
+                'id' => $view->getId(),
+            ];
+        }
+        
+        return $views;
     }
 
     /**
@@ -260,25 +286,76 @@ class AdvancedFilterViewService
     /**
      * Update view
      */
-    public function updateView(int $viewId, array $data): void
+    public function updateView(int $viewId, array $data, User $user): ?FilterView
     {
-        // TODO: Update in database
+        $view = $this->filterViewRepository->findOneByUserAndId($user, $viewId);
+        
+        if (!$view) {
+            return null;
+        }
+
+        if (isset($data['name'])) {
+            $view->setName($data['name']);
+        }
+        if (isset($data['filters'])) {
+            $view->setFilters($data['filters']);
+        }
+        if (isset($data['columns'])) {
+            $view->setColumns($data['columns']);
+        }
+        if (isset($data['sort'])) {
+            $view->setSort($data['sort']);
+        }
+        if (isset($data['group_by'])) {
+            $view->setGroupBy($data['group_by']);
+        }
+        if (isset($data['icon'])) {
+            $view->setIcon($data['icon']);
+        }
+
+        $this->filterViewRepository->save($view);
+
+        return $view;
     }
 
     /**
      * Delete view
      */
-    public function deleteView(int $viewId): void
+    public function deleteView(int $viewId, User $user): bool
     {
-        // TODO: Delete from database
+        $view = $this->filterViewRepository->findOneByUserAndId($user, $viewId);
+        
+        if (!$view) {
+            return false;
+        }
+
+        $this->filterViewRepository->remove($view);
+
+        return true;
     }
 
     /**
      * Set default view
      */
-    public function setDefaultView(int $viewId, User $user): void
+    public function setDefaultView(int $viewId, User $user): bool
     {
-        // TODO: Update in database
+        // Сбрасываем все default view у пользователя
+        $currentDefault = $this->filterViewRepository->findDefaultView($user);
+        if ($currentDefault) {
+            $currentDefault->setIsDefault(false);
+            $this->filterViewRepository->save($currentDefault);
+        }
+
+        // Устанавливаем новый default view
+        $view = $this->filterViewRepository->findOneByUserAndId($user, $viewId);
+        if (!$view) {
+            return false;
+        }
+
+        $view->setIsDefault(true);
+        $this->filterViewRepository->save($view);
+
+        return true;
     }
 
     /**
@@ -286,7 +363,21 @@ class AdvancedFilterViewService
      */
     public function getDefaultView(User $user): ?array
     {
-        // TODO: Get from database
+        $defaultView = $this->filterViewRepository->findDefaultView($user);
+        
+        if ($defaultView) {
+            return [
+                'name' => $defaultView->getName(),
+                'icon' => $defaultView->getIcon() ?? 'fa-filter',
+                'filters' => $defaultView->getFilters(),
+                'columns' => $defaultView->getColumns(),
+                'sort' => $defaultView->getSort() ?? ['createdAt' => 'DESC'],
+                'group_by' => $defaultView->getGroupBy(),
+                'is_custom' => true,
+                'id' => $defaultView->getId(),
+            ];
+        }
+        
         return $this->getDefaultViews()['all_tasks'];
     }
 
