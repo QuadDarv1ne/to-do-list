@@ -3,26 +3,40 @@
 namespace App\Service;
 
 use App\Entity\Task;
+use App\Entity\User;
 use App\Repository\TaskRepository;
+use App\Repository\UserRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class AIAssistantService
 {
     public function __construct(
         private TaskRepository $taskRepository,
+        private UserRepository $userRepository,
+        private EntityManagerInterface $em,
+        private HttpClientInterface $httpClient,
     ) {
     }
 
     /**
      * Suggest title based on description
-     * TODO: Интеграция с AI API для улучшения предложений
-     * - Использовать OpenAI API или локальную LLM модель
-     * - Анализировать контекст проекта и категории
-     * - Учитывать стиль названий задач пользователя
-     * - Поддержка разных языков (русский, английский)
-     * - Кэширование частых паттернов
      */
-    public function suggestTitle(string $description): array
+    public function suggestTitle(string $description, ?string $context = null): array
     {
+        // Пробуем использовать AI если доступен
+        if ($this->isAIAvailable()) {
+            $aiSuggestions = $this->getAISuggestions($description, 'title');
+            if (!empty($aiSuggestions)) {
+                return [
+                    'suggestions' => $aiSuggestions,
+                    'confidence' => 0.9,
+                    'source' => 'ai',
+                ];
+            }
+        }
+
+        // Fallback на keyword-based подход
         $keywords = $this->extractKeywords($description);
 
         return [
@@ -31,8 +45,55 @@ class AIAssistantService
                 $this->generateTitle($keywords, 'feature'),
                 $this->generateTitle($keywords, 'fix'),
             ],
-            'confidence' => 0.85,
+            'confidence' => 0.7,
+            'source' => 'keywords',
         ];
+    }
+
+    /**
+     * Check if AI API is available
+     */
+    private function isAIAvailable(): bool
+    {
+        // Проверяем наличие API ключа в .env
+        return !empty($_ENV['OPENAI_API_KEY'] ?? false);
+    }
+
+    /**
+     * Get suggestions from AI API
+     */
+    private function getAISuggestions(string $input, string $type): array
+    {
+        if (!$this->isAIAvailable()) {
+            return [];
+        }
+
+        try {
+            $prompt = match($type) {
+                'title' => "Generate 3 concise task titles (max 5 words each) based on: $input",
+                'description' => "Generate a structured task description for: $input",
+                default => "Analyze: $input",
+            };
+
+            $response = $this->httpClient->request('POST', 'https://api.openai.com/v1/completions', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $_ENV['OPENAI_API_KEY'],
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => [
+                    'model' => 'gpt-3.5-turbo',
+                    'messages' => [['role' => 'user', 'content' => $prompt]],
+                    'max_tokens' => 100,
+                ],
+                'timeout' => 5,
+            ]);
+
+            $data = $response->toArray();
+            
+            return explode("\n", $data['choices'][0]['message']['content'] ?? '');
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     /**
@@ -104,16 +165,10 @@ class AIAssistantService
 
     /**
      * Suggest assignee based on task content and workload
-     * TODO: Улучшить алгоритм подбора исполнителя
-     * - Анализировать текущую загрузку пользователей
-     * - Учитывать навыки (skills) пользователей
-     * - Анализировать историю выполнения похожих задач
-     * - Machine Learning модель для предсказания лучшего исполнителя
-     * - Учитывать часовые пояса и доступность
      */
     public function suggestAssignee(Task $task): array
     {
-        // Get all users who have completed similar tasks
+        // Получаем ключевые слова из задачи
         $keywords = $this->extractKeywords($task->getTitle() . ' ' . $task->getDescription());
 
         if (empty($keywords)) {
@@ -124,31 +179,117 @@ class AIAssistantService
             ];
         }
 
-        // Find users with experience in similar tasks
-        $qb = $this->taskRepository->createQueryBuilder('t')
-            ->select('IDENTITY(t.assignedTo) as user_id, COUNT(t.id) as task_count')
-            ->where('t.assignedTo IS NOT NULL')
-            ->andWhere('t.status = :status')
-            ->setParameter('status', 'completed')
-            ->groupBy('t.assignedTo')
-            ->orderBy('task_count', 'DESC')
-            ->setMaxResults(1);
+        // Анализируем загрузку пользователей
+        $users = $this->userRepository->findAll();
+        $userScores = [];
 
-        $result = $qb->getQuery()->getOneOrNullResult();
+        foreach ($users as $user) {
+            $score = 0;
+            
+            // Получаем статистику пользователя
+            $userStats = $this->getUserStats($user);
+            
+            // Учитываем опыт выполнения похожих задач
+            $similarTasks = $this->getSimilarTasksCount($user, $keywords);
+            $score += $similarTasks * 10;
+            
+            // Учитываем текущую загрузку (меньше задач = выше приоритет)
+            $activeTasks = $userStats['active_tasks'] ?? 0;
+            $score += max(0, 20 - $activeTasks * 2);
+            
+            // Учитываем успешность выполнения
+            $completionRate = $userStats['completion_rate'] ?? 50;
+            $score += $completionRate / 10;
 
-        if ($result && $result['user_id']) {
+            $userScores[$user->getId()] = [
+                'user' => $user,
+                'score' => $score,
+            ];
+        }
+
+        // Сортируем по убыванию scores
+        usort($userScores, fn ($a, $b) => $b['score'] <=> $a['score']);
+
+        if (!empty($userScores) && $userScores[0]['score'] > 0) {
+            $bestUser = $userScores[0]['user'];
             return [
-                'user_id' => $result['user_id'],
-                'confidence' => 0.75,
-                'reason' => 'Пользователь имеет опыт выполнения похожих задач',
+                'user_id' => $bestUser->getId(),
+                'confidence' => min(0.9, $userScores[0]['score'] / 50),
+                'reason' => sprintf(
+                    'Лучший кандидат: %d похожих задач, %d активных, %.1f%% завершений',
+                    $similarTasks ?? 0,
+                    $activeTasks ?? 0,
+                    $completionRate ?? 0
+                ),
             ];
         }
 
         return [
             'user_id' => null,
             'confidence' => 0.0,
-            'reason' => 'Нет данных о выполненных задачах',
+            'reason' => 'Нет подходящих кандидатов',
         ];
+    }
+
+    /**
+     * Get user statistics
+     */
+    private function getUserStats(User $user): array
+    {
+        $qb = $this->em->createQueryBuilder();
+        
+        // Активные задачи
+        $active = (int) $qb->select('COUNT(t.id)')
+            ->from(\App\Entity\Task::class, 't')
+            ->where('t.assignedUser = :user')
+            ->andWhere('t.status != :completed')
+            ->setParameter('user', $user)
+            ->setParameter('completed', 'completed')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // Завершённые задачи
+        $completed = (int) $qb->select('COUNT(t.id)')
+            ->from(\App\Entity\Task::class, 't')
+            ->where('t.assignedUser = :user')
+            ->andWhere('t.status = :completed')
+            ->setParameter('user', $user)
+            ->setParameter('completed', 'completed')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $total = $active + $completed;
+        $completionRate = $total > 0 ? ($completed / $total) * 100 : 0;
+
+        return [
+            'active_tasks' => $active,
+            'completed_tasks' => $completed,
+            'completion_rate' => $completionRate,
+        ];
+    }
+
+    /**
+     * Get count of similar tasks for user
+     */
+    private function getSimilarTasksCount(User $user, array $keywords): int
+    {
+        if (empty($keywords)) {
+            return 0;
+        }
+
+        $qb = $this->em->createQueryBuilder();
+        $pattern = '%' . implode('%', array_slice($keywords, 0, 2)) . '%';
+        
+        return (int) $qb->select('COUNT(t.id)')
+            ->from(\App\Entity\Task::class, 't')
+            ->where('t.assignedUser = :user')
+            ->andWhere('t.status = :completed')
+            ->andWhere('(t.title LIKE :pattern OR t.description LIKE :pattern)')
+            ->setParameter('user', $user)
+            ->setParameter('completed', 'completed')
+            ->setParameter('pattern', $pattern)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     /**
@@ -373,18 +514,32 @@ class AIAssistantService
 
     /**
      * Predict completion time
-     * TODO: Улучшить предсказание времени выполнения
-     * - Анализировать историю выполнения похожих задач
-     * - Учитывать сложность на основе количества подзадач
-     * - Факторы: приоритет, категория, исполнитель
-     * - Machine Learning модель для точных предсказаний
-     * - Учитывать текущую загрузку команды
      */
     public function predictCompletionTime(Task $task): array
     {
         $complexity = $this->estimateComplexity($task);
+        
+        // Получаем среднее время выполнения похожих задач
+        $avgTime = $this->getAverageCompletionTime($task);
+        
+        // Учитываем приоритет (срочные задачи делаются быстрее)
+        $priorityFactor = match($task->getPriority()) {
+            'urgent' => 0.7,
+            'high' => 0.85,
+            'medium' => 1.0,
+            'low' => 1.2,
+            default => 1.0
+        };
 
-        $hours = match($complexity) {
+        // Учитываем загрузку исполнителя
+        $workloadFactor = 1.0;
+        if ($task->getAssignedUser()) {
+            $stats = $this->getUserStats($task->getAssignedUser());
+            $activeTasks = $stats['active_tasks'] ?? 0;
+            $workloadFactor = 1.0 + ($activeTasks * 0.1); // +10% за каждую активную задачу
+        }
+
+        $baseHours = match($complexity) {
             'simple' => 2,
             'medium' => 8,
             'complex' => 24,
@@ -392,10 +547,47 @@ class AIAssistantService
             default => 8
         };
 
+        // Используем среднее время если оно есть
+        if ($avgTime > 0) {
+            $baseHours = $avgTime;
+        }
+
+        $estimatedHours = $baseHours * $priorityFactor * $workloadFactor;
+
         return [
-            'estimated_hours' => $hours,
-            'estimated_days' => ceil($hours / 8),
-            'confidence' => 0.6,
+            'estimated_hours' => round($estimatedHours, 1),
+            'estimated_days' => ceil($estimatedHours / 8),
+            'confidence' => $avgTime > 0 ? 0.8 : 0.6,
+            'factors' => [
+                'complexity' => $complexity,
+                'priority_factor' => $priorityFactor,
+                'workload_factor' => round($workloadFactor, 2),
+                'historical_avg' => round($avgTime, 1),
+            ],
         ];
+    }
+
+    /**
+     * Get average completion time for similar tasks
+     */
+    private function getAverageCompletionTime(Task $task): float
+    {
+        $qb = $this->em->createQueryBuilder();
+        
+        $qb->select('AVG(t.completedAt - t.createdAt) as avg_time')
+            ->from(\App\Entity\Task::class, 't')
+            ->where('t.status = :completed')
+            ->andWhere('t.category = :category')
+            ->setParameter('completed', 'completed')
+            ->setParameter('category', $task->getCategory());
+        
+        $result = $qb->getQuery()->getOneOrNullResult();
+        
+        if ($result && $result['avg_time']) {
+            // Конвертируем секунды в часы
+            return (float) ($result['avg_time'] / 3600);
+        }
+        
+        return 0;
     }
 }

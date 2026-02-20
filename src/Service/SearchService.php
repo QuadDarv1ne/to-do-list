@@ -2,11 +2,14 @@
 
 namespace App\Service;
 
+use App\Entity\SavedSearch;
 use App\Entity\User;
 use App\Repository\CommentRepository;
+use App\Repository\SavedSearchRepository;
 use App\Repository\TagRepository;
 use App\Repository\TaskRepository;
 use App\Repository\UserRepository;
+use Doctrine\ORM\EntityManagerInterface;
 
 class SearchService
 {
@@ -15,6 +18,8 @@ class SearchService
         private CommentRepository $commentRepository,
         private UserRepository $userRepository,
         private TagRepository $tagRepository,
+        private SavedSearchRepository $savedSearchRepository,
+        private EntityManagerInterface $em,
     ) {
     }
 
@@ -337,15 +342,17 @@ class SearchService
     /**
      * Save search query
      */
-    public function saveSearch(string $name, array $filters, User $user): array
+    public function saveSearch(string $name, array $filters, User $user, ?array $columns = null): SavedSearch
     {
-        // TODO: Save to database
-        return [
-            'name' => $name,
-            'filters' => $filters,
-            'user_id' => $user->getId(),
-            'created_at' => new \DateTime(),
-        ];
+        $savedSearch = new SavedSearch();
+        $savedSearch->setName($name);
+        $savedSearch->setFilters($filters);
+        $savedSearch->setColumns($columns);
+        $savedSearch->setUser($user);
+
+        $this->savedSearchRepository->save($savedSearch);
+
+        return $savedSearch;
     }
 
     /**
@@ -353,7 +360,20 @@ class SearchService
      */
     public function getSavedSearches(User $user): array
     {
-        // TODO: Get from database
-        return [];
+        $searches = $this->savedSearchRepository->findByUser($user);
+        $result = [];
+        
+        foreach ($searches as $search) {
+            $result[] = [
+                'id' => $search->getId(),
+                'name' => $search->getName(),
+                'filters' => $search->getFilters(),
+                'columns' => $search->getColumns(),
+                'is_default' => $search->isDefault(),
+                'created_at' => $search->getCreatedAt()->format('Y-m-d H:i:s'),
+            ];
+        }
+        
+        return $result;
     }
 }

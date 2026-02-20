@@ -285,8 +285,16 @@ class RecurringTaskService
     public function deleteRecurring(TaskRecurrence $recurrence, bool $deleteCreatedTasks = false): bool
     {
         if ($deleteCreatedTasks) {
-            // TODO: Find and delete all tasks created from this recurrence
-            // This would require tracking parent recurrence in Task entity
+            // Находим и удаляем все задачи, созданные из этой периодической задачи
+            $tasks = $this->taskRepository->createQueryBuilder('t')
+                ->where('t.recurrence = :recurrence')
+                ->setParameter('recurrence', $recurrence)
+                ->getQuery()
+                ->getResult();
+
+            foreach ($tasks as $task) {
+                $this->entityManager->remove($task);
+            }
         }
 
         $this->entityManager->remove($recurrence);
@@ -294,6 +302,7 @@ class RecurringTaskService
 
         $this->logger->info('Recurring task deleted', [
             'recurrence_id' => $recurrence->getId(),
+            'deleted_tasks_count' => $deleteCreatedTasks ? \count($tasks) : 0,
         ]);
 
         return true;

@@ -3,8 +3,10 @@
 namespace App\Service;
 
 use App\Entity\Task;
+use App\Entity\TaskTemplate as TaskTemplateEntity;
 use App\Entity\User;
 use App\Repository\TaskRepository;
+use App\Repository\TaskTemplateRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
 class TemplateService
@@ -12,6 +14,7 @@ class TemplateService
     public function __construct(
         private TaskRepository $taskRepository,
         private EntityManagerInterface $entityManager,
+        private TaskTemplateRepository $templateRepository,
     ) {
     }
 
@@ -42,16 +45,47 @@ class TemplateService
     /**
      * Save task as template
      */
-    public function saveAsTemplate(Task $task, string $templateName): array
+    public function saveAsTemplate(Task $task, string $templateName, User $user): TaskTemplateEntity
     {
-        return [
-            'name' => $templateName,
+        $template = new TaskTemplateEntity();
+        $template->setName($templateName);
+        $template->setCategory($task->getCategory()?->getName());
+        $template->setIcon('fa-file');
+        $template->setUser($user);
+        $template->setTemplateData([
             'title' => $task->getTitle(),
             'description' => $task->getDescription(),
             'priority' => $task->getPriority(),
             'category_id' => $task->getCategory()?->getId(),
             'tags' => array_map(fn ($tag) => $tag->getName(), $task->getTags()->toArray()),
-        ];
+        ]);
+
+        $this->templateRepository->save($template);
+
+        return $template;
+    }
+
+    /**
+     * Get user templates
+     */
+    public function getUserTemplates(User $user): array
+    {
+        $templates = $this->templateRepository->findByUser($user);
+        $result = [];
+        
+        foreach ($templates as $template) {
+            $result[] = [
+                'id' => $template->getId(),
+                'name' => $template->getName(),
+                'icon' => $template->getIcon() ?? 'fa-file',
+                'category' => $template->getCategory(),
+                'template' => $template->getTemplateData(),
+                'usage_count' => $template->getUsageCount(),
+                'created_at' => $template->getCreatedAt()->format('Y-m-d H:i:s'),
+            ];
+        }
+        
+        return $result;
     }
 
     /**
@@ -120,16 +154,6 @@ class TemplateService
     }
 
     /**
-     * Get user templates
-     */
-    public function getUserTemplates(User $user): array
-    {
-        // TODO: Implement user templates storage in database
-        // For now, return empty array
-        return [];
-    }
-
-    /**
      * Apply template to existing task
      */
     public function applyTemplate(Task $task, array $template): Task
@@ -166,13 +190,31 @@ class TemplateService
      */
     public function getTemplateStats(): array
     {
-        $templates = $this->getPredefinedTemplates();
+        $predefined = \count($this->getPredefinedTemplates());
+        
+        // Получаем количество пользовательских шаблонов
+        $qb = $this->entityManager->createQueryBuilder();
+        $userCreated = (int) $qb->select('COUNT(t.id)')
+            ->from(TaskTemplateEntity::class, 't')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // Получаем самые используемые шаблоны
+        $mostUsed = $this->templateRepository->findPopular(5);
+        $mostUsedList = [];
+        foreach ($mostUsed as $template) {
+            $mostUsedList[] = [
+                'id' => $template->getId(),
+                'name' => $template->getName(),
+                'usage_count' => $template->getUsageCount(),
+            ];
+        }
 
         return [
-            'total_templates' => \count($templates),
-            'predefined' => \count($templates),
-            'user_created' => 0, // TODO: Implement
-            'most_used' => [], // TODO: Implement
+            'total_templates' => $predefined + $userCreated,
+            'predefined' => $predefined,
+            'user_created' => $userCreated,
+            'most_used' => $mostUsedList,
         ];
     }
 }

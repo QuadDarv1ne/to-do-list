@@ -74,23 +74,34 @@ class SettingsController extends AbstractController
      * Update notification preferences
      */
     #[Route('/notifications', name: 'app_settings_notifications', methods: ['POST'])]
-    public function updateNotifications(Request $request): JsonResponse
-    {
+    public function updateNotifications(
+        Request $request,
+        \App\Service\NotificationPreferenceService $preferenceService
+    ): JsonResponse {
         $data = json_decode($request->getContent(), true);
+        $user = $this->getUser();
 
-        // TODO: Save to user preferences
+        // Сохраняем настройки в БД
         $preferences = [
-            'email_notifications' => $data['email_notifications'] ?? true,
-            'push_notifications' => $data['push_notifications'] ?? true,
-            'deadline_reminders' => $data['deadline_reminders'] ?? true,
-            'task_assignments' => $data['task_assignments'] ?? true,
+            'email' => [
+                'enabled' => $data['email_notifications'] ?? true,
+                'task_assigned' => $data['task_assignments'] ?? true,
+                'deadline_reminder' => $data['deadline_reminders'] ?? true,
+            ],
+            'push' => [
+                'enabled' => $data['push_notifications'] ?? true,
+            ],
+            'in_app' => [
+                'enabled' => true,
+            ],
         ];
 
-        $request->getSession()->set('notification_preferences', $preferences);
+        $preferenceService->updatePreferences($user, $preferences);
 
         return $this->json([
             'success' => true,
             'message' => 'Настройки уведомлений сохранены',
+            'preferences' => $preferences,
         ]);
     }
 

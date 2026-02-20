@@ -124,7 +124,26 @@
         </div>
     </div>
     
-    <div class="table-container">
+    <div class="table-container" id="tasksContainer">
+        {# Skeleton loader (показывается при загрузке) #}
+        <div id="tasksLoader" class="skeleton-task-list" style="display: none;">
+            {% for i in 1..5 %}
+            <div class="skeleton-task-item">
+                <div class="skeleton skeleton-task-checkbox"></div>
+                <div class="skeleton-task-content">
+                    <div class="skeleton skeleton-text long"></div>
+                    <div class="skeleton skeleton-text medium"></div>
+                    <div class="skeleton-task-meta">
+                        <div class="skeleton skeleton-text short" style="width: 80px;"></div>
+                        <div class="skeleton skeleton-text short" style="width: 100px;"></div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {# Actual content #}
+        <div id="tasksContent">
         {% if tasks is not empty %}
             <table>
                 <thead>
@@ -240,7 +259,31 @@
                 </a>
             </div>
         {% endif %}
+        </div>
     </div>
 </div>
 </div>
+
+{# JavaScript для демонстрации skeleton loader #}
+<script>
+// Пример использования skeleton loader при AJAX загрузке
+function loadTasksWithSkeleton() {
+    const loader = document.getElementById('tasksLoader');
+    const content = document.getElementById('tasksContent');
+    
+    // Показываем skeleton
+    loader.style.display = 'flex';
+    content.style.display = 'none';
+    
+    // Имитация загрузки (в реальном приложении здесь будет fetch)
+    setTimeout(() => {
+        loader.style.display = 'none';
+        content.style.display = 'block';
+        content.classList.add('skeleton-loaded');
+    }, 1000);
+}
+
+// Можно вызвать при фильтрации или обновлении списка
+// loadTasksWithSkeleton();
+</script>
 {% endblock %}

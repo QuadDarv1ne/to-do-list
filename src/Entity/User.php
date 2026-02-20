@@ -161,6 +161,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: TaskTemplate::class, orphanRemoval: true)]
     private Collection $taskTemplates;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: UserDevice::class, orphanRemoval: true)]
+    private Collection $userDevices;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: SavedSearch::class, orphanRemoval: true)]
+    private Collection $savedSearches;
+
+    #[ORM\OneToMany(mappedBy: 'mentionedUser', targetEntity: Mention::class, orphanRemoval: true)]
+    private Collection $mentions;
+
     public function __construct()
     {
         $this->tasks = new ArrayCollection();
@@ -177,6 +186,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
         $this->webhooks = new ArrayCollection();
         $this->filterViews = new ArrayCollection();
         $this->taskTemplates = new ArrayCollection();
+        $this->userDevices = new ArrayCollection();
+        $this->savedSearches = new ArrayCollection();
+        $this->mentions = new ArrayCollection();
         $this->createdAt = new \DateTime();
     }
 
@@ -1041,6 +1053,92 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
         if ($this->taskTemplates->removeElement($template)) {
             if ($template->getUser() === $this) {
                 $template->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, UserDevice>
+     */
+    public function getUserDevices(): \Doctrine\Common\Collections\Collection
+    {
+        return $this->userDevices;
+    }
+
+    public function addUserDevice(UserDevice $device): static
+    {
+        if (!$this->userDevices->contains($device)) {
+            $this->userDevices->add($device);
+            $device->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUserDevice(UserDevice $device): static
+    {
+        if ($this->userDevices->removeElement($device)) {
+            if ($device->getUser() === $this) {
+                $device->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, SavedSearch>
+     */
+    public function getSavedSearches(): \Doctrine\Common\Collections\Collection
+    {
+        return $this->savedSearches;
+    }
+
+    public function addSavedSearch(SavedSearch $search): static
+    {
+        if (!$this->savedSearches->contains($search)) {
+            $this->savedSearches->add($search);
+            $search->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSavedSearch(SavedSearch $search): static
+    {
+        if ($this->savedSearches->removeElement($search)) {
+            if ($search->getUser() === $this) {
+                $search->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Mention>
+     */
+    public function getMentions(): \Doctrine\Common\Collections\Collection
+    {
+        return $this->mentions;
+    }
+
+    public function addMention(Mention $mention): static
+    {
+        if (!$this->mentions->contains($mention)) {
+            $this->mentions->add($mention);
+        }
+
+        return $this;
+    }
+
+    public function removeMention(Mention $mention): static
+    {
+        if ($this->mentions->removeElement($mention)) {
+            if ($mention->getMentionedUser() === $this) {
+                $mention->setMentionedUser(null);
             }
         }
 

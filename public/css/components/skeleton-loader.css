@@ -1,0 +1,392 @@
+/**
+ * Skeleton Loader Component
+ * Универсальные скелетоны загрузки для всех компонентов
+ */
+
+/* ============================================
+   BASE SKELETON STYLES
+   ============================================ */
+
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        var(--skeleton-base, #e2e8f0) 0%,
+        var(--skeleton-highlight, #f1f5f9) 50%,
+        var(--skeleton-base, #e2e8f0) 100%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+    border-radius: var(--radius, 0.375rem);
+    position: relative;
+    overflow: hidden;
+}
+
+.skeleton::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.6) 50%,
+        transparent 100%
+    );
+    animation: skeleton-shimmer 2s ease-in-out infinite;
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+@keyframes skeleton-shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* Dark theme support */
+[data-theme="dark"] .skeleton,
+[data-theme="purple"] .skeleton,
+[data-theme="orange"] .skeleton {
+    --skeleton-base: #1e293b;
+    --skeleton-highlight: #334155;
+}
+
+/* ============================================
+   SKELETON VARIANTS
+   ============================================ */
+
+/* Text skeleton */
+.skeleton-text {
+    height: 1em;
+    margin-bottom: 0.5em;
+    border-radius: 0.25rem;
+}
+
+.skeleton-text.short {
+    width: 40%;
+}
+
+.skeleton-text.medium {
+    width: 60%;
+}
+
+.skeleton-text.long {
+    width: 80%;
+}
+
+.skeleton-text.full {
+    width: 100%;
+}
+
+/* Heading skeleton */
+.skeleton-heading {
+    height: 1.5em;
+    margin-bottom: 0.75em;
+    border-radius: 0.375rem;
+}
+
+.skeleton-heading.h1 {
+    height: 2.5em;
+    width: 70%;
+}
+
+.skeleton-heading.h2 {
+    height: 2em;
+    width: 60%;
+}
+
+.skeleton-heading.h3 {
+    height: 1.75em;
+    width: 50%;
+}
+
+/* Avatar skeleton */
+.skeleton-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.skeleton-avatar.small {
+    width: 32px;
+    height: 32px;
+}
+
+.skeleton-avatar.large {
+    width: 64px;
+    height: 64px;
+}
+
+.skeleton-avatar.xl {
+    width: 96px;
+    height: 96px;
+}
+
+/* Button skeleton */
+.skeleton-button {
+    height: 40px;
+    width: 120px;
+    border-radius: 0.5rem;
+}
+
+.skeleton-button.small {
+    height: 32px;
+    width: 80px;
+}
+
+.skeleton-button.large {
+    height: 48px;
+    width: 160px;
+}
+
+.skeleton-button.full {
+    width: 100%;
+}
+
+/* Card skeleton */
+.skeleton-card {
+    padding: 1.5rem;
+    border-radius: var(--radius-lg, 0.75rem);
+    background: var(--bg-card, #ffffff);
+    border: 1px solid var(--border-primary, #e2e8f0);
+}
+
+.skeleton-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.skeleton-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.skeleton-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-primary, #e2e8f0);
+}
+
+/* Image skeleton */
+.skeleton-image {
+    width: 100%;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    border-radius: var(--radius, 0.375rem);
+}
+
+.skeleton-image.square {
+    padding-bottom: 100%;
+}
+
+.skeleton-image.portrait {
+    padding-bottom: 133.33%; /* 3:4 aspect ratio */
+}
+
+/* ============================================
+   SKELETON LAYOUTS
+   ============================================ */
+
+/* Task list skeleton */
+.skeleton-task-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.skeleton-task-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--bg-card, #ffffff);
+    border-radius: var(--radius-lg, 0.75rem);
+    border: 1px solid var(--border-primary, #e2e8f0);
+}
+
+.skeleton-task-checkbox {
+    width: 20px;
+    height: 20px;
+    border-radius: 0.25rem;
+    flex-shrink: 0;
+}
+
+.skeleton-task-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.skeleton-task-meta {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+/* Dashboard skeleton */
+.skeleton-dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.skeleton-stat-card {
+    padding: 1.5rem;
+    background: var(--bg-card, #ffffff);
+    border-radius: var(--radius-lg, 0.75rem);
+    border: 1px solid var(--border-primary, #e2e8f0);
+}
+
+.skeleton-stat-value {
+    height: 2.5rem;
+    width: 60%;
+    margin-bottom: 0.5rem;
+}
+
+.skeleton-stat-label {
+    height: 1rem;
+    width: 40%;
+}
+
+/* Table skeleton */
+.skeleton-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.skeleton-table-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-primary, #e2e8f0);
+}
+
+.skeleton-table-cell {
+    height: 1.25rem;
+}
+
+/* ============================================
+   LOADING STATES
+   ============================================ */
+
+.loading-container {
+    position: relative;
+    min-height: 200px;
+}
+
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    backdrop-filter: blur(2px);
+}
+
+[data-theme="dark"] .loading-overlay,
+[data-theme="purple"] .loading-overlay,
+[data-theme="orange"] .loading-overlay {
+    background: rgba(15, 23, 42, 0.8);
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--border-primary, #e2e8f0);
+    border-top-color: var(--primary, #6366f1);
+    border-radius: 50%;
+    animation: spinner-rotate 0.8s linear infinite;
+}
+
+@keyframes spinner-rotate {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ============================================
+   PULSE ANIMATION (alternative)
+   ============================================ */
+
+.skeleton-pulse {
+    animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+    .skeleton-dashboard {
+        grid-template-columns: 1fr;
+    }
+
+    .skeleton-card {
+        padding: 1rem;
+    }
+
+    .skeleton-task-item {
+        padding: 0.75rem;
+    }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+.skeleton-hide {
+    display: none;
+}
+
+.skeleton-show {
+    display: block;
+}
+
+/* Fade in content when loaded */
+.skeleton-loaded {
+    animation: skeleton-fade-in 0.3s ease-in;
+}
+
+@keyframes skeleton-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

@@ -4,9 +4,17 @@ namespace App\Service;
 
 use App\Entity\Task;
 use App\Entity\User;
+use App\Repository\TaskRepository;
+use Doctrine\ORM\EntityManagerInterface;
 
 class TaskPriorityCalculatorService
 {
+    public function __construct(
+        private EntityManagerInterface $em,
+        private TaskRepository $taskRepository,
+    ) {
+    }
+
     /**
      * Calculate smart priority score for task
      */
@@ -49,11 +57,27 @@ class TaskPriorityCalculatorService
             default => 0
         };
 
-        // Has dependencies
-        // TODO: Check if other tasks depend on this
-        // $score += count($dependents) * 10;
+        // Has dependencies - check if other tasks depend on this
+        $dependents = $this->getDependentTasks($task);
+        $score += \count($dependents) * 10;
 
         return min(200, $score); // Cap at 200
+    }
+
+    /**
+     * Get tasks that depend on this task
+     */
+    private function getDependentTasks(Task $task): array
+    {
+        $qb = $this->em->createQueryBuilder();
+        
+        $qb->select('t')
+            ->from(\App\Entity\TaskDependency::class, 'td')
+            ->join('td.task', 't')
+            ->andWhere('td.dependsOn = :task')
+            ->setParameter('task', $task);
+        
+        return $qb->getQuery()->getResult();
     }
 
     /**
@@ -61,9 +85,30 @@ class TaskPriorityCalculatorService
      */
     public function getRecommendedTasks(User $user, int $limit = 5): array
     {
-        // TODO: Get user's tasks and calculate scores
-        // For now, return empty array
-        return [];
+        // Получаем активные задачи пользователя
+        $tasks = $this->taskRepository->createQueryBuilder('t')
+            ->where('t.assignedUser = :user')
+            ->andWhere('t.status != :completed')
+            ->setParameter('user', $user)
+            ->setParameter('completed', 'completed')
+            ->getQuery()
+            ->getResult();
+
+        // Рассчитываем приоритет для каждой задачи
+        $tasksWithScores = [];
+        foreach ($tasks as $task) {
+            $score = $this->calculatePriorityScore($task);
+            $tasksWithScores[] = [
+                'task' => $task,
+                'score' => $score,
+            ];
+        }
+
+        // Сортируем по убыванию приоритета
+        usort($tasksWithScores, fn ($a, $b) => $b['score'] <=> $a['score']);
+
+        // Возвращаем топ-N задач
+        return array_slice($tasksWithScores, 0, $limit);
     }
 
     /**
@@ -73,8 +118,27 @@ class TaskPriorityCalculatorService
     {
         $adjusted = 0;
 
-        // TODO: Get all tasks and adjust priorities
-        // Tasks with approaching deadlines should be upgraded
+        // Получаем все активные задачи
+        $tasks = $this->taskRepository->createQueryBuilder('t')
+            ->where('t.status != :completed')
+            ->setParameter('completed', 'completed')
+            ->getQuery()
+            ->getResult();
+
+        foreach ($tasks as $task) {
+            $oldPriority = $task->getPriority();
+            $suggestedPriority = $this->suggestPriority($task);
+
+            // Изменяем приоритет если он отличается
+            if ($oldPriority !== $suggestedPriority) {
+                $task->setPriority($suggestedPriority);
+                $adjusted++;
+            }
+        }
+
+        if ($adjusted > 0) {
+            $this->em->flush();
+        }
 
         return $adjusted;
     }

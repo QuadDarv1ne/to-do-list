@@ -2,14 +2,19 @@
 
 namespace App\Service;
 
+use App\Entity\Mention;
 use App\Entity\User;
+use App\Repository\MentionRepository;
 use App\Repository\UserRepository;
+use Doctrine\ORM\EntityManagerInterface;
 
 class MentionService
 {
     public function __construct(
         private UserRepository $userRepository,
+        private MentionRepository $mentionRepository,
         private NotificationService $notificationService,
+        private EntityManagerInterface $em,
     ) {
     }
 
@@ -86,6 +91,24 @@ class MentionService
     public function notifyMentionedUsers(array $users, $context, User $mentionedBy): void
     {
         foreach ($users as $user) {
+            // Создаём упоминание в БД
+            $mention = new Mention();
+            $mention->setMentionedUser($user);
+            $mention->setMentionedByUser($mentionedBy);
+            
+            if (isset($context['entity_type'])) {
+                $mention->setEntityType($context['entity_type']);
+            }
+            if (isset($context['entity_id'])) {
+                $mention->setEntityId($context['entity_id']);
+            }
+            if (isset($context['content'])) {
+                $mention->setContent($context['content']);
+            }
+            
+            $this->mentionRepository->save($mention);
+            
+            // Отправляем уведомление
             $this->notificationService->notifyMention($user, $context, $mentionedBy);
         }
     }
@@ -110,16 +133,36 @@ class MentionService
      */
     public function getUserMentions(User $user, int $limit = 20): array
     {
-        // TODO: Get from database
-        return [];
+        $mentions = $this->mentionRepository->findByUser($user, $limit);
+        
+        return array_map(fn ($m) => [
+            'id' => $m->getId(),
+            'mentioned_by' => [
+                'id' => $m->getMentionedByUser()->getId(),
+                'username' => $m->getMentionedByUser()->getUsername(),
+            ],
+            'entity_type' => $m->getEntityType(),
+            'entity_id' => $m->getEntityId(),
+            'content' => $m->getContent(),
+            'is_read' => $m->isRead(),
+            'created_at' => $m->getCreatedAt()->format('Y-m-d H:i:s'),
+        ], $mentions);
     }
 
     /**
      * Mark mention as read
      */
-    public function markAsRead(int $mentionId): bool
+    public function markAsRead(int $mentionId, User $user): bool
     {
-        // TODO: Update in database
+        $mention = $this->mentionRepository->findOneByIdAndUser($mentionId, $user);
+        
+        if (!$mention) {
+            return false;
+        }
+
+        $mention->setIsRead(true);
+        $this->mentionRepository->save($mention);
+
         return true;
     }
 }

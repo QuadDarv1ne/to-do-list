@@ -47,11 +47,17 @@
     <link rel="stylesheet" href="{{ asset('css/components/enhanced-cards.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components/notification-system.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components/animations.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/components/skeleton-loader.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/components/keyboard-shortcuts.css') }}">
+
+    {# ~ Mobile Enhanced ~ #}
+    <link rel="stylesheet" href="{{ asset('css/mobile-enhanced.css') }}">
 
     {# ~ Тема подключается динамически через theme-manager-enhanced.js ~ #}
 
     {# ~ Core JS (до рендера — предотвращает мерцание темы) ~ #}
     <script src="{{ asset('js/core/theme-manager-enhanced.js') }}"></script>
+    <script src="{{ asset('js/core/keyboard-shortcuts-enhanced.js') }}" defer></script>
     <script src="{{ asset('js/components/advanced-ui.js') }}"></script>
     <script src="{{ asset('js/components/modal-system.js') }}"></script>
     <script src="{{ asset('js/components/data-manager.js') }}"></script>
