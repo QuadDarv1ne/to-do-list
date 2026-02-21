@@ -1,0 +1,492 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Редактирование привычки - {{ habit.name }}{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.edit-container {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 2rem 0;
+    animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.edit-card {
+    background: white;
+    border-radius: 16px;
+    padding: 2.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.edit-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.edit-header h1 {
+    color: #212529;
+    margin-bottom: 0.5rem;
+}
+
+.edit-header p {
+    color: #6c757d;
+    margin: 0;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.form-control-modern {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control-modern:focus {
+    outline: none;
+    border-color: #11998e;
+    box-shadow: 0 0 0 3px rgba(17, 153, 142, 0.1);
+}
+
+.form-text {
+    color: #6c757d;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+}
+
+.color-picker {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.color-option {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.color-option:hover {
+    transform: scale(1.1);
+}
+
+.color-option.selected {
+    border-color: #212529;
+    box-shadow: 0 0 0 2px white, 0 0 0 4px #212529;
+}
+
+.icon-picker {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.icon-option {
+    width: 45px;
+    height: 45px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    font-size: 1.2rem;
+}
+
+.icon-option:hover {
+    background: #e9ecef;
+}
+
+.icon-option.selected {
+    border-color: #11998e;
+    background: rgba(17, 153, 142, 0.1);
+    color: #11998e;
+}
+
+.frequency-options {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.frequency-option {
+    flex: 1;
+    padding: 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.frequency-option:hover {
+    border-color: #11998e;
+    background: rgba(17, 153, 142, 0.05);
+}
+
+.frequency-option.selected {
+    border-color: #11998e;
+    background: rgba(17, 153, 142, 0.1);
+    color: #11998e;
+    font-weight: 600;
+}
+
+.category-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.75rem;
+}
+
+.category-option {
+    padding: 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.category-option:hover {
+    border-color: #11998e;
+}
+
+.category-option.selected {
+    border-color: #11998e;
+    background: rgba(17, 153, 142, 0.1);
+}
+
+.category-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 2px solid #f0f0f0;
+}
+
+.btn-modern {
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.btn-primary-modern {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+}
+
+.btn-primary-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(17, 153, 142, 0.3);
+}
+
+.btn-outline-modern {
+    background: white;
+    color: #6c757d;
+    border: 2px solid #e9ecef;
+}
+
+.btn-outline-modern:hover {
+    border-color: #6c757d;
+    color: #212529;
+}
+
+.btn-danger-modern {
+    background: white;
+    color: #dc3545;
+    border: 2px solid #dc3545;
+}
+
+.btn-danger-modern:hover {
+    background: #dc3545;
+    color: white;
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="edit-container">
+        <div class="edit-card">
+            <div class="edit-header">
+                <h1><i class="fas fa-edit me-2"></i>Редактирование привычки</h1>
+                <p>Измените параметры вашей привычки</p>
+            </div>
+
+            <form method="post" action="{{ path('app_habits_edit', {id: habit.id}) }}">
+                <div class="form-group">
+                    <label class="form-label" for="habit_name">
+                        <i class="fas fa-signature me-2"></i>Название
+                    </label>
+                    <input type="text" 
+                           class="form-control-modern" 
+                           id="habit_name" 
+                           name="name" 
+                           value="{{ habit.name }}"
+                           required
+                           placeholder="Например: Пить 8 стаканов воды">
+                    <small class="form-text">Краткое и понятное название привычки</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="habit_description">
+                        <i class="fas fa-align-left me-2"></i>Описание
+                    </label>
+                    <textarea class="form-control-modern" 
+                              id="habit_description" 
+                              name="description" 
+                              rows="3"
+                              placeholder="Опционально">{{ habit.description }}</textarea>
+                    <small class="form-text">Подробное описание привычки</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-sync-alt me-2"></i>Частота
+                    </label>
+                    <div class="frequency-options">
+                        <div class="frequency-option {{ habit.frequency == 'daily' ? 'selected' : '' }}" 
+                             data-value="daily">
+                            <i class="fas fa-calendar-day d-block mb-1"></i>
+                            Ежедневно
+                        </div>
+                        <div class="frequency-option {{ habit.frequency == 'weekly' ? 'selected' : '' }}" 
+                             data-value="weekly">
+                            <i class="fas fa-calendar-week d-block mb-1"></i>
+                            Еженедельно
+                        </div>
+                        <div class="frequency-option {{ habit.frequency == 'custom' ? 'selected' : '' }}" 
+                             data-value="custom">
+                            <i class="fas fa-calendar-alt d-block mb-1"></i>
+                            Своя
+                        </div>
+                    </div>
+                    <input type="hidden" name="frequency" id="frequency" value="{{ habit.frequency }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="target_count">
+                        <i class="fas fa-bullseye me-2"></i>Целевое количество
+                    </label>
+                    <input type="number" 
+                           class="form-control-modern" 
+                           id="target_count" 
+                           name="target_count" 
+                           value="{{ habit.targetCount }}"
+                           min="1"
+                           max="100">
+                    <small class="form-text">Сколько раз в день/неделю выполнять привычку</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-folder me-2"></i>Категория
+                    </label>
+                    <div class="category-options">
+                        <div class="category-option {{ habit.category == 'health' ? 'selected' : '' }}" data-value="health">
+                            <span class="category-icon">❤️</span>
+                            Здоровье
+                        </div>
+                        <div class="category-option {{ habit.category == 'fitness' ? 'selected' : '' }}" data-value="fitness">
+                            <span class="category-icon">💪</span>
+                            Фитнес
+                        </div>
+                        <div class="category-option {{ habit.category == 'learning' ? 'selected' : '' }}" data-value="learning">
+                            <span class="category-icon">📚</span>
+                            Обучение
+                        </div>
+                        <div class="category-option {{ habit.category == 'productivity' ? 'selected' : '' }}" data-value="productivity">
+                            <span class="category-icon">⚡</span>
+                            Продуктивность
+                        </div>
+                        <div class="category-option {{ habit.category == 'mindfulness' ? 'selected' : '' }}" data-value="mindfulness">
+                            <span class="category-icon">🧘</span>
+                            Осознанность
+                        </div>
+                        <div class="category-option {{ habit.category == 'finance' ? 'selected' : '' }}" data-value="finance">
+                            <span class="category-icon">💰</span>
+                            Финансы
+                        </div>
+                    </div>
+                    <input type="hidden" name="category" id="category" value="{{ habit.category }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-icons me-2"></i>Иконка
+                    </label>
+                    <div class="icon-picker">
+                        <div class="icon-option {{ habit.icon == 'fa-check' ? 'selected' : '' }}" data-value="fa-check">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="icon-option {{ habit.icon == 'fa-tint' ? 'selected' : '' }}" data-value="fa-tint">
+                            <i class="fas fa-tint"></i>
+                        </div>
+                        <div class="icon-option {{ habit.icon == 'fa-running' ? 'selected' : '' }}" data-value="fa-running">
+                            <i class="fas fa-running"></i>
+                        </div>
+                        <div class="icon-option {{ habit.icon == 'fa-book' ? 'selected' : '' }}" data-value="fa-book">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <div class="icon-option {{ habit.icon == 'fa-bed' ? 'selected' : '' }}" data-value="fa-bed">
+                            <i class="fas fa-bed"></i>
+                        </div>
+                        <div class="icon-option {{ habit.icon == 'fa-apple-alt' ? 'selected' : '' }}" data-value="fa-apple-alt">
+                            <i class="fas fa-apple-alt"></i>
+                        </div>
+                        <div class="icon-option {{ habit.icon == 'fa-brain' ? 'selected' : '' }}" data-value="fa-brain">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <div class="icon-option {{ habit.icon == 'fa-heart' ? 'selected' : '' }}" data-value="fa-heart">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                    </div>
+                    <input type="hidden" name="icon" id="icon" value="{{ habit.icon }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-palette me-2"></i>Цвет
+                    </label>
+                    <div class="color-picker">
+                        <div class="color-option {{ habit.color == '#11998e' ? 'selected' : '' }}" 
+                             data-value="#11998e" 
+                             style="background: #11998e;"></div>
+                        <div class="color-option {{ habit.color == '#38ef7d' ? 'selected' : '' }}" 
+                             data-value="#38ef7d" 
+                             style="background: #38ef7d;"></div>
+                        <div class="color-option {{ habit.color == '#667eea' ? 'selected' : '' }}" 
+                             data-value="#667eea" 
+                             style="background: #667eea;"></div>
+                        <div class="color-option {{ habit.color == '#f093fb' ? 'selected' : '' }}" 
+                             data-value="#f093fb" 
+                             style="background: #f093fb;"></div>
+                        <div class="color-option {{ habit.color == '#f5576c' ? 'selected' : '' }}" 
+                             data-value="#f5576c" 
+                             style="background: #f5576c;"></div>
+                        <div class="color-option {{ habit.color == '#4facfe' ? 'selected' : '' }}" 
+                             data-value="#4facfe" 
+                             style="background: #4facfe;"></div>
+                        <div class="color-option {{ habit.color == '#43e97b' ? 'selected' : '' }}" 
+                             data-value="#43e97b" 
+                             style="background: #43e97b;"></div>
+                        <div class="color-option {{ habit.color == '#fa709a' ? 'selected' : '' }}" 
+                             data-value="#fa709a" 
+                             style="background: #fa709a;"></div>
+                    </div>
+                    <input type="hidden" name="color" id="color" value="{{ habit.color }}">
+                </div>
+
+                <div class="action-buttons">
+                    <a href="{{ path('app_habits_show', {id: habit.id}) }}" class="btn btn-modern btn-outline-modern">
+                        <i class="fas fa-arrow-left"></i>
+                        Отмена
+                    </a>
+                    
+                    <button type="submit" class="btn btn-modern btn-primary-modern">
+                        <i class="fas fa-save"></i>
+                        Сохранить
+                    </button>
+                    
+                    <button type="button" class="btn btn-modern btn-danger-modern" onclick="deleteHabit()">
+                        <i class="fas fa-trash"></i>
+                        Удалить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+// Выбор частоты
+document.querySelectorAll('.frequency-option').forEach(option => {
+    option.addEventListener('click', function() {
+        document.querySelectorAll('.frequency-option').forEach(o => o.classList.remove('selected'));
+        this.classList.add('selected');
+        document.getElementById('frequency').value = this.dataset.value;
+    });
+});
+
+// Выбор категории
+document.querySelectorAll('.category-option').forEach(option => {
+    option.addEventListener('click', function() {
+        document.querySelectorAll('.category-option').forEach(o => o.classList.remove('selected'));
+        this.classList.add('selected');
+        document.getElementById('category').value = this.dataset.value;
+    });
+});
+
+// Выбор иконки
+document.querySelectorAll('.icon-option').forEach(option => {
+    option.addEventListener('click', function() {
+        document.querySelectorAll('.icon-option').forEach(o => o.classList.remove('selected'));
+        this.classList.add('selected');
+        document.getElementById('icon').value = this.dataset.value;
+    });
+});
+
+// Выбор цвета
+document.querySelectorAll('.color-option').forEach(option => {
+    option.addEventListener('click', function() {
+        document.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
+        this.classList.add('selected');
+        document.getElementById('color').value = this.dataset.value;
+    });
+});
+
+function deleteHabit() {
+    if (confirm('Вы уверены, что хотите удалить эту привычку? Это действие нельзя отменить.')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = "{{ path('app_habits_delete', {id: habit.id}) }}";
+        
+        const token = document.createElement('input');
+        token.type = 'hidden';
+        token.name = '_token';
+        token.value = '{{ csrf_token('delete' ~ habit.id) }}';
+        
+        form.appendChild(token);
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
+{% endblock %}

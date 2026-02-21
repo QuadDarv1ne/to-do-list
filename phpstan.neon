@@ -1,0 +1,14 @@
+parameters:
+    level: 5
+    paths:
+        - src/
+    excludePaths:
+        - src/Kernel.php
+        - src/DataFixtures/*
+        - tests/*
+    ignoreErrors:
+        # Игнорирование ошибок для DataFixtures
+        - '#Class App\\DataFixtures\\.*#'
+        # PHPUnit тестовые ошибки (не критично)
+        - '#Call to method PHPUnit#'
+        - '#Call to function method_exists#'

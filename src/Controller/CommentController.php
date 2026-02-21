@@ -2,13 +2,15 @@
 
 namespace App\Controller;
 
+use App\DTO\CreateCommentDTO;
+use App\DTO\UpdateCommentDTO;
 use App\Entity\Comment;
 use App\Entity\Task;
 use App\Form\CommentType;
+use App\Service\CommentCommandService;
 use App\Service\MentionService;
 use App\Service\NotificationService;
 use App\Service\PerformanceMonitorService;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,11 +21,15 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class CommentController extends AbstractController
 {
+    public function __construct(
+        private CommentCommandService $commentCommandService,
+    ) {
+    }
+
     #[Route('/task/{taskId}', name: 'app_comment_create', methods: ['POST'])]
     public function create(
         int $taskId,
         Request $request,
-        EntityManagerInterface $entityManager,
         NotificationService $notificationService,
         ?MentionService $mentionService = null,
         ?PerformanceMonitorService $performanceMonitor = null,
@@ -31,7 +37,7 @@ class CommentController extends AbstractController
         $performanceMonitor?->startTiming('comment_controller_create');
 
         try {
-            $task = $entityManager->getRepository(Task::class)->find($taskId);
+            $task = $this->getDoctrine()->getRepository(Task::class)->find($taskId);
 
             if (!$task) {
                 $this->addFlash('error', 'Задача не найдена.');
@@ -56,8 +62,14 @@ class CommentController extends AbstractController
                 $sanitizedContent = strip_tags($content, '<p><br><strong><em><ul><ol><li><a>');
                 $comment->setContent($sanitizedContent);
 
-                $entityManager->persist($comment);
-                $entityManager->flush();
+                // Используем сервис для создания комментария (с Domain Events)
+                $this->commentCommandService->addComment(
+                    CreateCommentDTO::fromArray([
+                        'taskId' => $taskId,
+                        'content' => $sanitizedContent,
+                    ]),
+                    $this->getUser()
+                );
 
                 // Process mentions (@username)
                 if ($mentionService) {
@@ -95,7 +107,6 @@ class CommentController extends AbstractController
     public function edit(
         Comment $comment,
         Request $request,
-        EntityManagerInterface $entityManager,
         ?PerformanceMonitorService $performanceMonitor = null,
     ): Response {
         $performanceMonitor?->startTiming('comment_controller_edit');
@@ -113,10 +124,15 @@ class CommentController extends AbstractController
                 // Sanitize content to prevent XSS
                 $content = $comment->getContent();
                 $sanitizedContent = strip_tags($content, '<p><br><strong><em><ul><ol><li><a>');
-                $comment->setContent($sanitizedContent);
-                $comment->setUpdatedAt(new \DateTime());
 
-                $entityManager->flush();
+                // Используем сервис для обновления комментария (с Domain Events)
+                $this->commentCommandService->updateComment(
+                    UpdateCommentDTO::fromArray([
+                        'id' => $comment->getId(),
+                        'content' => $sanitizedContent,
+                    ]),
+                    $this->getUser()
+                );
 
                 $this->addFlash('success', 'Комментарий успешно обновлен.');
                 return $this->redirectToRoute('app_task_show', ['id' => $comment->getTask()->getId()]);
@@ -135,7 +151,6 @@ class CommentController extends AbstractController
     public function delete(
         Comment $comment,
         Request $request,
-        EntityManagerInterface $entityManager,
         ?PerformanceMonitorService $performanceMonitor = null,
     ): Response {
         $performanceMonitor?->startTiming('comment_controller_delete');
@@ -149,8 +164,8 @@ class CommentController extends AbstractController
             $taskId = $comment->getTask()->getId();
 
             if ($this->isCsrfTokenValid('delete' . $comment->getId(), $request->request->get('_token'))) {
-                $entityManager->remove($comment);
-                $entityManager->flush();
+                // Используем сервис для удаления комментария (с Domain Events)
+                $this->commentCommandService->removeComment($comment->getId(), $this->getUser());
 
                 $this->addFlash('success', 'Комментарий успешно удален.');
             } else {
@@ -184,7 +199,7 @@ class CommentController extends AbstractController
         }
 
         // Notify assigned user
-        if ($task->getAssignedUser() && 
+        if ($task->getAssignedUser() &&
             $task->getAssignedUser()->getId() !== $currentUser->getId() &&
             !in_array($task->getAssignedUser()->getId(), $notifiedUsers)) {
             $notificationService->sendCommentNotification(
@@ -200,7 +215,7 @@ class CommentController extends AbstractController
         // Notify other commenters (excluding current user and already notified)
         foreach ($task->getComments() as $existingComment) {
             $author = $existingComment->getAuthor();
-            if ($author && 
+            if ($author &&
                 $author->getId() !== $currentUser->getId() &&
                 !in_array($author->getId(), $notifiedUsers)) {
                 $notificationService->sendCommentNotification(

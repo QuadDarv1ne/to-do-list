@@ -142,6 +142,7 @@ class AnalyzeCodeCommand extends Command
             return;
         }
 
+        /** @var array<array{file: string, size: string, lines: int}> $largeFiles */
         usort($largeFiles, fn ($a, $b) => (float)$b['size'] <=> (float)$a['size']);
 
         $io->table(['File', 'Size', 'Lines'], $largeFiles);
@@ -191,6 +192,7 @@ class AnalyzeCodeCommand extends Command
             return;
         }
 
+        /** @var array<array{file: string, methods: int, conditions: int, complexity: int, lines: int}> $complexFiles */
         usort($complexFiles, fn ($a, $b) => $b['complexity'] <=> $a['complexity']);
 
         $io->table(

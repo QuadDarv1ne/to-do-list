@@ -51,18 +51,15 @@ class BackupCommand extends Command
             case 'create':
                 $io->writeln('Creating backup...');
 
-                $result = $this->backupService->createBackup([
-                    'include_database' => $includeDatabase,
-                    'type' => 'full',
-                ]);
+                $result = $this->backupService->createBackup();
 
                 if ($result['success']) {
                     $io->success('Backup created successfully!');
-                    $io->writeln('Path: ' . $result['path']);
-                    $io->writeln('Duration: ' . $result['manifest']['duration'] . ' seconds');
-                    $io->writeln('Size: ' . $this->formatFileSize($result['manifest']['size']));
+                    $io->writeln('Path: ' . ($result['path'] ?? 'N/A'));
+                    $io->writeln('Duration: ' . ($result['manifest']['duration'] ?? 0) . ' seconds');
+                    $io->writeln('Size: ' . $this->formatFileSize($result['manifest']['size'] ?? 0));
                 } else {
-                    $io->error('Backup failed: ' . $result['error']);
+                    $io->error('Backup failed: ' . ($result['error'] ?? 'Unknown error'));
 
                     return 1;
                 }
@@ -105,10 +102,7 @@ class BackupCommand extends Command
 
                 $io->writeln("Restoring from: {$backupPath}");
 
-                $result = $this->backupService->restoreFromBackup($backupPath, [
-                    'restore_files' => $restoreFiles || !$restoreFiles && !$restoreDatabase, // Default to true if neither is specified
-                    'restore_database' => $restoreDatabase,
-                ]);
+                $result = $this->backupService->restoreFromBackup($backupPath);
 
                 if ($result['success']) {
                     $io->success('Restore completed successfully!');
@@ -123,12 +117,11 @@ class BackupCommand extends Command
             case 'cleanup':
                 $io->writeln("Cleaning up backups older than {$keepDays} days...");
 
-                $result = $this->backupService->cleanupOldBackups($keepDays);
+                $deletedCount = $this->backupService->cleanupOldBackups($keepDays);
 
                 $io->success(\sprintf(
-                    'Cleanup completed! Deleted %d backups, kept %d backups.',
-                    $result['deleted'],
-                    $result['kept'],
+                    'Cleanup completed! Deleted %d backups.',
+                    $deletedCount,
                 ));
 
                 break;

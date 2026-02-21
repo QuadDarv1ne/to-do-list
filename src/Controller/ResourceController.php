@@ -226,6 +226,37 @@ class ResourceController extends AbstractController
         return $this->json($skillsData);
     }
 
+    #[Route('/{id}/skills', name: 'app_resource_show_skills', methods: ['GET'], requirements: ['id' => '\\d+'])]
+    #[IsGranted('ROLE_USER')]
+    public function getResourceSkills(Resource $resource): JsonResponse
+    {
+        // Получаем навыки ресурса из сущности
+        $skills = $resource->getSkills();
+        
+        $skillsData = [];
+        foreach ($skills as $skill) {
+            $skillsData[] = [
+                'id' => $skill->getId(),
+                'name' => $skill->getName(),
+                'level' => $skill->getLevel(),
+                'description' => $skill->getDescription(),
+            ];
+        }
+        
+        return $this->json($skillsData);
+    }
+
+    #[Route('/skills/{skillId}', name: 'app_resource_remove_skill', methods: ['DELETE'], requirements: ['skillId' => '\\d+'])]
+    #[IsGranted('ROLE_USER')]
+    public function removeSkill(int $skillId): JsonResponse
+    {
+        // Временная заглушка - требует реализации SkillRepository
+        return $this->json([
+            'success' => false,
+            'message' => 'Функция удаления навыка в разработке',
+        ], 501);
+    }
+
     #[Route('/conflicts', name: 'app_resource_conflicts', methods: ['GET'])]
     #[IsGranted('ROLE_MANAGER')]
     public function getConflicts(Request $request): JsonResponse

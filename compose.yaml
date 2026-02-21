@@ -19,10 +19,24 @@ services:
       # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
       # - ./docker/db/data:/var/lib/postgresql/data:rw
 
+  # Redis Cache
+  redis:
+    image: redis:${REDIS_VERSION:-7}-alpine
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      timeout: 3s
+      retries: 3
+      start_period: 30s
+    command: redis-server --appendonly yes
 
 ###< doctrine/doctrine-bundle ###
 
 volumes:
 ###> doctrine/doctrine-bundle ###
   postgres_data:
+  redis_data:
 ###< doctrine/doctrine-bundle ###

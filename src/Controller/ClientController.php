@@ -2,8 +2,11 @@
 
 namespace App\Controller;
 
+use App\DTO\CreateClientDTO;
+use App\DTO\UpdateClientDTO;
 use App\Entity\Client;
 use App\Repository\ClientRepository;
+use App\Service\ClientCommandService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,25 +34,16 @@ class ClientController extends AbstractController
     }
 
     #[Route('/new', name: 'app_clients_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $em): Response
-    {
-        $client = new Client();
-        $client->setManager($this->getUser());
-
+    public function new(
+        Request $request,
+        ClientCommandService $clientCommandService,
+    ): Response {
         if ($request->isMethod('POST')) {
-            $client->setCompanyName($request->request->get('company_name'));
-            $client->setInn($request->request->get('inn'));
-            $client->setKpp($request->request->get('kpp'));
-            $client->setContactPerson($request->request->get('contact_person'));
-            $client->setPhone($request->request->get('phone'));
-            $client->setEmail($request->request->get('email'));
-            $client->setAddress($request->request->get('address'));
-            $client->setSegment($request->request->get('segment', 'retail'));
-            $client->setCategory($request->request->get('category', 'new'));
-            $client->setNotes($request->request->get('notes'));
+            // Создаём DTO из запроса
+            $dto = CreateClientDTO::fromRequest($request);
 
-            $em->persist($client);
-            $em->flush();
+            // Используем сервис для создания клиента
+            $clientCommandService->createClient($dto, $this->getUser());
 
             $this->addFlash('success', 'Клиент успешно создан');
 
@@ -57,7 +51,7 @@ class ClientController extends AbstractController
         }
 
         return $this->render('clients/new.html.twig', [
-            'client' => $client,
+            'client' => null,
         ]);
     }
 
@@ -72,24 +66,19 @@ class ClientController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_clients_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Client $client, EntityManagerInterface $em): Response
-    {
+    public function edit(
+        Request $request,
+        Client $client,
+        ClientCommandService $clientCommandService,
+    ): Response {
         $this->denyAccessUnlessGranted('edit', $client);
 
         if ($request->isMethod('POST')) {
-            $client->setCompanyName($request->request->get('company_name'));
-            $client->setInn($request->request->get('inn'));
-            $client->setKpp($request->request->get('kpp'));
-            $client->setContactPerson($request->request->get('contact_person'));
-            $client->setPhone($request->request->get('phone'));
-            $client->setEmail($request->request->get('email'));
-            $client->setAddress($request->request->get('address'));
-            $client->setSegment($request->request->get('segment'));
-            $client->setCategory($request->request->get('category'));
-            $client->setNotes($request->request->get('notes'));
-            $client->setUpdatedAt(new \DateTime());
+            // Создаём DTO из запроса
+            $dto = UpdateClientDTO::fromRequest($request, $client->getId());
 
-            $em->flush();
+            // Используем сервис для обновления клиента
+            $clientCommandService->updateClient($dto, $this->getUser());
 
             $this->addFlash('success', 'Клиент успешно обновлён');
 

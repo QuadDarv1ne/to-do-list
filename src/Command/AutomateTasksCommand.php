@@ -44,35 +44,35 @@ class AutomateTasksCommand extends Command
         if ($runAll || $input->getOption('auto-assign')) {
             $io->section('Auto-assigning tasks');
             $assigned = $this->automationService->autoAssignTasks();
-            $io->success(\sprintf('Assigned %d tasks', $assigned));
+            $io->success(\sprintf('Assigned %d tasks', \count($assigned)));
         }
 
         // Escalate overdue
         if ($runAll || $input->getOption('escalate')) {
             $io->section('Escalating overdue tasks');
             $escalated = $this->automationService->autoEscalateOverdueTasks();
-            $io->success(\sprintf('Escalated %d tasks', $escalated));
+            $io->success(\sprintf('Escalated %d tasks', \count($escalated)));
         }
 
         // Archive old tasks
         if ($runAll || $input->getOption('archive')) {
             $io->section('Archiving old completed tasks');
-            $archived = $this->automationService->autoArchiveOldTasks(90);
-            $io->success(\sprintf('Archived %d tasks', $archived));
+            $archived = $this->automationService->autoArchiveOldTasks();
+            $io->success(\sprintf('Archived %d tasks', \count($archived)));
         }
 
         // Update stale tasks
         if ($runAll || $input->getOption('update-stale')) {
             $io->section('Updating stale tasks');
             $updated = $this->automationService->autoUpdateStaleTaskStatus();
-            $io->success(\sprintf('Updated %d stale tasks', $updated));
+            $io->success(\sprintf('Updated %d stale tasks', \count($updated)));
         }
 
         // Execute custom rules
         if ($runAll) {
             $io->section('Executing automation rules');
             $executed = $this->automationService->executeRules();
-            $io->success(\sprintf('Executed %d rules', $executed));
+            $io->success(\sprintf('Executed %d rules', \count($executed)));
         }
 
         $io->success('Task automation completed');

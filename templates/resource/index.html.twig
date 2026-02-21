@@ -266,27 +266,119 @@
 </div>
 
 <script>
+// Загрузка доступных задач для распределения при открытии модального окна
+document.getElementById('allocationModal').addEventListener('shown.bs.modal', async function () {
+    try {
+        const response = await fetch('{{ path('api_tasks_list', {status: 'pending', limit: 50}) }}');
+        const data = await response.json();
+        
+        const select = document.getElementById('taskId');
+        select.innerHTML = '<option value="">Select a task</option>';
+        
+        if (data.data && Array.isArray(data.data)) {
+            data.data.forEach(task => {
+                const option = document.createElement('option');
+                option.value = task.id;
+                option.textContent = `${task.title} (${task.status})`;
+                select.appendChild(option);
+            });
+        }
+        
+        console.log('Загружено задач:', data.data?.length || 0);
+    } catch (error) {
+        console.error('Ошибка загрузки задач:', error);
+        alert('Не удалось загрузить список задач');
+    }
+});
+
+// Обработка просмотра навыков
+document.querySelectorAll('[data-bs-toggle="modal"][data-resource-id]').forEach(button => {
+    button.addEventListener('click', function() {
+        const resourceId = this.getAttribute('data-resource-id');
+        loadResourceSkills(resourceId);
+    });
+});
+
+async function loadResourceSkills(resourceId) {
+    try {
+        const response = await fetch(`/resource/${resourceId}/skills`);
+        
+        if (response.ok) {
+            const data = await response.json();
+            renderSkills(data);
+        } else {
+            // Если навыка нет, показываем сообщение
+            document.getElementById('skillsContent').innerHTML = `
+                <h6>Навыки ресурса</h6>
+                <p class="text-muted">У этого ресурса пока нет добавленных навыков.</p>
+                <button class="btn btn-sm btn-primary" onclick="showAddSkillForm(${resourceId})">
+                    <i class="fas fa-plus"></i> Добавить навык
+                </button>
+            `;
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки навыков:', error);
+        document.getElementById('skillsContent').innerHTML = `
+            <h6>Навыки ресурса</h6>
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                Навыки не загружены. Попробуйте обновить страницу.
+            </div>
+        `;
+    }
+}
+
+function renderSkills(skills) {
+    if (!skills || skills.length === 0) {
+        document.getElementById('skillsContent').innerHTML = '<p>Навыки не найдены</p>';
+        return;
+    }
+    
+    let html = '<h6>Навыки ресурса</h6><div class="list-group">';
+    
+    skills.forEach(skill => {
+        html += `
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>${skill.name || 'Без названия'}</strong>
+                    ${skill.level ? `<span class="badge bg-info ms-2">${skill.level}</span>` : ''}
+                    ${skill.description ? `<br><small class="text-muted">${skill.description}</small>` : ''}
+                </div>
+                <button class="btn btn-sm btn-outline-danger" onclick="removeSkill(${skill.id})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    document.getElementById('skillsContent').innerHTML = html;
+}
+
 async function loadResourceAvailability() {
     try {
         const response = await fetch('{{ path('app_resource_availability') }}');
         const data = await response.json();
-        
-        // Update the table with availability information
-        console.log('Resource availability loaded:', data);
+
+        if (data.success) {
+            console.log('Доступность ресурсов обновлена');
+            location.reload();
+        }
     } catch (error) {
-        console.error('Error loading resource availability:', error);
+        console.error('Ошибка загрузки доступности:', error);
+        alert('Не удалось обновить доступность ресурсов');
     }
 }
 
 async function allocateResource() {
     const taskId = document.getElementById('taskId').value;
     const resourceId = document.getElementById('resourceId').value;
-    
+
     if (!taskId || !resourceId) {
-        alert('Please select both task and resource');
+        alert('Пожалуйста, выберите задачу и ресурс');
         return;
     }
-    
+
     try {
         const response = await fetch('{{ path('app_resource_allocation') }}', {
             method: 'POST',
@@ -299,53 +391,47 @@ async function allocateResource() {
                 resource_id: resourceId
             })
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
-            alert('Resource allocated successfully!');
+            alert('Ресурс успешно назначен!');
             document.getElementById('allocationModal').querySelector('.btn-close').click();
-            // Refresh the page to show updated assignments
             location.reload();
         } else {
-            alert('Error allocating resource: ' + result.message);
+            alert('Ошибка назначения ресурса: ' + result.message);
         }
     } catch (error) {
-        console.error('Error allocating resource:', error);
-        alert('Error allocating resource');
+        console.error('Ошибка назначения ресурса:', error);
+        alert('Ошибка назначения ресурса');
     }
 }
 
-// Load available tasks for allocation when modal opens
-document.getElementById('allocationModal').addEventListener('shown.bs.modal', async function () {
-    try {
-        // In a real application, you would fetch available tasks from the backend
-        // For now, we'll simulate it with placeholder data
-        console.log('Loading available tasks...');
-    } catch (error) {
-        console.error('Error loading tasks:', error);
+function showAddSkillForm(resourceId) {
+    const skillName = prompt('Введите название навыка:');
+    if (skillName) {
+        // Здесь будет логика добавления навыка
+        alert('Функция добавления навыка в разработке');
     }
-});
+}
 
-// Handle view skills modal
-document.querySelectorAll('[data-bs-toggle="modal"][data-resource-id]').forEach(button => {
-    button.addEventListener('click', function() {
-        const resourceId = this.getAttribute('data-resource-id');
-        loadResourceSkills(resourceId);
-    });
-});
-
-async function loadResourceSkills(resourceId) {
-    try {
-        // In a real application, you would fetch skills from the backend
-        // For now, we'll show a placeholder
-        document.getElementById('skillsContent').innerHTML = `
-            <h6>Skills for Resource ID: ${resourceId}</h6>
-            <p>This would show the specific skills and specialties for this resource.</p>
-        `;
-    } catch (error) {
-        console.error('Error loading skills:', error);
-        document.getElementById('skillsContent').innerHTML = '<p>Error loading skills information.</p>';
+async function removeSkill(skillId) {
+    if (confirm('Вы уверены, что хотите удалить этот навык?')) {
+        try {
+            const response = await fetch(`/resource/skills/${skillId}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.ok) {
+                alert('Навык удалён');
+                // Перезагрузить список навыков
+            } else {
+                alert('Ошибка удаления навыка');
+            }
+        } catch (error) {
+            console.error('Ошибка удаления навыка:', error);
+            alert('Ошибка удаления навыка');
+        }
     }
 }
 </script>

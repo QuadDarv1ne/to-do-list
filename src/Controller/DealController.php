@@ -2,9 +2,12 @@
 
 namespace App\Controller;
 
+use App\DTO\CreateDealDTO;
+use App\DTO\UpdateDealDTO;
 use App\Entity\Deal;
 use App\Repository\ClientRepository;
 use App\Repository\DealRepository;
+use App\Service\DealCommandService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -69,33 +72,19 @@ class DealController extends AbstractController
     }
 
     #[Route('/new', name: 'app_deals_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $em, ClientRepository $clientRepository): Response
-    {
-        $deal = new Deal();
-        $deal->setManager($this->getUser());
+    public function new(
+        Request $request,
+        DealCommandService $dealCommandService,
+        ClientRepository $clientRepository,
+    ): Response {
+        $user = $this->getUser();
 
         if ($request->isMethod('POST')) {
-            $clientId = $request->request->get('client_id');
-            $client = $clientRepository->find($clientId);
+            // Создаём DTO из запроса
+            $dto = CreateDealDTO::fromRequest($request);
 
-            if (!$client) {
-                $this->addFlash('error', 'Клиент не найден');
-                return $this->redirectToRoute('app_deals_new');
-            }
-
-            $deal->setTitle($request->request->get('title'));
-            $deal->setClient($client);
-            $deal->setAmount($request->request->get('amount', '0.00'));
-            $deal->setStage($request->request->get('stage', 'lead'));
-            $deal->setDescription($request->request->get('description'));
-
-            $expectedCloseDate = $request->request->get('expected_close_date');
-            if ($expectedCloseDate) {
-                $deal->setExpectedCloseDate(new \DateTime($expectedCloseDate));
-            }
-
-            $em->persist($deal);
-            $em->flush();
+            // Используем сервис для создания сделки
+            $deal = $dealCommandService->createDeal($dto, $user);
 
             $this->addFlash('success', 'Сделка успешно создана');
 
@@ -104,10 +93,9 @@ class DealController extends AbstractController
 
         $clients = $this->isGranted('ROLE_ADMIN')
             ? $clientRepository->findAll()
-            : $clientRepository->findByManager($this->getUser());
+            : $clientRepository->findByManager($user);
 
         return $this->render('deals/new.html.twig', [
-            'deal' => $deal,
             'clients' => $clients,
         ]);
     }
@@ -123,29 +111,21 @@ class DealController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_deals_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Deal $deal, EntityManagerInterface $em): Response
-    {
+    public function edit(
+        Request $request,
+        Deal $deal,
+        DealCommandService $dealCommandService,
+    ): Response {
         $this->denyAccessUnlessGranted('edit', $deal);
 
+        $user = $this->getUser();
+
         if ($request->isMethod('POST')) {
-            $deal->setTitle($request->request->get('title'));
-            $deal->setAmount($request->request->get('amount'));
-            $deal->setStage($request->request->get('stage'));
-            $deal->setStatus($request->request->get('status'));
-            $deal->setDescription($request->request->get('description'));
+            // Создаём DTO из запроса
+            $dto = UpdateDealDTO::fromRequest($request, $deal->getId());
 
-            $expectedCloseDate = $request->request->get('expected_close_date');
-            if ($expectedCloseDate) {
-                $deal->setExpectedCloseDate(new \DateTime($expectedCloseDate));
-            }
-
-            if ($request->request->get('status') === 'lost') {
-                $deal->setLostReason($request->request->get('lost_reason'));
-            }
-
-            $deal->setUpdatedAt(new \DateTime());
-
-            $em->flush();
+            // Используем сервис для обновления сделки
+            $dealCommandService->updateDeal($dto, $user);
 
             $this->addFlash('success', 'Сделка успешно обновлена');
 
@@ -168,5 +148,38 @@ class DealController extends AbstractController
         $this->addFlash('success', 'Сделка успешно удалена');
 
         return $this->redirectToRoute('app_deals_index');
+    }
+
+    #[Route('/{id}/win', name: 'app_deals_win', methods: ['POST'])]
+    public function win(
+        Deal $deal,
+        DealCommandService $dealCommandService,
+    ): Response {
+        $this->denyAccessUnlessGranted('edit', $deal);
+
+        $user = $this->getUser();
+        $dealCommandService->winDeal($deal, $user);
+
+        $this->addFlash('success', 'Сделка успешно выиграна');
+
+        return $this->redirectToRoute('app_deals_show', ['id' => $deal->getId()]);
+    }
+
+    #[Route('/{id}/lose', name: 'app_deals_lose', methods: ['POST'])]
+    public function lose(
+        Request $request,
+        Deal $deal,
+        DealCommandService $dealCommandService,
+    ): Response {
+        $this->denyAccessUnlessGranted('edit', $deal);
+
+        $user = $this->getUser();
+        $reason = $request->request->get('lost_reason', 'Без указания причины');
+
+        $dealCommandService->loseDeal($deal, $user, $reason);
+
+        $this->addFlash('success', 'Сделка отклонена');
+
+        return $this->redirectToRoute('app_deals_show', ['id' => $deal->getId()]);
     }
 }

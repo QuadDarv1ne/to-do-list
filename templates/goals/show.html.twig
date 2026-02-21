@@ -1,0 +1,433 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ goal.title }} - Цели{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.goal-detail-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 0;
+    animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.goal-header-card {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    padding: 2.5rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.goal-header-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+}
+
+.progress-section {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.progress-bar-modern {
+    height: 24px;
+    border-radius: 12px;
+    background: #e9ecef;
+    overflow: hidden;
+    margin: 1rem 0;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+    border-radius: 12px;
+    transition: width 0.5s ease;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 1rem;
+    color: white;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.milestone-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border-left: 4px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.milestone-card.completed {
+    border-left-color: #28a745;
+    background: #f8fff9;
+}
+
+.milestone-card.overdue {
+    border-left-color: #dc3545;
+    background: #fff8f8;
+}
+
+.milestone-card:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+.milestone-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.milestone-title {
+    font-weight: 600;
+    color: #212529;
+    margin: 0;
+}
+
+.milestone-date {
+    color: #6c757d;
+    font-size: 0.85rem;
+}
+
+.milestone-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.milestone-status.completed {
+    background: #d4edda;
+    color: #155724;
+}
+
+.milestone-status.pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.milestone-status.overdue {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #f093fb;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #f0f0f0;
+}
+
+.btn-modern {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.btn-primary-modern {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.btn-primary-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(240, 147, 251, 0.3);
+}
+
+.btn-outline-modern {
+    background: white;
+    color: #f093fb;
+    border: 2px solid #f093fb;
+}
+
+.btn-outline-modern:hover {
+    background: #f093fb;
+    color: white;
+}
+
+.category-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 2rem;
+    margin: 2rem 0;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e9ecef;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -2rem;
+    top: 0.5rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #f093fb;
+    border: 3px solid white;
+    box-shadow: 0 0 0 2px #f093fb;
+}
+
+.timeline-item.completed::before {
+    background: #28a745;
+    box-shadow: 0 0 0 2px #28a745;
+}
+
+.timeline-date {
+    color: #6c757d;
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+}
+
+.timeline-content {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="goal-detail-container">
+        {# Header #}
+        <div class="goal-header-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <span class="category-badge">
+                        <i class="fas fa-{{ goal.category == 'career' ? 'briefcase' : (goal.category == 'health' ? 'heart' : (goal.category == 'learning' ? 'book' : 'star')) }}"></i>
+                        {{ goal.category|default('Общая')|capitalize }}
+                    </span>
+                    <h1 class="mb-2">{{ goal.title }}</h1>
+                    {% if goal.description %}
+                        <p class="mb-0 opacity-90">{{ goal.description }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {# Statistics #}
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-value">{{ goal.progress }}%</div>
+                    <div class="stat-label">Прогресс</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-value">{{ goal.milestones|length }}</div>
+                    <div class="stat-label">Вехи</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-value">{{ goal.deadline ? goal.deadline|date('d.m.Y') : '—' }}</div>
+                    <div class="stat-label">Дедлайн</div>
+                </div>
+            </div>
+        </div>
+
+        {# Progress Section #}
+        <div class="progress-section">
+            <h3 class="mb-3"><i class="fas fa-chart-line me-2"></i>Прогресс</h3>
+            <div class="progress-bar-modern">
+                <div class="progress-fill" style="width: {{ goal.progress }}%">
+                    {{ goal.progress }}%
+                </div>
+            </div>
+            <p class="text-muted mb-0">
+                {% if goal.targetValue %}
+                    Достигнуто {{ goal.currentValue|default(0) }} из {{ goal.targetValue }}
+                {% else %}
+                    Продолжайте работать над целью!
+                {% endif %}
+            </p>
+        </div>
+
+        {# Milestones #}
+        {% if goal.milestones and goal.milestones|length > 0 %}
+            <div class="progress-section">
+                <h3 class="mb-3"><i class="fas fa-flag-checkered me-2"></i>Вехи</h3>
+                <div class="milestone-list">
+                    {% for milestone in goal.milestones %}
+                        <div class="milestone-card {{ milestone.isCompleted ? 'completed' : '' }} {{ milestone.isOverdue ? 'overdue' : '' }}">
+                            <div class="milestone-header">
+                                <h5 class="milestone-title">{{ milestone.title }}</h5>
+                                <span class="milestone-status {{ milestone.isCompleted ? 'completed' : (milestone.isOverdue ? 'overdue' : 'pending') }}">
+                                    {% if milestone.isCompleted %}
+                                        <i class="fas fa-check-circle"></i> Завершено
+                                    {% elseif milestone.isOverdue %}
+                                        <i class="fas fa-exclamation-circle"></i> Просрочено
+                                    {% else %}
+                                        <i class="fas fa-clock"></i> В ожидании
+                                    {% endif %}
+                                </span>
+                            </div>
+                            {% if milestone.description %}
+                                <p class="text-muted mb-2">{{ milestone.description }}</p>
+                            {% endif %}
+                            <div class="milestone-date">
+                                <i class="fas fa-calendar"></i> {{ milestone.dueDate ? milestone.dueDate|date('d.m.Y') : 'Без даты' }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        {# Timeline #}
+        <div class="progress-section">
+            <h3 class="mb-3"><i class="fas fa-history me-2"></i>История</h3>
+            <div class="timeline">
+                <div class="timeline-item completed">
+                    <div class="timeline-date">{{ goal.createdAt|date('d.m.Y H:i') }}</div>
+                    <div class="timeline-content">
+                        <strong>Цель создана</strong>
+                        <p class="text-muted mb-0">Вы начали работу над целью "{{ goal.title }}"</p>
+                    </div>
+                </div>
+                
+                {% if goal.updatedAt and goal.updatedAt != goal.createdAt %}
+                    <div class="timeline-item">
+                        <div class="timeline-date">{{ goal.updatedAt|date('d.m.Y H:i') }}</div>
+                        <div class="timeline-content">
+                            <strong>Обновление</strong>
+                            <p class="text-muted mb-0">Цель была обновлена</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {# Actions #}
+        <div class="action-buttons">
+            <a href="{{ path('app_goals_index') }}" class="btn btn-modern btn-outline-modern">
+                <i class="fas fa-arrow-left"></i>
+                Назад к списку
+            </a>
+            
+            {% if is_granted('edit', goal) %}
+                <a href="{{ path('app_goals_edit', {id: goal.id}) }}" class="btn btn-modern btn-outline-modern">
+                    <i class="fas fa-edit"></i>
+                    Редактировать
+                </a>
+            {% endif %}
+            
+            <button class="btn btn-modern btn-primary-modern" onclick="updateProgress({{ goal.id }})">
+                <i class="fas fa-sync-alt"></i>
+                Обновить прогресс
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+function updateProgress(goalId) {
+    const newProgress = prompt('Введите новый прогресс (0-100):', '{{ goal.progress }}');
+    
+    if (newProgress !== null && newProgress >= 0 && newProgress <= 100) {
+        fetch(`/goals/${goalId}/update-progress`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ progress: parseInt(newProgress) })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Прогресс обновлён!');
+                location.reload();
+            } else {
+                alert('Ошибка обновления прогресса');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ошибка обновления прогресса');
+        });
+    }
+}
+</script>
+{% endblock %}

@@ -3,6 +3,9 @@
 namespace App\Controller;
 
 use App\Controller\Traits\FlashMessageTrait;
+use App\DTO\CreateTaskDTO;
+use App\DTO\UpdateTaskDTO;
+use App\DTO\CompleteTaskDTO;
 use App\Entity\Task;
 use App\Entity\User;
 use App\Form\TaskType;
@@ -13,6 +16,7 @@ use App\Repository\UserRepository;
 use App\Service\InputValidationService;
 use App\Service\NotificationService;
 use App\Service\PerformanceMonitorService;
+use App\Service\TaskCommandService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -190,46 +194,59 @@ class TaskController extends AbstractController
     #[Route('/new', name: 'app_task_new', methods: ['GET', 'POST'])]
     public function new(
         Request $request,
-        EntityManagerInterface $entityManager,
+        TaskCommandService $taskCommandService,
         TaskRepository $taskRepository,
         TaskCategoryRepository $categoryRepository,
-        NotificationService $notificationService,
         ?PerformanceMonitorService $performanceMonitor = null,
     ): Response {
         if ($performanceMonitor) {
             $performanceMonitor->startTiming('task_controller_new');
         }
 
-        $task = new Task();
-        $task->setUser($this->getUser());
-        $task->setStatus('pending');
-        $task->setPriority('medium');
+        $user = $this->getUser();
 
-        // Support creating subtasks via ?parent=ID
+        // Поддержка создания подзадач через ?parent=ID
         $parentTask = null;
         $parentId = $request->query->get('parent');
         if ($parentId) {
             $parentTask = $taskRepository->find((int) $parentId);
-            if ($parentTask && $parentTask->getUser() === $this->getUser()) {
-                $task->setParent($parentTask);
+            if ($parentTask && $parentTask->getUser() === $user) {
+                // Для формы предварительно установим parent
             }
         }
 
-        $form = $this->createForm(TaskType::class, $task, ['user' => $this->getUser()]);
+        $task = new Task();
+        $task->setUser($user);
+        $task->setStatus('pending');
+        $task->setPriority('medium');
+
+        if ($parentTask) {
+            $task->setParent($parentTask);
+        }
+
+        $form = $this->createForm(TaskType::class, $task, ['user' => $user]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->persist($task);
-            $entityManager->flush();
+            // Создаём DTO из формы
+            $dto = CreateTaskDTO::fromArray([
+                'title' => $task->getTitle(),
+                'description' => $task->getDescription(),
+                'status' => $task->getStatus(),
+                'priority' => $task->getPriority(),
+                'assignedUserId' => $task->getAssignedUser()?->getId(),
+                'categoryId' => $task->getCategory()?->getId(),
+                'dueDate' => $task->getDueDate()?->format(\DateTimeInterface::ATOM),
+                'parentId' => $parentTask?->getId(),
+                'tags' => $task->getTags()->map(fn($tag) => $tag->getId())->toArray(),
+            ]);
 
-            // Send notification to assigned user
-            if ($task->getAssignedUser() && $task->getAssignedUser() !== $this->getUser()) {
-                $notificationService->sendTaskAssignmentNotification($task->getAssignedUser(), $this->getUser(), $task->getId(), $task->getName(), $task->getPriority());
-            }
+            // Используем сервис для создания задачи с Domain Events
+            $createdTask = $taskCommandService->createTask($dto, $user);
 
-            if ($task->isSubtask()) {
+            if ($createdTask->isSubtask()) {
                 $this->flashCreated('Подзадача успешно создана');
-                return $this->redirectToRoute('app_task_show', ['id' => $task->getParent()->getId()], Response::HTTP_SEE_OTHER);
+                return $this->redirectToRoute('app_task_show', ['id' => $createdTask->getParent()->getId()], Response::HTTP_SEE_OTHER);
             }
 
             $this->flashCreated('Задача успешно создана');
@@ -237,8 +254,8 @@ class TaskController extends AbstractController
             return $this->redirectToRoute('app_task_index', [], Response::HTTP_SEE_OTHER);
         }
 
-        // Get user's categories for form
-        $categories = $categoryRepository->findByUser($this->getUser());
+        // Получаем категории пользователя для формы
+        $categories = $categoryRepository->findByUser($user);
 
         try {
             return $this->render('task/new.html.twig', [
@@ -289,9 +306,8 @@ class TaskController extends AbstractController
     public function edit(
         Request $request,
         Task $task,
-        EntityManagerInterface $entityManager,
+        TaskCommandService $taskCommandService,
         TaskCategoryRepository $categoryRepository,
-        NotificationService $notificationService,
         ?PerformanceMonitorService $performanceMonitor = null,
     ): Response {
         if ($performanceMonitor) {
@@ -300,98 +316,35 @@ class TaskController extends AbstractController
 
         $this->denyAccessUnlessGranted('TASK_EDIT', $task);
 
-        $originalAssignedUser = $task->getAssignedUser();
-        $originalStatus = $task->getStatus();
-        $originalPriority = $task->getPriority();
-        $originalDueDate = $task->getDueDate();
-
-        $form = $this->createForm(TaskType::class, $task, ['user' => $this->getUser()]);
+        $user = $this->getUser();
+        $form = $this->createForm(TaskType::class, $task, ['user' => $user]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Send notification if assigned user changed
-            if ($originalAssignedUser !== $task->getAssignedUser() &&
-                $task->getAssignedUser() &&
-                $task->getAssignedUser() !== $this->getUser()) {
-                $notificationService->sendTaskAssignmentNotification(
-                    $task->getAssignedUser(), 
-                    $this->getUser(), 
-                    $task->getId(), 
-                    $task->getName(), 
-                    $task->getPriority()
-                );
-            }
+            // Создаём DTO из формы
+            $dto = UpdateTaskDTO::fromArray([
+                'id' => $task->getId(),
+                'title' => $task->getTitle(),
+                'description' => $task->getDescription(),
+                'status' => $task->getStatus(),
+                'priority' => $task->getPriority(),
+                'assignedUserId' => $task->getAssignedUser()?->getId(),
+                'categoryId' => $task->getCategory()?->getId(),
+                'dueDate' => $task->getDueDate()?->format(\DateTimeInterface::ATOM),
+                'progress' => $task->getProgress(),
+                'tags' => $task->getTags()->map(fn($tag) => $tag->getId())->toArray(),
+                'notify' => true, // Уведомления отправляются через Event Listeners
+            ]);
 
-            // Send notification if status changed
-            if ($originalStatus !== $task->getStatus() && $task->getStatus() === 'completed') {
-                $notificationService->sendTaskCompletionNotification(
-                    $task->getUser(), 
-                    $this->getUser(), 
-                    $task->getId(), 
-                    $task->getName()
-                );
-            }
-
-            // Send notification if priority changed
-            if ($originalPriority !== $task->getPriority()) {
-                // Notify assigned user about priority change
-                if ($task->getAssignedUser() && $task->getAssignedUser() !== $this->getUser()) {
-                    $notificationService->sendTaskPriorityChangeNotification(
-                        $task->getAssignedUser(),
-                        $this->getUser(),
-                        $task->getId(),
-                        $task->getName(),
-                        $originalPriority,
-                        $task->getPriority()
-                    );
-                }
-                // Also notify task creator if different
-                if ($task->getUser() !== $this->getUser() && $task->getUser() !== $task->getAssignedUser()) {
-                    $notificationService->sendTaskPriorityChangeNotification(
-                        $task->getUser(),
-                        $this->getUser(),
-                        $task->getId(),
-                        $task->getName(),
-                        $originalPriority,
-                        $task->getPriority()
-                    );
-                }
-            }
-
-            // Send notification if due date changed
-            if (($originalDueDate?->format('Y-m-d') ?? null) !== ($task->getDueDate()?->format('Y-m-d') ?? null)) {
-                // Notify assigned user about due date change
-                if ($task->getAssignedUser() && $task->getAssignedUser() !== $this->getUser()) {
-                    $notificationService->sendTaskDueDateChangeNotification(
-                        $task->getAssignedUser(),
-                        $this->getUser(),
-                        $task->getId(),
-                        $task->getName(),
-                        $originalDueDate,
-                        $task->getDueDate()
-                    );
-                }
-                // Also notify task creator if different
-                if ($task->getUser() !== $this->getUser() && $task->getUser() !== $task->getAssignedUser()) {
-                    $notificationService->sendTaskDueDateChangeNotification(
-                        $task->getUser(),
-                        $this->getUser(),
-                        $task->getId(),
-                        $task->getName(),
-                        $originalDueDate,
-                        $task->getDueDate()
-                    );
-                }
-            }
-
-            $entityManager->flush();
+            // Используем сервис для обновления задачи с Domain Events
+            $taskCommandService->updateTask($dto, $user);
 
             $this->flashUpdated('Задача успешно обновлена');
 
             return $this->redirectToRoute('app_task_show', ['id' => $task->getId()], Response::HTTP_SEE_OTHER);
         }
 
-        $categories = $categoryRepository->findByUser($this->getUser());
+        $categories = $categoryRepository->findByUser($user);
 
         try {
             return $this->render('task/edit.html.twig', [
@@ -553,14 +506,22 @@ class TaskController extends AbstractController
     public function complete(
         Request $request,
         Task $task,
-        EntityManagerInterface $entityManager,
+        TaskCommandService $taskCommandService,
     ): Response {
         $this->denyAccessUnlessGranted('TASK_EDIT', $task);
 
+        $user = $this->getUser();
+
         if ($this->isCsrfTokenValid('complete'.$task->getId(), $request->request->get('_token'))) {
-            $task->setStatus('completed');
-            $task->setCompletedAt(new \DateTime());
-            $entityManager->flush();
+            // Создаём DTO для завершения задачи
+            $dto = CompleteTaskDTO::fromArray([
+                'id' => $task->getId(),
+                'comment' => $request->request->get('comment'), // Опциональный комментарий
+                'notify' => true,
+            ]);
+
+            // Используем сервис для завершения задачи с Domain Events
+            $taskCommandService->completeTask($dto, $user);
 
             $this->flashSuccess('Задача успешно завершена');
         }

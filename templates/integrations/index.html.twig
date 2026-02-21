@@ -185,36 +185,128 @@ document.querySelectorAll('.connect-btn').forEach(btn => {
 });
 
 function showModal(name, key) {
+    // Получаем конфигурацию интеграции
+    const integrationConfig = window.integrationConfig[key];
+    if (!integrationConfig) {
+        alert('Интеграция не найдена');
+        return;
+    }
+
     const modal = document.createElement('div');
     modal.className = 'modal fade';
+    
+    // Формируем поля конфигурации на основе типа интеграции
+    let configFields = '';
+    if (key === 'telegram') {
+        configFields = `
+            <div class="mb-3">
+                <label for="bot_token" class="form-label">Bot Token</label>
+                <input type="password" class="form-control" id="bot_token" placeholder="123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11">
+                <small class="form-text text-muted">Получите токен у @BotFather</small>
+            </div>
+            <div class="mb-3">
+                <label for="chat_id" class="form-label">Chat ID</label>
+                <input type="text" class="form-control" id="chat_id" placeholder="123456789">
+                <small class="form-text text-muted">ID чата для уведомлений</small>
+            </div>
+        `;
+    } else if (key === 'slack') {
+        configFields = `
+            <div class="mb-3">
+                <label for="webhook_url" class="form-label">Webhook URL</label>
+                <input type="url" class="form-control" id="webhook_url" placeholder="https://hooks.slack.com/services/...">
+                <small class="form-text text-muted">URL вебхука из Slack</small>
+            </div>
+        `;
+    } else if (key === 'github') {
+        configFields = `
+            <div class="mb-3">
+                <label for="github_token" class="form-label">Personal Access Token</label>
+                <input type="password" class="form-control" id="github_token">
+                <small class="form-text text-muted">Создайте токен в настройках GitHub</small>
+            </div>
+        `;
+    } else if (key === 'jira') {
+        configFields = `
+            <div class="mb-3">
+                <label for="jira_domain" class="form-label">Domain</label>
+                <input type="text" class="form-control" id="jira_domain" placeholder="your-company.atlassian.net">
+            </div>
+            <div class="mb-3">
+                <label for="jira_email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="jira_email">
+            </div>
+            <div class="mb-3">
+                <label for="jira_token" class="form-label">API Token</label>
+                <input type="password" class="form-control" id="jira_token">
+            </div>
+        `;
+    }
+    
     modal.innerHTML = `
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Подключение ${name}</h5>
+                    <h5 class="modal-title"><i class="fab fa-${key} me-2"></i>Подключение ${name}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        Функция подключения интеграции находится в разработке.
-                    </div>
-                    <p>Скоро вы сможете подключить ${name} к вашей системе управления задачами.</p>
+                    ${configFields ? `
+                        <form id="integrationForm">
+                            ${configFields}
+                        </form>
+                    ` : `
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Настройка для ${name} будет доступна в ближайшее время.
+                        </div>
+                    `}
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    ${configFields ? `<button type="button" class="btn btn-primary" onclick="connectIntegration('${key}')">Подключить</button>` : ''}
                 </div>
             </div>
         </div>
     `;
-    
+
     document.body.appendChild(modal);
     const bsModal = new bootstrap.Modal(modal);
     bsModal.show();
-    
+
     modal.addEventListener('hidden.bs.modal', () => {
         modal.remove();
     });
+}
+
+async function connectIntegration(key) {
+    const form = document.getElementById('integrationForm');
+    if (!form) return;
+
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+        const response = await fetch(`/integrations/${key}/connect`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (result.connected) {
+            alert('Интеграция успешно подключена!');
+            location.reload();
+        } else {
+            alert('Ошибка подключения: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Ошибка подключения интеграции');
+    }
 }
 </script>
 {% endblock %}
