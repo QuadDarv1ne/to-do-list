@@ -5,7 +5,6 @@ namespace App\Entity;
 use App\Repository\UserIntegrationRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserIntegrationRepository::class)]
 #[ORM\Table(name: 'user_integrations')]
@@ -17,12 +16,12 @@ class UserIntegration
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+    #[ORM\Column(type: Types::INTEGER)]
+    private int $id;
 
-    #[ORM\ManyToOne(targetEntity: UserInterface::class)]
+    #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-    private ?UserInterface $user = null;
+    private ?User $user = null;
 
     #[ORM\Column(length: 50)]
     private string $integrationType = ''; // github, slack, jira, trello, google_calendar, telegram, zapier
@@ -59,17 +58,17 @@ class UserIntegration
         $this->createdAt = new \DateTime();
     }
 
-    public function getId(): ?int
+    public function getId(): int
     {
         return $this->id;
     }
 
-    public function getUser(): ?UserInterface
+    public function getUser(): ?User
     {
         return $this->user;
     }
 
-    public function setUser(?UserInterface $user): static
+    public function setUser(?User $user): static
     {
         $this->user = $user;
 

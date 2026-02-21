@@ -64,7 +64,7 @@ class UserIntegrationRepository extends ServiceEntityRepository
     public function hasActiveIntegration(int $userId, string $type): bool
     {
         $result = $this->createQueryBuilder('ui')
-            ->select('COUNT(ui.id)')
+            ->select('COUNT(ui.id) as cnt')
             ->where('ui.user = :userId')
             ->andWhere('ui.integrationType = :type')
             ->andWhere('ui.isActive = :active')
@@ -74,7 +74,7 @@ class UserIntegrationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
 
-        return (int) $result['1'] > 0;
+        return (int) ($result['cnt'] ?? 0) > 0;
     }
 
     /**
