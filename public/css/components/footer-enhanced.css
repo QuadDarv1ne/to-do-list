@@ -1,0 +1,113 @@
+/* Enhanced Footer Styles */
+
+.footer {
+    background: var(--bg-primary, #ffffff);
+    border-top: 1px solid var(--border-primary, #e2e8f0);
+    margin-top: 3rem;
+    padding: 3rem 0 1.5rem;
+}
+
+.footer h5, .footer h6 {
+    color: var(--text-primary, #0f172a);
+    font-weight: 600;
+}
+
+.footer-links li a {
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+}
+
+.footer-links li a:hover {
+    color: var(--primary, #6366f1) !important;
+    padding-left: 0.25rem;
+}
+
+.footer-social-links a {
+    transition: all 0.2s ease;
+    display: inline-block;
+}
+
+.footer-social-links a:hover {
+    color: var(--primary, #6366f1) !important;
+    transform: translateY(-2px);
+}
+
+/* Integrations Section */
+.footer-integrations {
+    padding: 1rem 0;
+}
+
+.footer-integration-item {
+    transition: all 0.3s ease;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 8px;
+}
+
+.footer-integration-item:hover {
+    transform: translateY(-3px);
+    background: rgba(99, 102, 241, 0.05);
+}
+
+.footer-integration-item:hover i {
+    color: var(--primary, #6366f1) !important;
+}
+
+/* Copyright Section */
+.footer hr {
+    border-color: var(--border-primary, #e2e8f0);
+    opacity: 0.5;
+}
+
+/* Dark Theme Support */
+[data-theme='dark'] .footer {
+    background: var(--bg-primary, #1a202c);
+    border-top-color: var(--border-primary, #2d3748);
+}
+
+[data-theme='dark'] .footer h5,
+[data-theme='dark'] .footer h6 {
+    color: var(--text-primary, #f7fafc);
+}
+
+[data-theme='dark'] .footer-links li a {
+    color: var(--text-secondary, #a0aec0) !important;
+}
+
+[data-theme='dark'] .footer-links li a:hover {
+    color: var(--primary, #6366f1) !important;
+}
+
+[data-theme='dark'] .footer-social-links a {
+    color: var(--text-secondary, #a0aec0) !important;
+}
+
+[data-theme='dark'] .footer-integration-item:hover {
+    background: rgba(99, 102, 241, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .footer {
+        padding: 2rem 0 1rem;
+    }
+    
+    .footer h5, .footer h6 {
+        font-size: 1rem;
+    }
+    
+    .footer-integrations {
+        gap: 1rem !important;
+    }
+    
+    .footer-integration-item i {
+        font-size: 1.5rem !important;
+    }
+}
+
+/* Mobile Bottom Navigation Padding */
+@media (max-width: 768px) {
+    .footer {
+        padding-bottom: 5rem; /* Space for mobile bottom nav */
+    }
+}

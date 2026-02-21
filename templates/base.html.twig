@@ -71,10 +71,12 @@
     <link rel="stylesheet" href="{{ asset('css/core/adaptive-grid.css') }}">
     
     <!-- Components -->
+    <link rel="stylesheet" href="{{ asset('css/core/utilities.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components/notification-system.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components/animations.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components/skeleton-loader.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components/keyboard-shortcuts.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/components/footer-enhanced.css') }}">
     
     <!-- Mobile Enhanced -->
     <link rel="stylesheet" href="{{ asset('css/mobile-enhanced.css') }}">
@@ -265,58 +267,96 @@
     <footer class="footer mt-5 py-4 bg-light border-top">
         <div class="container-fluid">
             <div class="row">
-                <div class="col-md-4 mb-3 mb-md-0">
+                <div class="col-lg-3 col-md-6 mb-4 mb-lg-0">
                     <h5 class="fw-bold mb-3">
                         <i class="fas fa-chart-line me-2 text-primary"></i>CRM Task Management
                     </h5>
-                    <p class="text-muted small">
+                    <p class="text-muted small mb-3">
                         Профессиональная система управления задачами и CRM для вашего бизнеса
                     </p>
+                    <div class="footer-social-links">
+                        <a href="#" class="text-muted me-3" title="Telegram" aria-label="Telegram"><i class="fab fa-telegram fa-lg"></i></a>
+                        <a href="#" class="text-muted me-3" title="Email" aria-label="Email"><i class="fas fa-envelope fa-lg"></i></a>
+                        <a href="#" class="text-muted me-3" title="GitHub" aria-label="GitHub"><i class="fab fa-github fa-lg"></i></a>
+                    </div>
                 </div>
-                <div class="col-md-2 mb-3 mb-md-0">
+                <div class="col-lg-2 col-md-6 mb-4 mb-lg-0">
                     <h6 class="fw-semibold mb-3">Навигация</h6>
-                    <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{{ path('app_dashboard') }}" class="text-muted text-decoration-none"><i class="fas fa-home me-2"></i>Панель</a></li>
-                        <li class="mb-2"><a href="{{ path('app_task_index') }}" class="text-muted text-decoration-none"><i class="fas fa-tasks me-2"></i>Задачи</a></li>
-                        <li class="mb-2"><a href="{{ path('app_kanban_board') }}" class="text-muted text-decoration-none"><i class="fas fa-columns me-2"></i>Канбан</a></li>
-                        <li class="mb-2"><a href="{{ path('app_calendar') }}" class="text-muted text-decoration-none"><i class="fas fa-calendar me-2"></i>Календарь</a></li>
+                    <ul class="list-unstyled footer-links">
+                        <li class="mb-2"><a href="{{ path('app_dashboard') }}" class="text-muted text-decoration-none">Панель управления</a></li>
+                        <li class="mb-2"><a href="{{ path('app_task_index') }}" class="text-muted text-decoration-none">Задачи</a></li>
+                        <li class="mb-2"><a href="{{ path('app_kanban_board') }}" class="text-muted text-decoration-none">Канбан доска</a></li>
+                        <li class="mb-2"><a href="{{ path('app_calendar') }}" class="text-muted text-decoration-none">Календарь</a></li>
                     </ul>
                 </div>
-                <div class="col-md-2 mb-3 mb-md-0">
-                    <h6 class="fw-semibold mb-3">CRM</h6>
-                    <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{{ path('app_deals_index') }}" class="text-muted text-decoration-none"><i class="fas fa-handshake me-2"></i>Сделки</a></li>
-                        <li class="mb-2"><a href="{{ path('app_clients_index') }}" class="text-muted text-decoration-none"><i class="fas fa-users me-2"></i>Клиенты</a></li>
-                        <li class="mb-2"><a href="{{ path('app_analytics_dashboard') }}" class="text-muted text-decoration-none"><i class="fas fa-chart-bar me-2"></i>Аналитика</a></li>
+                <div class="col-lg-2 col-md-6 mb-4 mb-lg-0">
+                    <h6 class="fw-semibold mb-3">CRM модуль</h6>
+                    <ul class="list-unstyled footer-links">
+                        <li class="mb-2"><a href="{{ path('app_deals_index') }}" class="text-muted text-decoration-none">Сделки</a></li>
+                        <li class="mb-2"><a href="{{ path('app_clients_index') }}" class="text-muted text-decoration-none">Клиенты</a></li>
+                        <li class="mb-2"><a href="{{ path('app_analytics_dashboard') }}" class="text-muted text-decoration-none">Аналитика</a></li>
+                        <li class="mb-2"><a href="{{ path('app_user_index') }}" class="text-muted text-decoration-none">Команда</a></li>
                     </ul>
                 </div>
-                <div class="col-md-2 mb-3 mb-md-0">
+                <div class="col-lg-2 col-md-6 mb-4 mb-lg-0">
                     <h6 class="fw-semibold mb-3">Личное</h6>
-                    <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{{ path('app_goals_index') }}" class="text-muted text-decoration-none"><i class="fas fa-bullseye me-2"></i>Цели</a></li>
-                        <li class="mb-2"><a href="{{ path('app_habits_index') }}" class="text-muted text-decoration-none"><i class="fas fa-fire me-2"></i>Привычки</a></li>
-                        <li class="mb-2"><a href="{{ path('app_profile_show') }}" class="text-muted text-decoration-none"><i class="fas fa-user me-2"></i>Профиль</a></li>
+                    <ul class="list-unstyled footer-links">
+                        <li class="mb-2"><a href="{{ path('app_goals_index') }}" class="text-muted text-decoration-none">Цели</a></li>
+                        <li class="mb-2"><a href="{{ path('app_habits_index') }}" class="text-muted text-decoration-none">Привычки</a></li>
+                        <li class="mb-2"><a href="{{ path('app_profile_show') }}" class="text-muted text-decoration-none">Профиль</a></li>
+                        <li class="mb-2"><a href="{{ path('app_settings') }}" class="text-muted text-decoration-none">Настройки</a></li>
                     </ul>
                 </div>
-                <div class="col-md-2">
+                <div class="col-lg-3 col-md-12">
                     <h6 class="fw-semibold mb-3">Поддержка</h6>
-                    <ul class="list-unstyled">
-                        <li class="mb-2"><a href="#" class="text-muted text-decoration-none"><i class="fas fa-question-circle me-2"></i>Помощь</a></li>
-                        <li class="mb-2"><a href="#" class="text-muted text-decoration-none"><i class="fas fa-book me-2"></i>Документация</a></li>
-                        <li class="mb-2"><a href="#" class="text-muted text-decoration-none"><i class="fas fa-envelope me-2"></i>Контакты</a></li>
+                    <ul class="list-unstyled footer-links">
+                        <li class="mb-2"><a href="#" class="text-muted text-decoration-none">Помощь</a></li>
+                        <li class="mb-2"><a href="#" class="text-muted text-decoration-none">Документация</a></li>
+                        <li class="mb-2"><a href="#" class="text-muted text-decoration-none">Политика конфиденциальности</a></li>
+                        <li class="mb-2"><a href="#" class="text-muted text-decoration-none">Условия использования</a></li>
                     </ul>
                 </div>
             </div>
+
+            <!-- Integrations Section -->
+            <hr class="my-4">
+            <div class="row">
+                <div class="col-12">
+                    <h6 class="fw-semibold mb-3 text-center text-muted small">Интеграции</h6>
+                    <div class="footer-integrations d-flex flex-wrap justify-content-center align-items-center gap-4">
+                        <div class="footer-integration-item" title="Google">
+                            <i class="fab fa-google fa-2x text-muted"></i>
+                        </div>
+                        <div class="footer-integration-item" title="Microsoft">
+                            <i class="fab fa-microsoft fa-2x text-muted"></i>
+                        </div>
+                        <div class="footer-integration-item" title="Telegram">
+                            <i class="fab fa-telegram fa-2x text-muted"></i>
+                        </div>
+                        <div class="footer-integration-item" title="Slack">
+                            <i class="fab fa-slack fa-2x text-muted"></i>
+                        </div>
+                        <div class="footer-integration-item" title="Trello">
+                            <i class="fab fa-trello fa-2x text-muted"></i>
+                        </div>
+                        <div class="footer-integration-item" title="GitHub">
+                            <i class="fab fa-github fa-2x text-muted"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Copyright Section -->
             <hr class="my-4">
             <div class="row align-items-center">
-                <div class="col-md-6 text-center text-md-start">
+                <div class="col-md-6 text-center text-md-start mb-2 mb-md-0">
                     <p class="text-muted small mb-0">
-                        &copy; {{ "now"|date("Y") }} CRM Task Management. Все права защищены.
+                        Авторское право &copy; {{ "now"|date("Y") }} Dupley Maxim Igorevich. Все права защищены.
                     </p>
                 </div>
                 <div class="col-md-6 text-center text-md-end">
                     <p class="text-muted small mb-0">
-                        Версия 2.0 | <a href="#" class="text-decoration-none">Политика конфиденциальности</a> | <a href="#" class="text-decoration-none">Условия использования</a>
+                        Версия 2.0 | Разработано с <i class="fas fa-heart text-danger"></i> для вашего бизнеса
                     </p>
                 </div>
             </div>
@@ -390,6 +430,8 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+    <script src="{{ asset('js/utils/fetch-helpers.js') }}" type="module"></script>
+    <script src="{{ asset('js/utils/dom-helpers.js') }}" type="module"></script>
     <script src="{{ asset('js/components/notification-system.js') }}"></script>
     <script src="{{ asset('js/components/interactive-elements.js') }}" defer></script>
     <script src="{{ asset('js/components/form-validator.js') }}" defer></script>
