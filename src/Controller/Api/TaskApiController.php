@@ -13,6 +13,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+use OpenApi\Attributes as OA;
+
 /**
  * REST API Controller для задач
  *
@@ -20,6 +22,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  */
 #[Route('/api/tasks')]
 #[IsGranted('ROLE_USER')]
+#[OA\Tag(name: 'Tasks')]
 class TaskApiController extends AbstractController
 {
     public function __construct(
@@ -33,6 +36,58 @@ class TaskApiController extends AbstractController
      * Получить список задач с пагинацией и фильтрами
      */
     #[Route('', name: 'api_tasks_list', methods: ['GET'])]
+    #[OA\Get(
+        path: '/api/tasks',
+        summary: 'Получить список задач',
+        description: 'Возвращает список задач текущего пользователя с поддержкой фильтрации и пагинации',
+        tags: ['Tasks']
+    )]
+    #[OA\Parameter(
+        name: 'page',
+        in: 'query',
+        description: 'Номер страницы',
+        schema: new OA\Schema(type: 'integer', default: 1)
+    )]
+    #[OA\Parameter(
+        name: 'limit',
+        in: 'query',
+        description: 'Количество элементов на странице',
+        schema: new OA\Schema(type: 'integer', default: 20, maximum: 100)
+    )]
+    #[OA\Parameter(
+        name: 'status',
+        in: 'query',
+        description: 'Фильтр по статусу',
+        schema: new OA\Schema(type: 'string', enum: ['pending', 'in_progress', 'completed', 'cancelled'])
+    )]
+    #[OA\Parameter(
+        name: 'priority',
+        in: 'query',
+        description: 'Фильтр по приоритету',
+        schema: new OA\Schema(type: 'string', enum: ['low', 'medium', 'high', 'urgent'])
+    )]
+    #[OA\Parameter(
+        name: 'search',
+        in: 'query',
+        description: 'Поиск по названию и описанию',
+        schema: new OA\Schema(type: 'string')
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Успешный ответ',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'data', type: 'array', items: new OA\Items(ref: '#/components/schemas/Task')),
+                new OA\Property(property: 'meta', properties: [
+                    new OA\Property(property: 'total', type: 'integer'),
+                    new OA\Property(property: 'page', type: 'integer'),
+                    new OA\Property(property: 'limit', type: 'integer'),
+                    new OA\Property(property: 'pages', type: 'integer')
+                ], type: 'object')
+            ]
+        )
+    )]
+    #[OA\Response(response: 401, description: 'Не авторизован')]
     public function list(Request $request, TaskRepository $taskRepo): JsonResponse
     {
         $user = $this->getUser();

@@ -15,7 +15,7 @@ class CacheService
     private const USER_TTL = 1800; // 30 minutes
 
     public function __construct(
-        private readonly CacheInterface $cache
+        private readonly CacheInterface $cache,
     ) {
     }
 

@@ -1,9 +1,48 @@
 nelmio_api_doc:
     documentation:
         info:
-            title: My App
-            description: This is an awesome app!
-            version: 1.0.0
-    areas: # to filter documented areas
+            title: CRM Task Management API
+            description: API для системы управления задачами и CRM
+            version: 3.2.0
+            contact:
+                name: Dupley Maxim Igorevich
+                email: support@example.com
+        servers:
+            - url: http://localhost:8000
+              description: Development server
+            - url: https://api.example.com
+              description: Production server
+        components:
+            securitySchemes:
+                Bearer:
+                    type: http
+                    scheme: bearer
+                    bearerFormat: JWT
+        security:
+            - Bearer: []
+        tags:
+            - name: Tasks
+              description: Операции с задачами
+            - name: Users
+              description: Управление пользователями
+            - name: Deals
+              description: CRM сделки
+            - name: Clients
+              description: CRM клиенты
+            - name: Analytics
+              description: Аналитика и отчеты
+            - name: Integrations
+              description: Внешние интеграции
+            - name: Notifications
+              description: Уведомления
+    areas:
         path_patterns:
-            - ^/api(?!/doc$) # Accepts routes under /api except /api/doc
+            - ^/api(?!/doc$)
+        host_patterns:
+            - ^api\.
+    models:
+        names:
+            - { alias: Task, type: App\Entity\Task }
+            - { alias: User, type: App\Entity\User }
+            - { alias: Deal, type: App\Entity\Deal }
+            - { alias: Client, type: App\Entity\Client }

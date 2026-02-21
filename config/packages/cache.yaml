@@ -3,40 +3,56 @@ framework:
         # Unique name of your app: used to compute stable namespaces for cache keys.
         prefix_seed: app/todo_list
 
-        # APCu для максимальной производительности
-        app: cache.adapter.apcu
-        system: cache.adapter.apcu
-        
+        # The "app" cache stores to the filesystem by default.
+        # The data in this cache should persist between deploys.
+        # Other options include: "cache.adapter.redis", "cache.adapter.memcached", "cache.adapter.pdo", "cache.adapter.apcu"
+        app: cache.adapter.filesystem
+
+        # The "system" cache is for application internals and should use a fast adapter.
+        system: cache.adapter.system
+
         pools:
-            doctrine.system_cache_pool:
-                adapter: cache.adapter.apcu
-                public: false
+            # Redis cache pool for production
+            cache.redis:
+                adapter: cache.adapter.redis
+                provider: 'redis://localhost:6379'
+                default_lifetime: 3600
+
+            # Cache pool for analytics
+            cache.analytics:
+                adapter: cache.adapter.redis
+                provider: 'redis://localhost:6379'
+                default_lifetime: 1800 # 30 minutes
+
+            # Cache pool for user data
+            cache.user_data:
+                adapter: cache.adapter.redis
+                provider: 'redis://localhost:6379'
+                default_lifetime: 900 # 15 minutes
+
+            # Cache pool for statistics
+            cache.statistics:
+                adapter: cache.adapter.redis
+                provider: 'redis://localhost:6379'
+                default_lifetime: 600 # 10 minutes
 
 when@prod:
     framework:
         cache:
-            # Filesystem для dev окружения (APCu требует установки расширения)
+            # Use Redis in production
+            app: cache.redis
+            system: cache.adapter.redis
+
+when@dev:
+    framework:
+        cache:
+            # Use filesystem in development
             app: cache.adapter.filesystem
             system: cache.adapter.system
-            
-            pools:
-                doctrine.system_cache_pool:
-                    adapter: cache.adapter.filesystem
-                    public: false
-                
-                doctrine.result_cache_pool:
-                    adapter: cache.adapter.filesystem
-                    default_lifetime: 3600
-                    public: false
-                
-                # Redis pool для production с установленным Redis
-                cache.redis:
-                    adapter: cache.adapter.redis
-                    provider: 'redis://localhost'
-                    default_lifetime: 7200
-                
-                # Tags-aware cache
-                cache.tags:
-                    adapter: cache.adapter.redis
-                    provider: 'redis://localhost'
-                    tags: true
+
+when@test:
+    framework:
+        cache:
+            # Use array adapter for tests (in-memory)
+            app: cache.adapter.array
+            system: cache.adapter.array
