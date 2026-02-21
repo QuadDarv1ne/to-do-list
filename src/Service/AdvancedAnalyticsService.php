@@ -31,16 +31,69 @@ class AdvancedAnalyticsService
      */
     private function getOverviewMetrics(User $user, \DateTime $from, \DateTime $to): array
     {
+        $totalTasks = $this->taskRepository->countByStatus($user);
+        $completedTasks = $this->taskRepository->countByStatus($user, true);
+        $inProgressTasks = $this->taskRepository->countByStatus($user, false, 'in_progress');
+        
+        $now = new \DateTime();
+        $overdueTasks = count(array_filter(
+            $this->taskRepository->findByAssignedUser($user),
+            fn($task) => $task->getDueDate() && $task->getDueDate() < $now && !$task->isDone()
+        ));
+        
+        $completionRate = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100) : 0;
+        
+        // Расчет среднего времени выполнения
+        $completedTasksList = $this->taskRepository->findByUserAndStatus($user, 'done', $from, $to);
+        $avgCompletionTime = $this->calculateAverageCompletionTime($completedTasksList);
+        
         return [
-            'total_tasks' => 150,
-            'completed_tasks' => 120,
-            'in_progress_tasks' => 20,
-            'overdue_tasks' => 10,
-            'completion_rate' => 80,
-            'average_completion_time' => 3.5, // days
-            'productivity_score' => 85,
-            'quality_score' => 90,
+            'total_tasks' => $totalTasks,
+            'completed_tasks' => $completedTasks,
+            'in_progress_tasks' => $inProgressTasks,
+            'overdue_tasks' => $overdueTasks,
+            'completion_rate' => $completionRate,
+            'average_completion_time' => $avgCompletionTime,
+            'productivity_score' => min(100, $completionRate + ($avgCompletionTime > 0 ? (5 / $avgCompletionTime) * 10 : 0)),
+            'quality_score' => $this->calculateQualityScore($user, $from, $to),
         ];
+    }
+    
+    private function calculateAverageCompletionTime(array $tasks): float
+    {
+        if (empty($tasks)) {
+            return 0;
+        }
+        
+        $totalDays = 0;
+        $count = 0;
+        
+        foreach ($tasks as $task) {
+            if ($task->getCreatedAt() && $task->getUpdatedAt()) {
+                $diff = $task->getCreatedAt()->diff($task->getUpdatedAt());
+                $totalDays += $diff->days;
+                $count++;
+            }
+        }
+        
+        return $count > 0 ? round($totalDays / $count, 1) : 0;
+    }
+    
+    private function calculateQualityScore(User $user, \DateTime $from, \DateTime $to): int
+    {
+        $tasks = $this->taskRepository->findByUserAndStatus($user, 'done', $from, $to);
+        if (empty($tasks)) {
+            return 0;
+        }
+        
+        $onTimeCount = 0;
+        foreach ($tasks as $task) {
+            if ($task->getDueDate() && $task->getUpdatedAt() && $task->getUpdatedAt() <= $task->getDueDate()) {
+                $onTimeCount++;
+            }
+        }
+        
+        return round(($onTimeCount / count($tasks)) * 100);
     }
 
     /**
@@ -67,12 +120,29 @@ class AdvancedAnalyticsService
 
         while ($current <= $to) {
             $weekEnd = (clone $current)->modify('+7 days');
+            if ($weekEnd > $to) {
+                $weekEnd = clone $to;
+            }
+
+            $allTasks = $this->taskRepository->findByAssignedUser($user);
+            
+            $created = count(array_filter($allTasks, function($task) use ($current, $weekEnd) {
+                $createdAt = $task->getCreatedAt();
+                return $createdAt && $createdAt >= $current && $createdAt < $weekEnd;
+            }));
+            
+            $completed = count(array_filter($allTasks, function($task) use ($current, $weekEnd) {
+                $updatedAt = $task->getUpdatedAt();
+                return $task->isDone() && $updatedAt && $updatedAt >= $current && $updatedAt < $weekEnd;
+            }));
+            
+            $velocity = $completed > 0 ? round($completed / 7, 1) : 0;
 
             $data[] = [
                 'week' => $current->format('Y-W'),
-                'created' => rand(10, 30),
-                'completed' => rand(8, 25),
-                'velocity' => rand(2, 5),
+                'created' => $created,
+                'completed' => $completed,
+                'velocity' => $velocity,
             ];
 
             $current = $weekEnd;
@@ -324,14 +394,149 @@ class AdvancedAnalyticsService
      */
     private function exportToPDF(array $data): string
     {
-        // Note: Требует установки библиотеки для PDF (например, dompdf или tcpdf)
-        return '';
+        $dompdf = new \Dompdf\Dompdf();
+        
+        $html = $this->generatePDFHTML($data);
+        
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        
+        return $dompdf->output();
+    }
+    
+    private function generatePDFHTML(array $data): string
+    {
+        $html = '<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: DejaVu Sans, sans-serif; font-size: 12px; }
+        h1 { color: #333; font-size: 24px; margin-bottom: 20px; }
+        h2 { color: #666; font-size: 18px; margin-top: 20px; margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; font-weight: bold; }
+        .metric { display: inline-block; margin: 10px 20px 10px 0; }
+        .metric-label { color: #666; font-size: 10px; }
+        .metric-value { font-size: 18px; font-weight: bold; color: #333; }
+        .footer { margin-top: 30px; text-align: center; color: #999; font-size: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Аналитический отчет</h1>
+    <p>Дата создания: ' . date('d.m.Y H:i') . '</p>';
+        
+        if (isset($data['overview'])) {
+            $html .= '<h2>Общие метрики</h2>';
+            foreach ($data['overview'] as $key => $value) {
+                $label = ucfirst(str_replace('_', ' ', $key));
+                $html .= '<div class="metric">
+                    <div class="metric-label">' . htmlspecialchars($label) . '</div>
+                    <div class="metric-value">' . htmlspecialchars($value) . '</div>
+                </div>';
+            }
+        }
+        
+        if (isset($data['trends']['weekly_data'])) {
+            $html .= '<h2>Недельные тренды</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Неделя</th>
+                        <th>Создано</th>
+                        <th>Завершено</th>
+                        <th>Скорость</th>
+                    </tr>
+                </thead>
+                <tbody>';
+            
+            foreach ($data['trends']['weekly_data'] as $week) {
+                $html .= '<tr>
+                    <td>' . htmlspecialchars($week['week']) . '</td>
+                    <td>' . htmlspecialchars($week['created']) . '</td>
+                    <td>' . htmlspecialchars($week['completed']) . '</td>
+                    <td>' . htmlspecialchars($week['velocity']) . '</td>
+                </tr>';
+            }
+            
+            $html .= '</tbody></table>';
+        }
+        
+        $html .= '<div class="footer">
+            <p>Сгенерировано системой управления задачами</p>
+            <p>&copy; ' . date('Y') . ' Dupley Maxim Igorevich. Все права защищены.</p>
+        </div>
+    </body>
+</html>';
+        
+        return $html;
     }
 
     private function exportToExcel(array $data): string
     {
-        // Note: Требует установки PhpSpreadsheet
-        return '';
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        
+        // Заголовок
+        $sheet->setCellValue('A1', 'Аналитический отчет');
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
+        $sheet->setCellValue('A2', 'Дата: ' . date('d.m.Y H:i'));
+        
+        $row = 4;
+        
+        // Общие метрики
+        if (isset($data['overview'])) {
+            $sheet->setCellValue('A' . $row, 'Общие метрики');
+            $sheet->getStyle('A' . $row)->getFont()->setBold(true)->setSize(14);
+            $row += 2;
+            
+            foreach ($data['overview'] as $key => $value) {
+                $label = ucfirst(str_replace('_', ' ', $key));
+                $sheet->setCellValue('A' . $row, $label);
+                $sheet->setCellValue('B' . $row, $value);
+                $row++;
+            }
+            $row += 2;
+        }
+        
+        // Недельные тренды
+        if (isset($data['trends']['weekly_data'])) {
+            $sheet->setCellValue('A' . $row, 'Недельные тренды');
+            $sheet->getStyle('A' . $row)->getFont()->setBold(true)->setSize(14);
+            $row += 2;
+            
+            $sheet->setCellValue('A' . $row, 'Неделя');
+            $sheet->setCellValue('B' . $row, 'Создано');
+            $sheet->setCellValue('C' . $row, 'Завершено');
+            $sheet->setCellValue('D' . $row, 'Скорость');
+            $sheet->getStyle('A' . $row . ':D' . $row)->getFont()->setBold(true);
+            $row++;
+            
+            foreach ($data['trends']['weekly_data'] as $week) {
+                $sheet->setCellValue('A' . $row, $week['week']);
+                $sheet->setCellValue('B' . $row, $week['created']);
+                $sheet->setCellValue('C' . $row, $week['completed']);
+                $sheet->setCellValue('D' . $row, $week['velocity']);
+                $row++;
+            }
+        }
+        
+        // Автоширина колонок
+        foreach (range('A', 'D') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+        
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        
+        $tempFile = tempnam(sys_get_temp_dir(), 'analytics_');
+        $writer->save($tempFile);
+        
+        $content = file_get_contents($tempFile);
+        unlink($tempFile);
+        
+        return $content;
     }
 
     /**
