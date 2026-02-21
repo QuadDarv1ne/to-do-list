@@ -28,13 +28,13 @@ class WebhookType extends AbstractType
                     'maxlength' => 255,
                 ],
                 'constraints' => [
-                    new Assert\NotBlank([
-                        'message' => 'Название webhook обязательно',
-                    ]),
-                    new Assert\Length([
-                        'max' => 255,
-                        'maxMessage' => 'Название не может быть длиннее {{ limit }} символов',
-                    ]),
+                    new Assert\NotBlank(
+                        message: 'Название webhook обязательно',
+                    ),
+                    new Assert\Length(
+                        max: 255,
+                        maxMessage: 'Название не может быть длиннее {{ limit }} символов',
+                    ),
                 ],
             ])
             ->add('url', UrlType::class, [
@@ -46,12 +46,12 @@ class WebhookType extends AbstractType
                 ],
                 'help' => 'URL, на который будут отправляться уведомления',
                 'constraints' => [
-                    new Assert\NotBlank([
-                        'message' => 'URL webhook обязателен',
-                    ]),
-                    new Assert\Url([
-                        'message' => 'Некорректный URL формат',
-                    ]),
+                    new Assert\NotBlank(
+                        message: 'URL webhook обязателен',
+                    ),
+                    new Assert\Url(
+                        message: 'Некорректный URL формат',
+                    ),
                 ],
             ])
             ->add('secret', TextType::class, [
@@ -67,20 +67,20 @@ class WebhookType extends AbstractType
             ->add('events', ChoiceType::class, [
                 'label' => 'События',
                 'choices' => array_flip($availableEvents),
+                'multiple' => true,
                 'attr' => [
                     'class' => 'form-select',
-                    'multiple' => true,
-                    'size' => count($availableEvents) + 1,
+                    'size' => count($availableEvents),
                 ],
                 'help' => 'Выберите события, на которые будет реагировать webhook. Выберите "*" для всех событий.',
                 'constraints' => [
-                    new Assert\NotBlank([
-                        'message' => 'Выберите хотя бы одно событие',
-                    ]),
-                    new Assert\Count([
-                        'min' => 1,
-                        'minMessage' => 'Выберите хотя бы {{ limit }} событие',
-                    ]),
+                    new Assert\NotBlank(
+                        message: 'Выберите хотя бы одно событие',
+                    ),
+                    new Assert\Count(
+                        min: 1,
+                        minMessage: 'Выберите хотя бы {{ limit }} событие',
+                    ),
                 ],
             ])
             ->add('isActive', CheckboxType::class, [

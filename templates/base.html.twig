@@ -266,7 +266,9 @@
     <!-- Footer -->
     <footer class="footer mt-5 py-4 bg-light border-top">
         <div class="container-fluid">
-            <div class="row">
+            <!-- Main Footer Content -->
+            <div class="row mb-4">
+                <!-- Company Info -->
                 <div class="col-lg-3 col-md-6 mb-4 mb-lg-0">
                     <h5 class="fw-bold mb-3">
                         <i class="fas fa-chart-line me-2 text-primary"></i>CRM Task Management
@@ -274,89 +276,114 @@
                     <p class="text-muted small mb-3">
                         Профессиональная система управления задачами и CRM для вашего бизнеса
                     </p>
-                    <div class="footer-social-links">
+                    <div class="footer-social-links mb-3">
                         <a href="#" class="text-muted me-3" title="Telegram" aria-label="Telegram"><i class="fab fa-telegram fa-lg"></i></a>
-                        <a href="#" class="text-muted me-3" title="Email" aria-label="Email"><i class="fas fa-envelope fa-lg"></i></a>
-                        <a href="#" class="text-muted me-3" title="GitHub" aria-label="GitHub"><i class="fab fa-github fa-lg"></i></a>
+                        <a href="#" class="text-muted me-3" title="WhatsApp" aria-label="WhatsApp"><i class="fab fa-whatsapp fa-lg"></i></a>
+                        <a href="#" class="text-muted me-3" title="VK" aria-label="VK"><i class="fab fa-vk fa-lg"></i></a>
+                    </div>
+                    <!-- Mobile App Buttons -->
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="#" class="app-download-btn-mini" title="App Store">
+                            <i class="fab fa-apple"></i>
+                        </a>
+                        <a href="#" class="app-download-btn-mini" title="Google Play">
+                            <i class="fab fa-google-play"></i>
+                        </a>
                     </div>
                 </div>
+
+                <!-- Navigation Links -->
                 <div class="col-lg-2 col-md-6 mb-4 mb-lg-0">
                     <h6 class="fw-semibold mb-3">Навигация</h6>
                     <ul class="list-unstyled footer-links">
                         <li class="mb-2"><a href="{{ path('app_dashboard') }}" class="text-muted text-decoration-none">Панель управления</a></li>
                         <li class="mb-2"><a href="{{ path('app_task_index') }}" class="text-muted text-decoration-none">Задачи</a></li>
-                        <li class="mb-2"><a href="{{ path('app_kanban_board') }}" class="text-muted text-decoration-none">Канбан доска</a></li>
+                        <li class="mb-2"><a href="{{ path('app_kanban_board') }}" class="text-muted text-decoration-none">Канбан</a></li>
                         <li class="mb-2"><a href="{{ path('app_calendar') }}" class="text-muted text-decoration-none">Календарь</a></li>
+                        <li class="mb-2"><a href="{{ path('app_analytics_dashboard') }}" class="text-muted text-decoration-none">Аналитика</a></li>
                     </ul>
                 </div>
+
+                <!-- CRM Module -->
                 <div class="col-lg-2 col-md-6 mb-4 mb-lg-0">
-                    <h6 class="fw-semibold mb-3">CRM модуль</h6>
+                    <h6 class="fw-semibold mb-3">CRM</h6>
                     <ul class="list-unstyled footer-links">
                         <li class="mb-2"><a href="{{ path('app_deals_index') }}" class="text-muted text-decoration-none">Сделки</a></li>
                         <li class="mb-2"><a href="{{ path('app_clients_index') }}" class="text-muted text-decoration-none">Клиенты</a></li>
-                        <li class="mb-2"><a href="{{ path('app_analytics_dashboard') }}" class="text-muted text-decoration-none">Аналитика</a></li>
+                        <li class="mb-2"><a href="{{ path('app_products_index') }}" class="text-muted text-decoration-none">Товары</a></li>
                         <li class="mb-2"><a href="{{ path('app_user_index') }}" class="text-muted text-decoration-none">Команда</a></li>
                     </ul>
                 </div>
+
+                <!-- Support & Personal -->
                 <div class="col-lg-2 col-md-6 mb-4 mb-lg-0">
-                    <h6 class="fw-semibold mb-3">Личное</h6>
-                    <ul class="list-unstyled footer-links">
-                        <li class="mb-2"><a href="{{ path('app_goals_index') }}" class="text-muted text-decoration-none">Цели</a></li>
-                        <li class="mb-2"><a href="{{ path('app_habits_index') }}" class="text-muted text-decoration-none">Привычки</a></li>
-                        <li class="mb-2"><a href="{{ path('app_profile_show') }}" class="text-muted text-decoration-none">Профиль</a></li>
-                        <li class="mb-2"><a href="{{ path('app_settings') }}" class="text-muted text-decoration-none">Настройки</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-3 col-md-12">
                     <h6 class="fw-semibold mb-3">Поддержка</h6>
                     <ul class="list-unstyled footer-links">
                         <li class="mb-2"><a href="#" class="text-muted text-decoration-none">Помощь</a></li>
                         <li class="mb-2"><a href="#" class="text-muted text-decoration-none">Документация</a></li>
-                        <li class="mb-2"><a href="#" class="text-muted text-decoration-none">Политика конфиденциальности</a></li>
-                        <li class="mb-2"><a href="#" class="text-muted text-decoration-none">Условия использования</a></li>
+                        <li class="mb-2"><a href="{{ path('app_profile_show') }}" class="text-muted text-decoration-none">Профиль</a></li>
+                        <li class="mb-2"><a href="{{ path('app_settings') }}" class="text-muted text-decoration-none">Настройки</a></li>
                     </ul>
                 </div>
-            </div>
 
-            <!-- Integrations Section -->
-            <hr class="my-4">
-            <div class="row">
-                <div class="col-12">
-                    <h6 class="fw-semibold mb-3 text-center text-muted small">Интеграции</h6>
-                    <div class="footer-integrations d-flex flex-wrap justify-content-center align-items-center gap-4">
-                        <div class="footer-integration-item" title="Google">
-                            <i class="fab fa-google fa-2x text-muted"></i>
+                <!-- Contacts -->
+                <div class="col-lg-3 col-md-12">
+                    <h6 class="fw-semibold mb-3">Контакты</h6>
+                    <div class="footer-contacts">
+                        <div class="contact-item mb-2">
+                            <i class="fas fa-envelope me-2"></i>
+                            <a href="mailto:support@crm-system.ru" class="text-muted text-decoration-none">support@crm-system.ru</a>
                         </div>
-                        <div class="footer-integration-item" title="Microsoft">
-                            <i class="fab fa-microsoft fa-2x text-muted"></i>
+                        <div class="contact-item mb-2">
+                            <i class="fas fa-phone me-2"></i>
+                            <a href="tel:+78001234567" class="text-muted text-decoration-none">8 (800) 123-45-67</a>
                         </div>
-                        <div class="footer-integration-item" title="Telegram">
-                            <i class="fab fa-telegram fa-2x text-muted"></i>
-                        </div>
-                        <div class="footer-integration-item" title="Slack">
-                            <i class="fab fa-slack fa-2x text-muted"></i>
-                        </div>
-                        <div class="footer-integration-item" title="Trello">
-                            <i class="fab fa-trello fa-2x text-muted"></i>
-                        </div>
-                        <div class="footer-integration-item" title="GitHub">
-                            <i class="fab fa-github fa-2x text-muted"></i>
+                        <div class="contact-item">
+                            <i class="fas fa-map-marker-alt me-2"></i>
+                            <span class="text-muted">Москва, Россия</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Copyright Section -->
-            <hr class="my-4">
+            <!-- Payment & Integrations -->
+            <hr class="my-3">
+            <div class="row">
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <h6 class="fw-semibold mb-3 text-muted small">Способы оплаты</h6>
+                    <div class="footer-icons-compact">
+                        <div class="footer-icon-item" title="МИР"><i class="fab fa-cc-mastercard fa-lg"></i></div>
+                        <div class="footer-icon-item" title="Visa"><i class="fab fa-cc-visa fa-lg"></i></div>
+                        <div class="footer-icon-item" title="Mastercard"><i class="fab fa-cc-mastercard fa-lg"></i></div>
+                        <div class="footer-icon-item" title="PayPal"><i class="fab fa-cc-paypal fa-lg"></i></div>
+                        <div class="footer-icon-item" title="Apple Pay"><i class="fab fa-cc-apple-pay fa-lg"></i></div>
+                        <div class="footer-icon-item" title="Google Pay"><i class="fab fa-google-pay fa-lg"></i></div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="fw-semibold mb-3 text-muted small">Интеграции</h6>
+                    <div class="footer-icons-compact">
+                        <div class="footer-icon-item" title="Google"><i class="fab fa-google fa-lg"></i></div>
+                        <div class="footer-icon-item" title="Microsoft"><i class="fab fa-microsoft fa-lg"></i></div>
+                        <div class="footer-icon-item" title="Slack"><i class="fab fa-slack fa-lg"></i></div>
+                        <div class="footer-icon-item" title="Trello"><i class="fab fa-trello fa-lg"></i></div>
+                        <div class="footer-icon-item" title="GitHub"><i class="fab fa-github fa-lg"></i></div>
+                        <div class="footer-icon-item" title="Jira"><i class="fab fa-jira fa-lg"></i></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Copyright -->
+            <hr class="my-3">
             <div class="row align-items-center">
                 <div class="col-md-6 text-center text-md-start mb-2 mb-md-0">
                     <p class="text-muted small mb-0">
-                        Авторское право &copy; {{ "now"|date("Y") }} Dupley Maxim Igorevich. Все права защищены.
+                        &copy; {{ "now"|date("Y") }} Dupley Maxim Igorevich. Все права защищены.
                     </p>
                 </div>
                 <div class="col-md-6 text-center text-md-end">
                     <p class="text-muted small mb-0">
-                        Версия 2.0 | Разработано с <i class="fas fa-heart text-danger"></i> для вашего бизнеса
+                        Версия 2.0 | <a href="#" class="text-muted text-decoration-none">Политика конфиденциальности</a> | <a href="#" class="text-muted text-decoration-none">Условия</a>
                     </p>
                 </div>
             </div>

@@ -26,9 +26,9 @@ class TaskRecurrenceType extends AbstractType
                     'class' => 'form-select',
                 ],
                 'constraints' => [
-                    new Assert\NotBlank([
-                        'message' => 'Выберите задачу как шаблон',
-                    ]),
+                    new Assert\NotBlank(
+                        message: 'Выберите задачу как шаблон',
+                    ),
                 ],
             ])
             ->add('frequency', ChoiceType::class, [
@@ -44,9 +44,9 @@ class TaskRecurrenceType extends AbstractType
                     'data-frequency-selector' => 'true',
                 ],
                 'constraints' => [
-                    new Assert\NotBlank([
-                        'message' => 'Выберите частоту повторения',
-                    ]),
+                    new Assert\NotBlank(
+                        message: 'Выберите частоту повторения',
+                    ),
                 ],
             ])
             ->add('interval', IntegerType::class, [

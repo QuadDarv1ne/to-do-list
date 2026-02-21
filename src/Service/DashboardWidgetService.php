@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\User;
+use App\Repository\UserPreferenceRepository;
 use App\Repository\TaskRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -11,6 +12,7 @@ class DashboardWidgetService
     public function __construct(
         private TaskRepository $taskRepository,
         private EntityManagerInterface $entityManager,
+        private UserPreferenceRepository $preferenceRepository,
     ) {
     }
 
@@ -108,16 +110,22 @@ class DashboardWidgetService
      */
     public function getUserWidgets(User $user): array
     {
-        // Default widgets for new users
-        $defaultWidgets = [
-            'task_stats',
-            'recent_tasks',
-            'upcoming_deadlines',
-            'productivity_chart',
-        ];
+        $preference = $this->preferenceRepository->findByUserAndKey(
+            $user->getId(),
+            UserPreference::KEY_WIDGET_SETTINGS
+        );
 
-        // Note: Загрузка из БД требует создания таблицы user_preferences
-        return $defaultWidgets;
+        if (!$preference || !$preference->getPreferenceValue()) {
+            // Возвращаем виджеты по умолчанию
+            return [
+                'task_stats' => ['enabled' => true, 'position' => 1, 'collapsed' => false],
+                'recent_tasks' => ['enabled' => true, 'position' => 2, 'collapsed' => false, 'limit' => 5],
+                'upcoming_deadlines' => ['enabled' => true, 'position' => 3, 'collapsed' => false, 'days_ahead' => 7],
+                'productivity_chart' => ['enabled' => true, 'position' => 4, 'collapsed' => false],
+            ];
+        }
+
+        return $preference->getPreferenceValue();
     }
 
     /**
@@ -125,12 +133,93 @@ class DashboardWidgetService
      */
     public function saveUserWidgets(User $user, array $widgets): void
     {
-        // Validate widgets exist
+        // Валидация виджетов
         $available = array_keys($this->getAvailableWidgets());
-        $validWidgets = array_intersect($widgets, $available);
-        
-        // Note: Сохранение в БД требует создания таблицы user_preferences
-        // Пока настройки сохраняются в сессии через контроллер
+        $validWidgets = [];
+
+        foreach ($widgets as $widgetId => $config) {
+            if (in_array($widgetId, $available, true)) {
+                $validWidgets[$widgetId] = array_merge(
+                    ['enabled' => true, 'position' => 999, 'collapsed' => false],
+                    $config
+                );
+            }
+        }
+
+        $this->preferenceRepository->setValue(
+            $user->getId(),
+            $user,
+            UserPreference::KEY_WIDGET_SETTINGS,
+            $validWidgets
+        );
+    }
+
+    /**
+     * Enable widget for user
+     */
+    public function enableWidget(User $user, string $widgetId): bool
+    {
+        $widgets = $this->getUserWidgets($user);
+
+        if (!isset($widgets[$widgetId])) {
+            $widgets[$widgetId] = ['enabled' => true, 'position' => 999, 'collapsed' => false];
+        } else {
+            $widgets[$widgetId]['enabled'] = true;
+        }
+
+        $this->saveUserWidgets($user, $widgets);
+
+        return true;
+    }
+
+    /**
+     * Disable widget for user
+     */
+    public function disableWidget(User $user, string $widgetId): bool
+    {
+        $widgets = $this->getUserWidgets($user);
+
+        if (isset($widgets[$widgetId])) {
+            $widgets[$widgetId]['enabled'] = false;
+            $this->saveUserWidgets($user, $widgets);
+        }
+
+        return true;
+    }
+
+    /**
+     * Update widget configuration
+     */
+    public function updateWidgetConfig(User $user, string $widgetId, array $config): bool
+    {
+        $widgets = $this->getUserWidgets($user);
+
+        if (!isset($widgets[$widgetId])) {
+            return false;
+        }
+
+        $widgets[$widgetId] = array_merge($widgets[$widgetId], $config);
+        $this->saveUserWidgets($user, $widgets);
+
+        return true;
+    }
+
+    /**
+     * Get enabled widgets for user
+     */
+    public function getEnabledWidgets(User $user): array
+    {
+        $widgets = $this->getUserWidgets($user);
+
+        $enabledWidgets = array_filter(
+            $widgets,
+            fn($config) => $config['enabled'] ?? true
+        );
+
+        // Сортируем по позиции
+        uasort($enabledWidgets, fn($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
+
+        return $enabledWidgets;
     }
 
     // Widget data methods
