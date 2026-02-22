@@ -259,7 +259,7 @@
     </nav>
 
     <!-- Main Content -->
-    <main class="container-fluid mt-4" id="main-content" role="main" aria-label="Основное содержимое">
+    <main class="container-fluid mt-4" id="main-content" role="main" aria-label="Основное содержимое"{{ use_turbo|default(false) ? ' data-turbo-frame="main-content"' : '' }}>
         {% block body %}{% endblock %}
     </main>
 
@@ -533,5 +533,8 @@
     </script>
 
     {% block additional_javascripts %}{% endblock %}
+
+    {# Command Palette - Ctrl+K #}
+    {% include 'components/command_palette.html.twig' %}
 </body>
 </html>

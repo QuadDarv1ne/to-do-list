@@ -2,25 +2,427 @@
 
 {% block title %}Webhooks{% endblock %}
 
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.webhooks-container {
+    animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.webhooks-header {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    padding: 2.5rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.webhooks-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+}
+
+.stat-card.total::before { background: linear-gradient(180deg, #667eea 0%, #764ba2 100%); }
+.stat-card.active::before { background: linear-gradient(180deg, #11998e 0%, #38ef7d 100%); }
+.stat-card.events::before { background: linear-gradient(180deg, #f093fb 0%, #f5576c 100%); }
+.stat-card.failed::before { background: linear-gradient(180deg, #f5576c 0%, #f093fb 100%); }
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 1.5rem;
+}
+
+.stat-icon.total { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+.stat-icon.active { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; }
+.stat-icon.events { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+.stat-icon.failed { background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%); color: white; }
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    color: #6c757d;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.webhook-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.webhook-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+}
+
+.webhook-card.active::before {
+    background: linear-gradient(180deg, #11998e 0%, #38ef7d 100%);
+}
+
+.webhook-card.inactive::before {
+    background: linear-gradient(180deg, #6c757d 0%, #495057 100%);
+}
+
+.webhook-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.15);
+}
+
+.webhook-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.webhook-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.webhook-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #212529;
+    margin-bottom: 0.25rem;
+}
+
+.webhook-url {
+    color: #6c757d;
+    font-size: 0.85rem;
+    font-family: monospace;
+    background: #f8f9fa;
+    padding: 0.5rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    word-break: break-all;
+}
+
+.webhook-events {
+    margin-bottom: 1rem;
+}
+
+.event-badge {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin: 0.25rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.webhook-stats {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.webhook-stat {
+    text-align: center;
+}
+
+.webhook-stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #212529;
+}
+
+.webhook-stat-label {
+    color: #6c757d;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.status-badge.active {
+    background: rgba(17, 153, 142, 0.1);
+    color: #11998e;
+}
+
+.status-badge.inactive {
+    background: rgba(108, 117, 125, 0.1);
+    color: #6c757d;
+}
+
+.status-badge::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.webhook-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 2px solid #f0f0f0;
+}
+
+.btn-webhook {
+    padding: 0.5rem 1rem;
+    border-radius: 10px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.btn-webhook.view {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-webhook.edit {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+}
+
+.btn-webhook.test {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+}
+
+.btn-webhook.delete {
+    background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+    color: white;
+}
+
+.btn-webhook:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.create-webhook-btn {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(245, 87, 108, 0.4);
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.create-webhook-btn:hover {
+    transform: scale(1.1) rotate(90deg);
+    box-shadow: 0 12px 32px rgba(245, 87, 108, 0.6);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 16px;
+}
+
+.empty-state i {
+    font-size: 5rem;
+    color: #e9ecef;
+    margin-bottom: 1.5rem;
+}
+
+.test-modal .modal-content {
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.test-modal .modal-header {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+}
+
+.test-result {
+    padding: 1rem;
+    border-radius: 12px;
+    margin-top: 1rem;
+}
+
+.test-result.success {
+    background: rgba(17, 153, 142, 0.1);
+    border: 2px solid #11998e;
+}
+
+.test-result.error {
+    background: rgba(245, 87, 108, 0.1);
+    border: 2px solid #f5576c;
+}
+
+@media (max-width: 768px) {
+    .webhooks-header {
+        padding: 1.5rem;
+    }
+    
+    .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .create-webhook-btn {
+        bottom: 1rem;
+        right: 1rem;
+    }
+}
+</style>
+{% endblock %}
+
 {% block body %}
-<div class="container-fluid page-transition">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
-                <div class="d-flex align-items-center">
-                    <div class="icon-wrapper bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
-                        <i class="fas fa-bolt fa-xl text-primary"></i>
-                    </div>
-                    <div>
-                        <h1 class="mb-1">Webhooks</h1>
-                        <p class="text-muted mb-0">Настройте интеграции с внешними системами</p>
-                    </div>
-                </div>
-                <a href="{{ path('app_webhook_new') }}" class="btn btn-primary btn-lg px-4 py-2">
-                    <i class="fas fa-plus me-2"></i>
-                    Создать webhook
-                </a>
+<div class="container-fluid py-4 webhooks-container">
+    <!-- Header -->
+    <div class="webhooks-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1 class="mb-2">
+                    <i class="fas fa-bolt me-2"></i>
+                    Webhooks
+                </h1>
+                <p class="mb-0 opacity-75">Настройте интеграции с внешними системами через HTTP-уведомления</p>
             </div>
+            <a href="{{ path('app_webhook_new') }}" class="btn btn-light btn-lg px-4">
+                <i class="fas fa-plus me-2"></i>
+                Создать webhook
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="stats-row">
+        <div class="stat-card total">
+            <div class="stat-icon total">
+                <i class="fas fa-bolt"></i>
+            </div>
+            <div class="stat-value">{{ webhooks|length|default(0) }}</div>
+            <div class="stat-label">Всего webhooks</div>
+        </div>
+        <div class="stat-card active">
+            <div class="stat-icon active">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-value">{{ webhooks|filter(w => w.isActive)|length|default(0) }}</div>
+            <div class="stat-label">Активные</div>
+        </div>
+        <div class="stat-card events">
+            <div class="stat-icon events">
+                <i class="fas fa-bell"></i>
+            </div>
+            <div class="stat-value">{{ totalEvents|default(0) }}</div>
+            <div class="stat-label">Событий</div>
+        </div>
+        <div class="stat-card failed">
+            <div class="stat-icon failed">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="stat-value">{{ failedDeliveries|default(0) }}</div>
+            <div class="stat-label">Ошибок</div>
         </div>
     </div>
 
@@ -28,66 +430,80 @@
         <div class="row" id="webhooks-container">
             {% for webhook in webhooks %}
                 <div class="col-lg-4 col-md-6 mb-4" data-webhook-id="{{ webhook.id }}">
-                    <div class="card border-0 shadow-sm h-100 card-hover">
-                        <div class="card-body p-4">
-                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                <div class="d-flex align-items-center">
-                                    <div class="icon-wrapper bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px;">
-                                        <i class="fas fa-bolt text-primary"></i>
-                                    </div>
-                                    <div>
-                                        <h5 class="card-title mb-1">{{ webhook.name }}</h5>
-                                        <small class="text-muted">{{ webhook.events|length }} событий</small>
-                                    </div>
-                                </div>
-                                <span class="badge bg-{{ webhook.isActive ? 'success' : 'secondary' }}">
-                                    {{ webhook.isActive ? 'Активен' : 'Неактивен' }}
-                                </span>
+                    <div class="webhook-card {{ webhook.isActive ? 'active' : 'inactive' }}">
+                        <div class="webhook-header">
+                            <div class="webhook-icon">
+                                <i class="fas fa-bolt"></i>
                             </div>
+                            <span class="status-badge {{ webhook.isActive ? 'active' : 'inactive' }}">
+                                {{ webhook.isActive ? 'Активен' : 'Неактивен' }}
+                            </span>
+                        </div>
 
-                            <div class="mb-3">
-                                <small class="text-muted d-block mb-1">URL:</small>
-                                <code class="text-primary" style="font-size: 0.85rem;">{{ webhook.url|length > 40 ? webhook.url|slice(0, 40) ~ '...' : webhook.url }}</code>
-                            </div>
+                        <h5 class="webhook-title">{{ webhook.name }}</h5>
+                        
+                        <div class="webhook-url">
+                            <i class="fas fa-link me-2"></i>
+                            {{ webhook.url|length > 50 ? webhook.url|slice(0, 50) ~ '...' : webhook.url }}
+                        </div>
 
-                            <div class="mb-3">
-                                <small class="text-muted d-block mb-2">События:</small>
-                                <div class="d-flex flex-wrap gap-1">
-                                    {% for event in webhook.events|slice(0, 3) %}
-                                        <span class="badge bg-light text-dark border">
-                                            <i class="fas fa-circle me-1" style="font-size: 0.4rem;"></i>
-                                            {{ event }}
-                                        </span>
-                                    {% endfor %}
-                                    {% if webhook.events|length > 3 %}
-                                        <span class="badge bg-light text-dark border">
-                                            +{{ webhook.events|length - 3 }} ещё
-                                        </span>
-                                    {% endif %}
-                                </div>
+                        <div class="webhook-events">
+                            <small class="text-muted d-block mb-2">
+                                <i class="fas fa-bell me-1"></i>
+                                События ({{ webhook.events|length }}):
+                            </small>
+                            <div>
+                                {% for event in webhook.events|slice(0, 5) %}
+                                    <span class="event-badge">
+                                        <i class="fas fa-circle me-1" style="font-size: 0.4rem;"></i>
+                                        {{ event }}
+                                    </span>
+                                {% endfor %}
+                                {% if webhook.events|length > 5 %}
+                                    <span class="event-badge" style="background: #e9ecef; color: #6c757d;">
+                                        +{{ webhook.events|length - 5 }} ещё
+                                    </span>
+                                {% endif %}
                             </div>
+                        </div>
 
-                            <div class="d-flex gap-2 mt-3">
-                                <a href="{{ path('app_webhook_show', {id: webhook.id}) }}" class="btn btn-sm btn-outline-primary flex-fill">
-                                    <i class="fas fa-eye me-1"></i>
-                                    Просмотр
-                                </a>
-                                <a href="{{ path('app_webhook_edit', {id: webhook.id}) }}" class="btn btn-sm btn-outline-secondary flex-fill">
-                                    <i class="fas fa-edit me-1"></i>
-                                    Редактировать
-                                </a>
+                        <div class="webhook-stats">
+                            <div class="webhook-stat">
+                                <div class="webhook-stat-value">{{ webhook.deliveries|default(0) }}</div>
+                                <div class="webhook-stat-label">Доставок</div>
                             </div>
+                            <div class="webhook-stat">
+                                <div class="webhook-stat-value">{{ webhook.failures|default(0) }}</div>
+                                <div class="webhook-stat-label">Ошибок</div>
+                            </div>
+                            <div class="webhook-stat">
+                                <div class="webhook-stat-value">{{ webhook.lastDelivery ? webhook.lastDelivery|date('d.m') : '-' }}</div>
+                                <div class="webhook-stat-label">Последняя</div>
+                            </div>
+                        </div>
+
+                        <div class="webhook-actions">
+                            <a href="{{ path('app_webhook_show', {id: webhook.id}) }}" class="btn-webhook view">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{{ path('app_webhook_edit', {id: webhook.id}) }}" class="btn-webhook edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button class="btn-webhook test" onclick="testWebhook({{ webhook.id }}, '{{ webhook.name }}')">
+                                <i class="fas fa-flask"></i>
+                            </button>
+                            <button class="btn-webhook delete" onclick="deleteWebhook({{ webhook.id }}, '{{ webhook.name }}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
             {% endfor %}
         </div>
     {% else %}
-        <div class="text-center py-5">
-            <div class="mb-4">
-                <i class="fas fa-bolt text-muted" style="font-size: 5rem; opacity: 0.3;"></i>
-            </div>
-            <h3 class="text-muted mb-2">Webhooks не настроены</h3>
+        <div class="empty-state">
+            <i class="fas fa-bolt"></i>
+            <h3 class="mb-2">Webhooks не настроены</h3>
             <p class="text-muted mb-4">Создайте первый webhook для интеграции с внешними системами</p>
             <a href="{{ path('app_webhook_new') }}" class="btn btn-primary btn-lg px-4">
                 <i class="fas fa-plus me-2"></i>
@@ -97,13 +513,116 @@
     {% endif %}
 </div>
 
-<style>
-.card-hover {
-    transition: transform 0.2s, box-shadow 0.2s;
+<!-- Test Webhook Modal -->
+<div class="modal fade test-modal" id="testWebhookModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-flask me-2"></i>
+                    Тестирование webhook
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Тестовый запрос будет отправлен на:</p>
+                <code id="testWebhookUrl" class="d-block p-2 bg-light rounded"></code>
+                <div id="testResult" class="test-result" style="display: none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                <button type="button" class="btn btn-primary" onclick="sendTestRequest()">
+                    <i class="fas fa-paper-plane me-2"></i>
+                    Отправить тест
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentWebhookId = null;
+
+function testWebhook(id, name) {
+    currentWebhookId = id;
+    const modal = new bootstrap.Modal(document.getElementById('testWebhookModal'));
+    document.getElementById('testResult').style.display = 'none';
+    modal.show();
 }
-.card-hover:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+
+async function sendTestRequest() {
+    const resultDiv = document.getElementById('testResult');
+    const urlCode = document.getElementById('testWebhookUrl');
+    
+    try {
+        const response = await fetch(`/webhooks/${currentWebhookId}/test`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'}
+        });
+        
+        const data = await response.json();
+        
+        resultDiv.style.display = 'block';
+        if (data.success) {
+            resultDiv.className = 'test-result success';
+            resultDiv.innerHTML = `
+                <i class="fas fa-check-circle text-success me-2"></i>
+                <strong>Успешно!</strong><br>
+                <small>Статус: ${data.statusCode || 200}</small><br>
+                <small>Время: ${data.responseTime || 0} мс</small>
+            `;
+        } else {
+            resultDiv.className = 'test-result error';
+            resultDiv.innerHTML = `
+                <i class="fas fa-times-circle text-danger me-2"></i>
+                <strong>Ошибка!</strong><br>
+                <small>${data.message || 'Неизвестная ошибка'}</small>
+            `;
+        }
+    } catch (error) {
+        resultDiv.style.display = 'block';
+        resultDiv.className = 'test-result error';
+        resultDiv.innerHTML = `
+            <i class="fas fa-times-circle text-danger me-2"></i>
+            <strong>Ошибка подключения!</strong><br>
+            <small>${error.message}</small>
+        `;
+    }
 }
-</style>
+
+function deleteWebhook(id, name) {
+    if (!confirm(`Вы уверены, что хотите удалить webhook "${name}"?`)) return;
+    
+    fetch(`/webhooks/${id}`, {
+        method: 'DELETE',
+        headers: {'Content-Type': 'application/json'}
+    })
+    .then(response => {
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Ошибка при удалении webhook');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Ошибка при удалении webhook');
+    });
+}
+
+// Load webhook details
+async function loadWebhookDetails() {
+    try {
+        const response = await fetch('{{ path('app_webhook_api') }}');
+        const data = await response.json();
+        console.log('Webhooks:', data);
+    } catch (error) {
+        console.error('Error loading webhooks:', error);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadWebhookDetails();
+});
+</script>
 {% endblock %}

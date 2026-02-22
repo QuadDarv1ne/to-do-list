@@ -2,216 +2,708 @@
 
 {% block title %}Редактировать профиль{% endblock %}
 
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.profile-edit-container {
+    animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.profile-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 3rem 2rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.profile-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.avatar-upload-section {
+    text-align: center;
+    padding: 2rem;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    margin-bottom: 1.5rem;
+}
+
+.avatar-preview-container {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    margin: 0 auto 1.5rem;
+}
+
+.avatar-preview {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.5rem;
+    color: white;
+    font-weight: 700;
+    overflow: hidden;
+    border: 4px solid white;
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+    transition: all 0.3s ease;
+}
+
+.avatar-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-preview:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 32px rgba(102, 126, 234, 0.4);
+}
+
+.avatar-upload-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+    border: 3px solid white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.avatar-upload-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(17, 153, 142, 0.4);
+}
+
+.avatar-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.form-card {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.form-card:hover {
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.form-section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #212529;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.form-section-title i {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 0.5rem;
+}
+
+.form-label i {
+    color: #667eea;
+    font-size: 0.9rem;
+}
+
+.form-control {
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 0.875rem 1rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    transform: translateY(-2px);
+}
+
+.input-group-text {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    color: #667eea;
+    font-size: 1rem;
+}
+
+.input-group .form-control:first-child {
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+}
+
+.input-group .input-group-text:last-child {
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+.form-text {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: 0.5rem;
+}
+
+.char-counter {
+    text-align: right;
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: 0.5rem;
+    transition: color 0.3s ease;
+}
+
+.char-counter.warning {
+    color: #f59e0b;
+}
+
+.char-counter.danger {
+    color: #ef4444;
+}
+
+.preview-card {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    text-align: center;
+    position: sticky;
+    top: 2rem;
+}
+
+.preview-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0 auto 1rem;
+    border: 4px solid white;
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+    overflow: hidden;
+}
+
+.preview-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.preview-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #212529;
+    margin-bottom: 0.25rem;
+}
+
+.preview-username {
+    color: #667eea;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.preview-email {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.preview-badges {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.tips-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.tips-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #212529;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tips-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.tips-list li {
+    display: flex;
+    align-items: start;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f0f0f0;
+    transition: all 0.3s ease;
+}
+
+.tips-list li:last-child {
+    border-bottom: none;
+}
+
+.tips-list li:hover {
+    transform: translateX(4px);
+}
+
+.tips-list li i {
+    color: #10b981;
+    font-size: 1.1rem;
+    margin-top: 0.25rem;
+}
+
+.btn-save {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-save:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-cancel {
+    background: white;
+    color: #6c757d;
+    border: 2px solid #e9ecef;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-cancel:hover {
+    background: #f8f9fa;
+    border-color: #6c757d;
+    transform: translateY(-2px);
+}
+
+.progress-bar-custom {
+    height: 4px;
+    background: #e9ecef;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 0.5rem;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.completion-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.completion-status.complete {
+    color: #10b981;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.shake {
+    animation: shake 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    .profile-header {
+        padding: 1.5rem;
+    }
+    
+    .avatar-preview-container {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .preview-card {
+        position: static;
+    }
+}
+</style>
+{% endblock %}
+
 {% block body %}
-<div class="container-fluid page-transition">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card mb-4">
-                <div class="card-header bg-gradient-primary text-white rounded-top-4 p-4">
-                    <div class="d-flex align-items-center">
-                        <div class="avatar-placeholder bg-white bg-opacity-20 rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px;">
-                            <i class="fas fa-user-edit fa-2x text-white"></i>
-                        </div>
-                        <div>
-                            <h1 class="mb-1 text-white">Редактировать профиль</h1>
-                            <p class="text-white opacity-75 mb-0">Обновите информацию о себе</p>
-                        </div>
-                    </div>
-                </div>
+<div class="container-fluid py-4 profile-edit-container">
+    <!-- Header -->
+    <div class="profile-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1 class="mb-2">
+                    <i class="fas fa-user-edit me-2"></i>
+                    Редактировать профиль
+                </h1>
+                <p class="mb-0 opacity-75 fs-5">Обновите информацию о себе и настройте профиль</p>
             </div>
+            <a href="{{ path('app_profile_show') }}" class="btn btn-light btn-lg">
+                <i class="fas fa-arrow-left me-2"></i>Назад к профилю
+            </a>
         </div>
     </div>
-    
+
     <div class="row">
+        <!-- Main Form -->
         <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0 text-primary">
-                        <i class="fas fa-user-circle me-2"></i>
-                        Основная информация
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
-                    
-                    <div class="row g-4">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                {{ form_label(form.username, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                                <div class="input-group input-group">
-                                    <span class="input-group-text input-group-text">
-                                        <i class="fas fa-user"></i>
-                                    </span>
-                                    {{ form_widget(form.username, {'attr': {'class': 'form-control', 'placeholder': 'Введите имя пользователя'}}) }}
-                                </div>
-                                <div class="invalid-feedback">
-                                    Пожалуйста, введите корректное имя пользователя.
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                {{ form_label(form.email, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                                <div class="input-group input-group">
-                                    <span class="input-group-text input-group-text">
-                                        <i class="fas fa-envelope"></i>
-                                    </span>
-                                    {{ form_widget(form.email, {'attr': {'class': 'form-control', 'placeholder': 'Введите email', 'id': 'email-input'}}) }}
-                                </div>
-                                <div class="invalid-feedback" id="email-error">
-                                    Пожалуйста, введите корректный email.
-                                </div>
-                                <div class="valid-feedback">
-                                    Email корректен
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                {{ form_label(form.firstName, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                                <div class="input-group input-group">
-                                    <span class="input-group-text input-group-text">
-                                        <i class="fas fa-id-card"></i>
-                                    </span>
-                                    {{ form_widget(form.firstName, {'attr': {'class': 'form-control', 'placeholder': 'Введите имя'}}) }}
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                {{ form_label(form.lastName, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                                <div class="input-group input-group">
-                                    <span class="input-group-text input-group-text">
-                                        <i class="fas fa-id-card"></i>
-                                    </span>
-                                    {{ form_widget(form.lastName, {'attr': {'class': 'form-control', 'placeholder': 'Введите фамилию'}}) }}
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                {{ form_label(form.phone, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                                <div class="input-group input-group">
-                                    <span class="input-group-text input-group-text">
-                                        <i class="fas fa-phone"></i>
-                                    </span>
-                                    {{ form_widget(form.phone, {'attr': {'class': 'form-control', 'placeholder': '+7 (900) 123-4567', 'id': 'phone-input'}}) }}
-                                </div>
-                                <div class="form-text">Формат: +7 (XXX) XXX-XX-XX</div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                {{ form_label(form.position, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                                <div class="input-group input-group">
-                                    <span class="input-group-text input-group-text">
-                                        <i class="fas fa-briefcase"></i>
-                                    </span>
-                                    {{ form_widget(form.position, {'attr': {'class': 'form-control', 'placeholder': 'Должность'}}) }}
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-12">
-                            <div class="mb-3">
-                                {{ form_label(form.department, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                                <div class="input-group input-group">
-                                    <span class="input-group-text input-group-text">
-                                        <i class="fas fa-building"></i>
-                                    </span>
-                                    {{ form_widget(form.department, {'attr': {'class': 'form-control', 'placeholder': 'Отдел или департамент'}}) }}
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-12">
-                            <div class="mb-3">
-                                {{ form_label(form.notes, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                                <div class="input-group input-group">
-                                    <span class="input-group-text input-group-text">
-                                        <i class="fas fa-sticky-note"></i>
-                                    </span>
-                                    {{ form_widget(form.notes, {'attr': {'class': 'form-control', 'rows': '4', 'placeholder': 'Дополнительная информация о себе'}}) }}
-                                </div>
-                                <div class="form-text">Максимум 500 символов</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="d-flex gap-3 mt-4 pt-3 border-top border-light">
-                        <button type="submit" class="btn btn btn-primary btn-lg px-4 py-2">
-                            <i class="fas fa-save me-2"></i>
-                            Сохранить изменения
-                        </button>
-                        <a href="{{ path('app_profile_show') }}" class="btn btn btn-outline-secondary btn-lg px-4 py-2">
-                            <i class="fas fa-times me-2"></i>
-                            Отмена
-                        </a>
-                    </div>
-                    
-                    {{ form_end(form) }}
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-4">
-            <!-- Profile Preview Card -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0 text-info">
-                        <i class="fas fa-eye me-2"></i>
-                        Предварительный просмотр
-                    </h5>
-                </div>
-                <div class="card-body text-center">
-                    <div class="avatar-preview bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 100px; height: 100px;">
-                        <i class="fas fa-user fa-3x text-primary"></i>
-                    </div>
-                    <h5 class="mb-1" id="previewName">{{ app.user.firstName }} {{ app.user.lastName }}</h5>
-                    <p class="text-muted mb-2" id="previewUsername">@{{ app.user.username }}</p>
-                    <p class="mb-3" id="previewEmail">{{ app.user.email }}</p>
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-outline-primary-modern btn-sm">
-                            <i class="fas fa-camera me-1"></i>
-                            Загрузить фото
-                        </button>
-                    </div>
-                </div>
-            </div>
+            {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate', 'id': 'profileForm'}}) }}
             
-            <!-- Quick Tips -->
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0 text-warning">
-                        <i class="fas fa-lightbulb me-2"></i>
-                        Советы
-                    </h5>
+            <!-- Avatar Upload -->
+            <div class="avatar-upload-section">
+                <div class="avatar-preview-container">
+                    <div class="avatar-preview" id="avatarPreview">
+                        {% if app.user.avatar %}
+                            <img src="{{ asset('uploads/avatars/' ~ app.user.avatar) }}" alt="{{ app.user.fullName }}">
+                        {% else %}
+                            {{ app.user.firstName|first|upper }}{{ app.user.lastName|first|upper }}
+                        {% endif %}
+                    </div>
+                    <label for="avatarUpload" class="avatar-upload-btn" title="Загрузить фото">
+                        <i class="fas fa-camera"></i>
+                    </label>
+                    <input type="file" id="avatarUpload" accept="image/*" style="display: none;">
                 </div>
-                <div class="card-body">
-                    <ul class="list-unstyled mb-0">
-                        <li class="mb-2">
-                            <i class="fas fa-check-circle text-success me-2"></i>
-                            Используйте реальное имя для лучшей идентификации
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-check-circle text-success me-2"></i>
-                            Укажите актуальный номер телефона
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-check-circle text-success me-2"></i>
-                            Добавьте информацию о вашей должности
-                        </li>
-                        <li class="mb-0">
-                            <i class="fas fa-check-circle text-success me-2"></i>
-                            Регулярно обновляйте контактные данные
-                        </li>
-                    </ul>
+                <h5 class="mb-2">Фото профиля</h5>
+                <p class="text-muted mb-3">Загрузите фотографию, чтобы коллеги могли вас узнать</p>
+                <div class="avatar-actions">
+                    <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('avatarUpload').click()">
+                        <i class="fas fa-upload me-2"></i>Загрузить
+                    </button>
+                    {% if app.user.avatar %}
+                        <button type="button" class="btn btn-outline-danger" onclick="removeAvatar()">
+                            <i class="fas fa-trash me-2"></i>Удалить
+                        </button>
+                    {% endif %}
                 </div>
+                <div class="progress-bar-custom mt-3" id="uploadProgress" style="display: none;">
+                    <div class="progress-fill" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Personal Info -->
+            <div class="form-card">
+                <h3 class="form-section-title">
+                    <i class="fas fa-user-circle"></i>
+                    Личная информация
+                </h3>
+                
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label" for="user_firstName">
+                                <i class="fas fa-id-card"></i>
+                                Имя
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                {{ form_widget(form.firstName, {'attr': {'class': 'form-control', 'placeholder': 'Введите имя'}}) }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label" for="user_lastName">
+                                <i class="fas fa-id-card"></i>
+                                Фамилия
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                {{ form_widget(form.lastName, {'attr': {'class': 'form-control', 'placeholder': 'Введите фамилию'}}) }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label" for="user_username">
+                                <i class="fas fa-at"></i>
+                                Имя пользователя
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">@</span>
+                                {{ form_widget(form.username, {'attr': {'class': 'form-control', 'placeholder': 'username'}}) }}
+                            </div>
+                            <div class="form-text">Уникальное имя для входа в систему</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label" for="user_email">
+                                <i class="fas fa-envelope"></i>
+                                Email
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                {{ form_widget(form.email, {'attr': {'class': 'form-control', 'placeholder': 'email@example.com'}}) }}
+                            </div>
+                            <div class="form-text">Используется для уведомлений и восстановления пароля</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label" for="user_phone">
+                                <i class="fas fa-phone"></i>
+                                Телефон
+                            </label>
+                            <div class="input-group">
+                                {{ form_widget(form.phone, {'attr': {'class': 'form-control', 'placeholder': '+7 (900) 123-4567'}}) }}
+                            </div>
+                            <div class="form-text">Формат: +7 (XXX) XXX-XX-XX</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Work Info -->
+            <div class="form-card">
+                <h3 class="form-section-title">
+                    <i class="fas fa-briefcase"></i>
+                    Информация о работе
+                </h3>
+                
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label" for="user_position">
+                                <i class="fas fa-user-tie"></i>
+                                Должность
+                            </label>
+                            <div class="input-group">
+                                {{ form_widget(form.position, {'attr': {'class': 'form-control', 'placeholder': 'Менеджер проектов'}}) }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label" for="user_department">
+                                <i class="fas fa-building"></i>
+                                Отдел
+                            </label>
+                            <div class="input-group">
+                                {{ form_widget(form.department, {'attr': {'class': 'form-control', 'placeholder': 'Отдел продаж'}}) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Info -->
+            <div class="form-card">
+                <h3 class="form-section-title">
+                    <i class="fas fa-sticky-note"></i>
+                    Дополнительная информация
+                </h3>
+                
+                <div class="form-group">
+                    <label class="form-label" for="user_notes">
+                        <i class="fas fa-comment-alt"></i>
+                        О себе
+                    </label>
+                    {{ form_widget(form.notes, {'attr': {'class': 'form-control', 'rows': '5', 'placeholder': 'Расскажите немного о себе, ваших навыках и интересах...'}}) }}
+                    <div class="char-counter" id="notesCounter">
+                        Осталось символов: <span id="charsLeft">500</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="d-flex gap-3 flex-wrap">
+                <button type="submit" class="btn-save">
+                    <i class="fas fa-save"></i>
+                    Сохранить изменения
+                </button>
+                <a href="{{ path('app_profile_show') }}" class="btn-cancel">
+                    <i class="fas fa-times"></i>
+                    Отмена
+                </a>
+            </div>
+
+            {{ form_end(form) }}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Preview Card -->
+            <div class="preview-card mb-4">
+                <div class="preview-avatar" id="previewAvatar">
+                    {% if app.user.avatar %}
+                        <img src="{{ asset('uploads/avatars/' ~ app.user.avatar) }}" alt="{{ app.user.fullName }}">
+                    {% else %}
+                        {{ app.user.firstName|first|upper }}{{ app.user.lastName|first|upper }}
+                    {% endif %}
+                </div>
+                <h4 class="preview-name" id="previewName">{{ app.user.firstName }} {{ app.user.lastName }}</h4>
+                <p class="preview-username" id="previewUsername">@{{ app.user.username }}</p>
+                <p class="preview-email" id="previewEmail">{{ app.user.email }}</p>
+                
+                <div class="preview-badges">
+                    {% if app.user.hasRole('ROLE_ADMIN') %}
+                        <span class="badge bg-warning text-dark">
+                            <i class="fas fa-crown me-1"></i>Админ
+                        </span>
+                    {% elseif app.user.hasRole('ROLE_MANAGER') %}
+                        <span class="badge bg-info">
+                            <i class="fas fa-user-tie me-1"></i>Менеджер
+                        </span>
+                    {% else %}
+                        <span class="badge bg-secondary">
+                            <i class="fas fa-user me-1"></i>Пользователь
+                        </span>
+                    {% endif %}
+                </div>
+
+                <!-- Profile Completion -->
+                <div class="mt-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-semibold">Заполненность профиля</span>
+                        <span class="fw-bold text-primary" id="completionPercent">0%</span>
+                    </div>
+                    <div class="progress-bar-custom">
+                        <div class="progress-fill" id="completionBar" style="width: 0%"></div>
+                    </div>
+                    <div class="completion-status" id="completionStatus">
+                        <i class="fas fa-info-circle"></i>
+                        <span id="completionText">Заполните все поля</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tips Card -->
+            <div class="tips-card">
+                <h4 class="tips-title">
+                    <i class="fas fa-lightbulb text-warning"></i>
+                    Советы
+                </h4>
+                <ul class="tips-list">
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        <div>
+                            <strong>Фото профиля</strong>
+                            <p class="text-muted mb-0 small">Используйте реальное фото для лучшей идентификации</p>
+                        </div>
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        <div>
+                            <strong>Контакты</strong>
+                            <p class="text-muted mb-0 small">Укажите актуальный email и телефон</p>
+                        </div>
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        <div>
+                            <strong>Должность</strong>
+                            <p class="text-muted mb-0 small">Помогает коллегам понять вашу роль</p>
+                        </div>
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        <div>
+                            <strong>О себе</strong>
+                            <p class="text-muted mb-0 small">Расскажите о навыках и интересах</p>
+                        </div>
+                    </li>
+                </ul>
             </div>
         </div>
     </div>
@@ -219,62 +711,87 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Live preview functionality
-    const firstNameInput = document.getElementById('user_firstName');
-    const lastNameInput = document.getElementById('user_lastName');
-    const usernameInput = document.getElementById('user_username');
-    const emailInput = document.getElementById('email-input');
-    const phoneInput = document.getElementById('phone-input');
-    
+    // Get form fields
+    const firstName = document.getElementById('user_firstName');
+    const lastName = document.getElementById('user_lastName');
+    const username = document.getElementById('user_username');
+    const email = document.getElementById('user_email');
+    const phone = document.getElementById('user_phone');
+    const position = document.getElementById('user_position');
+    const department = document.getElementById('user_department');
+    const notes = document.getElementById('user_notes');
+
+    // Preview elements
     const previewName = document.getElementById('previewName');
     const previewUsername = document.getElementById('previewUsername');
     const previewEmail = document.getElementById('previewEmail');
-    
-    if (firstNameInput && lastNameInput && previewName) {
-        function updatePreview() {
-            const fullName = `${firstNameInput.value || '{{ app.user.firstName }}'} ${lastNameInput.value || '{{ app.user.lastName }}'}`;
-            previewName.textContent = fullName.trim();
+    const previewAvatar = document.getElementById('previewAvatar');
+    const avatarPreview = document.getElementById('avatarPreview');
+
+    // Live preview updates
+    function updatePreview() {
+        const fn = firstName?.value || '{{ app.user.firstName }}';
+        const ln = lastName?.value || '{{ app.user.lastName }}';
+        const un = username?.value || '{{ app.user.username }}';
+        const em = email?.value || '{{ app.user.email }}';
+
+        previewName.textContent = `${fn} ${ln}`.trim();
+        previewUsername.textContent = `@${un}`;
+        previewEmail.textContent = em;
+
+        // Update avatar initials
+        if (!avatarPreview.querySelector('img')) {
+            const initials = (fn.charAt(0) || '') + (ln.charAt(0) || '');
+            previewAvatar.textContent = initials.toUpperCase();
+            avatarPreview.textContent = initials.toUpperCase();
         }
-        
-        firstNameInput.addEventListener('input', updatePreview);
-        lastNameInput.addEventListener('input', updatePreview);
+
+        updateCompletion();
     }
-    
-    if (usernameInput && previewUsername) {
-        usernameInput.addEventListener('input', function() {
-            previewUsername.textContent = `@${this.value || '{{ app.user.username }}'}`;
+
+    // Add event listeners
+    [firstName, lastName, username, email, position, department, notes].forEach(field => {
+        if (field) {
+            field.addEventListener('input', updatePreview);
+        }
+    });
+
+    // Character counter for notes
+    if (notes) {
+        const maxLength = 500;
+        const charsLeft = document.getElementById('charsLeft');
+        const counter = document.getElementById('notesCounter');
+
+        notes.addEventListener('input', function() {
+            const remaining = maxLength - this.value.length;
+            charsLeft.textContent = remaining;
+
+            counter.classList.remove('warning', 'danger');
+            if (remaining < 50) counter.classList.add('danger');
+            else if (remaining < 100) counter.classList.add('warning');
         });
     }
-    
-    if (emailInput && previewEmail) {
-        emailInput.addEventListener('input', function() {
-            previewEmail.textContent = this.value || '{{ app.user.email }}';
-            
-            // Email validation
+
+    // Email validation
+    if (email) {
+        email.addEventListener('blur', function() {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (this.value && !emailRegex.test(this.value)) {
                 this.classList.add('is-invalid');
-                this.classList.remove('is-valid');
-            } else if (this.value) {
-                this.classList.add('is-valid');
-                this.classList.remove('is-invalid');
+                this.classList.add('shake');
+                setTimeout(() => this.classList.remove('shake'), 300);
             } else {
-                this.classList.remove('is-valid', 'is-invalid');
+                this.classList.remove('is-invalid');
             }
         });
     }
-    
-    // Phone number formatting
-    if (phoneInput) {
-        phoneInput.addEventListener('input', function(e) {
+
+    // Phone formatting
+    if (phone) {
+        phone.addEventListener('input', function(e) {
             let value = this.value.replace(/\D/g, '');
-            
-            // Limit to 11 digits (Russian format)
-            if (value.length > 11) {
-                value = value.substring(0, 11);
-            }
-            
-            // Format: +7 (XXX) XXX-XX-XX
+            if (value.length > 11) value = value.substring(0, 11);
+
             let formatted = '';
             if (value.length > 0) {
                 formatted = '+7';
@@ -291,156 +808,139 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             }
-            
             this.value = formatted;
-            
-            // Validate phone
-            if (value.length === 11) {
-                this.classList.add('is-valid');
-                this.classList.remove('is-invalid');
-            } else if (value.length > 0) {
-                this.classList.add('is-invalid');
-                this.classList.remove('is-valid');
-            } else {
-                this.classList.remove('is-valid', 'is-invalid');
-            }
         });
     }
-    
+
+    // Avatar upload
+    const avatarUpload = document.getElementById('avatarUpload');
+    if (avatarUpload) {
+        avatarUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file || !file.type.startsWith('image/')) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+
+                previewAvatar.innerHTML = '';
+                previewAvatar.appendChild(img);
+
+                avatarPreview.innerHTML = '';
+                avatarPreview.appendChild(img.cloneNode());
+            };
+            reader.readAsDataURL(file);
+
+            // Simulate upload progress
+            const progress = document.getElementById('uploadProgress');
+            const progressFill = progress.querySelector('.progress-fill');
+            progress.style.display = 'block';
+            
+            let width = 0;
+            const interval = setInterval(() => {
+                if (width >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => progress.style.display = 'none', 500);
+                } else {
+                    width += 10;
+                    progressFill.style.width = width + '%';
+                }
+            }, 100);
+        });
+    }
+
+    // Profile completion calculation
+    function updateCompletion() {
+        const fields = [firstName, lastName, username, email, phone, position, department, notes];
+        let filled = 0;
+
+        fields.forEach(field => {
+            if (field && field.value.trim()) filled++;
+        });
+
+        const percent = Math.round((filled / fields.length) * 100);
+        document.getElementById('completionPercent').textContent = percent + '%';
+        document.getElementById('completionBar').style.width = percent + '%';
+
+        const status = document.getElementById('completionStatus');
+        const text = document.getElementById('completionText');
+
+        status.classList.remove('complete');
+        if (percent === 100) {
+            status.classList.add('complete');
+            text.textContent = '✓ Профиль заполнен полностью';
+        } else if (percent >= 75) {
+            text.textContent = 'Хорошо! Осталось немного';
+        } else if (percent >= 50) {
+            text.textContent = 'Заполнено половина';
+        } else {
+            text.textContent = 'Заполните ещё поля';
+        }
+    }
+
     // Form validation
-    const form = document.querySelector('form');
+    const form = document.getElementById('profileForm');
     if (form) {
-        form.addEventListener('submit', function(event) {
+        form.addEventListener('submit', function(e) {
             let isValid = true;
-            
-            // Validate email
-            if (emailInput && emailInput.value) {
+
+            // Required fields
+            [firstName, lastName, username, email].forEach(field => {
+                if (field && !field.value.trim()) {
+                    field.classList.add('is-invalid');
+                    field.classList.add('shake');
+                    setTimeout(() => field.classList.remove('shake'), 300);
+                    isValid = false;
+                }
+            });
+
+            // Email validation
+            if (email && email.value) {
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!emailRegex.test(emailInput.value)) {
-                    emailInput.classList.add('is-invalid');
+                if (!emailRegex.test(email.value)) {
+                    email.classList.add('is-invalid');
                     isValid = false;
                 }
             }
-            
-            // Validate phone if filled
-            if (phoneInput && phoneInput.value) {
-                const digits = phoneInput.value.replace(/\D/g, '');
-                if (digits.length > 0 && digits.length !== 11) {
-                    phoneInput.classList.add('is-invalid');
-                    isValid = false;
-                }
-            }
-            
+
             if (!isValid) {
-                event.preventDefault();
-                event.stopPropagation();
-                
-                // Scroll to first invalid field
+                e.preventDefault();
                 const firstInvalid = form.querySelector('.is-invalid');
                 if (firstInvalid) {
                     firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     firstInvalid.focus();
                 }
             }
-            
-            form.classList.add('was-validated');
         });
     }
-    
-    // Add subtle animations
-    const cardElements = document.querySelectorAll('.card');
-    cardElements.forEach((card, index) => {
-        card.style.animationDelay = `${index * 0.1}s`;
-        card.classList.add('fade-in-up');
-    });
-    
-    // Character counter for notes
-    const notesField = document.getElementById('user_notes');
-    if (notesField) {
-        const maxLength = 500;
-        const counterDiv = document.createElement('div');
-        counterDiv.className = 'form-text text-end';
-        counterDiv.id = 'notes-counter';
-        notesField.parentElement.appendChild(counterDiv);
-        
-        function updateCounter() {
-            const remaining = maxLength - notesField.value.length;
-            counterDiv.textContent = `Осталось символов: ${remaining}`;
-            counterDiv.style.color = remaining < 50 ? '#dc3545' : '#6c757d';
-        }
-        
-        notesField.addEventListener('input', updateCounter);
-        notesField.setAttribute('maxlength', maxLength);
-        updateCounter();
-    }
+
+    // Initial update
+    updatePreview();
+    updateCompletion();
 });
-</script>
 
-<style>
-.avatar-placeholder {
-    transition: all 0.3s ease;
-}
-
-.avatar-placeholder:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 15px rgba(13, 110, 253, 0.2);
-}
-
-.mb-3 {
-    margin-bottom: 1.5rem;
-}
-
-.form-control-enhanced {
-    border-radius: 8px;
-    border: 2px solid #e9ecef;
-    transition: all 0.3s ease;
-    padding: 0.75rem 1rem;
-}
-
-.form-control-enhanced:focus {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
-    transform: translateY(-2px);
-}
-
-.input-group-text {
-    background-color: #f8f9fa;
-    border-color: #e9ecef;
-    color: #6c757d;
-}
-
-.btn-lg {
-    padding: 0.75rem 1.5rem;
-    font-size: 1.1rem;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-}
-
-.btn-lg:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-}
-
-.fade-in-up {
-    animation: fadeInUp 0.6s ease forwards;
-    opacity: 0;
-    transform: translateY(20px);
-}
-
-@keyframes fadeInUp {
-    to {
-        opacity: 1;
-        transform: translateY(0);
+// Remove avatar function
+function removeAvatar() {
+    if (confirm('Вы уверены, что хотите удалить фото профиля?')) {
+        fetch('{{ path('app_profile_remove_avatar') }}', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Ошибка при удалении фото');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ошибка при удалении фото');
+        });
     }
 }
-
-.card {
-    transition: all 0.3s ease;
-}
-
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
-}
-</style>
+</script>
 {% endblock %}

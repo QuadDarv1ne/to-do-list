@@ -3,229 +3,1230 @@
 {% block title %}Настройки{% endblock %}
 
 {% block stylesheets %}
-    {{ parent() }}
-    <link rel="stylesheet" href="{{ asset('css/pages/settings-enhanced.css') }}">
+{{ parent() }}
+<style>
+.settings-container {
+    animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.settings-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 3rem 2rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.settings-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.settings-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 2rem;
+}
+
+.settings-sidebar {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    height: fit-content;
+    position: sticky;
+    top: 2rem;
+}
+
+.settings-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.settings-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-radius: 12px;
+    text-decoration: none;
+    color: #6c757d;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.settings-nav-item i {
+    width: 20px;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+.settings-nav-item:hover {
+    background: #f8f9fa;
+    color: #667eea;
+    transform: translateX(4px);
+}
+
+.settings-nav-item.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.settings-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.settings-section {
+    display: none;
+    animation: slideIn 0.4s ease-out;
+}
+
+.settings-section.active {
+    display: block;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.settings-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.settings-card:hover {
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.card-header-settings {
+    padding: 1.5rem;
+    border-bottom: 2px solid #f0f0f0;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #212529;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.card-title i {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.card-body-settings {
+    padding: 1.5rem;
+}
+
+/* Theme Grid */
+.theme-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1.5rem;
+}
+
+.theme-option {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.theme-option:hover {
+    transform: translateY(-4px);
+}
+
+.theme-option.active .theme-preview {
+    ring: 4px solid #667eea;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+}
+
+.theme-preview {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 3px solid #e9ecef;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.theme-preview-header {
+    padding: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.theme-preview-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.3);
+}
+
+.theme-preview-bar {
+    flex: 1;
+    height: 8px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.2);
+}
+
+.theme-preview-content {
+    padding: 0.75rem;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+}
+
+.theme-preview-content::before,
+.theme-preview-content::after {
+    content: '';
+    height: 40px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.5);
+}
+
+.theme-preview-light .theme-preview-header {
+    background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+}
+.theme-preview-light .theme-preview-content {
+    background: #fafafa;
+}
+
+.theme-preview-dark .theme-preview-header {
+    background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+}
+.theme-preview-dark .theme-preview-content {
+    background: #1a202c;
+}
+
+.theme-preview-orange .theme-preview-header {
+    background: linear-gradient(135deg, #ff9f43 0%, #ee5a24 100%);
+}
+.theme-preview-orange .theme-preview-content {
+    background: #fff5f0;
+}
+
+.theme-preview-purple .theme-preview-header {
+    background: linear-gradient(135deg, #a55eea 0%, #8854d9 100%);
+}
+.theme-preview-purple .theme-preview-content {
+    background: #f8f4ff;
+}
+
+.theme-preview-custom .theme-preview-header {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+}
+.theme-preview-custom .theme-preview-content {
+    background: #f0fff8;
+}
+
+.theme-label {
+    text-align: center;
+    margin-top: 0.75rem;
+    font-weight: 600;
+    color: #212529;
+}
+
+/* Toggle Switch */
+.settings-options {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.settings-option {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-radius: 12px;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+.settings-option:hover {
+    background: #e9ecef;
+    transform: translateX(4px);
+}
+
+.settings-option-info {
+    flex: 1;
+}
+
+.settings-option-title {
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 0.25rem;
+}
+
+.settings-option-desc {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.toggle-switch {
+    position: relative;
+    width: 56px;
+    height: 30px;
+    flex-shrink: 0;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #e9ecef;
+    border-radius: 30px;
+    transition: all 0.3s ease;
+}
+
+.toggle-slider::before {
+    position: absolute;
+    content: "";
+    height: 24px;
+    width: 24px;
+    left: 3px;
+    bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+    transform: translateX(26px);
+}
+
+/* Form Fields */
+.settings-field {
+    margin-bottom: 1.5rem;
+}
+
+.settings-label {
+    display: block;
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 0.5rem;
+}
+
+.settings-select,
+.settings-input {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.settings-select:focus,
+.settings-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+/* Settings Link */
+.settings-link {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-radius: 12px;
+    background: #f8f9fa;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+}
+
+.settings-link:hover {
+    background: #e9ecef;
+    transform: translateX(4px);
+}
+
+.settings-link i {
+    color: #6c757d;
+}
+
+/* Section Tabs */
+.section-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.section-tab {
+    padding: 0.75rem 1.5rem;
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    color: #6c757d;
+}
+
+.section-tab:hover {
+    border-color: #667eea;
+    color: #667eea;
+}
+
+.section-tab.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: transparent;
+}
+
+/* Notification Preview */
+.notification-preview {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+}
+
+.notification-preview-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    margin-bottom: 1rem;
+}
+
+.notification-preview-item:last-child {
+    margin-bottom: 0;
+}
+
+.notification-preview-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.notification-preview-icon.task {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.notification-preview-icon.comment {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+}
+
+.notification-preview-icon.mention {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.notification-preview-content {
+    flex: 1;
+}
+
+.notification-preview-title {
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 0.25rem;
+}
+
+.notification-preview-text {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+/* Save Button */
+.btn-save-settings {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-save-settings:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+@media (max-width: 992px) {
+    .settings-layout {
+        grid-template-columns: 1fr;
+    }
     
-    {# Загружаем тему из localStorage или используем light по умолчанию #}
-    <script>
-        (function() {
-            const theme = localStorage.getItem('theme') || 'light';
-            document.documentElement.setAttribute('data-theme', theme);
-            
-            // Загружаем CSS файл темы
-            const themeLink = document.createElement('link');
-            themeLink.rel = 'stylesheet';
-            themeLink.href = '/css/themes/topbar-theme-' + theme + '.css';
-            themeLink.setAttribute('data-theme-css', 'true');
-            document.head.appendChild(themeLink);
-        })();
-    </script>
+    .settings-sidebar {
+        position: static;
+    }
+    
+    .settings-nav {
+        flex-direction: row;
+        overflow-x: auto;
+    }
+    
+    .settings-nav-item {
+        white-space: nowrap;
+    }
+}
+</style>
 {% endblock %}
 
 {% block body %}
-<div class="page-header-settings">
-    <h2>Настройки</h2>
-    <p>Персонализация и конфигурация системы</p>
-</div>
-
-<div class="settings-container">
-    <div class="settings-sidebar">
-        <div class="card">
-            <div class="card-body settings-nav-wrapper">
-                <nav class="settings-nav">
-                    <a href="#appearance" class="settings-nav-item active" data-section="appearance">
-                        <i class="fas fa-palette"></i>
-                        <span>Внешний вид</span>
-                    </a>
-                    <a href="#notifications" class="settings-nav-item" data-section="notifications">
-                        <i class="fas fa-bell"></i>
-                        <span>Уведомления</span>
-                    </a>
-                    <a href="#security" class="settings-nav-item" data-section="security">
-                        <i class="fas fa-shield-alt"></i>
-                        <span>Безопасность</span>
-                    </a>
-                    <a href="#preferences" class="settings-nav-item" data-section="preferences">
-                        <i class="fas fa-cog"></i>
-                        <span>Предпочтения</span>
-                    </a>
-                </nav>
+<div class="container-fluid py-4 settings-container">
+    <!-- Header -->
+    <div class="settings-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1 class="mb-2">
+                    <i class="fas fa-cog me-2"></i>
+                    Настройки
+                </h1>
+                <p class="mb-0 opacity-75 fs-5">Персонализация и конфигурация системы</p>
             </div>
+            <button class="btn btn-light btn-lg" onclick="saveAllSettings()">
+                <i class="fas fa-save me-2"></i>Сохранить все
+            </button>
         </div>
     </div>
-    
-    <div class="settings-content">
-        <div class="settings-section" id="appearance">
-            <div class="card settings-card">
-                <div class="card-header">
-                    <h3 class="card-title">Тема оформления</h3>
-                </div>
-                <div class="card-body">
-                    <div class="theme-grid">
-                        <div class="theme-option" data-theme="light">
-                            <div class="theme-preview theme-preview-light">
-                                <div class="theme-preview-header">
-                                    <div class="theme-preview-icon"></div>
-                                    <div class="theme-preview-bar"></div>
+
+    <div class="settings-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="settings-sidebar">
+            <nav class="settings-nav">
+                <a class="settings-nav-item active" data-section="appearance">
+                    <i class="fas fa-palette"></i>
+                    <span>Внешний вид</span>
+                </a>
+                <a class="settings-nav-item" data-section="notifications">
+                    <i class="fas fa-bell"></i>
+                    <span>Уведомления</span>
+                </a>
+                <a class="settings-nav-item" data-section="security">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Безопасность</span>
+                </a>
+                <a class="settings-nav-item" data-section="preferences">
+                    <i class="fas fa-sliders-h"></i>
+                    <span>Предпочтения</span>
+                </a>
+                <a class="settings-nav-item" data-section="integrations">
+                    <i class="fas fa-plug"></i>
+                    <span>Интеграции</span>
+                </a>
+                <a class="settings-nav-item" data-section="privacy">
+                    <i class="fas fa-user-lock"></i>
+                    <span>Приватность</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="settings-content">
+            <!-- Appearance Section -->
+            <section class="settings-section active" id="appearance">
+                <div class="settings-card">
+                    <div class="card-header-settings">
+                        <h3 class="card-title">
+                            <i class="fas fa-palette"></i>
+                            Тема оформления
+                        </h3>
+                    </div>
+                    <div class="card-body-settings">
+                        <div class="theme-grid">
+                            <div class="theme-option" data-theme="light">
+                                <div class="theme-preview theme-preview-light">
+                                    <div class="theme-preview-header">
+                                        <div class="theme-preview-icon"></div>
+                                        <div class="theme-preview-bar"></div>
+                                    </div>
+                                    <div class="theme-preview-content"></div>
                                 </div>
-                                <div class="theme-preview-content"></div>
+                                <div class="theme-label">Светлая</div>
                             </div>
-                            <div class="theme-label">Светлая</div>
-                        </div>
-                        
-                        <div class="theme-option" data-theme="dark">
-                            <div class="theme-preview theme-preview-dark">
-                                <div class="theme-preview-header">
-                                    <div class="theme-preview-icon"></div>
-                                    <div class="theme-preview-bar"></div>
+
+                            <div class="theme-option" data-theme="dark">
+                                <div class="theme-preview theme-preview-dark">
+                                    <div class="theme-preview-header">
+                                        <div class="theme-preview-icon"></div>
+                                        <div class="theme-preview-bar"></div>
+                                    </div>
+                                    <div class="theme-preview-content"></div>
                                 </div>
-                                <div class="theme-preview-content"></div>
+                                <div class="theme-label">Тёмная</div>
                             </div>
-                            <div class="theme-label">Тёмная</div>
-                        </div>
-                        
-                        <div class="theme-option" data-theme="orange">
-                            <div class="theme-preview theme-preview-orange">
-                                <div class="theme-preview-header">
-                                    <div class="theme-preview-icon"></div>
-                                    <div class="theme-preview-bar"></div>
+
+                            <div class="theme-option" data-theme="orange">
+                                <div class="theme-preview theme-preview-orange">
+                                    <div class="theme-preview-header">
+                                        <div class="theme-preview-icon"></div>
+                                        <div class="theme-preview-bar"></div>
+                                    </div>
+                                    <div class="theme-preview-content"></div>
                                 </div>
-                                <div class="theme-preview-content"></div>
+                                <div class="theme-label">Оранжевая</div>
                             </div>
-                            <div class="theme-label">Оранжевая</div>
-                        </div>
-                        
-                        <div class="theme-option" data-theme="purple">
-                            <div class="theme-preview theme-preview-purple">
-                                <div class="theme-preview-header">
-                                    <div class="theme-preview-icon"></div>
-                                    <div class="theme-preview-bar"></div>
+
+                            <div class="theme-option" data-theme="purple">
+                                <div class="theme-preview theme-preview-purple">
+                                    <div class="theme-preview-header">
+                                        <div class="theme-preview-icon"></div>
+                                        <div class="theme-preview-bar"></div>
+                                    </div>
+                                    <div class="theme-preview-content"></div>
                                 </div>
-                                <div class="theme-preview-content"></div>
+                                <div class="theme-label">Фиолетовая</div>
                             </div>
-                            <div class="theme-label">Фиолетовая</div>
-                        </div>
-                        
-                        <div class="theme-option" data-theme="custom">
-                            <div class="theme-preview theme-preview-custom">
-                                <div class="theme-preview-header">
-                                    <div class="theme-preview-icon"></div>
-                                    <div class="theme-preview-bar"></div>
+
+                            <div class="theme-option" data-theme="custom">
+                                <div class="theme-preview theme-preview-custom">
+                                    <div class="theme-preview-header">
+                                        <div class="theme-preview-icon"></div>
+                                        <div class="theme-preview-bar"></div>
+                                    </div>
+                                    <div class="theme-preview-content"></div>
                                 </div>
-                                <div class="theme-preview-content"></div>
+                                <div class="theme-label">Зелёная</div>
                             </div>
-                            <div class="theme-label">Зелёная</div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-        
-        <div class="settings-section" id="notifications" style="display: none;">
-            <div class="card settings-card">
-                <div class="card-header">
-                    <h3 class="card-title">Настройки уведомлений</h3>
-                </div>
-                <div class="card-body">
-                    <div class="settings-options">
-                        <div class="settings-option">
-                            <div class="settings-option-info">
-                                <div class="settings-option-title">Email уведомления</div>
-                                <div class="settings-option-desc">Получать уведомления на email</div>
+
+                <div class="settings-card mt-4">
+                    <div class="card-header-settings">
+                        <h3 class="card-title">
+                            <i class="fas fa-text-height"></i>
+                            Интерфейс
+                        </h3>
+                    </div>
+                    <div class="card-body-settings">
+                        <div class="settings-options">
+                            <div class="settings-option">
+                                <div class="settings-option-info">
+                                    <div class="settings-option-title">Компактный режим</div>
+                                    <div class="settings-option-desc">Уменьшить размеры элементов интерфейса</div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="compactMode">
+                                    <span class="toggle-slider"></span>
+                                </label>
                             </div>
-                            <label class="switch">
-                                <input type="checkbox" checked>
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        
-                        <div class="settings-option">
-                            <div class="settings-option-info">
-                                <div class="settings-option-title">Push уведомления</div>
-                                <div class="settings-option-desc">Показывать уведомления в браузере</div>
+
+                            <div class="settings-option">
+                                <div class="settings-option-info">
+                                    <div class="settings-option-title">Анимации</div>
+                                    <div class="settings-option-desc">Включить анимации интерфейса</div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="animations" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
                             </div>
-                            <label class="switch">
-                                <input type="checkbox" checked>
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        
-                        <div class="settings-option">
-                            <div class="settings-option-info">
-                                <div class="settings-option-title">Звуковые уведомления</div>
-                                <div class="settings-option-desc">Воспроизводить звук при новых уведомлениях</div>
+
+                            <div class="settings-option">
+                                <div class="settings-option-info">
+                                    <div class="settings-option-title">Тёмная боковая панель</div>
+                                    <div class="settings-option-desc">Использовать тёмную тему для меню</div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="darkSidebar">
+                                    <span class="toggle-slider"></span>
+                                </label>
                             </div>
-                            <label class="switch">
-                                <input type="checkbox">
-                                <span class="slider"></span>
-                            </label>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-        
-        <div class="settings-section" id="security" style="display: none;">
-            <div class="card settings-card">
-                <div class="card-header">
-                    <h3 class="card-title">Безопасность</h3>
+            </section>
+
+            <!-- Notifications Section -->
+            <section class="settings-section" id="notifications">
+                <div class="settings-card">
+                    <div class="card-header-settings">
+                        <h3 class="card-title">
+                            <i class="fas fa-bell"></i>
+                            Настройки уведомлений
+                        </h3>
+                    </div>
+                    <div class="card-body-settings">
+                        <div class="settings-options">
+                            <div class="settings-option">
+                                <div class="settings-option-info">
+                                    <div class="settings-option-title">Email уведомления</div>
+                                    <div class="settings-option-desc">Получать уведомления на email</div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="emailNotifications" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="settings-option">
+                                <div class="settings-option-info">
+                                    <div class="settings-option-title">Push уведомления</div>
+                                    <div class="settings-option-desc">Показывать уведомления в браузере</div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="pushNotifications" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="settings-option">
+                                <div class="settings-option-info">
+                                    <div class="settings-option-title">Звуковые уведомления</div>
+                                    <div class="settings-option-desc">Воспроизводить звук при новых уведомлениях</div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="soundNotifications">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="settings-option">
+                                <div class="settings-option-info">
+                                    <div class="settings-option-title">Уведомления о задачах</div>
+                                    <div class="settings-option-desc">При создании, изменении или завершении задач</div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="taskNotifications" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="settings-option">
+                                <div class="settings-option-info">
+                                    <div class="settings-option-title">Уведомления об упоминаниях</div>
+                                    <div class="settings-option-desc">Когда вас упоминают в комментариях</div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="mentionNotifications" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Notification Preview -->
+                        <div class="notification-preview">
+                            <h5 class="mb-3">
+                                <i class="fas fa-eye me-2"></i>Предпросмотр уведомлений
+                            </h5>
+                            <div class="notification-preview-item">
+                                <div class="notification-preview-icon task">
+                                    <i class="fas fa-tasks"></i>
+                                </div>
+                                <div class="notification-preview-content">
+                                    <div class="notification-preview-title">Новая задача</div>
+                                    <div class="notification-preview-text">Вам назначена новая задача "Подготовить отчёт"</div>
+                                </div>
+                            </div>
+                            <div class="notification-preview-item">
+                                <div class="notification-preview-icon comment">
+                                    <i class="fas fa-comment"></i>
+                                </div>
+                                <div class="notification-preview-content">
+                                    <div class="notification-preview-title">Новый комментарий</div>
+                                    <div class="notification-preview-text">Пользователь добавил комментарий к задаче #42</div>
+                                </div>
+                            </div>
+                            <div class="notification-preview-item">
+                                <div class="notification-preview-icon mention">
+                                    <i class="fas fa-at"></i>
+                                </div>
+                                <div class="notification-preview-content">
+                                    <div class="notification-preview-title">Упоминание</div>
+                                    <div class="notification-preview-text">Вас упомянули в комментарии</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="settings-options">
-                        <a href="{{ path('app_profile_change_password') }}" class="settings-link">
-                            <div class="settings-option-info">
-                                <div class="settings-option-title">Сменить пароль</div>
-                                <div class="settings-option-desc">Обновите свой пароль</div>
-                            </div>
-                            <i class="fas fa-chevron-right"></i>
-                        </a>
-                        
-                        <div class="settings-option">
-                            <div class="settings-option-info">
-                                <div class="settings-option-title">Двухфакторная аутентификация</div>
-                                <div class="settings-option-desc">Дополнительная защита аккаунта</div>
-                            </div>
-                            <a href="{{ path('app_2fa_status') }}" class="btn btn-primary btn-sm">
-                                Настроить
+            </section>
+
+            <!-- Security Section -->
+            <section class="settings-section" id="security">
+                <div class="settings-card">
+                    <div class="card-header-settings">
+                        <h3 class="card-title">
+                            <i class="fas fa-shield-alt"></i>
+                            Безопасность аккаунта
+                        </h3>
+                    </div>
+                    <div class="card-body-settings">
+                        <div class="settings-options">
+                            <a href="{{ path('app_profile_change_password') }}" class="settings-link">
+                                <div class="settings-option-info">
+                                    <div class="settings-option-title">
+                                        <i class="fas fa-key me-2 text-primary"></i>
+                                        Сменить пароль
+                                    </div>
+                                    <div class="settings-option-desc">Обновите свой пароль для безопасности</div>
+                                </div>
+                                <i class="fas fa-chevron-right"></i>
                             </a>
+
+                            <a href="{{ path('app_2fa_status') }}" class="settings-link">
+                                <div class="settings-option-info">
+                                    <div class="settings-option-title">
+                                        <i class="fas fa-mobile-alt me-2 text-success"></i>
+                                        Двухфакторная аутентификация
+                                    </div>
+                                    <div class="settings-option-desc">Дополнительная защита аккаунта</div>
+                                </div>
+                                <span class="badge bg-success">
+                                    {% if app.user.isTotpEnabled %}
+                                        <i class="fas fa-check me-1"></i>Включена
+                                    {% else %}
+                                        <i class="fas fa-times me-1"></i>Отключена
+                                    {% endif %}
+                                </span>
+                            </a>
+
+                            <div class="settings-option">
+                                <div class="settings-option-info">
+                                    <div class="settings-option-title">
+                                        <i class="fas fa-history me-2 text-warning"></i>
+                                        Активные сессии
+                                    </div>
+                                    <div class="settings-option-desc">Управление активными сеансами входа</div>
+                                </div>
+                                <button class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-eye me-1"></i>Просмотр
+                                </button>
+                            </div>
+
+                            <div class="settings-option">
+                                <div class="settings-option-info">
+                                    <div class="settings-option-title">
+                                        <i class="fas fa-clock me-2 text-info"></i>
+                                        История входов
+                                    </div>
+                                    <div class="settings-option-desc">Последние входы в аккаунт</div>
+                                </div>
+                                <button class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-list me-1"></i>История
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-        
-        <div class="settings-section" id="preferences" style="display: none;">
-            <div class="card settings-card">
-                <div class="card-header">
-                    <h3 class="card-title">Предпочтения</h3>
+
+                <div class="settings-card mt-4">
+                    <div class="card-header-settings">
+                        <h3 class="card-title">
+                            <i class="fas fa-exclamation-triangle text-danger"></i>
+                            Опасная зона
+                        </h3>
+                    </div>
+                    <div class="card-body-settings">
+                        <div class="settings-option" style="background: #fff5f5;">
+                            <div class="settings-option-info">
+                                <div class="settings-option-title text-danger">
+                                    <i class="fas fa-sign-out-alt me-2"></i>
+                                    Выйти из всех сессий
+                                </div>
+                                <div class="settings-option-desc">Завершить все активные сеансы кроме текущего</div>
+                            </div>
+                            <button class="btn btn-outline-danger btn-sm" onclick="logoutAllSessions()">
+                                <i class="fas fa-sign-out-alt me-1"></i>Выйти
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="settings-options">
+            </section>
+
+            <!-- Preferences Section -->
+            <section class="settings-section" id="preferences">
+                <div class="settings-card">
+                    <div class="card-header-settings">
+                        <h3 class="card-title">
+                            <i class="fas fa-globe"></i>
+                            Региональные настройки
+                        </h3>
+                    </div>
+                    <div class="card-body-settings">
                         <div class="settings-field">
-                            <label class="settings-label">Язык интерфейса</label>
-                            <select class="form-select settings-select">
-                                <option value="ru">Русский</option>
+                            <label class="settings-label">
+                                <i class="fas fa-language me-2"></i>Язык интерфейса
+                            </label>
+                            <select class="settings-select" id="language">
+                                <option value="ru" selected>Русский</option>
                                 <option value="en">English</option>
+                                <option value="de">Deutsch</option>
+                                <option value="fr">Français</option>
                             </select>
                         </div>
-                        
+
                         <div class="settings-field">
-                            <label class="settings-label">Часовой пояс</label>
-                            <select class="form-select settings-select">
-                                <option value="Europe/Moscow">Москва (UTC+3)</option>
+                            <label class="settings-label">
+                                <i class="fas fa-clock me-2"></i>Часовой пояс
+                            </label>
+                            <select class="settings-select" id="timezone">
+                                <option value="Europe/Moscow" selected>Москва (UTC+3)</option>
+                                <option value="Europe/Kaliningrad">Калининград (UTC+2)</option>
                                 <option value="Europe/Kiev">Киев (UTC+2)</option>
                                 <option value="Europe/Minsk">Минск (UTC+3)</option>
+                                <option value="Asia/Yekaterinburg">Екатеринбург (UTC+5)</option>
+                                <option value="Asia/Omsk">Омск (UTC+6)</option>
+                                <option value="Asia/Krasnoyarsk">Красноярск (UTC+7)</option>
+                                <option value="Asia/Irkutsk">Иркутск (UTC+8)</option>
+                                <option value="Asia/Yakutsk">Якутск (UTC+9)</option>
+                                <option value="Asia/Vladivostok">Владивосток (UTC+10)</option>
+                                <option value="Asia/Magadan">Магадан (UTC+11)</option>
+                                <option value="Asia/Kamchatka">Камчатка (UTC+12)</option>
+                            </select>
+                        </div>
+
+                        <div class="settings-field">
+                            <label class="settings-label">
+                                <i class="fas fa-calendar me-2"></i>Формат даты
+                            </label>
+                            <select class="settings-select" id="dateFormat">
+                                <option value="DD.MM.YYYY" selected>ДД.ММ.ГГГГ</option>
+                                <option value="MM/DD/YYYY">ММ/ДД/ГГГГ</option>
+                                <option value="YYYY-MM-DD">ГГГГ-ММ-ДД</option>
+                                <option value="DD MMMM YYYY">ДД ММММ ГГГГ</option>
                             </select>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
+
+                <div class="settings-card mt-4">
+                    <div class="card-header-settings">
+                        <h3 class="card-title">
+                            <i class="fas fa-tasks"></i>
+                            Настройки задач
+                        </h3>
+                    </div>
+                    <div class="card-body-settings">
+                        <div class="settings-options">
+                            <div class="settings-option">
+                                <div class="settings-option-info">
+                                    <div class="settings-option-title">Показывать завершённые</div>
+                                    <div class="settings-option-desc">Отображать выполненные задачи в списке</div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="showCompleted" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="settings-option">
+                                <div class="settings-option-info">
+                                    <div class="settings-option-title">Автозакрытие уведомлений</div>
+                                    <div class="settings-option-desc">Автоматически закрывать уведомления через 5 секунд</div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="autoCloseNotifications">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="settings-field" style="margin-top: 1rem;">
+                                <label class="settings-label">
+                                    <i class="fas fa-sort me-2"></i>Сортировка задач по умолчанию
+                                </label>
+                                <select class="settings-select" id="defaultSort">
+                                    <option value="created_desc">Сначала новые</option>
+                                    <option value="created_asc">Сначала старые</option>
+                                    <option value="dueDate_asc">По сроку (ранние)</option>
+                                    <option value="dueDate_desc">По сроку (поздние)</option>
+                                    <option value="priority_desc">По приоритету (высокий)</option>
+                                    <option value="priority_asc">По приоритету (низкий)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Integrations Section -->
+            <section class="settings-section" id="integrations">
+                <div class="settings-card">
+                    <div class="card-header-settings">
+                        <h3 class="card-title">
+                            <i class="fas fa-plug"></i>
+                            Подключённые интеграции
+                        </h3>
+                    </div>
+                    <div class="card-body-settings">
+                        <div class="settings-options">
+                            <div class="settings-option">
+                                <div class="settings-option-info">
+                                    <div class="settings-option-title">
+                                        <i class="fab fa-telegram me-2 text-primary"></i>
+                                        Telegram
+                                    </div>
+                                    <div class="settings-option-desc">Получать уведомления в Telegram</div>
+                                </div>
+                                <button class="btn btn-outline-primary btn-sm" onclick="connectIntegration('telegram')">
+                                    <i class="fas fa-link me-1"></i>Подключить
+                                </button>
+                            </div>
+
+                            <div class="settings-option">
+                                <div class="settings-option-info">
+                                    <div class="settings-option-title">
+                                        <i class="fab fa-slack me-2 text-danger"></i>
+                                        Slack
+                                    </div>
+                                    <div class="settings-option-desc">Интеграция с Slack каналом</div>
+                                </div>
+                                <button class="btn btn-outline-primary btn-sm" onclick="connectIntegration('slack')">
+                                    <i class="fas fa-link me-1"></i>Подключить
+                                </button>
+                            </div>
+
+                            <div class="settings-option">
+                                <div class="settings-option-info">
+                                    <div class="settings-option-title">
+                                        <i class="fab fa-github me-2 text-dark"></i>
+                                        GitHub
+                                    </div>
+                                    <div class="settings-option-desc">Синхронизация с GitHub задачами</div>
+                                </div>
+                                <button class="btn btn-outline-primary btn-sm" onclick="connectIntegration('github')">
+                                    <i class="fas fa-link me-1"></i>Подключить
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Privacy Section -->
+            <section class="settings-section" id="privacy">
+                <div class="settings-card">
+                    <div class="card-header-settings">
+                        <h3 class="card-title">
+                            <i class="fas fa-user-lock"></i>
+                            Приватность
+                        </h3>
+                    </div>
+                    <div class="card-body-settings">
+                        <div class="settings-options">
+                            <div class="settings-option">
+                                <div class="settings-option-info">
+                                    <div class="settings-option-title">Видимость профиля</div>
+                                    <div class="settings-option-desc">Кто может видеть ваш профиль</div>
+                                </div>
+                                <select class="settings-select" style="width: 200px;" id="profileVisibility">
+                                    <option value="all">Все пользователи</option>
+                                    <option value="team">Только команда</option>
+                                    <option value="private">Только я</option>
+                                </select>
+                            </div>
+
+                            <div class="settings-option">
+                                <div class="settings-option-info">
+                                    <div class="settings-option-title">Статус онлайн</div>
+                                    <div class="settings-option-desc">Показывать когда вы онлайн</div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="onlineStatus" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="settings-option">
+                                <div class="settings-option-info">
+                                    <div class="settings-option-title">История активности</div>
+                                    <div class="settings-option-desc">Сохранять историю действий в системе</div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="activityHistory" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
     </div>
 </div>
-{% endblock %}
 
-{% block javascripts %}
-    {{ parent() }}
-    <script src="{{ asset('js/pages/settings-enhanced.js') }}"></script>
+<script>
+// Navigation
+document.querySelectorAll('.settings-nav-item').forEach(item => {
+    item.addEventListener('click', function() {
+        const section = this.dataset.section;
+        
+        // Update nav
+        document.querySelectorAll('.settings-nav-item').forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Update section
+        document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
+        document.getElementById(section).classList.add('active');
+    });
+});
+
+// Theme selection
+document.querySelectorAll('.theme-option').forEach(option => {
+    option.addEventListener('click', function() {
+        const theme = this.dataset.theme;
+        
+        document.querySelectorAll('.theme-option').forEach(o => o.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Apply theme
+        localStorage.setItem('theme', theme);
+        document.documentElement.setAttribute('data-theme', theme);
+        
+        // Show save notification
+        showSaveNotification('Тема применена. Не забудьте сохранить изменения!');
+    });
+});
+
+// Load current theme
+const currentTheme = localStorage.getItem('theme') || 'light';
+document.querySelector(`.theme-option[data-theme="${currentTheme}"]`)?.classList.add('active');
+
+// Save notification
+function showSaveNotification(message) {
+    const notification = document.createElement('div');
+    notification.className = 'position-fixed top-0 end-0 m-4 alert alert-success shadow-lg';
+    notification.style.zIndex = '9999';
+    notification.innerHTML = `
+        <i class="fas fa-check-circle me-2"></i>
+        ${message}
+    `;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.transition = 'opacity 0.3s';
+        notification.style.opacity = '0';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// Save all settings
+function saveAllSettings() {
+    const settings = {
+        theme: currentTheme,
+        compactMode: document.getElementById('compactMode')?.checked,
+        animations: document.getElementById('animations')?.checked,
+        darkSidebar: document.getElementById('darkSidebar')?.checked,
+        emailNotifications: document.getElementById('emailNotifications')?.checked,
+        pushNotifications: document.getElementById('pushNotifications')?.checked,
+        soundNotifications: document.getElementById('soundNotifications')?.checked,
+        taskNotifications: document.getElementById('taskNotifications')?.checked,
+        mentionNotifications: document.getElementById('mentionNotifications')?.checked,
+        language: document.getElementById('language')?.value,
+        timezone: document.getElementById('timezone')?.value,
+        dateFormat: document.getElementById('dateFormat')?.value,
+        showCompleted: document.getElementById('showCompleted')?.checked,
+        autoCloseNotifications: document.getElementById('autoCloseNotifications')?.checked,
+        defaultSort: document.getElementById('defaultSort')?.value,
+        profileVisibility: document.getElementById('profileVisibility')?.value,
+        onlineStatus: document.getElementById('onlineStatus')?.checked,
+        activityHistory: document.getElementById('activityHistory')?.checked
+    };
+    
+    fetch('{{ path('app_settings_save') }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(settings)
+    })
+    .then(response => {
+        if (response.ok) {
+            showSaveNotification('Настройки успешно сохранены!');
+        } else {
+            showSaveNotification('Ошибка при сохранении настроек');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showSaveNotification('Ошибка при сохранении настроек');
+    });
+}
+
+// Integration connect
+function connectIntegration(service) {
+    window.location.href = `/integrations/${service}/connect`;
+}
+
+// Logout all sessions
+function logoutAllSessions() {
+    if (confirm('Вы уверены, что хотите выйти из всех сессий кроме текущей?')) {
+        fetch('{{ path('app_settings_logout_all') }}', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                showSaveNotification('Все сессии завершены');
+            }
+        });
+    }
+}
+</script>
 {% endblock %}

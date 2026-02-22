@@ -1,0 +1,61 @@
+{#
+    Task list item - используется для Infinite Scroll
+    Переменные: tasks - массив задач
+#}
+{% for task in tasks %}
+<div class="task-item" data-task-id="{{ task.id }}">
+    <div class="task-item-content">
+        <div class="task-item-header">
+            <div class="form-check">
+                <input class="form-check-input task-checkbox"
+                       type="checkbox"
+                       value="{{ task.id }}"
+                       id="task-{{ task.id }}">
+            </div>
+            <a href="{{ path('app_task_show', {id: task.id}) }}" class="task-item-title">
+                {{ task.title }}
+            </a>
+            {% if task.priority == 'high' or task.priority == 'urgent' %}
+            <span class="badge bg-danger ms-2">{{ task.priorityLabel }}</span>
+            {% endif %}
+        </div>
+
+        {% if task.description %}
+        <p class="task-item-description text-muted small mb-2">
+            {{ task.description|striptags|u.truncate(100, '...') }}
+        </p>
+        {% endif %}
+
+        <div class="task-item-meta">
+            {% if task.category %}
+            <span class="task-category">
+                <i class="fas fa-folder"></i>
+                {{ task.category.name }}
+            </span>
+            {% endif %}
+
+            {% if task.dueDate %}
+            <span class="task-due-date{{ task.dueDate < date() and task.status != 'completed' ? ' text-danger' : '' }}">
+                <i class="fas fa-calendar"></i>
+                {{ task.dueDate|date('d.m.Y') }}
+            </span>
+            {% endif %}
+
+            {% if task.assignedUser %}
+            <span class="task-assigned">
+                <i class="fas fa-user"></i>
+                {{ task.assignedUser.firstName }}
+            </span>
+            {% endif %}
+
+            {% if task.tags|length > 0 %}
+            <div class="task-tags">
+                {% for tag in task.tags %}
+                <span class="badge bg-secondary">{{ tag.name }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endfor %}

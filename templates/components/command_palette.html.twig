@@ -1,0 +1,96 @@
+{#
+    Command Palette - Ctrl+K
+    Использование: {% include 'components/command_palette.html.twig' %}
+#}
+
+<div class="command-palette-backdrop"
+     data-action="click->command-palette#close"
+     id="command-palette-backdrop"></div>
+
+<div class="command-palette command-palette-hidden"
+     data-controller="command-palette"
+     data-command-palette-search-url-value="/quick-search">
+
+    <div class="command-palette-header">
+        <div class="command-palette-icon">
+            <i class="fas fa-search"></i>
+        </div>
+        <input type="text"
+               class="command-palette-input"
+               placeholder="Поиск задач, сделок, клиентов..."
+               data-command-palette-target="input"
+               data-action="input->command-palette#search keydown->command-palette#navigate">
+        <div class="command-palette-shortcut">
+            <kbd>ESC</kbd>
+        </div>
+    </div>
+
+    <div class="command-palette-results" data-command-palette-target="results">
+        {# Быстрые действия #}
+        <div class="command-palette-section">
+            <div class="command-palette-section-title">Быстрые действия</div>
+            <div class="command-palette-item" data-action="click->command-palette#executeAction" data-action-name="new-task">
+                <div class="command-palette-item-icon">
+                    <i class="fas fa-plus"></i>
+                </div>
+                <div class="command-palette-item-content">
+                    <div class="command-palette-item-title">Новая задача</div>
+                    <div class="command-palette-item-subtitle">Создать новую задачу</div>
+                </div>
+                <div class="command-palette-item-shortcut">
+                    <kbd>T</kbd><kbd>N</kbd>
+                </div>
+            </div>
+            <div class="command-palette-item" data-action="click->command-palette#executeAction" data-action-name="new-deal">
+                <div class="command-palette-item-icon">
+                    <i class="fas fa-handshake"></i>
+                </div>
+                <div class="command-palette-item-content">
+                    <div class="command-palette-item-title">Новая сделка</div>
+                    <div class="command-palette-item-subtitle">Создать новую сделку</div>
+                </div>
+                <div class="command-palette-item-shortcut">
+                    <kbd>D</kbd><kbd>N</kbd>
+                </div>
+            </div>
+            <div class="command-palette-item" data-action="click->command-palette#executeAction" data-action-name="new-client">
+                <div class="command-palette-item-icon">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <div class="command-palette-item-content">
+                    <div class="command-palette-item-title">Новый клиент</div>
+                    <div class="command-palette-item-subtitle">Добавить нового клиента</div>
+                </div>
+            </div>
+            <div class="command-palette-item" data-action="click->command-palette#executeAction" data-action-name="dashboard">
+                <div class="command-palette-item-icon">
+                    <i class="fas fa-home"></i>
+                </div>
+                <div class="command-palette-item-content">
+                    <div class="command-palette-item-title">Панель управления</div>
+                    <div class="command-palette-item-subtitle">Перейти на главную</div>
+                </div>
+                <div class="command-palette-item-shortcut">
+                    <kbd>G</kbd><kbd>D</kbd>
+                </div>
+            </div>
+            <div class="command-palette-item" data-action="click->command-palette#executeAction" data-action-name="settings">
+                <div class="command-palette-item-icon">
+                    <i class="fas fa-cog"></i>
+                </div>
+                <div class="command-palette-item-content">
+                    <div class="command-palette-item-title">Настройки</div>
+                    <div class="command-palette-item-subtitle">Открыть настройки системы</div>
+                </div>
+                <div class="command-palette-item-shortcut">
+                    <kbd>G</kbd><kbd>S</kbd>
+                </div>
+            </div>
+        </div>
+
+        {# Подсказка #}
+        <div class="command-palette-empty" style="padding: 20px;">
+            <span style="font-size: 13px;">Начните вводить для поиска...</span>
+        </div>
+    </div>
+</div>

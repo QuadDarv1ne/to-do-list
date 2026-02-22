@@ -1,0 +1,73 @@
+{#
+    Skeleton Loader компонент
+    Использование:
+        {% include 'components/skeleton.html.twig' with {type: 'card', count: 3} %}
+#}
+
+{% if type == 'card' %}
+    {% for i in 1..(count|default(1)) %}
+    <div class="skeleton-card stagger-item">
+        <div class="skeleton skeleton-title"></div>
+        <div class="skeleton skeleton-text"></div>
+        <div class="skeleton skeleton-text long"></div>
+        <div class="skeleton skeleton-text short"></div>
+    </div>
+    {% endfor %}
+
+{% elseif type == 'stat' %}
+    {% for i in 1..(count|default(1)) %}
+    <div class="skeleton-stat stagger-item">
+        <div class="skeleton skeleton-icon"></div>
+        <div class="skeleton skeleton-value"></div>
+        <div class="skeleton skeleton-label"></div>
+    </div>
+    {% endfor %}
+
+{% elseif type == 'table' %}
+    <div class="skeleton-table">
+        <div class="skeleton skeleton-text" style="height: 40px; margin-bottom: 8px;"></div>
+        {% for i in 1..(count|default(5)) %}
+        <div class="d-flex gap-3 mb-3">
+            <div class="skeleton" style="width: 40px; height: 40px; border-radius: 50%;"></div>
+            <div class="flex-grow-1">
+                <div class="skeleton skeleton-text"></div>
+                <div class="skeleton skeleton-text short"></div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+{% elseif type == 'list' %}
+    <div class="skeleton-list">
+        {% for i in 1..(count|default(5)) %}
+        <div class="skeleton-list-item">
+            <div class="skeleton skeleton-avatar"></div>
+            <div class="skeleton-content">
+                <div class="skeleton skeleton-text"></div>
+                <div class="skeleton skeleton-text short"></div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+{% elseif type == 'kanban' %}
+    {% for i in 1..(count|default(3)) %}
+    <div class="skeleton-kanban-card">
+        <div class="skeleton skeleton-title"></div>
+        <div class="skeleton skeleton-text"></div>
+        <div class="skeleton skeleton-badges">
+            <div class="skeleton skeleton-badge"></div>
+            <div class="skeleton skeleton-badge"></div>
+        </div>
+    </div>
+    {% endfor %}
+
+{% elseif type == 'chart' %}
+    <div class="skeleton skeleton-chart"></div>
+
+{% elseif type == 'button' %}
+    <div class="skeleton skeleton-button"></div>
+
+{% else %}
+    <div class="skeleton skeleton-text"></div>
+{% endif %}

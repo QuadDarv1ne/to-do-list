@@ -1,0 +1,206 @@
+/* Skeleton Loaders - анимированные заглушки загрузки */
+
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        var(--skeleton-bg, #e9ecef) 25%,
+        var(--skeleton-highlight, #f0f0f0) 50%,
+        var(--skeleton-bg, #e9ecef) 75%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+    border-radius: var(--skeleton-radius, 4px);
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Тёмная тема */
+[data-theme="dark"] .skeleton {
+    --skeleton-bg: #2d3748;
+    --skeleton-highlight: #3d4a5c;
+}
+
+/* Размеры скелетонов */
+.skeleton-text {
+    height: 16px;
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.skeleton-text.short {
+    width: 60%;
+}
+
+.skeleton-text.long {
+    width: 90%;
+}
+
+.skeleton-title {
+    height: 24px;
+    width: 70%;
+    margin-bottom: 12px;
+}
+
+.skeleton-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.skeleton-box {
+    height: 100px;
+    width: 100%;
+}
+
+.skeleton-card {
+    background: var(--bg-card, #fff);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.skeleton-card .skeleton-text {
+    margin-bottom: 12px;
+}
+
+.skeleton-card .skeleton-text:last-child {
+    margin-bottom: 0;
+}
+
+/* Skeleton для таблицы */
+.skeleton-table {
+    width: 100%;
+}
+
+.skeleton-table th,
+.skeleton-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color, #e9ecef);
+}
+
+.skeleton-table .skeleton {
+    height: 20px;
+}
+
+/* Skeleton для статистических карточек */
+.skeleton-stat {
+    background: var(--bg-card, #fff);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+}
+
+.skeleton-stat .skeleton-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    margin: 0 auto 12px;
+}
+
+.skeleton-stat .skeleton-value {
+    height: 32px;
+    width: 60px;
+    margin: 0 auto 8px;
+}
+
+.skeleton-stat .skeleton-label {
+    height: 16px;
+    width: 80px;
+    margin: 0 auto;
+}
+
+/* Skeleton для списка */
+.skeleton-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.skeleton-list-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--bg-card, #fff);
+    border-radius: 8px;
+}
+
+.skeleton-list-item .skeleton-avatar {
+    flex-shrink: 0;
+}
+
+.skeleton-list-item .skeleton-content {
+    flex: 1;
+}
+
+/* Skeleton для Kanban карточек */
+.skeleton-kanban-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.skeleton-kanban-card .skeleton-title {
+    height: 18px;
+    width: 80%;
+    margin-bottom: 8px;
+}
+
+.skeleton-kanban-card .skeleton-text {
+    height: 14px;
+    width: 100%;
+    margin-bottom: 6px;
+}
+
+.skeleton-kanban-card .skeleton-badges {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.skeleton-kanban-card .skeleton-badge {
+    height: 24px;
+    width: 60px;
+    border-radius: 12px;
+}
+
+/* Skeleton для графиков */
+.skeleton-chart {
+    height: 200px;
+    width: 100%;
+    border-radius: 8px;
+}
+
+/* Skeleton для кнопки */
+.skeleton-button {
+    height: 40px;
+    width: 120px;
+    border-radius: 8px;
+}
+
+/* Skeleton для изображений */
+.skeleton-image {
+    width: 100%;
+    aspect-ratio: 16/9;
+    border-radius: 8px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .skeleton-card {
+        padding: 12px;
+    }
+
+    .skeleton-stat {
+        padding: 16px;
+    }
+}

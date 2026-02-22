@@ -2,315 +2,849 @@
 
 {% block page_title %}{{ task.title }}{% endblock %}
 
-{% block body %}
-<!-- Breadcrumb -->
-<nav style="margin-bottom: 20px;">
-    <ol style="list-style: none; padding: 0; display: flex; gap: 10px; color: var(--text-secondary); font-size: 14px;">
-        <li><a href="{{ path('app_dashboard') }}" style="color: var(--text-secondary); text-decoration: none;">Панель</a></li>
-        <li>/</li>
-        <li><a href="{{ path('app_task_index') }}" style="color: var(--text-secondary); text-decoration: none;">Задачи</a></li>
-        {% if task.parent %}
-        <li>/</li>
-        <li><a href="{{ path('app_task_show', {'id': task.parent.id}) }}" style="color: var(--text-secondary); text-decoration: none;">{{ task.parent.title }}</a></li>
-        {% endif %}
-        <li>/</li>
-        <li style="color: var(--text-primary);">{{ task.title }}</li>
-    </ol>
-</nav>
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.task-show-container {
+    animation: fadeIn 0.6s ease-out;
+}
 
-<!-- Header -->
-<div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 30px;">
-    <div style="flex: 1;">
-        <h2 style="margin: 0 0 10px 0; font-size: 32px; font-weight: 600;">{{ task.title }}</h2>
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            {% if task.status == 'completed' %}
-                <span class="status-badge success">
-                    <i class="fas fa-check me-1"></i>Завершено
-                </span>
-            {% elseif task.status == 'in_progress' %}
-                <span class="status-badge warning">
-                    <i class="fas fa-spinner me-1"></i>В процессе
-                </span>
-            {% else %}
-                <span class="status-badge danger">
-                    <i class="fas fa-clock me-1"></i>В ожидании
-                </span>
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.task-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.task-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.breadcrumb-modern {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.breadcrumb-link {
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.breadcrumb-link:hover {
+    color: white;
+}
+
+.breadcrumb-separator {
+    color: rgba(255,255,255,0.5);
+}
+
+.breadcrumb-current {
+    color: white;
+    font-weight: 600;
+}
+
+.task-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.task-badges {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+
+.badge-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    backdrop-filter: blur(10px);
+}
+
+.badge-status.pending {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+}
+
+.badge-status.in_progress {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fcd34d;
+}
+
+.badge-status.completed {
+    background: rgba(16, 185, 129, 0.2);
+    color: #6ee7b7;
+}
+
+.badge-priority {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    backdrop-filter: blur(10px);
+}
+
+.badge-priority.high {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+}
+
+.badge-priority.medium {
+    background: rgba(99, 102, 241, 0.2);
+    color: #a5b4fc;
+}
+
+.badge-priority.low {
+    background: rgba(16, 185, 129, 0.2);
+    color: #6ee7b7;
+}
+
+.task-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.btn-task {
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.btn-task.edit {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+.btn-task.delete {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.btn-task.complete {
+    background: #10b981;
+    color: white;
+}
+
+.btn-task:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+.task-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+}
+
+.task-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.task-card:hover {
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.card-header-modern {
+    padding: 1.5rem;
+    border-bottom: 2px solid #f0f0f0;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-title-modern {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #212529;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.card-title-modern i {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.card-body-modern {
+    padding: 1.5rem;
+}
+
+.description-content {
+    color: #4b5563;
+    line-height: 1.8;
+    font-size: 1rem;
+}
+
+.subtask-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #f0f0f0;
+    transition: all 0.3s ease;
+}
+
+.subtask-item:hover {
+    background: #f8f9fa;
+}
+
+.subtask-checkbox {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid #e5e7eb;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.subtask-checkbox:hover {
+    border-color: #10b981;
+}
+
+.subtask-checkbox.checked {
+    background: #10b981;
+    border-color: #10b981;
+}
+
+.subtask-checkbox.checked i {
+    color: white;
+    font-size: 0.75rem;
+}
+
+.subtask-title {
+    flex: 1;
+    color: #212529;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.subtask-title.completed {
+    text-decoration: line-through;
+    color: #9ca3af;
+}
+
+.progress-section {
+    padding: 1.5rem;
+    background: #f8f9fa;
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.progress-label {
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.progress-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #212529;
+}
+
+.progress-bar-modern {
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill-modern {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+    border-radius: 4px;
+    transition: width 0.6s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-fill-modern::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.tag-item {
+    padding: 0.5rem 1rem;
+    border-radius: 10px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: white;
+}
+
+.sidebar-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.detail-item {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f0f0f0;
+    transition: all 0.3s ease;
+}
+
+.detail-item:hover {
+    background: #f8f9fa;
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.detail-value {
+    color: #212529;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.user-avatar-small {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.quick-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.btn-quick {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 12px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.btn-quick.complete {
+    background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+    color: white;
+}
+
+.btn-quick.secondary {
+    background: #f8f9fa;
+    color: #4b5563;
+    border: 2px solid #e5e7eb;
+}
+
+.btn-quick:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+}
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 450px;
+    width: 90%;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.form-input-modern {
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    margin-bottom: 1.5rem;
+}
+
+.form-input-modern:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+.modal-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.btn-modal {
+    flex: 1;
+    padding: 1rem;
+    border-radius: 12px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-modal.primary {
+    background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+    color: white;
+}
+
+.btn-modal.secondary {
+    background: #f8f9fa;
+    color: #4b5563;
+    border: 2px solid #e5e7eb;
+}
+
+@media (max-width: 992px) {
+    .task-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .task-title {
+        font-size: 1.5rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4 task-show-container">
+    <!-- Header -->
+    <div class="task-header">
+        <nav class="breadcrumb-modern">
+            <a href="{{ path('app_dashboard') }}" class="breadcrumb-link">
+                <i class="fas fa-home"></i> Панель
+            </a>
+            <span class="breadcrumb-separator">/</span>
+            <a href="{{ path('app_task_index') }}" class="breadcrumb-link">
+                <i class="fas fa-tasks"></i> Задачи
+            </a>
+            {% if task.parent %}
+                <span class="breadcrumb-separator">/</span>
+                <a href="{{ path('app_task_show', {'id': task.parent.id}) }}" class="breadcrumb-link">
+                    {{ task.parent.title|slice(0, 30) }}{% if task.parent.title|length > 30 %}...{% endif %}
+                </a>
             {% endif %}
-            
-            {% if task.priority == 'high' %}
-                <span class="status-badge" style="background: rgba(239, 68, 68, 0.2); color: var(--color-danger);">
-                    <i class="fas fa-arrow-up me-1"></i>Высокий приоритет
-                </span>
-            {% elseif task.priority == 'medium' %}
-                <span class="status-badge" style="background: rgba(99, 102, 241, 0.2); color: var(--color-primary);">
-                    <i class="fas fa-minus me-1"></i>Средний приоритет
-                </span>
-            {% else %}
-                <span class="status-badge" style="background: rgba(16, 185, 129, 0.2); color: var(--color-success);">
-                    <i class="fas fa-arrow-down me-1"></i>Низкий приоритет
-                </span>
-            {% endif %}
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">{{ task.title|slice(0, 30) }}{% if task.title|length > 30 %}...{% endif %}</span>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div>
+                <h1 class="task-title">
+                    {{ task.title }}
+                    <div class="task-badges">
+                        <span class="badge-status {{ task.status }}">
+                            <i class="fas fa-{{ task.status == 'completed' ? 'check' : (task.status == 'in_progress' ? 'spinner' : 'clock') }}"></i>
+                            {{ task.status == 'completed' ? 'Завершено' : (task.status == 'in_progress' ? 'В процессе' : 'В ожидании') }}
+                        </span>
+                        <span class="badge-priority {{ task.priority }}">
+                            <i class="fas fa-{{ task.priority == 'high' ? 'arrow-up' : (task.priority == 'low' ? 'arrow-down' : 'minus') }}"></i>
+                            {{ task.priority == 'high' ? 'Высокий' : (task.priority == 'low' ? 'Низкий' : 'Средний') }}
+                        </span>
+                    </div>
+                </h1>
+            </div>
+            <div class="task-actions">
+                <a href="{{ path('app_task_edit', {'id': task.id}) }}" class="btn-task edit">
+                    <i class="fas fa-edit"></i> Редактировать
+                </a>
+                {% if task.status != 'completed' %}
+                    <form method="post" action="{{ path('app_task_complete', {'id': task.id}) }}" style="display: inline;">
+                        <input type="hidden" name="_token" value="{{ csrf_token('complete' ~ task.id) }}">
+                        <button type="submit" class="btn-task complete">
+                            <i class="fas fa-check"></i> Завершить
+                        </button>
+                    </form>
+                {% endif %}
+                <form method="post" action="{{ path('app_task_delete', {'id': task.id}) }}" style="display: inline;" onsubmit="return confirm('Удалить задачу?');">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ task.id) }}">
+                    <button type="submit" class="btn-task delete">
+                        <i class="fas fa-trash"></i> Удалить
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
-    
-    <div style="display: flex; gap: 10px;">
-        <a href="{{ path('app_task_edit', {'id': task.id}) }}" class="btn" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 12px 20px; border-radius: 10px; font-weight: 600;">
-            <i class="fas fa-edit me-2"></i>Редактировать
-        </a>
-        <form method="post" action="{{ path('app_task_delete', {'id': task.id}) }}" style="display: inline;" onsubmit="return confirm('Удалить задачу?');">
-            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ task.id) }}">
-            <button type="submit" class="btn" style="background: rgba(239, 68, 68, 0.1); border: 1px solid var(--color-danger); color: var(--color-danger); padding: 12px 20px; border-radius: 10px; font-weight: 600;">
-                <i class="fas fa-trash me-2"></i>Удалить
-            </button>
-        </form>
+
+    <div class="task-grid">
+        <!-- Main Content -->
+        <div>
+            <!-- Description -->
+            <div class="task-card mb-4">
+                <div class="card-header-modern">
+                    <h3 class="card-title-modern">
+                        <i class="fas fa-align-left"></i>
+                        Описание
+                    </h3>
+                </div>
+                <div class="card-body-modern">
+                    {% if task.description %}
+                        <div class="description-content">{{ task.description|nl2br }}</div>
+                    {% else %}
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-info-circle me-2"></i>Описание отсутствует
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Subtasks -->
+            <div class="task-card mb-4">
+                <div class="card-header-modern">
+                    <h3 class="card-title-modern">
+                        <i class="fas fa-sitemap"></i>
+                        Подзадачи
+                        {% if subtasks is not empty %}
+                            <span style="font-size: 0.875rem; background: #e5e7eb; padding: 0.25rem 0.75rem; border-radius: 10px; color: #6b7280;">
+                                {{ subtasks|length }}
+                            </span>
+                        {% endif %}
+                    </h3>
+                    <a href="{{ path('app_task_new', {'parent': task.id}) }}" class="btn-task" style="background: #10b981; color: white; padding: 0.5rem 1rem; font-size: 0.875rem;">
+                        <i class="fas fa-plus"></i> Добавить
+                    </a>
+                </div>
+                
+                {% if subtasks is empty %}
+                    <div class="card-body-modern text-center py-5">
+                        <i class="fas fa-sitemap fa-3x" style="color: #e5e7eb; margin-bottom: 1rem;"></i>
+                        <p class="text-muted mb-0">Подзадач нет</p>
+                    </div>
+                {% else %}
+                    <!-- Progress -->
+                    {% set pct = task.completionPercentage %}
+                    <div class="progress-section">
+                        <div class="progress-header">
+                            <span class="progress-label">Прогресс выполнения</span>
+                            <span class="progress-value">{{ pct }}%</span>
+                        </div>
+                        <div class="progress-bar-modern">
+                            <div class="progress-fill-modern" style="width: {{ pct }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Subtask List -->
+                    <div>
+                        {% for subtask in subtasks %}
+                        <div class="subtask-item">
+                            {% if subtask.status != 'completed' %}
+                                <form method="post" action="{{ path('app_task_complete', {'id': subtask.id}) }}" style="margin: 0;">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('complete' ~ subtask.id) }}">
+                                    <button type="submit" class="subtask-checkbox" title="Завершить"></button>
+                                </form>
+                            {% else %}
+                                <span class="subtask-checkbox checked">
+                                    <i class="fas fa-check"></i>
+                                </span>
+                            {% endif %}
+                            
+                            <a href="{{ path('app_task_show', {'id': subtask.id}) }}" class="subtask-title {{ subtask.status == 'completed' ? 'completed' : '' }}">
+                                {{ subtask.title }}
+                            </a>
+                            
+                            <span style="font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: 6px; background: {% if subtask.priority == 'high' %}rgba(239,68,68,0.1){% else %}rgba(16,185,129,0.1){% endif %}; color: {% if subtask.priority == 'high' %}#ef4444{% else %}#10b981{% endif %}; font-weight: 600;">
+                                {{ subtask.priority == 'high' ? 'Высокий' : 'Низкий' }}
+                            </span>
+                            
+                            {% if subtask.dueDate %}
+                                <span style="font-size: 0.875rem; color: {% if subtask.isOverdue %}#ef4444{% else %}#6b7280{% endif %};">
+                                    <i class="fas fa-clock"></i> {{ subtask.dueDate|date('d.m.Y') }}
+                                </span>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Tags -->
+            {% if task.tags is not empty %}
+            <div class="task-card">
+                <div class="card-header-modern">
+                    <h3 class="card-title-modern">
+                        <i class="fas fa-tags"></i>
+                        Теги
+                    </h3>
+                </div>
+                <div class="card-body-modern">
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        {% for tag in task.tags %}
+                            <span class="tag-item" style="background: {{ tag.color }};">
+                                {{ tag.name }}
+                            </span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div>
+            <!-- Details Card -->
+            <div class="sidebar-card">
+                <div class="card-header-modern">
+                    <h3 class="card-title-modern">
+                        <i class="fas fa-info-circle"></i>
+                        Детали
+                    </h3>
+                </div>
+                
+                <div class="detail-item">
+                    <div class="detail-label">Прогресс</div>
+                    <div class="detail-value">
+                        <div style="flex: 1; height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden;">
+                            <div style="height: 100%; width: {{ task.progress }}%; background: {% if task.progress == 100 %}#10b981{% elseif task.progress >= 50 %}#667eea{% else %}#f59e0b{% endif %}; border-radius: 4px;"></div>
+                        </div>
+                        <span style="font-weight: 700; min-width: 45px;">{{ task.progress }}%</span>
+                    </div>
+                </div>
+                
+                <div class="detail-item">
+                    <div class="detail-label">Категория</div>
+                    <div class="detail-value">
+                        {% if task.category %}
+                            <i class="fas fa-folder" style="color: #667eea;"></i>
+                            {{ task.category.name }}
+                        {% else %}
+                            <span class="text-muted">Не указана</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="detail-item">
+                    <div class="detail-label">Создано</div>
+                    <div class="detail-value">
+                        <i class="fas fa-calendar" style="color: #10b981;"></i>
+                        {{ task.createdAt|date('d.m.Y H:i') }}
+                    </div>
+                </div>
+                
+                {% if task.dueDate %}
+                <div class="detail-item">
+                    <div class="detail-label">Срок выполнения</div>
+                    <div class="detail-value" style="color: {% if task.isOverdue %}#ef4444{% else %}#4b5563{% endif %};">
+                        <i class="fas fa-clock" style="color: #ef4444;"></i>
+                        {{ task.dueDate|date('d.m.Y') }}
+                        {% if task.isOverdue %}
+                            <span style="font-size: 0.75rem; background: #fee2e2; color: #ef4444; padding: 0.25rem 0.5rem; border-radius: 4px;">Просрочено</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if task.assignedUser %}
+                <div class="detail-item">
+                    <div class="detail-label">Назначено</div>
+                    <div class="detail-value">
+                        <div class="user-avatar-small">
+                            {{ task.assignedUser.firstName|first }}
+                        </div>
+                        {{ task.assignedUser.fullName }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="detail-item">
+                    <div class="detail-label">Автор</div>
+                    <div class="detail-value">
+                        <div class="user-avatar-small" style="background: linear-gradient(135deg, #4dd4ac 0%, #38ef7d 100%); color: #000;">
+                            {{ task.createdBy.firstName|first }}
+                        </div>
+                        {{ task.createdBy.fullName }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="sidebar-card">
+                <div class="card-header-modern">
+                    <h3 class="card-title-modern">
+                        <i class="fas fa-bolt"></i>
+                        Быстрые действия
+                    </h3>
+                </div>
+                <div class="card-body-modern">
+                    <div class="quick-actions">
+                        {% if task.status != 'completed' %}
+                        <form method="post" action="{{ path('app_task_complete', {'id': task.id}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('complete' ~ task.id) }}">
+                            <button type="submit" class="btn-quick complete">
+                                <i class="fas fa-check-circle"></i> Завершить задачу
+                            </button>
+                        </form>
+                        {% endif %}
+                        
+                        <a href="{{ path('app_task_index') }}" class="btn-quick secondary">
+                            <i class="fas fa-arrow-left"></i> Назад к списку
+                        </a>
+                        
+                        <button type="button" onclick="document.getElementById('saveTemplateModal').classList.add('active')" class="btn-quick secondary">
+                            <i class="fas fa-bookmark"></i> Сохранить как шаблон
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-<!-- Content Grid -->
-<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
-    <!-- Main Content -->
-    <div>
-        <!-- Description -->
-        <div class="card" style="margin-bottom: 20px;">
-            <div class="card-header">
-                <h3 class="card-title">Описание</h3>
-            </div>
-            <div class="card-body">
-                {% if task.description %}
-                    <p style="color: var(--text-primary); line-height: 1.6; margin: 0;">{{ task.description }}</p>
-                {% else %}
-                    <p style="color: var(--text-secondary); margin: 0;">Описание отсутствует</p>
-                {% endif %}
-            </div>
-        </div>
-        
-        <!-- Subtasks -->
-        <div class="card" style="margin-bottom: 20px;">
-            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-                <h3 class="card-title" style="margin: 0;">
-                    Подзадачи
-                    {% if subtasks is not empty %}
-                        <span style="font-size: 12px; background: var(--bg-secondary); padding: 2px 8px; border-radius: 10px; margin-left: 8px; color: var(--text-secondary);">{{ subtasks|length }}</span>
-                    {% endif %}
-                </h3>
-                <a href="{{ path('app_task_new', {'parent': task.id}) }}"
-                   style="font-size: 13px; background: var(--color-success); color: #000; padding: 6px 14px; border-radius: 8px; text-decoration: none; font-weight: 600;">
-                    <i class="fas fa-plus me-1"></i>Добавить
-                </a>
-            </div>
-            <div class="card-body" style="padding: 0;">
-                {% if subtasks is empty %}
-                    <p style="color: var(--text-secondary); margin: 0; padding: 20px; text-align: center; font-size: 14px;">
-                        <i class="fas fa-sitemap me-2" style="opacity: 0.4;"></i>Подзадач нет
-                    </p>
-                {% else %}
-                    <!-- Progress bar -->
-                    {% set pct = task.completionPercentage %}
-                    <div style="padding: 16px 20px 8px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; color: var(--text-secondary);">
-                            <span>Прогресс</span>
-                            <span style="font-weight: 600; color: var(--text-primary);">{{ pct }}%</span>
-                        </div>
-                        <div style="height: 6px; background: var(--bg-secondary); border-radius: 3px; overflow: hidden;">
-                            <div style="height: 100%; width: {{ pct }}%; background: var(--color-success); border-radius: 3px; transition: width 0.3s;"></div>
-                        </div>
-                    </div>
-                    <!-- Subtask list -->
-                    <ul style="list-style: none; margin: 0; padding: 8px 0 4px;">
-                        {% for subtask in subtasks %}
-                        <li style="display: flex; align-items: center; gap: 12px; padding: 10px 20px; border-top: 1px solid var(--border-color);">
-                            <!-- Complete toggle -->
-                            {% if subtask.status != 'completed' %}
-                            <form method="post" action="{{ path('app_task_complete', {'id': subtask.id}) }}" style="margin: 0;">
-                                <input type="hidden" name="_token" value="{{ csrf_token('complete' ~ subtask.id) }}">
-                                <button type="submit" title="Завершить" style="width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border-color); background: transparent; cursor: pointer; flex-shrink: 0;"></button>
-                            </form>
-                            {% else %}
-                            <span style="width: 20px; height: 20px; border-radius: 50%; background: var(--color-success); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                <i class="fas fa-check" style="font-size: 10px; color: #000;"></i>
-                            </span>
-                            {% endif %}
-
-                            <!-- Title -->
-                            <a href="{{ path('app_task_show', {'id': subtask.id}) }}"
-                               style="flex: 1; color: var(--text-primary); text-decoration: none; font-size: 14px; {% if subtask.status == 'completed' %}opacity: 0.5; text-decoration: line-through;{% endif %}">
-                                {{ subtask.title }}
-                            </a>
-
-                            <!-- Priority badge -->
-                            {% if subtask.priority == 'urgent' %}
-                                <span style="font-size: 11px; padding: 2px 8px; border-radius: 6px; background: rgba(239,68,68,0.15); color: var(--color-danger);">Критический</span>
-                            {% elseif subtask.priority == 'high' %}
-                                <span style="font-size: 11px; padding: 2px 8px; border-radius: 6px; background: rgba(239,68,68,0.15); color: var(--color-danger);">Высокий</span>
-                            {% elseif subtask.priority == 'medium' %}
-                                <span style="font-size: 11px; padding: 2px 8px; border-radius: 6px; background: rgba(99,102,241,0.15); color: var(--color-primary);">Средний</span>
-                            {% else %}
-                                <span style="font-size: 11px; padding: 2px 8px; border-radius: 6px; background: rgba(16,185,129,0.15); color: var(--color-success);">Низкий</span>
-                            {% endif %}
-
-                            <!-- Due date -->
-                            {% if subtask.dueDate %}
-                                <span style="font-size: 12px; color: {% if subtask.isOverdue %}var(--color-danger){% else %}var(--text-secondary){% endif %};">
-                                    <i class="fas fa-clock me-1"></i>{{ subtask.dueDate|date('d.m.Y') }}
-                                </span>
-                            {% endif %}
-                        </li>
-                        {% endfor %}
-                    </ul>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Tags -->
-        {% if task.tags is not empty %}
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Теги</h3>
-            </div>
-            <div class="card-body">
-                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    {% for tag in task.tags %}
-                        <span style="padding: 8px 16px; background: {{ tag.color }}; color: #fff; border-radius: 8px; font-size: 13px; font-weight: 500;">
-                            {{ tag.name }}
-                        </span>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-        {% endif %}
-    </div>
-    
-    <!-- Sidebar -->
-    <div>
-        <!-- Details Card -->
-        <div class="card" style="margin-bottom: 20px;">
-            <div class="card-header">
-                <h3 class="card-title">Детали</h3>
-            </div>
-            <div class="card-body">
-                <div style="display: flex; flex-direction: column; gap: 16px;">
-                    <!-- Progress -->
-                    <div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <div style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase;">Прогресс</div>
-                            <span style="font-size: 13px; font-weight: 700; color: var(--text-primary);">{{ task.progress }}%</span>
-                        </div>
-                        <div style="height: 8px; background: var(--bg-secondary); border-radius: 4px; overflow: hidden;">
-                            <div style="height: 100%; width: {{ task.progress }}%; border-radius: 4px; transition: width 0.4s ease;
-                                background: {% if task.progress == 100 %}var(--color-success){% elseif task.progress >= 50 %}var(--color-primary){% else %}var(--color-warning){% endif %};"></div>
-                        </div>
-                    </div>
-
-                    <!-- Category -->
-                    <div>
-                        <div style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; margin-bottom: 4px;">Категория</div>
-                        <div style="color: var(--text-primary); font-weight: 500;">
-                            {% if task.category %}
-                                <i class="fas fa-folder me-2" style="color: var(--color-primary);"></i>{{ task.category.name }}
-                            {% else %}
-                                <span style="color: var(--text-secondary);">Не указана</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    
-                    <!-- Created -->
-                    <div>
-                        <div style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; margin-bottom: 4px;">Создано</div>
-                        <div style="color: var(--text-primary); font-weight: 500;">
-                            <i class="fas fa-calendar me-2" style="color: var(--color-success);"></i>{{ task.createdAt|date('d.m.Y H:i') }}
-                        </div>
-                    </div>
-                    
-                    <!-- Due Date -->
-                    {% if task.dueDate %}
-                    <div>
-                        <div style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; margin-bottom: 4px;">Срок выполнения</div>
-                        <div style="color: var(--text-primary); font-weight: 500;">
-                            <i class="fas fa-clock me-2" style="color: var(--color-danger);"></i>{{ task.dueDate|date('d.m.Y') }}
-                        </div>
-                    </div>
-                    {% endif %}
-                    
-                    <!-- Assigned To -->
-                    {% if task.assignedUser %}
-                    <div>
-                        <div style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; margin-bottom: 4px;">Назначено</div>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 600;">
-                                {{ task.assignedUser.firstName|first }}
-                            </div>
-                            <div style="color: var(--text-primary); font-weight: 500;">{{ task.assignedUser.fullName }}</div>
-                        </div>
-                    </div>
-                    {% endif %}
-                    
-                    <!-- Created By -->
-                    <div>
-                        <div style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; margin-bottom: 4px;">Автор</div>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #4dd4ac 0%, #38ef7d 100%); display: flex; align-items: center; justify-content: center; color: #000; font-weight: 600;">
-                                {{ task.createdBy.firstName|first }}
-                            </div>
-                            <div style="color: var(--text-primary); font-weight: 500;">{{ task.createdBy.fullName }}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Quick Actions -->
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Быстрые действия</h3>
-            </div>
-            <div class="card-body">
-                <div style="display: flex; flex-direction: column; gap: 10px;">
-                    {% if task.status != 'completed' %}
-                    <form method="post" action="{{ path('app_task_complete', {'id': task.id}) }}">
-                        <input type="hidden" name="_token" value="{{ csrf_token('complete' ~ task.id) }}">
-                        <button type="submit" class="btn w-100" style="background: var(--color-success); border: none; color: #000; padding: 12px; border-radius: 10px; font-weight: 600;">
-                            <i class="fas fa-check me-2"></i>Завершить задачу
-                        </button>
-                    </form>
-                    {% endif %}
-                    
-                    <a href="{{ path('app_task_index') }}" class="btn w-100" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 12px; border-radius: 10px; font-weight: 600; text-align: center; text-decoration: none;">
-                        <i class="fas fa-arrow-left me-2"></i>Назад к списку
-                    </a>
-
-                    <button type="button" onclick="document.getElementById('save-template-modal').style.display='flex'"
-                            class="btn w-100" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 12px; border-radius: 10px; font-weight: 600;">
-                        <i class="fas fa-bookmark me-2"></i>Сохранить как шаблон
-                    </button>
-                </div>
-            </div>
-        </div>
-
 <!-- Save as Template Modal -->
-<div id="save-template-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
-    <div style="background:var(--bg-card); border-radius:16px; padding:28px; width:100%; max-width:420px; border:1px solid var(--border-color);">
-        <h4 style="margin:0 0 16px; font-size:18px; font-weight:700;">
-            <i class="fas fa-bookmark me-2" style="color:var(--color-success);"></i>Сохранить как шаблон
-        </h4>
+<div id="saveTemplateModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3 class="modal-title">
+            <i class="fas fa-bookmark" style="color: #10b981;"></i>
+            Сохранить как шаблон
+        </h3>
         <form method="post" action="{{ path('app_task_template_from_task', {'id': task.id}) }}">
-            <div style="margin-bottom:16px;">
-                <label style="display:block; color:var(--text-secondary); font-size:13px; font-weight:600; text-transform:uppercase; margin-bottom:6px;">Название шаблона</label>
-                <input type="text" name="template_name" value="{{ task.title }}"
-                       style="width:100%; background:var(--bg-secondary); border:1px solid var(--border-color); color:var(--text-primary); padding:12px 14px; border-radius:10px; font-size:14px; box-sizing:border-box;"
-                       required>
-            </div>
-            <div style="display:flex; gap:10px;">
-                <button type="submit" style="flex:1; background:var(--color-success); border:none; color:#000; padding:12px; border-radius:10px; font-weight:600; cursor:pointer;">
-                    <i class="fas fa-save me-2"></i>Сохранить
+            <label style="display: block; color: #6b7280; font-size: 0.875rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.5rem;">
+                Название шаблона
+            </label>
+            <input type="text" name="template_name" value="{{ task.title }}" class="form-input-modern" required>
+            
+            <div class="modal-actions">
+                <button type="submit" class="btn-modal primary">
+                    <i class="fas fa-save"></i> Сохранить
                 </button>
-                <button type="button" onclick="document.getElementById('save-template-modal').style.display='none'"
-                        style="flex:1; background:var(--bg-secondary); border:1px solid var(--border-color); color:var(--text-primary); padding:12px; border-radius:10px; font-weight:600; cursor:pointer;">
+                <button type="button" onclick="document.getElementById('saveTemplateModal').classList.remove('active')" class="btn-modal secondary">
                     Отмена
                 </button>
             </div>
         </form>
-    </div>
-</div>
     </div>
 </div>
 {% endblock %}

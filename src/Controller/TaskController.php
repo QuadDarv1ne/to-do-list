@@ -1225,4 +1225,92 @@ class TaskController extends AbstractController
             'failed_tasks' => $failedTasks,
         ];
     }
+
+    #[Route('/api/list', name: 'app_task_api_list', methods: ['GET'])]
+    public function apiList(
+        Request $request,
+        TaskRepository $taskRepository,
+        TaskCategoryRepository $categoryRepository,
+        TagRepository $tagRepository,
+    ): Response {
+        $user = $this->getUser();
+        $page = max(1, (int)$request->query->get('page', 1));
+        $limit = min(50, max(1, (int)$request->query->get('limit', 10)));
+        $offset = ($page - 1) * $limit;
+
+        // Get filter parameters
+        $search = $request->query->get('search');
+        $status = $request->query->get('status');
+        $priority = $request->query->get('priority');
+        $categoryId = $request->query->get('category');
+        $hideCompleted = $request->query->get('hide_completed', false);
+        $sort = $request->query->get('sort', 'createdAt');
+        $direction = $request->query->get('direction', 'DESC');
+
+        // Build query with eager loading
+        $qb = $taskRepository->createQueryBuilder('t')
+            ->leftJoin('t.assignedUser', 'au')->addSelect('au')
+            ->leftJoin('t.category', 'c')->addSelect('c')
+            ->leftJoin('t.tags', 'tags')->addSelect('tags')
+            ->andWhere('t.user = :user')
+            ->setParameter('user', $user);
+
+        // Apply filters
+        if ($search) {
+            $qb->andWhere('t.title LIKE :search OR t.description LIKE :search')
+               ->setParameter('search', '%' . $search . '%');
+        }
+
+        if ($status) {
+            $qb->andWhere('t.status = :status')
+               ->setParameter('status', $status);
+        }
+
+        if ($priority) {
+            $qb->andWhere('t.priority = :priority')
+               ->setParameter('priority', $priority);
+        }
+
+        if ($categoryId) {
+            $qb->andWhere('t.category = :category')
+               ->setParameter('category', $categoryId);
+        }
+
+        if ($hideCompleted) {
+            $qb->andWhere('t.status != :completedStatus')
+               ->setParameter('completedStatus', 'completed');
+        }
+
+        // Apply sorting
+        $allowedSorts = ['createdAt', 'priority', 'dueDate', 'title'];
+        $allowedDirections = ['ASC', 'DESC'];
+
+        if (\in_array($sort, $allowedSorts) && \in_array($direction, $allowedDirections)) {
+            $qb->orderBy('t.' . $sort, $direction);
+        } else {
+            $qb->orderBy('t.createdAt', 'DESC');
+        }
+
+        // Get total count
+        $totalTasks = (clone $qb)->select('COUNT(DISTINCT t.id)')->getQuery()->getSingleScalarResult();
+
+        // Get paginated results
+        $tasks = $qb
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        // Render partial template for infinite scroll
+        $html = $this->renderView('task/_task_list_item.html.twig', [
+            'tasks' => $tasks,
+        ]);
+
+        return $this->json([
+            'html' => $html,
+            'hasMore' => ($offset + $limit) < $totalTasks,
+            'total' => $totalTasks,
+            'nextPage' => $page + 1,
+        ]);
+    }
 }

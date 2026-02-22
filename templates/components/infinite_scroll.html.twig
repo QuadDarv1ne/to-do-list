@@ -1,0 +1,65 @@
+{#
+    Infinite Scroll компонент
+    Использование:
+    {% include 'components/infinite_scroll.html.twig' with {
+        url: path('app_task_list'),
+        container_id: 'tasks-container'
+    } %}
+#}
+
+<div data-controller="infinite-scroll"
+     data-infinite-scroll-url-value="{{ url }}"
+     data-infinite-scroll-start-page-value="{{ start_page|default(1) }}"
+     data-infinite-scroll-param-value="{{ param|default('page') }}">
+
+    <div data-infinite-scroll-container id="{{ container_id|default('infinite-container') }}">
+        {# Initial content should be passed via the items_template variable or included directly #}
+        {% if items_template is defined %}
+            {{ include(items_template) }}
+        {% endif %}
+    </div>
+
+    {# Триггер для загрузки #}
+    <div data-infinite-scroll-trigger class="infinite-scroll-trigger">
+        {% if show_loading|default(true) %}
+        <div data-infinite-scroll-loading class="infinite-scroll-loading hidden">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Загрузка...</span>
+            </div>
+            <span>Загрузка...</span>
+        </div>
+        {% endif %}
+    </div>
+
+    {# Сообщение когда всё загружено #}
+    {% if show_end_message|default(true) %}
+    <div class="infinite-scroll-end text-center text-muted py-3" style="display: none;">
+        <i class="fas fa-check-circle me-2"></i>
+        <span>Все данные загружены</span>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.infinite-scroll-trigger {
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.infinite-scroll-loading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-muted, #6c757d);
+}
+
+.infinite-scroll-loading.hidden {
+    display: none;
+}
+
+.infinite-scroll-end {
+    color: var(--text-muted, #6c757d);
+}
+</style>

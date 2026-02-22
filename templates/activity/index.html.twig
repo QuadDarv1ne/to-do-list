@@ -2,85 +2,547 @@
 
 {% block title %}Лента активности{% endblock %}
 
-{% block body %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="fas fa-stream"></i> Лента активности</h1>
-        <div>
-            <a href="{{ path('app_activity_stats') }}" class="btn btn-info">
-                <i class="fas fa-chart-bar"></i> Статистика
-            </a>
-            {% if is_granted('ROLE_MANAGER') %}
-                <a href="{{ path('app_activity_team') }}" class="btn btn-primary">
-                    <i class="fas fa-users"></i> Активность команды
-                </a>
-            {% endif %}
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="card-body">
-            {% if feed is empty %}
-                <div class="text-center text-muted py-5">
-                    <i class="fas fa-inbox fa-3x mb-3"></i>
-                    <p>Пока нет активности</p>
-                </div>
-            {% else %}
-                <div class="activity-feed">
-                    {% for item in feed %}
-                        <div class="activity-item mb-3 pb-3 border-bottom">
-                            <div class="d-flex">
-                                <div class="activity-icon me-3">
-                                    <i class="fas {{ item.icon }} text-{{ item.color }}"></i>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <strong>{{ item.user.fullName }}</strong>
-                                            <span class="text-muted">{{ item.action }}</span>
-                                            <span class="text-muted">{{ item.entity }}</span>
-                                            {% if item.entity_id %}
-                                                <a href="{{ path('app_task_show', {id: item.entity_id}) }}" class="text-decoration-none">
-                                                    #{{ item.entity_id }}
-                                                </a>
-                                            {% endif %}
-                                        </div>
-                                        <small class="text-muted">
-                                            {{ item.created_at|date('d.m.Y H:i') }}
-                                        </small>
-                                    </div>
-                                    
-                                    {% if item.metadata %}
-                                        <div class="mt-2">
-                                            <small class="text-muted">
-                                                Метаданные: {{ item.metadata }}
-                                            </small>
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        </div>
-    </div>
-</div>
-
+{% block stylesheets %}
+{{ parent() }}
 <style>
-.activity-icon {
-    width: 40px;
-    height: 40px;
+.activity-container {
+    animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.activity-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.activity-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f8f9fa;
-    border-radius: 50%;
-    font-size: 1.2rem;
+    margin: 0 auto 1rem;
+    font-size: 1.5rem;
 }
 
-.activity-item:last-child {
-    border-bottom: none !important;
+.stat-icon.tasks { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+.stat-icon.comments { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; }
+.stat-icon.completed { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+.stat-icon.users { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    color: #6c757d;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.filter-bar {
+    background: white;
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.filter-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.filter-btn:hover {
+    border-color: #667eea;
+    color: #667eea;
+}
+
+.filter-btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: transparent;
+}
+
+.activity-timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.activity-timeline::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+}
+
+.activity-item {
+    position: relative;
+    padding: 1.25rem;
+    background: white;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+    animation: slideIn 0.4s ease-out backwards;
+}
+
+.activity-item:nth-child(1) { animation-delay: 0.1s; }
+.activity-item:nth-child(2) { animation-delay: 0.2s; }
+.activity-item:nth-child(3) { animation-delay: 0.3s; }
+.activity-item:nth-child(4) { animation-delay: 0.4s; }
+.activity-item:nth-child(5) { animation-delay: 0.5s; }
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.activity-item:hover {
+    transform: translateX(8px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+.activity-item::before {
+    content: '';
+    position: absolute;
+    left: -2rem;
+    top: 1.5rem;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: white;
+    border: 3px solid #667eea;
+    z-index: 1;
+}
+
+.activity-item.task-create::before { border-color: #667eea; background: #667eea; }
+.activity-item.task-complete::before { border-color: #38ef7d; background: #38ef7d; }
+.activity-item.comment-add::before { border-color: #11998e; background: #11998e; }
+.activity-item.status-change::before { border-color: #f5576c; background: #f5576c; }
+
+.activity-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.activity-icon.task { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+.activity-icon.comment { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; }
+.activity-icon.status { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+.activity-icon.user { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
+
+.activity-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.activity-title {
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 0.25rem;
+}
+
+.activity-description {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.activity-time {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #6c757d;
+    font-size: 0.8rem;
+}
+
+.activity-time i {
+    font-size: 0.7rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 16px;
+}
+
+.empty-state i {
+    font-size: 5rem;
+    color: #e9ecef;
+    margin-bottom: 1.5rem;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.load-more {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+.btn-load-more {
+    padding: 0.75rem 2rem;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-load-more:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+@media (max-width: 768px) {
+    .activity-header {
+        padding: 1.5rem;
+    }
+    
+    .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .activity-timeline {
+        padding-left: 1.5rem;
+    }
+    
+    .activity-timeline::before {
+        left: 6px;
+    }
+    
+    .activity-item::before {
+        left: -1.5rem;
+    }
 }
 </style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4 activity-container">
+    <!-- Header -->
+    <div class="activity-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1 class="mb-2">
+                    <i class="fas fa-stream me-2"></i>
+                    Лента активности
+                </h1>
+                <p class="mb-0 opacity-75">Отслеживайте все события в системе в реальном времени</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ path('app_activity_stats') }}" class="btn btn-light">
+                    <i class="fas fa-chart-bar me-2"></i>Статистика
+                </a>
+                {% if is_granted('ROLE_MANAGER') %}
+                    <a href="{{ path('app_activity_team') }}" class="btn btn-light">
+                        <i class="fas fa-users me-2"></i>Команда
+                    </a>
+                {% endif %}
+                <button class="btn btn-light" onclick="refreshFeed()">
+                    <i class="fas fa-sync-alt me-2"></i>Обновить
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon tasks">
+                <i class="fas fa-tasks"></i>
+            </div>
+            <div class="stat-value" id="stat-tasks">0</div>
+            <div class="stat-label">Задач создано</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon comments">
+                <i class="fas fa-comments"></i>
+            </div>
+            <div class="stat-value" id="stat-comments">0</div>
+            <div class="stat-label">Комментариев</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon completed">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-value" id="stat-completed">0</div>
+            <div class="stat-label">Завершено</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon users">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-value" id="stat-users">0</div>
+            <div class="stat-label">Пользователей</div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-bar">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div class="d-flex flex-wrap">
+                <button class="filter-btn active" data-filter="all">
+                    <i class="fas fa-globe me-1"></i>Все
+                </button>
+                <button class="filter-btn" data-filter="task-create">
+                    <i class="fas fa-plus-circle me-1"></i>Создание
+                </button>
+                <button class="filter-btn" data-filter="task-complete">
+                    <i class="fas fa-check-circle me-1"></i>Завершение
+                </button>
+                <button class="filter-btn" data-filter="comment-add">
+                    <i class="fas fa-comment me-1"></i>Комментарии
+                </button>
+                <button class="filter-btn" data-filter="status-change">
+                    <i class="fas fa-exchange-alt me-1"></i>Статусы
+                </button>
+            </div>
+            <div class="d-flex gap-2">
+                <select class="form-select" id="periodFilter" style="width: auto;">
+                    <option value="24">За 24 часа</option>
+                    <option value="7" selected>7 дней</option>
+                    <option value="30">30 дней</option>
+                    <option value="90">90 дней</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activity Feed -->
+    {% if feed is empty %}
+        <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <h3 class="mb-2">Пока нет активности</h3>
+            <p class="text-muted mb-4">Как только появятся события, они отобразятся здесь</p>
+            <a href="{{ path('app_task_index') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Создать задачу
+            </a>
+        </div>
+    {% else %}
+        <div class="activity-timeline">
+            {% for item in feed %}
+                <div class="activity-item {{ item.action_type|default('task') }}" data-type="{{ item.action_type|default('task') }}">
+                    <div class="d-flex gap-3">
+                        <div class="user-avatar">
+                            {{ item.user.fullName|first|upper }}
+                        </div>
+                        <div class="activity-content">
+                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                                <div>
+                                    <div class="activity-title">
+                                        <strong>{{ item.user.fullName }}</strong>
+                                        <span class="text-muted">{{ item.action }}</span>
+                                        {% if item.entity_id %}
+                                            <a href="{{ path('app_task_show', {id: item.entity_id}) }}" class="text-decoration-none ms-2">
+                                                <span class="badge bg-primary">#{{ item.entity_id }}</span>
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                    {% if item.description %}
+                                        <div class="activity-description">{{ item.description }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="activity-time">
+                                    <i class="far fa-clock"></i>
+                                    <span>{{ item.created_at|date('d.m.Y H:i') }}</span>
+                                </div>
+                            </div>
+                            {% if item.metadata %}
+                                <div class="mt-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        {{ item.metadata }}
+                                    </small>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="load-more">
+            <button class="btn-load-more" onclick="loadMore()">
+                <i class="fas fa-plus me-2"></i>Загрузить ещё
+            </button>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+// Statistics data
+const stats = {{ stats|default({tasks: 0, comments: 0, completed: 0, users: 0})|json_encode|raw }};
+
+// Update statistics
+function updateStats() {
+    document.getElementById('stat-tasks').textContent = stats.tasks || 0;
+    document.getElementById('stat-comments').textContent = stats.comments || 0;
+    document.getElementById('stat-completed').textContent = stats.completed || 0;
+    document.getElementById('stat-users').textContent = stats.users || 0;
+}
+
+// Filter functionality
+document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        const filter = this.dataset.filter;
+        filterActivity(filter);
+    });
+});
+
+function filterActivity(type) {
+    document.querySelectorAll('.activity-item').forEach(item => {
+        if (type === 'all' || item.dataset.type === type) {
+            item.style.display = 'block';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+
+// Period filter
+document.getElementById('periodFilter').addEventListener('change', function() {
+    const period = this.value;
+    window.location.href = '{{ path('app_activity_index') }}?period=' + period;
+});
+
+// Refresh feed
+async function refreshFeed() {
+    const btn = event.target.closest('button');
+    const icon = btn.querySelector('i');
+    icon.classList.add('fa-spin');
+    
+    try {
+        const response = await fetch('{{ path('app_activity_api') }}?period=' + document.getElementById('periodFilter').value);
+        const data = await response.json();
+        
+        if (data.success) {
+            location.reload();
+        }
+    } catch (error) {
+        console.error('Error refreshing:', error);
+    } finally {
+        icon.classList.remove('fa-spin');
+    }
+}
+
+// Load more
+let offset = {{ feed|length|default(0) }};
+async function loadMore() {
+    const btn = document.querySelector('.btn-load-more');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Загрузка...';
+    
+    try {
+        const period = document.getElementById('periodFilter').value;
+        const response = await fetch(`{{ path('app_activity_api') }}?offset=${offset}&limit=20&period=${period}`);
+        const data = await response.json();
+        
+        if (data.success && data.items.length > 0) {
+            // Append new items
+            offset += data.items.length;
+            location.reload();
+        } else {
+            btn.innerHTML = '<i class="fas fa-check me-2"></i>Больше нет записей';
+        }
+    } catch (error) {
+        console.error('Error loading more:', error);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-plus me-2"></i>Загрузить ещё';
+    }
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    updateStats();
+});
+</script>
 {% endblock %}

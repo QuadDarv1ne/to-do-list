@@ -1,364 +1,847 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Knowledge Base{% endblock %}
+{% block title %}База знаний{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.kb-container {
+    animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.kb-header {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+    padding: 3rem 2rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.kb-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.search-box {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
+
+.search-input-group {
+    position: relative;
+}
+
+.search-input {
+    width: 100%;
+    padding: 1rem 1.5rem 1rem 3.5rem;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #11998e;
+    box-shadow: 0 0 0 4px rgba(17, 153, 142, 0.1);
+}
+
+.search-icon {
+    position: absolute;
+    left: 1.25rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    font-size: 1.25rem;
+}
+
+.search-btn {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.search-btn:hover {
+    transform: translateY(-50%) scale(1.05);
+    box-shadow: 0 4px 12px rgba(17, 153, 142, 0.4);
+}
+
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+}
+
+.stat-card.articles::before { background: linear-gradient(180deg, #667eea 0%, #764ba2 100%); }
+.stat-card.categories::before { background: linear-gradient(180deg, #11998e 0%, #38ef7d 100%); }
+.stat-card.views::before { background: linear-gradient(180deg, #4facfe 0%, #00f2fe 100%); }
+.stat-card.paths::before { background: linear-gradient(180deg, #f093fb 0%, #f5576c 100%); }
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 1.5rem;
+}
+
+.stat-icon.articles { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+.stat-icon.categories { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; }
+.stat-icon.views { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
+.stat-icon.paths { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    color: #6c757d;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.category-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    height: 100%;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    position: relative;
+    overflow: hidden;
+}
+
+.category-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+}
+
+.category-card.guides::before { background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); }
+.category-card.practices::before { background: linear-gradient(90deg, #11998e 0%, #38ef7d 100%); }
+.category-card.troubleshooting::before { background: linear-gradient(90deg, #f5576c 0%, #f093fb 100%); }
+.category-card.finance::before { background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%); }
+.category-card.api::before { background: linear-gradient(90deg, #ffa726 0%, #fb8c00 100%); }
+.category-card.security::before { background: linear-gradient(90deg, #66bb6a 0%, #43a047 100%); }
+
+.category-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.15);
+}
+
+.category-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.category-card:hover .category-icon {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.category-card.guides .category-icon { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+.category-card.practices .category-icon { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; }
+.category-card.troubleshooting .category-icon { background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%); color: white; }
+.category-card.finance .category-icon { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
+.category-card.api .category-icon { background: linear-gradient(135deg, #ffa726 0%, #fb8c00 100%); color: white; }
+.category-card.security .category-icon { background: linear-gradient(135deg, #66bb6a 0%, #43a047 100%); color: white; }
+
+.category-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.category-description {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.category-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 2px solid #f0f0f0;
+}
+
+.category-count {
+    font-weight: 600;
+    color: #212529;
+}
+
+.category-articles {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+.article-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    height: 100%;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.article-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.article-badge {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.article-badge.guide { background: rgba(102, 126, 234, 0.1); color: #667eea; }
+.article-badge.practice { background: rgba(17, 153, 142, 0.1); color: #11998e; }
+.article-badge.troubleshooting { background: rgba(245, 87, 108, 0.1); color: #f5576c; }
+.article-badge.finance { background: rgba(79, 172, 254, 0.1); color: #4facfe; }
+
+.article-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+}
+
+.article-excerpt {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.article-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 2px solid #f0f0f0;
+}
+
+.article-author {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.author-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.article-date {
+    color: #6c757d;
+    font-size: 0.8rem;
+}
+
+.article-views {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: #6c757d;
+    font-size: 0.8rem;
+}
+
+.sidebar-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+
+.sidebar-header {
+    padding: 1.25rem;
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+    font-weight: 600;
+}
+
+.sidebar-body {
+    padding: 1rem;
+}
+
+.trending-item {
+    display: block;
+    padding: 1rem;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+    margin-bottom: 0.5rem;
+}
+
+.trending-item:hover {
+    background: #f8f9fa;
+    transform: translateX(4px);
+}
+
+.trending-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+}
+
+.trending-meta {
+    color: #6c757d;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.quick-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.quick-links li {
+    margin-bottom: 0.5rem;
+}
+
+.quick-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 10px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+}
+
+.quick-link:hover {
+    background: #f8f9fa;
+    color: #11998e;
+}
+
+.quick-link-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.quick-link-icon.guides { background: rgba(102, 126, 234, 0.1); color: #667eea; }
+.quick-link-icon.practices { background: rgba(17, 153, 142, 0.1); color: #11998e; }
+.quick-link-icon.troubleshooting { background: rgba(245, 87, 108, 0.1); color: #f5576c; }
+
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.section-title i {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+@media (max-width: 768px) {
+    .kb-header {
+        padding: 1.5rem;
+    }
+    
+    .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+</style>
+{% endblock %}
 
 {% block body %}
-<div class="container-fluid">
+<div class="container-fluid py-4 kb-container">
+    <!-- Header with Search -->
+    <div class="kb-header">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="mb-2">
+                    <i class="fas fa-book me-2"></i>
+                    База знаний
+                </h1>
+                <p class="mb-0 opacity-75 fs-5">Найдите ответы на свои вопросы в нашей базе знаний</p>
+            </div>
+            <div class="col-lg-6 mt-3 mt-lg-0">
+                <div class="d-flex gap-2 justify-content-lg-end">
+                    <a href="{{ path('app_task_index') }}" class="btn btn-light">
+                        <i class="fas fa-tasks me-2"></i>Задачи
+                    </a>
+                    <a href="{{ path('app_document_index') }}" class="btn btn-light">
+                        <i class="fas fa-file me-2"></i>Документы
+                    </a>
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <a href="{{ path('app_knowledge_base_new') }}" class="btn btn-light">
+                            <i class="fas fa-plus me-2"></i>Статья
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Box -->
+    <div class="search-box">
+        <form action="{{ path('app_knowledge_base_search') }}" method="GET">
+            <div class="search-input-group">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" name="q" placeholder="Поиск статей, руководств, инструкций..." value="{{ app.request.query.get('q') }}">
+                <button type="submit" class="search-btn">
+                    <i class="fas fa-search me-2"></i>Найти
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Statistics -->
+    <div class="stats-row">
+        <div class="stat-card articles">
+            <div class="stat-icon articles">
+                <i class="fas fa-file-alt"></i>
+            </div>
+            <div class="stat-value">{{ stats.articles|default(0) }}</div>
+            <div class="stat-label">Статей</div>
+        </div>
+        <div class="stat-card categories">
+            <div class="stat-icon categories">
+                <i class="fas fa-folder"></i>
+            </div>
+            <div class="stat-value">{{ stats.categories|default(0) }}</div>
+            <div class="stat-label">Категорий</div>
+        </div>
+        <div class="stat-card views">
+            <div class="stat-icon views">
+                <i class="fas fa-eye"></i>
+            </div>
+            <div class="stat-value">{{ stats.viewsToday|default(0) }}</div>
+            <div class="stat-label">Просмотров сегодня</div>
+        </div>
+        <div class="stat-card paths">
+            <div class="stat-icon paths">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <div class="stat-value">{{ stats.learningPaths|default(0) }}</div>
+            <div class="stat-label">Путей обучения</div>
+        </div>
+    </div>
+
+    <!-- Categories -->
+    <h2 class="section-title">
+        <i class="fas fa-folder-open"></i>
+        Категории
+    </h2>
+    <div class="row g-4 mb-5">
+        <div class="col-lg-4 col-md-6">
+            <a href="{{ path('app_knowledge_base_category', {slug: 'guides'}) }}" class="category-card guides">
+                <div class="category-icon">
+                    <i class="fas fa-book"></i>
+                </div>
+                <h3 class="category-title">Руководства</h3>
+                <p class="category-description">Пошаговые инструкции для решения常见 задач</p>
+                <div class="category-meta">
+                    <span class="category-count">{{ categories.guides|default(0) }} статей</span>
+                    <span class="category-articles"><i class="fas fa-file"></i> {{ categories.guides|default(0) }}</span>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-4 col-md-6">
+            <a href="{{ path('app_knowledge_base_category', {slug: 'best-practices'}) }}" class="category-card practices">
+                <div class="category-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <h3 class="category-title">Лучшие практики</h3>
+                <p class="category-description">Проверенные методы и рекомендации экспертов</p>
+                <div class="category-meta">
+                    <span class="category-count">{{ categories.practices|default(0) }} статей</span>
+                    <span class="category-articles"><i class="fas fa-file"></i> {{ categories.practices|default(0) }}</span>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-4 col-md-6">
+            <a href="{{ path('app_knowledge_base_category', {slug: 'troubleshooting'}) }}" class="category-card troubleshooting">
+                <div class="category-icon">
+                    <i class="fas fa-tools"></i>
+                </div>
+                <h3 class="category-title">Решение проблем</h3>
+                <p class="category-description">Ответы на частые вопросы и проблемы</p>
+                <div class="category-meta">
+                    <span class="category-count">{{ categories.troubleshooting|default(0) }} статей</span>
+                    <span class="category-articles"><i class="fas fa-file"></i> {{ categories.troubleshooting|default(0) }}</span>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-4 col-md-6">
+            <a href="{{ path('app_knowledge_base_category', {slug: 'finance'}) }}" class="category-card finance">
+                <div class="category-icon">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <h3 class="category-title">Финансы</h3>
+                <p class="category-description">Управление бюджетом и финансовая отчётность</p>
+                <div class="category-meta">
+                    <span class="category-count">{{ categories.finance|default(0) }} статей</span>
+                    <span class="category-articles"><i class="fas fa-file"></i> {{ categories.finance|default(0) }}</span>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-4 col-md-6">
+            <a href="{{ path('app_knowledge_base_category', {slug: 'api'}) }}" class="category-card api">
+                <div class="category-icon">
+                    <i class="fas fa-code"></i>
+                </div>
+                <h3 class="category-title">API и интеграции</h3>
+                <p class="category-description">Документация API и подключение внешних систем</p>
+                <div class="category-meta">
+                    <span class="category-count">{{ categories.api|default(0) }} статей</span>
+                    <span class="category-articles"><i class="fas fa-file"></i> {{ categories.api|default(0) }}</span>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-4 col-md-6">
+            <a href="{{ path('app_knowledge_base_category', {slug: 'security'}) }}" class="category-card security">
+                <div class="category-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3 class="category-title">Безопасность</h3>
+                <p class="category-description">Политики безопасности и защита данных</p>
+                <div class="category-meta">
+                    <span class="category-count">{{ categories.security|default(0) }} статей</span>
+                    <span class="category-articles"><i class="fas fa-file"></i> {{ categories.security|default(0) }}</span>
+                </div>
+            </a>
+        </div>
+    </div>
+
     <div class="row">
-        <!-- Sidebar -->
-        <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
-            <div class="position-sticky pt-3">
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_dashboard') }}">
-                            <i class="fas fa-home"></i> Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_task_index') }}">
-                            <i class="fas fa-tasks"></i> Tasks
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_resource_index') }}">
-                            <i class="fas fa-users"></i> Resources
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_document_index') }}">
-                            <i class="fas fa-file-alt"></i> Documents
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="{{ path('app_knowledge_base_index') }}">
-                            <i class="fas fa-book"></i> Knowledge Base
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_budget_index') }}">
-                            <i class="fas fa-wallet"></i> Budgets
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </nav>
-
         <!-- Main Content -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">Knowledge Base</h1>
-                <div class="btn-toolbar mb-2 mb-md-0">
-                    <div class="input-group">
-                        <input type="text" class="form-control" placeholder="Search knowledge base..." id="searchInput">
-                        <button class="btn btn-outline-secondary" type="button" id="searchButton">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Knowledge Base Stats -->
-            <div class="row mb-4">
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card border-left-primary shadow h-100 py-2">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                        Articles</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">27</div>
-                                </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-file-alt fa-2x text-gray-300"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card border-left-success shadow h-100 py-2">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                        Categories</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">4</div>
-                                </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-folder fa-2x text-gray-300"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card border-left-info shadow h-100 py-2">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                        Views Today</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">124</div>
-                                </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-eye fa-2x text-gray-300"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card border-left-warning shadow h-100 py-2">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                        Learning Paths</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">2</div>
-                                </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-graduation-cap fa-2x text-gray-300"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+        <div class="col-lg-8">
             <!-- Featured Articles -->
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Featured Articles</h6>
+            <h2 class="section-title">
+                <i class="fas fa-star"></i>
+                Рекомендуемые статьи
+            </h2>
+            <div class="row g-4 mb-5">
+                <div class="col-md-6">
+                    <a href="#" class="article-card">
+                        <span class="article-badge guide">Руководство</span>
+                        <h3 class="article-title">Начало работы с системой управления задачами</h3>
+                        <p class="article-excerpt">Полное руководство по эффективному использованию нашей платформы для управления задачами.</p>
+                        <div class="article-meta">
+                            <div class="article-author">
+                                <div class="author-avatar">A</div>
+                                <small>Admin</small>
+                            </div>
+                            <div class="d-flex gap-3">
+                                <span class="article-date"><i class="far fa-calendar"></i> 15.01.2026</span>
+                                <span class="article-views"><i class="far fa-eye"></i> 124</span>
+                            </div>
+                        </div>
+                    </a>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4 mb-4">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <h5 class="card-title">Getting Started with Task Management</h5>
-                                    <p class="card-text">Learn how to create and manage tasks effectively in our platform.</p>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <small class="text-muted">By Admin User • Jan 15, 2026</small>
-                                        <span class="badge bg-primary">Guide</span>
-                                    </div>
-                                </div>
-                                <div class="card-footer bg-transparent">
-                                    <a href="#" class="btn btn-sm btn-primary">Read More</a>
-                                    <span class="text-muted float-end"><i class="fas fa-eye"></i> 124 views</span>
-                                </div>
+                <div class="col-md-6">
+                    <a href="#" class="article-card">
+                        <span class="article-badge practice">Практика</span>
+                        <h3 class="article-title">Продвинутые техники распределения ресурсов</h3>
+                        <p class="article-excerpt">Оптимизируйте распределение ресурсов с помощью этих продвинутых методик.</p>
+                        <div class="article-meta">
+                            <div class="article-author">
+                                <div class="author-avatar">M</div>
+                                <small>Manager</small>
+                            </div>
+                            <div class="d-flex gap-3">
+                                <span class="article-date"><i class="far fa-calendar"></i> 20.01.2026</span>
+                                <span class="article-views"><i class="far fa-eye"></i> 89</span>
                             </div>
                         </div>
-                        <div class="col-md-4 mb-4">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <h5 class="card-title">Advanced Resource Allocation Techniques</h5>
-                                    <p class="card-text">Optimize your resource allocation with these advanced techniques.</p>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <small class="text-muted">By Manager User • Jan 20, 2026</small>
-                                        <span class="badge bg-success">Best Practice</span>
-                                    </div>
-                                </div>
-                                <div class="card-footer bg-transparent">
-                                    <a href="#" class="btn btn-sm btn-primary">Read More</a>
-                                    <span class="text-muted float-end"><i class="fas fa-eye"></i> 89 views</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-4">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <h5 class="card-title">Budget Planning Strategies</h5>
-                                    <p class="card-text">Effective strategies for planning and managing project budgets.</p>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <small class="text-muted">By Finance User • Jan 25, 2026</small>
-                                        <span class="badge bg-info">Finance</span>
-                                    </div>
-                                </div>
-                                <div class="card-footer bg-transparent">
-                                    <a href="#" class="btn btn-sm btn-primary">Read More</a>
-                                    <span class="text-muted float-end"><i class="fas fa-eye"></i> 67 views</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    </a>
                 </div>
-            </div>
-
-            <!-- Categories and Learning Paths -->
-            <div class="row">
-                <div class="col-md-8">
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">Browse by Category</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <a href="#" class="d-block p-3 bg-primary text-white rounded text-decoration-none hover-lift">
-                                        <h5><i class="fas fa-book mr-2"></i> Guides</h5>
-                                        <p class="mb-0">Step-by-step guides for common tasks</p>
-                                        <small class="opacity-75">12 articles</small>
-                                    </a>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <a href="#" class="d-block p-3 bg-success text-white rounded text-decoration-none hover-lift">
-                                        <h5><i class="fas fa-star mr-2"></i> Best Practices</h5>
-                                        <p class="mb-0">Industry best practices and tips</p>
-                                        <small class="opacity-75">8 articles</small>
-                                    </a>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <a href="#" class="d-block p-3 bg-warning text-dark rounded text-decoration-none hover-lift">
-                                        <h5><i class="fas fa-tools mr-2"></i> Troubleshooting</h5>
-                                        <p class="mb-0">Solutions to common issues</p>
-                                        <small class="opacity-75">5 articles</small>
-                                    </a>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <a href="#" class="d-block p-3 bg-info text-white rounded text-decoration-none hover-lift">
-                                        <h5><i class="fas fa-coins mr-2"></i> Finance</h5>
-                                        <p class="mb-0">Financial planning and management</p>
-                                        <small class="opacity-75">7 articles</small>
-                                    </a>
-                                </div>
+                <div class="col-md-6">
+                    <a href="#" class="article-card">
+                        <span class="article-badge guide">Руководство</span>
+                        <h3 class="article-title">Эффективное использование канбан-доски</h3>
+                        <p class="article-excerpt">Максимизируйте продуктивность команды с помощью визуального управления задачами.</p>
+                        <div class="article-meta">
+                            <div class="article-author">
+                                <div class="author-avatar">A</div>
+                                <small>Admin</small>
+                            </div>
+                            <div class="d-flex gap-3">
+                                <span class="article-date"><i class="far fa-calendar"></i> 18.01.2026</span>
+                                <span class="article-views"><i class="far fa-eye"></i> 156</span>
                             </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
-                <div class="col-md-4">
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">Learning Paths</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="list-group list-group-flush">
-                                <a href="#" class="list-group-item list-group-item-action">
-                                    <div class="d-flex w-100 justify-content-between">
-                                        <h6 class="mb-1">Project Management Fundamentals</h6>
-                                        <small>2 weeks</small>
-                                    </div>
-                                    <p class="mb-1 small">5 modules • Beginner</p>
-                                </a>
-                                <a href="#" class="list-group-item list-group-item-action">
-                                    <div class="d-flex w-100 justify-content-between">
-                                        <h6 class="mb-1">Advanced Resource Optimization</h6>
-                                        <small>1 week</small>
-                                    </div>
-                                    <p class="mb-1 small">4 modules • Intermediate</p>
-                                </a>
+                <div class="col-md-6">
+                    <a href="#" class="article-card">
+                        <span class="article-badge troubleshooting">Проблемы</span>
+                        <h3 class="article-title">Частые ошибки и их решение</h3>
+                        <p class="article-excerpt">Сборник распространённых проблем и способы их быстрого решения.</p>
+                        <div class="article-meta">
+                            <div class="article-author">
+                                <div class="author-avatar">S</div>
+                                <small>Support</small>
+                            </div>
+                            <div class="d-flex gap-3">
+                                <span class="article-date"><i class="far fa-calendar"></i> 22.01.2026</span>
+                                <span class="article-views"><i class="far fa-eye"></i> 203</span>
                             </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
             </div>
 
-            <!-- Trending Articles -->
-            <div class="card shadow mb-4">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">Trending Articles</h6>
-                    <div class="dropdown no-arrow">
-                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
-                            <div class="dropdown-header">Trending:</div>
-                            <a class="dropdown-item" href="#">Today</a>
-                            <a class="dropdown-item" href="#">This Week</a>
-                            <a class="dropdown-item" href="#">This Month</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="list-group list-group-flush">
-                        <a href="#" class="list-group-item list-group-item-action">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h6 class="mb-1">New Feature: Advanced Reporting</h6>
-                                <small class="text-muted"><i class="fas fa-eye"></i> 156 views</small>
+            <!-- Recent Articles -->
+            <h2 class="section-title">
+                <i class="fas fa-clock"></i>
+                Недавние обновления
+            </h2>
+            <div class="sidebar-card">
+                <div class="sidebar-body p-0">
+                    {% for i in 1..5 %}
+                        <a href="#" class="trending-item">
+                            <h6 class="trending-title">Новая функция: Расширенная отчётность и аналитика</h6>
+                            <div class="trending-meta">
+                                <span><i class="far fa-calendar"></i> {{ "now"|date_modify("-"~i~" days")|date('d.m.Y') }}</span>
+                                <span class="article-views"><i class="far fa-eye"></i> {{ 100 - i*10 }} просмотров</span>
                             </div>
-                            <p class="mb-1">Learn how to use our new advanced reporting features</p>
-                            <small class="text-muted">124 views this week</small>
                         </a>
-                        <a href="#" class="list-group-item list-group-item-action">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h6 class="mb-1">Best Practices for Remote Team Collaboration</h6>
-                                <small class="text-muted"><i class="fas fa-eye"></i> 98 views</small>
-                            </div>
-                            <p class="mb-1">Tips and tricks for managing remote teams effectively</p>
-                            <small class="text-muted">87 views this week</small>
-                        </a>
-                        <a href="#" class="list-group-item list-group-item-action">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h6 class="mb-1">Integrating Third-Party Tools</h6>
-                                <small class="text-muted"><i class="fas fa-eye"></i> 76 views</small>
-                            </div>
-                            <p class="mb-1">How to connect external tools to enhance productivity</p>
-                            <small class="text-muted">65 views this week</small>
-                        </a>
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
-        </main>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Trending -->
+            <div class="sidebar-card mb-4">
+                <div class="sidebar-header">
+                    <i class="fas fa-fire me-2"></i>Популярное за неделю
+                </div>
+                <div class="sidebar-body p-0">
+                    {% for i in 1..5 %}
+                        <a href="#" class="trending-item">
+                            <h6 class="trending-title">Как настроить уведомления для команды</h6>
+                            <div class="trending-meta">
+                                <span class="article-views"><i class="far fa-eye"></i> {{ 200 - i*20 }} просмотров</span>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="sidebar-card mb-4">
+                <div class="sidebar-header">
+                    <i class="fas fa-bolt me-2"></i>Быстрые ссылки
+                </div>
+                <div class="sidebar-body">
+                    <ul class="quick-links">
+                        <li>
+                            <a href="#" class="quick-link">
+                                <div class="quick-link-icon guides">
+                                    <i class="fas fa-book"></i>
+                                </div>
+                                <div>
+                                    <strong>Руководства</strong>
+                                    <small class="d-block text-muted">Пошаговые инструкции</small>
+                                </div>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="quick-link">
+                                <div class="quick-link-icon practices">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <div>
+                                    <strong>Лучшие практики</strong>
+                                    <small class="d-block text-muted">Советы экспертов</small>
+                                </div>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="quick-link">
+                                <div class="quick-link-icon troubleshooting">
+                                    <i class="fas fa-tools"></i>
+                                </div>
+                                <div>
+                                    <strong>Решение проблем</strong>
+                                    <small class="d-block text-muted">Частые вопросы</small>
+                                </div>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Learning Paths -->
+            <div class="sidebar-card">
+                <div class="sidebar-header">
+                    <i class="fas fa-graduation-cap me-2"></i>Пути обучения
+                </div>
+                <div class="sidebar-body p-0">
+                    <a href="#" class="trending-item">
+                        <h6 class="trending-title">Основы управления проектами</h6>
+                        <p class="trending-meta">5 модулей • Начальный • 2 недели</p>
+                    </a>
+                    <a href="#" class="trending-item">
+                        <h6 class="trending-title">Продвинутая оптимизация ресурсов</h6>
+                        <p class="trending-meta">4 модуля • Средний • 1 неделя</p>
+                    </a>
+                    <a href="#" class="trending-item">
+                        <h6 class="trending-title">Аналитика и отчётность</h6>
+                        <p class="trending-meta">6 модулей • Продвинутый • 3 недели</p>
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
-document.getElementById('searchButton').addEventListener('click', function() {
-    const query = document.getElementById('searchInput').value;
-    if (query.trim() !== '') {
-        searchKnowledgeBase(query);
+// Search functionality
+const searchInput = document.querySelector('.search-input');
+const searchForm = searchInput.closest('form');
+
+searchForm.addEventListener('submit', function(e) {
+    const query = searchInput.value.trim();
+    if (!query) {
+        e.preventDefault();
+        searchInput.focus();
+        searchInput.style.borderColor = '#f5576c';
+        setTimeout(() => {
+            searchInput.style.borderColor = '#e9ecef';
+        }, 2000);
     }
 });
 
-document.getElementById('searchInput').addEventListener('keypress', function(event) {
-    if (event.key === 'Enter') {
-        event.preventDefault();
-        document.getElementById('searchButton').click();
-    }
+// Track article clicks
+document.querySelectorAll('.article-card, .trending-item').forEach(link => {
+    link.addEventListener('click', function() {
+        const href = this.getAttribute('href');
+        if (href && href !== '#') {
+            // Track click for analytics
+            fetch('/kb/track', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({url: href})
+            }).catch(() => {});
+        }
+    });
 });
 
-async function searchKnowledgeBase(query) {
+// Load dynamic content
+async function loadKbContent() {
     try {
-        const response = await fetch(`{{ path('app_knowledge_base_search') }}?q=${encodeURIComponent(query)}`);
+        const response = await fetch('{{ path('app_knowledge_base_api') }}');
         const data = await response.json();
-        
-        console.log('Search results:', data);
-        
-        // In a real implementation, you would display the search results
-        alert(`Found ${data.total_results} results for "${query}"`);
+        console.log('KB Stats:', data);
     } catch (error) {
-        console.error('Error searching knowledge base:', error);
-        alert('Error searching knowledge base');
+        console.error('Error loading KB content:', error);
     }
 }
 
-// Load knowledge base content
-async function loadKnowledgeBaseContent() {
-    try {
-        // Load categories
-        const categoriesResponse = await fetch('{{ path('app_knowledge_base_categories') }}');
-        const categories = await categoriesResponse.json();
-        console.log('Categories:', categories);
-        
-        // Load trending articles
-        const trendingResponse = await fetch('{{ path('app_knowledge_base_trending') }}');
-        const trending = await trendingResponse.json();
-        console.log('Trending:', trending);
-        
-        // Load recent updates
-        const updatesResponse = await fetch('{{ path('app_knowledge_base_recent_updates') }}');
-        const updates = await updatesResponse.json();
-        console.log('Recent updates:', updates);
-    } catch (error) {
-        console.error('Error loading knowledge base content:', error);
-    }
-}
-
-// Load content when page loads
 document.addEventListener('DOMContentLoaded', function() {
-    loadKnowledgeBaseContent();
+    loadKbContent();
 });
 </script>
 {% endblock %}
