@@ -20,6 +20,8 @@ class UserType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $isProfileEdit = $options['is_profile_edit'] ?? false;
+        
         $builder
             ->add('username', TextType::class, [
                 'label' => 'Логин',
@@ -87,32 +89,38 @@ class UserType extends AbstractType
                     'placeholder' => 'Отдел продаж',
                     'class' => 'form-control',
                 ],
-            ])
-            ->add('roles', ChoiceType::class, [
-                'label' => 'Роли',
-                'choices' => [
-                    'Пользователь' => 'ROLE_USER',
-                    'Менеджер' => 'ROLE_MANAGER',
-                    'Администратор' => 'ROLE_ADMIN',
-                ],
-                'multiple' => true,
-                'expanded' => true,
-                'attr' => ['class' => 'form-check'],
-            ])
-            ->add('isActive', CheckboxType::class, [
-                'label' => 'Активный',
-                'required' => false,
-                'attr' => ['class' => 'form-check-input'],
-            ])
-            ->add('notes', TextareaType::class, [
-                'label' => 'Заметки',
-                'required' => false,
-                'attr' => [
-                    'rows' => 3,
-                    'placeholder' => 'Дополнительная информация о пользователе',
-                    'class' => 'form-control',
-                ],
             ]);
+        
+        // Добавляем роли и статус только если это не редактирование профиля
+        if (!$isProfileEdit) {
+            $builder
+                ->add('roles', ChoiceType::class, [
+                    'label' => 'Роли',
+                    'choices' => [
+                        'Пользователь' => 'ROLE_USER',
+                        'Менеджер' => 'ROLE_MANAGER',
+                        'Администратор' => 'ROLE_ADMIN',
+                    ],
+                    'multiple' => true,
+                    'expanded' => true,
+                    'attr' => ['class' => 'form-check'],
+                ])
+                ->add('isActive', CheckboxType::class, [
+                    'label' => 'Активный',
+                    'required' => false,
+                    'attr' => ['class' => 'form-check-input'],
+                ]);
+        }
+        
+        $builder->add('notes', TextareaType::class, [
+            'label' => 'Заметки',
+            'required' => false,
+            'attr' => [
+                'rows' => 3,
+                'placeholder' => 'Дополнительная информация о пользователе',
+                'class' => 'form-control',
+            ],
+        ]);
 
         // Добавляем поле пароля только при создании пользователя
         if ($options['is_new']) {
@@ -141,6 +149,7 @@ class UserType extends AbstractType
         $resolver->setDefaults([
             'data_class' => User::class,
             'is_new' => false,
+            'is_profile_edit' => false,
         ]);
     }
 }

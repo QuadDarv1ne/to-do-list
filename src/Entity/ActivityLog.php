@@ -41,6 +41,11 @@ class ActivityLog
     #[ORM\Column(length: 20, nullable: true)]  // Added to distinguish event types
     private ?string $eventType = null;
 
+    public function __construct()
+    {
+        $this->createdAt = new \DateTimeImmutable();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -121,6 +126,8 @@ class ActivityLog
     #[PrePersist]
     public function onPrePersist(): void
     {
-        $this->createdAt = new \DateTimeImmutable();
+        if ($this->createdAt === null) {
+            $this->createdAt = new \DateTimeImmutable();
+        }
     }
 }

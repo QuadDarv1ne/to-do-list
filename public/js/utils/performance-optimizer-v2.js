@@ -135,7 +135,7 @@
 
         loadComponentType(component, type) {
             // Dynamic component loading logic
-            console.log(`Loading component type: ${type}`);
+            if (window.logger) window.logger.log(`Loading component type: ${type}`);
             component.classList.add('loaded');
         }
 
@@ -415,7 +415,7 @@
             this.imageOptimizer.init();
             this.scrollPerformance.init();
             
-            console.log('Performance optimizer initialized');
+            if (window.logger) window.logger.log('Performance optimizer initialized');
         }
     };
 

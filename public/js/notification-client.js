@@ -69,13 +69,13 @@ class NotificationClient {
     handleConnected(event) {
         this.isConnected = true;
         this.reconnectAttempts = 0;
-        console.log('Connected to notification stream');
+        if (window.logger) window.logger.log('Connected to notification stream');
         this.emit('connected', JSON.parse(event.data));
     }
     
     handleNotification(event) {
         const notification = JSON.parse(event.data);
-        console.log('New notification received:', notification);
+        if (window.logger) window.logger.log('New notification received:', notification);
         this.emit('notification', notification);
         
         // Trigger browser notification if permission granted
@@ -83,13 +83,13 @@ class NotificationClient {
     }
     
     handleHeartbeat(event) {
-        console.debug('Heartbeat received');
+        // Heartbeat - no logging needed in production
         this.emit('heartbeat', JSON.parse(event.data));
     }
     
     handleDisconnected(event) {
         this.isConnected = false;
-        console.log('Disconnected from notification stream');
+        if (window.logger) window.logger.log('Disconnected from notification stream');
         this.emit('disconnected', JSON.parse(event.data));
         this.attemptReconnect();
     }
@@ -104,7 +104,7 @@ class NotificationClient {
     attemptReconnect() {
         if (this.reconnectAttempts < this.options.maxReconnectAttempts) {
             this.reconnectAttempts++;
-            console.log(`Attempting to reconnect... (${this.reconnectAttempts}/${this.options.maxReconnectAttempts})`);
+            if (window.logger) window.logger.log(`Attempting to reconnect... (${this.reconnectAttempts}/${this.options.maxReconnectAttempts})`);
             
             setTimeout(() => {
                 this.connect();
@@ -306,8 +306,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Request notification permission
         window.notificationClient.requestNotificationPermission().then(granted => {
-            if (granted) {
-                console.log('Notification permission granted');
+            if (granted && window.logger) {
+                window.logger.log('Notification permission granted');
             }
         });
         

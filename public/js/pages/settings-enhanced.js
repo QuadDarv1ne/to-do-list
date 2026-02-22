@@ -122,7 +122,7 @@ function initNotificationToggles() {
             const enabled = this.checked;
             
             // Save setting (можно добавить AJAX запрос)
-            console.log(`Setting "${setting}" changed to:`, enabled);
+            if (window.logger) window.logger.log(`Setting "${setting}" changed to:`, enabled);
             
             // Show notification
             showNotification(

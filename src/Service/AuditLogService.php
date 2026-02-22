@@ -32,7 +32,7 @@ class AuditLogService
         $log->setUser($user);
         $log->setEntityType($entityType);
         $log->setEntityId($entityId);
-        $log->setCreatedAt(new \DateTime());
+        $log->setCreatedAt(new \DateTimeImmutable());
 
         // Add request metadata
         $request = $this->requestStack->getCurrentRequest();

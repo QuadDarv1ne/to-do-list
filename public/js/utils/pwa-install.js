@@ -52,7 +52,7 @@
                         scope: '/'
                     });
 
-                    console.log('[PWA] Service Worker registered:', registration.scope);
+                    if (window.logger) window.logger.log('[PWA] Service Worker registered:', registration.scope);
 
                     // Check for updates
                     registration.addEventListener('updatefound', () => {
@@ -81,7 +81,7 @@
          */
         setupInstallPrompt() {
             window.addEventListener('beforeinstallprompt', (e) => {
-                console.log('[PWA] beforeinstallprompt event fired');
+                if (window.logger) window.logger.log('[PWA] beforeinstallprompt event fired');
                 
                 // Prevent Chrome from showing prompt automatically
                 e.preventDefault();
@@ -95,7 +95,7 @@
 
             // Handle app installed event
             window.addEventListener('appinstalled', () => {
-                console.log('[PWA] App installed successfully');
+                if (window.logger) window.logger.log('[PWA] App installed successfully');
                 this.deferredPrompt = null;
                 this.isInstalled = true;
                 this.hideInstallPrompt();
@@ -108,13 +108,13 @@
          */
         setupOnlineOfflineHandlers() {
             window.addEventListener('online', () => {
-                console.log('[PWA] Connection restored');
+                if (window.logger) window.logger.log('[PWA] Connection restored');
                 this.showConnectionToast('online');
                 this.syncOfflineData();
             });
 
             window.addEventListener('offline', () => {
-                console.log('[PWA] Connection lost');
+                if (window.logger) window.logger.log('[PWA] Connection lost');
                 this.showConnectionToast('offline');
             });
         }
@@ -127,10 +127,10 @@
             const isStandaloneWindow = window.navigator.standalone === true;
             
             if (isStandalone || isStandaloneWindow) {
-                console.log('[PWA] Running as standalone PWA');
+                if (window.logger) window.logger.log('[PWA] Running as standalone PWA');
                 document.body.classList.add('pwa-mode');
             } else {
-                console.log('[PWA] Running in browser');
+                if (window.logger) window.logger.log('[PWA] Running in browser');
             }
         }
 
@@ -277,10 +277,10 @@
                 this.deferredPrompt.prompt();
                 
                 const { outcome } = await this.deferredPrompt.userChoice;
-                console.log('[PWA] User choice:', outcome);
+                if (window.logger) window.logger.log('[PWA] User choice:', outcome);
                 
-                if (outcome === 'accepted') {
-                    console.log('[PWA] User accepted install prompt');
+                if (outcome === 'accepted' && window.logger) {
+                    window.logger.log('[PWA] User accepted install prompt');
                 }
                 
                 this.deferredPrompt = null;
@@ -428,9 +428,9 @@
                 try {
                     await navigator.serviceWorker.ready;
                     await window.registration.sync.register('sync-offline-actions');
-                    console.log('[PWA] Offline data synced');
+                    if (window.logger) window.logger.log('[PWA] Offline data synced');
                 } catch (error) {
-                    console.log('[PWA] Sync not available:', error);
+                    if (window.logger) window.logger.log('[PWA] Sync not available:', error);
                 }
             }
         }

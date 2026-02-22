@@ -126,7 +126,7 @@ class ProfileController extends AbstractController
         $user = $this->getUser();
         $originalEmail = $user->getEmail();
 
-        $form = $this->createForm(\App\Form\UserType::class, $user, ['is_new' => false]);
+        $form = $this->createForm(\App\Form\UserType::class, $user, ['is_new' => false, 'is_profile_edit' => true]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {

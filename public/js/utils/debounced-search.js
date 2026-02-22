@@ -217,7 +217,7 @@
                 debounceDelay: 200,
                 onSearch: function(query) {
                     // Could implement AJAX search here
-                    console.log('Quick search:', query);
+                    if (window.logger) window.logger.log('Quick search:', query);
                 }
             });
         }

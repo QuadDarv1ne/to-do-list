@@ -360,7 +360,7 @@
             const widgetType = widget.dataset.widgetType;
             
             // Could open a modal with settings here
-            console.log('Settings for widget:', widgetId, widgetType);
+            if (window.logger) window.logger.log('Settings for widget:', widgetId, widgetType);
         }
 
         /**
@@ -377,7 +377,7 @@
                 { id: 'habits', name: 'Привычки', icon: 'fa-fire', type: 'stats' }
             ];
 
-            console.log('Available widgets:', availableWidgets);
+            if (window.logger) window.logger.log('Available widgets:', availableWidgets);
         }
 
         /**

@@ -470,7 +470,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
     // Console welcome message
-    console.log('%c🎨 Design System v2.0 initialized', 'color: #6366f1; font-weight: bold; font-size: 14px;');
+    if (window.logger) {
+        window.logger.log('%c🎨 Design System v2.0 initialized', 'color: #6366f1; font-weight: bold; font-size: 14px;');
+    }
 });
 
 // Export for module systems

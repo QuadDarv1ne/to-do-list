@@ -529,5 +529,5 @@
         });
     });
 
-    console.log('[FormValidator] Initialized');
+    if (window.logger) window.logger.log('[FormValidator] Initialized');
 })();

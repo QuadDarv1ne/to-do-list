@@ -342,10 +342,12 @@
         logReport() {
             const report = this.generateReport();
             
-            console.group('Performance Report');
-            console.log('Score:', report.score, '(' + report.grade + ')');
-            console.log('Metrics:', report.metrics);
-            console.groupEnd();
+            if (window.logger) {
+                window.logger.group('Performance Report');
+                window.logger.log('Score:', report.score, '(' + report.grade + ')');
+                window.logger.log('Metrics:', report.metrics);
+                window.logger.groupEnd();
+            }
             
             return report;
         }

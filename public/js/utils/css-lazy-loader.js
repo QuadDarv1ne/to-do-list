@@ -222,8 +222,8 @@
                     });
                     
                     // Если нет используемых правил, можно удалить
-                    if (!hasUsedRules && rules.length > 0) {
-                        console.log(`Potentially unused stylesheet: ${link.href}`);
+                    if (!hasUsedRules && rules.length > 0 && window.logger) {
+                        window.logger.log(`Potentially unused stylesheet: ${link.href}`);
                     }
                 } catch (e) {
                     // Cross-origin или другая ошибка
