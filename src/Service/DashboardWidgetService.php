@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\User;
+use App\Entity\UserPreference;
 use App\Repository\UserPreferenceRepository;
 use App\Repository\TaskRepository;
 use Doctrine\ORM\EntityManagerInterface;
