@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping\{PrePersist};
 
 #[ORM\Entity(repositoryClass: ActivityLogRepository::class)]
 #[ORM\Table(name: 'activity_logs')]
+#[ORM\HasLifecycleCallbacks]
 #[ORM\Index(columns: ['user_id', 'created_at'], name: 'idx_activity_user_date')]
 #[ORM\Index(columns: ['task_id'], name: 'idx_activity_task')]
 #[ORM\Index(columns: ['event_type'], name: 'idx_activity_event_type')]
