@@ -6,8 +6,3 @@ import './stimulus_bootstrap.js';
  * which should already be in your base.html.twig.
  */
 import './styles/app.css';
-import './styles/skeleton.css';
-import './styles/command-palette.css';
-import './styles/infinite-scroll.css';
-import './styles/dark-theme.css';
-import './styles/pwa.css';

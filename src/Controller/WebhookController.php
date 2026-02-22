@@ -211,4 +211,31 @@ class WebhookController extends AbstractController
 
         return $this->redirectToRoute('app_webhook_show', ['id' => $webhook->getId()], Response::HTTP_SEE_OTHER);
     }
+
+    #[Route('/api', name: 'app_webhook_api', methods: ['GET'])]
+    public function apiList(WebhookRepository $webhookRepository): JsonResponse
+    {
+        $user = $this->getUser();
+        
+        $webhooks = $webhookRepository->createQueryBuilder('w')
+            ->andWhere('w.user = :user')
+            ->setParameter('user', $user)
+            ->orderBy('w.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+
+        return $this->json([
+            'data' => array_map(fn(Webhook $webhook) => [
+                'id' => $webhook->getId(),
+                'name' => $webhook->getName(),
+                'url' => $webhook->getUrl(),
+                'event' => $webhook->getEvent(),
+                'isActive' => $webhook->isIsActive(),
+                'createdAt' => $webhook->getCreatedAt()?->format(\DateTimeInterface::ISO8601),
+                'lastTriggeredAt' => $webhook->getLastTriggeredAt()?->format(\DateTimeInterface::ISO8601),
+                'successCount' => $webhook->getSuccessCount(),
+                'failureCount' => $webhook->getFailureCount(),
+            ], $webhooks),
+        ]);
+    }
 }
