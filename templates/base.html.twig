@@ -478,9 +478,14 @@
         <script {{ nonce_attr }} src="{{ asset('js/core/unified-core.js') }}"></script>
 
         <!-- Core scripts -->
+        <script {{ nonce_attr }} src="{{ asset('js/components/toast-notifications.js') }}" defer></script>
         <script {{ nonce_attr }} src="{{ asset('js/components/navbar-enhanced.js') }}" defer></script>
         <script {{ nonce_attr }} src="{{ asset('js/components/mobile-interactions.js') }}" defer></script>
         <script {{ nonce_attr }} src="{{ asset('js/components/inline-editor.js') }}" defer></script>
+        <script {{ nonce_attr }} src="{{ asset('js/components/keyboard-navigation.js') }}" defer></script>
+        <script {{ nonce_attr }} src="{{ asset('js/components/undo-action.js') }}" defer></script>
+        <script {{ nonce_attr }} src="{{ asset('js/components/kanban-drag-drop.js') }}" defer></script>
+        <script {{ nonce_attr }} src="{{ asset('js/components/enhanced-search.js') }}" defer></script>
 
         {% if app.user %}
             <script {{ nonce_attr }} src="{{ asset('js/components/notifications-realtime.js') }}" defer></script>
