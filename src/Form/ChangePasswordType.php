@@ -15,6 +15,19 @@ class ChangePasswordType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
+            ->add('currentPassword', PasswordType::class, [
+                'label' => 'Текущий пароль',
+                'mapped' => false,
+                'attr' => [
+                    'autocomplete' => 'current-password',
+                    'placeholder' => 'Введите текущий пароль',
+                ],
+                'constraints' => [
+                    new NotBlank(
+                        message: 'Введите текущий пароль',
+                    ),
+                ],
+            ])
             ->add('plainPassword', RepeatedType::class, [
                 'type' => PasswordType::class,
                 'options' => [
@@ -25,18 +38,24 @@ class ChangePasswordType extends AbstractType
                 'first_options' => [
                     'constraints' => [
                         new NotBlank(
-                            message: 'Введите пароль',
+                            message: 'Введите новый пароль',
                         ),
                         new Length(
-                            min: 6,
+                            min: 8,
                             max: 4096,
-                            minMessage: 'Ваш пароль должен содержать минимум {{ limit }} символов',
+                            minMessage: 'Пароль должен содержать минимум {{ limit }} символов',
                         ),
                     ],
                     'label' => 'Новый пароль',
+                    'attr' => [
+                        'placeholder' => 'Введите новый пароль',
+                    ],
                 ],
                 'second_options' => [
-                    'label' => 'Повторите пароль',
+                    'label' => 'Повторите новый пароль',
+                    'attr' => [
+                        'placeholder' => 'Повторите новый пароль',
+                    ],
                 ],
                 'invalid_message' => 'Пароли не совпадают',
                 'mapped' => false,

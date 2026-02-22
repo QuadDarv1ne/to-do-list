@@ -73,12 +73,25 @@ class ResetPasswordController extends AbstractController
 
         try {
             if ($token === null) {
+                $this->addFlash('error', 'Токен сброса пароля не указан');
                 return $this->redirectToRoute('app_forgot_password_request');
             }
 
             $user = $this->entityManager->getRepository(User::class)->findOneBy(['resetPasswordToken' => $token]);
 
             if ($user === null) {
+                $this->addFlash('error', 'Недействительный токен сброса пароля');
+                return $this->redirectToRoute('app_forgot_password_request');
+            }
+
+            // Check if token is expired (24 hours)
+            $requestedAt = $user->getResetPasswordRequestedAt();
+            if ($requestedAt === null || $requestedAt < new \DateTimeImmutable('-24 hours')) {
+                $user->setResetPasswordToken(null);
+                $user->setResetPasswordRequestedAt(null);
+                $this->entityManager->flush();
+                
+                $this->addFlash('error', 'Срок действия токена истек. Пожалуйста, запросите новый.');
                 return $this->redirectToRoute('app_forgot_password_request');
             }
 
@@ -97,13 +110,16 @@ class ResetPasswordController extends AbstractController
                 );
 
                 $user->setPassword($encodedPassword);
+                $user->setPasswordChangedAt(new \DateTimeImmutable());
                 $this->entityManager->flush();
 
+                $this->addFlash('success', 'Пароль успешно изменен. Теперь вы можете войти с новым паролем.');
                 return $this->redirectToRoute('app_login');
             }
 
             return $this->render('reset_password/reset.html.twig', [
                 'resetForm' => $form->createView(),
+                'tokenExpiresAt' => $requestedAt?->modify('+24 hours'),
             ]);
         } finally {
             $performanceMonitor?->stopTiming('reset_password_controller_reset');

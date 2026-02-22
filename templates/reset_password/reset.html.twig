@@ -18,42 +18,71 @@
     </div>
     
     <div class="reset-body">
-        <div class="password-requirements">
+        {% if tokenExpiresAt %}
+        <div class="alert alert-warning d-flex align-items-center mb-3">
+            <i class="fas fa-clock me-2"></i>
+            <div>
+                <small>Ссылка действительна до: <strong>{{ tokenExpiresAt|date('d.m.Y H:i') }}</strong></small>
+                <div id="countdown" class="mt-1 small"></div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="password-requirements mb-3">
             <strong><i class="fas fa-shield-alt me-2"></i>Требования к паролю:</strong>
-            <ul>
-                <li>Минимум 8 символов</li>
-                <li>Заглавные и строчные буквы</li>
-                <li>Цифры и спецсимволы</li>
+            <ul class="mt-2 mb-0">
+                <li id="req-length"><i class="fas fa-circle text-muted me-1"></i> Минимум 8 символов</li>
+                <li id="req-case"><i class="fas fa-circle text-muted me-1"></i> Заглавные и строчные буквы</li>
+                <li id="req-number"><i class="fas fa-circle text-muted me-1"></i> Цифры</li>
+                <li id="req-special"><i class="fas fa-circle text-muted me-1"></i> Специальные символы</li>
             </ul>
         </div>
         
         {{ form_start(resetForm) }}
         
         <div class="mb-4">
-            <label for="{{ resetForm.plainPassword.vars.id }}" class="form-label">
+            <label for="{{ resetForm.plainPassword.first.vars.id }}" class="form-label">
                 <i class="fas fa-key me-2"></i>Новый пароль
             </label>
-            {{ form_widget(resetForm.plainPassword.first, {
-                'attr': {
-                    'class': 'form-control mb-3',
-                    'placeholder': 'Введите новый пароль',
-                    'id': 'password-input'
-                }
-            }) }}
-            <div class="password-strength">
+            <div class="input-group">
+                {{ form_widget(resetForm.plainPassword.first, {
+                    'attr': {
+                        'class': 'form-control',
+                        'placeholder': 'Введите новый пароль',
+                        'id': 'password-input'
+                    }
+                }) }}
+                <button class="btn btn-outline-secondary" type="button" id="toggle-password">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+            <div class="password-strength mt-2">
                 <div class="password-strength-bar" id="password-strength-bar"></div>
             </div>
-            
-            {{ form_widget(resetForm.plainPassword.second, {
-                'attr': {
-                    'class': 'form-control mt-3',
-                    'placeholder': 'Повторите новый пароль'
-                }
-            }) }}
+            <div class="password-strength-text mt-1 small" id="strength-text"></div>
+        </div>
+        
+        <div class="mb-4">
+            <label for="{{ resetForm.plainPassword.second.vars.id }}" class="form-label">
+                <i class="fas fa-check-double me-2"></i>Подтвердите пароль
+            </label>
+            <div class="input-group">
+                {{ form_widget(resetForm.plainPassword.second, {
+                    'attr': {
+                        'class': 'form-control',
+                        'placeholder': 'Повторите новый пароль',
+                        'id': 'confirm-password'
+                    }
+                }) }}
+                <button class="btn btn-outline-secondary" type="button" id="toggle-confirm">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+            <div class="password-match mt-2 small" id="match-indicator"></div>
             {{ form_errors(resetForm.plainPassword) }}
         </div>
         
-        <button type="submit" class="btn btn-reset success mb-3">
+        <button type="submit" class="btn btn-reset success mb-3" id="submit-btn">
             <i class="fas fa-check-circle me-2"></i>Сохранить пароль
         </button>
         
@@ -69,94 +98,170 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Password strength indicator
     const passwordInput = document.getElementById('password-input');
+    const confirmInput = document.getElementById('confirm-password');
     const strengthBar = document.getElementById('password-strength-bar');
+    const strengthText = document.getElementById('strength-text');
+    const matchIndicator = document.getElementById('match-indicator');
+    const submitBtn = document.getElementById('submit-btn');
     
+    // Password toggle
+    document.getElementById('toggle-password')?.addEventListener('click', function() {
+        const icon = this.querySelector('i');
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    });
+    
+    document.getElementById('toggle-confirm')?.addEventListener('click', function() {
+        const icon = this.querySelector('i');
+        if (confirmInput.type === 'password') {
+            confirmInput.type = 'text';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            confirmInput.type = 'password';
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    });
+    
+    // Password strength indicator
     if (passwordInput && strengthBar) {
         passwordInput.addEventListener('input', function(e) {
             const password = e.target.value;
             
             let strength = 0;
-            if (password.length >= 8) strength += 25;
-            if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength += 25;
-            if (password.match(/[0-9]/)) strength += 25;
-            if (password.match(/[^a-zA-Z0-9]/)) strength += 25;
+            const hasLength = password.length >= 8;
+            const hasCase = password.match(/[a-z]/) && password.match(/[A-Z]/);
+            const hasNumber = password.match(/[0-9]/);
+            const hasSpecial = password.match(/[^a-zA-Z0-9]/);
+            
+            // Update requirements
+            updateReq('req-length', hasLength);
+            updateReq('req-case', hasCase);
+            updateReq('req-number', hasNumber);
+            updateReq('req-special', hasSpecial);
+            
+            if (hasLength) strength += 25;
+            if (hasCase) strength += 25;
+            if (hasNumber) strength += 25;
+            if (hasSpecial) strength += 25;
             
             strengthBar.style.width = strength + '%';
             
-            if (strength <= 25) {
+            let label = '';
+            if (strength === 0) {
+                strengthBar.style.backgroundColor = '#e9ecef';
+            } else if (strength <= 25) {
                 strengthBar.style.backgroundColor = '#dc3545';
+                label = 'Слабый';
             } else if (strength <= 50) {
                 strengthBar.style.backgroundColor = '#ffc107';
+                label = 'Средний';
             } else if (strength <= 75) {
                 strengthBar.style.backgroundColor = '#17a2b8';
+                label = 'Хороший';
             } else {
                 strengthBar.style.backgroundColor = '#28a745';
+                label = 'Отличный';
             }
             
-            // Валидация в реальном времени
-            if (password.length > 0 && password.length < 8) {
-                passwordInput.classList.add('is-invalid');
-                passwordInput.classList.remove('is-valid');
-            } else if (password.length >= 8) {
-                passwordInput.classList.remove('is-invalid');
-                passwordInput.classList.add('is-valid');
-            }
+            strengthText.textContent = label;
+            strengthText.style.color = strengthBar.style.backgroundColor;
+            
+            checkMatch();
         });
         
-        // Auto-focus
         passwordInput.focus();
     }
     
-    // Password confirmation validation
-    const passwordInputs = document.querySelectorAll('input[type="password"]');
-    if (passwordInputs.length === 2) {
-        const [first, second] = passwordInputs;
+    // Password match checker
+    if (confirmInput) {
+        confirmInput.addEventListener('input', checkMatch);
+    }
+    
+    function checkMatch() {
+        if (!confirmInput.value) {
+            matchIndicator.textContent = '';
+            return;
+        }
         
-        second.addEventListener('input', function() {
-            if (this.value) {
-                if (first.value !== this.value) {
-                    this.classList.add('is-invalid');
-                    this.classList.remove('is-valid');
-                } else {
-                    this.classList.add('is-valid');
-                    this.classList.remove('is-invalid');
-                }
-            }
-        });
+        if (passwordInput.value === confirmInput.value) {
+            matchIndicator.textContent = '✓ Пароли совпадают';
+            matchIndicator.className = 'password-match mt-2 small text-success';
+        } else {
+            matchIndicator.textContent = '✗ Пароли не совпадают';
+            matchIndicator.className = 'password-match mt-2 small text-danger';
+        }
+    }
+    
+    function updateReq(id, valid) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        
+        const icon = el.querySelector('i');
+        if (valid) {
+            icon.classList.replace('fa-circle', 'fa-check-circle');
+            icon.classList.replace('text-muted', 'text-success');
+        } else {
+            icon.classList.replace('fa-check-circle', 'fa-circle');
+            icon.classList.replace('text-success', 'text-muted');
+        }
     }
     
     // Form submission
     const form = document.querySelector('form');
-    const submitBtn = form?.querySelector('button[type="submit"]');
-    
     if (form && submitBtn) {
         form.addEventListener('submit', function(e) {
-            // Проверяем валидность паролей
-            const invalidInputs = form.querySelectorAll('.form-control.is-invalid');
-            if (invalidInputs.length > 0) {
+            if (passwordInput.value !== confirmInput.value) {
                 e.preventDefault();
-                invalidInputs[0].focus();
+                alert('Пароли не совпадают');
+                confirmInput.focus();
                 return;
             }
             
             submitBtn.disabled = true;
-            submitBtn.style.opacity = '0.7';
-            
-            const icon = submitBtn.querySelector('i');
-            if (icon) {
-                icon.className = 'fas fa-spinner fa-spin me-2';
-            }
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Сохранение...';
         });
     }
     
-    // Keyboard shortcut: Ctrl/Cmd + Enter
+    // Countdown timer
+    {% if tokenExpiresAt %}
+    const expiresAt = new Date('{{ tokenExpiresAt|date('Y-m-d H:i:s') }}').getTime();
+    const countdownEl = document.getElementById('countdown');
+    
+    function updateCountdown() {
+        const now = new Date().getTime();
+        const distance = expiresAt - now;
+        
+        if (distance < 0) {
+            countdownEl.innerHTML = '<span class="text-danger">Срок действия ссылки истек</span>';
+            submitBtn.disabled = true;
+            return;
+        }
+        
+        const hours = Math.floor(distance / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        
+        countdownEl.textContent = `Осталось: ${hours}ч ${minutes}м ${seconds}с`;
+        
+        if (distance < 300000) { // Less than 5 minutes
+            countdownEl.classList.add('text-danger');
+        }
+    }
+    
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+    {% endif %}
+    
+    // Keyboard shortcut
     document.addEventListener('keydown', function(e) {
         if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-            if (form) {
-                form.dispatchEvent(new Event('submit', { cancelable: true }));
-            }
+            form?.dispatchEvent(new Event('submit', { cancelable: true }));
         }
     });
 });

@@ -57,10 +57,13 @@
                                     <span class="input-group-text input-group-text-modern">
                                         <i class="fas fa-envelope"></i>
                                     </span>
-                                    {{ form_widget(form.email, {'attr': {'class': 'form-control-modern', 'placeholder': 'Введите email'}}) }}
+                                    {{ form_widget(form.email, {'attr': {'class': 'form-control-modern', 'placeholder': 'Введите email', 'id': 'email-input'}}) }}
                                 </div>
-                                <div class="invalid-feedback">
+                                <div class="invalid-feedback" id="email-error">
                                     Пожалуйста, введите корректный email.
+                                </div>
+                                <div class="valid-feedback">
+                                    Email корректен
                                 </div>
                             </div>
                         </div>
@@ -96,8 +99,9 @@
                                     <span class="input-group-text input-group-text-modern">
                                         <i class="fas fa-phone"></i>
                                     </span>
-                                    {{ form_widget(form.phone, {'attr': {'class': 'form-control-modern', 'placeholder': '+7 (900) 123-4567'}}) }}
+                                    {{ form_widget(form.phone, {'attr': {'class': 'form-control-modern', 'placeholder': '+7 (900) 123-4567', 'id': 'phone-input'}}) }}
                                 </div>
+                                <div class="form-text">Формат: +7 (XXX) XXX-XX-XX</div>
                             </div>
                         </div>
                         
@@ -219,7 +223,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const firstNameInput = document.getElementById('user_firstName');
     const lastNameInput = document.getElementById('user_lastName');
     const usernameInput = document.getElementById('user_username');
-    const emailInput = document.getElementById('user_email');
+    const emailInput = document.getElementById('email-input');
+    const phoneInput = document.getElementById('phone-input');
     
     const previewName = document.getElementById('previewName');
     const previewUsername = document.getElementById('previewUsername');
@@ -244,6 +249,61 @@ document.addEventListener('DOMContentLoaded', function() {
     if (emailInput && previewEmail) {
         emailInput.addEventListener('input', function() {
             previewEmail.textContent = this.value || '{{ app.user.email }}';
+            
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (this.value && !emailRegex.test(this.value)) {
+                this.classList.add('is-invalid');
+                this.classList.remove('is-valid');
+            } else if (this.value) {
+                this.classList.add('is-valid');
+                this.classList.remove('is-invalid');
+            } else {
+                this.classList.remove('is-valid', 'is-invalid');
+            }
+        });
+    }
+    
+    // Phone number formatting
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            let value = this.value.replace(/\D/g, '');
+            
+            // Limit to 11 digits (Russian format)
+            if (value.length > 11) {
+                value = value.substring(0, 11);
+            }
+            
+            // Format: +7 (XXX) XXX-XX-XX
+            let formatted = '';
+            if (value.length > 0) {
+                formatted = '+7';
+                if (value.length > 1) {
+                    formatted += ' (' + value.substring(1, 4);
+                    if (value.length >= 4) {
+                        formatted += ') ' + value.substring(4, 7);
+                        if (value.length >= 7) {
+                            formatted += '-' + value.substring(7, 9);
+                            if (value.length >= 9) {
+                                formatted += '-' + value.substring(9, 11);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            this.value = formatted;
+            
+            // Validate phone
+            if (value.length === 11) {
+                this.classList.add('is-valid');
+                this.classList.remove('is-invalid');
+            } else if (value.length > 0) {
+                this.classList.add('is-invalid');
+                this.classList.remove('is-valid');
+            } else {
+                this.classList.remove('is-valid', 'is-invalid');
+            }
         });
     }
     
@@ -251,10 +311,38 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.querySelector('form');
     if (form) {
         form.addEventListener('submit', function(event) {
-            if (!form.checkValidity()) {
+            let isValid = true;
+            
+            // Validate email
+            if (emailInput && emailInput.value) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(emailInput.value)) {
+                    emailInput.classList.add('is-invalid');
+                    isValid = false;
+                }
+            }
+            
+            // Validate phone if filled
+            if (phoneInput && phoneInput.value) {
+                const digits = phoneInput.value.replace(/\D/g, '');
+                if (digits.length > 0 && digits.length !== 11) {
+                    phoneInput.classList.add('is-invalid');
+                    isValid = false;
+                }
+            }
+            
+            if (!isValid) {
                 event.preventDefault();
                 event.stopPropagation();
+                
+                // Scroll to first invalid field
+                const firstInvalid = form.querySelector('.is-invalid');
+                if (firstInvalid) {
+                    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstInvalid.focus();
+                }
             }
+            
             form.classList.add('was-validated');
         });
     }
@@ -265,6 +353,26 @@ document.addEventListener('DOMContentLoaded', function() {
         card.style.animationDelay = `${index * 0.1}s`;
         card.classList.add('fade-in-up');
     });
+    
+    // Character counter for notes
+    const notesField = document.getElementById('user_notes');
+    if (notesField) {
+        const maxLength = 500;
+        const counterDiv = document.createElement('div');
+        counterDiv.className = 'form-text text-end';
+        counterDiv.id = 'notes-counter';
+        notesField.parentElement.appendChild(counterDiv);
+        
+        function updateCounter() {
+            const remaining = maxLength - notesField.value.length;
+            counterDiv.textContent = `Осталось символов: ${remaining}`;
+            counterDiv.style.color = remaining < 50 ? '#dc3545' : '#6c757d';
+        }
+        
+        notesField.addEventListener('input', updateCounter);
+        notesField.setAttribute('maxlength', maxLength);
+        updateCounter();
+    }
 });
 </script>
 

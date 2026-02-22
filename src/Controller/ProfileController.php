@@ -35,18 +35,46 @@ class ProfileController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Verify current password
+            $currentPassword = $form->get('currentPassword')->getData();
+            if (!$passwordHasher->isPasswordValid($user, $currentPassword)) {
+                $this->flashError('Неверный текущий пароль');
+
+                try {
+                    return $this->redirectToRoute('app_profile_change_password');
+                } finally {
+                    if ($performanceMonitor) {
+                        $performanceMonitor->stopTiming('profile_controller_change_password');
+                    }
+                }
+            }
+
             $plainPassword = $form->get('plainPassword')->getData();
+
+            // Check if new password is different from current
+            if ($passwordHasher->isPasswordValid($user, $plainPassword)) {
+                $this->flashError('Новый пароль должен отличаться от текущего');
+
+                try {
+                    return $this->redirectToRoute('app_profile_change_password');
+                } finally {
+                    if ($performanceMonitor) {
+                        $performanceMonitor->stopTiming('profile_controller_change_password');
+                    }
+                }
+            }
 
             // Set new password
             $hashedPassword = $passwordHasher->hashPassword($user, $plainPassword);
             $user->setPassword($hashedPassword);
+            $user->setPasswordChangedAt(new \DateTimeImmutable());
 
             $entityManager->flush();
 
             $this->flashSuccess('Пароль успешно изменен');
 
             try {
-                return $this->redirectToRoute('app_dashboard');
+                return $this->redirectToRoute('app_profile_show');
             } finally {
                 if ($performanceMonitor) {
                     $performanceMonitor->stopTiming('profile_controller_change_password');

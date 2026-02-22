@@ -351,7 +351,7 @@ class BackupService
                 [$userId],
             ),
             'comments' => $this->connection->fetchAllAssociative(
-                'SELECT c.* FROM comment c JOIN task t ON c.task_id = t.id WHERE c.user_id = ?',
+                'SELECT c.* FROM task_comments c JOIN task t ON c.task_id = t.id WHERE c.author_id = ?',
                 [$userId],
             ),
             'notifications' => $this->connection->fetchAllAssociative(
