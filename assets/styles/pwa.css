@@ -1,0 +1,215 @@
+/* PWA Styles */
+
+/* Network Status Indicator */
+.network-status {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 10000;
+    transform: translateY(-100%);
+    transition: transform 0.3s ease;
+}
+
+.network-status.show {
+    transform: translateY(0);
+}
+
+.network-status.online {
+    background: var(--success);
+    color: white;
+}
+
+.network-status.offline {
+    background: var(--danger);
+    color: white;
+}
+
+/* PWA Update Toast */
+.pwa-update-toast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--bg-card, #fff);
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    z-index: 9999;
+    opacity: 0;
+    animation: pwa-toast-in 0.3s ease forwards;
+}
+
+@keyframes pwa-toast-in {
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+.pwa-update-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-primary, #212529);
+}
+
+.pwa-update-content i {
+    color: var(--primary, #667eea);
+}
+
+.pwa-update-btn {
+    background: var(--primary, #667eea);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.pwa-update-btn:hover {
+    background: var(--primary-dark, #4f46e5);
+}
+
+/* Install Prompt */
+.pwa-install-prompt {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-card, #fff);
+    border-top: 1px solid var(--border-color, #e9ecef);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    z-index: 9998;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+}
+
+.pwa-install-prompt.show {
+    transform: translateY(0);
+}
+
+.pwa-install-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.pwa-install-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+}
+
+.pwa-install-text h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary, #212529);
+}
+
+.pwa-install-text p {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: var(--text-muted, #6c757d);
+}
+
+.pwa-install-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.pwa-install-btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pwa-install-btn.primary {
+    background: var(--primary, #667eea);
+    color: white;
+    border: none;
+}
+
+.pwa-install-btn.primary:hover {
+    background: var(--primary-dark, #4f46e5);
+}
+
+.pwa-install-btn.secondary {
+    background: transparent;
+    color: var(--text-secondary, #6c757d);
+    border: 1px solid var(--border-color, #e9ecef);
+}
+
+.pwa-install-btn.secondary:hover {
+    background: var(--bg-secondary, #f8f9fa);
+}
+
+/* Standalone mode styles */
+@media (display-mode: standalone) {
+    body {
+        -webkit-user-select: none;
+        user-select: none;
+    }
+    
+    /* Hide browser UI elements */
+    .hide-in-standalone {
+        display: none !important;
+    }
+}
+
+/* Touch feedback */
+@media (hover: none) and (pointer: coarse) {
+    button,
+    .btn,
+    a {
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    button:active,
+    .btn:active {
+        transform: scale(0.98);
+    }
+}
+
+/* Safe area for mobile */
+@supports (padding: max(0px)) {
+    .pwa-install-prompt {
+        padding-bottom: max(16px, env(safe-area-inset-bottom));
+    }
+    
+    .network-status {
+        padding-top: max(12px, env(safe-area-inset-top));
+    }
+}
+
+/* Splash screen for iOS */
+@media (orientation: portrait) {
+    html {
+        background-color: #0f172a;
+    }
+}

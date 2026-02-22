@@ -9,3 +9,5 @@ import './styles/app.css';
 import './styles/skeleton.css';
 import './styles/command-palette.css';
 import './styles/infinite-scroll.css';
+import './styles/dark-theme.css';
+import './styles/pwa.css';

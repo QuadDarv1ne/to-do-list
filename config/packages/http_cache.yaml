@@ -24,7 +24,3 @@ services:
         tags:
             - { name: kernel.event_subscriber }
 
-    # ESI renderer
-    App\Service\EsiRenderer:
-        tags:
-            - { name: twig.runtime }

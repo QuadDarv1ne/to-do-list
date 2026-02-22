@@ -9,6 +9,24 @@
                 "enabled": false,
                 "fetch": "eager"
             }
+        },
+        "app": {
+            "command_palette": {
+                "enabled": true,
+                "fetch": "lazy"
+            },
+            "infinite_scroll": {
+                "enabled": true,
+                "fetch": "lazy"
+            },
+            "theme": {
+                "enabled": true,
+                "fetch": "lazy"
+            },
+            "pwa": {
+                "enabled": true,
+                "fetch": "lazy"
+            }
         }
     },
     "entrypoints": []
