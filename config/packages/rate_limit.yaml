@@ -1,0 +1,30 @@
+# Rate Limiting Configuration
+# Ограничение частоты запросов для защиты API
+# Примечание: используется App\RateLimitingService
+
+framework:
+    rate_limiter:
+        # Глобальный лимит для API
+        api_global:
+            policy: 'fixed_window'
+            limit: 100
+            interval: '1 minute'
+        
+        # Лимит для авторизации (защита от брутфорса)
+        auth:
+            policy: 'sliding_window'
+            limit: 5
+            interval: '1 minute'
+        
+        # Лимит для поиска
+        search:
+            policy: 'fixed_window'
+            limit: 30
+            interval: '1 minute'
+        
+        # Лимит для создания задач
+        task_create:
+            policy: 'fixed_window'
+            limit: 20
+            interval: '1 minute'
+        
