@@ -1,0 +1,50 @@
+# API Platform Configuration
+api_platform:
+    title: 'CRM Sales Analytics API'
+    description: 'API для управления задачами, сделками и клиентами'
+    version: '2.0.0'
+    show_webby: false
+    
+    # Форматы
+    formats:
+        json: ['application/json']
+        jsonld: ['application/ld+json']
+        jsonhal: ['application/hal+json']
+    
+    # PATCH для частичного обновления
+    patch_formats: []
+    
+    # GraphQL (если включить)
+    graphql:
+        enabled: false
+    
+    # Swagger
+    swagger:
+        enabled: true
+        api_keys: []
+    
+    # Eager loading
+    eager_loading:
+        enabled: true
+        max_joins: 30
+        force_eager: false
+    
+    # Кэширование
+    http_cache:
+        enabled: true
+        invalidator:
+            enabled: true
+    
+    # Pagination
+    pagination:
+        enabled: true
+        page_parameter_name: 'page'
+        items_per_page: 30
+        maximum_items_per_page: 100
+
+when@prod:
+    api_platform:
+        graphql:
+            enabled: false
+        swagger:
+            enabled: false

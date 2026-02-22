@@ -1,0 +1,11 @@
+# API Platform State Processors
+services:
+    # Task Provider
+    App\Api\State\TaskProvider:
+        tags: [{ name: 'api_platform.state_provider', priority: 2 }]
+        arguments: ['@App\Repository\TaskRepository', '@security.helper']
+
+    # Task Processor
+    App\Api\State\TaskProcessor:
+        tags: [{ name: 'api_platform.state_processor', priority: 2 }]
+        arguments: ['@doctrine.orm.entity_manager', '@App\Repository\UserRepository', '@App\Repository\TaskCategoryRepository', '@security.helper']

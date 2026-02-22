@@ -1,0 +1,30 @@
+# Symfony HTTP Cache Configuration
+# Для production используйте Varnish или Symfony Cloud
+
+framework:
+    http_cache:
+        enabled: true
+        debug: '%kernel.debug%'
+        # В продакшене используйте Varnish
+        # https://symfony.com/doc/current/http_cache.html
+
+when@prod:
+    framework:
+        http_cache:
+            enabled: true
+            debug: false
+            # Max age в секундах
+            default_ttl: 3600
+            # Private кэш (браузер), без public (прокси)
+            private_headers: [Authorization, Cookie]
+
+services:
+    # Custom cache invalidation
+    App\Service\CacheInvalidator:
+        tags:
+            - { name: kernel.event_subscriber }
+
+    # ESI renderer
+    App\Service\EsiRenderer:
+        tags:
+            - { name: twig.runtime }
