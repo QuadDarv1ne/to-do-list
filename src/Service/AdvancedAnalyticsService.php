@@ -38,7 +38,7 @@ class AdvancedAnalyticsService
         $now = new \DateTime();
         $overdueTasks = count(array_filter(
             $this->taskRepository->findByAssignedUser($user),
-            fn($task) => $task->getDueDate() && $task->getDueDate() < $now && !$task->isDone()
+            fn($task) => $task->getDueDate() && $task->getDueDate() < $now && !$task->isCompleted()
         ));
         
         $completionRate = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100) : 0;
@@ -133,7 +133,7 @@ class AdvancedAnalyticsService
             
             $completed = count(array_filter($allTasks, function($task) use ($current, $weekEnd) {
                 $updatedAt = $task->getUpdatedAt();
-                return $task->isDone() && $updatedAt && $updatedAt >= $current && $updatedAt < $weekEnd;
+                return $task->isCompleted() && $updatedAt && $updatedAt >= $current && $updatedAt < $weekEnd;
             }));
             
             $velocity = $completed > 0 ? round($completed / 7, 1) : 0;

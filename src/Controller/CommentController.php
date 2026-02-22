@@ -112,8 +112,8 @@ class CommentController extends AbstractController
         $performanceMonitor?->startTiming('comment_controller_edit');
 
         try {
-            // Check if user can edit this comment (must be author)
-            if ($comment->getAuthor() !== $this->getUser()) {
+            // Check if user can edit this comment (must be author or admin)
+            if ($comment->getAuthor() !== $this->getUser() && !$this->isGranted('ROLE_ADMIN')) {
                 throw $this->createAccessDeniedException('У вас нет прав для редактирования этого комментария.');
             }
 

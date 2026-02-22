@@ -441,9 +441,52 @@ class TaskDependencyController extends AbstractController
             }
         }
 
-        $data = json_decode($request->getContent(), true);
+        $content = $request->getContent();
+        if (empty($content)) {
+            try {
+                return new JsonResponse(['error' => 'Request body is empty'], 400);
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTiming('task_dependency_controller_bulk_add');
+                }
+            }
+        }
+
+        $data = json_decode($content, true);
+        
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            try {
+                return new JsonResponse(['error' => 'Invalid JSON: ' . json_last_error_msg()], 400);
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTiming('task_dependency_controller_bulk_add');
+                }
+            }
+        }
+        
+        if (!is_array($data)) {
+            try {
+                return new JsonResponse(['error' => 'Request body must be a JSON object'], 400);
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTiming('task_dependency_controller_bulk_add');
+                }
+            }
+        }
+
         $dependencyTaskIds = $data['dependency_task_ids'] ?? [];
         $type = $data['type'] ?? 'blocking';
+        
+        // Валидация типа
+        if (!in_array($type, ['blocking', 'related', 'duplicate'], true)) {
+            try {
+                return new JsonResponse(['error' => 'Invalid dependency type'], 400);
+            } finally {
+                if ($performanceMonitor) {
+                    $performanceMonitor->stopTiming('task_dependency_controller_bulk_add');
+                }
+            }
+        }
 
         if (empty($dependencyTaskIds) || !\is_array($dependencyTaskIds)) {
             try {

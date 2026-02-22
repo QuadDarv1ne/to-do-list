@@ -56,19 +56,15 @@ class AutoSave {
         // Добавить индикатор сохранения
         this.addSaveIndicator(form);
 
+        // Создаем обработчики и сохраняем ссылки для последующего удаления
+        config.inputHandler = (e) => this.handleInput(config, e);
+        config.changeHandler = (e) => this.handleInput(config, e);
+        config.submitHandler = (e) => this.handleSubmit(config, e);
+
         // Отслеживать изменения
-        form.addEventListener('input', (e) => {
-            this.handleInput(config, e);
-        });
-
-        form.addEventListener('change', (e) => {
-            this.handleInput(config, e);
-        });
-
-        // Перехватить отправку формы
-        form.addEventListener('submit', (e) => {
-            this.handleSubmit(config, e);
-        });
+        form.addEventListener('input', config.inputHandler);
+        form.addEventListener('change', config.changeHandler);
+        form.addEventListener('submit', config.submitHandler);
     }
 
     /**
@@ -428,12 +424,13 @@ class AutoSave {
      */
     setupEventListeners() {
         // Переоткрытие форм при навигации
-        document.addEventListener('turbo:load', () => {
+        this.turboLoadHandler = () => {
             this.discoverForms();
-        });
+        };
+        document.addEventListener('turbo:load', this.turboLoadHandler);
 
         // Предупреждение при закрытии страницы с несохраненными данными
-        window.addEventListener('beforeunload', (e) => {
+        this.beforeUnloadHandler = (e) => {
             const hasDirtyForms = Array.from(this.forms.values()).some(config => config.isDirty);
             
             if (hasDirtyForms) {
@@ -441,7 +438,50 @@ class AutoSave {
                 e.returnValue = 'У вас есть несохраненные изменения. Вы уверены, что хотите покинуть страницу?';
                 return e.returnValue;
             }
+        };
+        window.addEventListener('beforeunload', this.beforeUnloadHandler);
+    }
+
+    /**
+     * Удалить обработчики формы (для предотвращения утечек памяти)
+     */
+    removeFormHandlers(config) {
+        const form = config.element;
+        if (config.inputHandler) {
+            form.removeEventListener('input', config.inputHandler);
+        }
+        if (config.changeHandler) {
+            form.removeEventListener('change', config.changeHandler);
+        }
+        if (config.submitHandler) {
+            form.removeEventListener('submit', config.submitHandler);
+        }
+        
+        // Очищаем таймер
+        if (config.timer) {
+            clearTimeout(config.timer);
+        }
+    }
+
+    /**
+     * Очистить все ресурсы (вызывать при уничтожении)
+     */
+    destroy() {
+        // Удаляем обработчики всех форм
+        this.forms.forEach(config => {
+            this.removeFormHandlers(config);
         });
+        
+        // Удаляем глобальные обработчики
+        if (this.turboLoadHandler) {
+            document.removeEventListener('turbo:load', this.turboLoadHandler);
+        }
+        if (this.beforeUnloadHandler) {
+            window.removeEventListener('beforeunload', this.beforeUnloadHandler);
+        }
+        
+        // Очищаем коллекцию форм
+        this.forms.clear();
     }
 
     /**

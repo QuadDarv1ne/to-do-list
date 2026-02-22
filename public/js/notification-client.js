@@ -115,7 +115,7 @@ class NotificationClient {
     }
     
     setupVisibilityHandler() {
-        document.addEventListener('visibilitychange', () => {
+        this.visibilityHandler = () => {
             if (document.hidden) {
                 // Page is hidden, close connection to save resources
                 if (this.eventSource) {
@@ -128,7 +128,9 @@ class NotificationClient {
                     this.connect();
                 }
             }
-        });
+        };
+        
+        document.addEventListener('visibilitychange', this.visibilityHandler);
     }
     
     showBrowserNotification(notification) {
@@ -261,8 +263,24 @@ class NotificationClient {
     close() {
         if (this.eventSource) {
             this.eventSource.close();
+            this.eventSource = null;
             this.isConnected = false;
         }
+        
+        // Remove event listener to prevent memory leak
+        if (this.visibilityHandler) {
+            document.removeEventListener('visibilitychange', this.visibilityHandler);
+            this.visibilityHandler = null;
+        }
+        
+        // Clear all listeners
+        this.listeners = {
+            'notification': [],
+            'connected': [],
+            'disconnected': [],
+            'error': [],
+            'heartbeat': []
+        };
     }
     
     // Request notification permission
