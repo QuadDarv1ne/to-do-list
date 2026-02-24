@@ -9,7 +9,7 @@ use App\Entity\Task;
 use App\Repository\TaskCategoryRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Bundle\SecurityBundle\Security;
 
 class TaskProcessor implements ProcessorInterface
 {
@@ -20,7 +20,7 @@ class TaskProcessor implements ProcessorInterface
         private Security $security
     ) {}
 
-    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
+    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): ?object
     {
         $user = $this->security->getUser();
 

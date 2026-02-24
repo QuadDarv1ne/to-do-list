@@ -76,13 +76,12 @@ class DealCommandServiceTest extends TestCase
             ->method('persist')
             ->with($this->isInstanceOf(Deal::class));
 
+        // Deal ID доступен сразу после flush
+        $deal->method('getId')->willReturn(1);
+
         $this->entityManager
             ->expects($this->once())
-            ->method('flush')
-            ->willReturnCallback(function() use ($deal) {
-                // После flush Deal получает ID
-                $deal->method('getId')->willReturn(1);
-            });
+            ->method('flush');
 
         $this->eventDispatcher
             ->expects($this->any())

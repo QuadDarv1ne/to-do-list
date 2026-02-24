@@ -10,7 +10,7 @@ use App\Domain\Task\Event\DomainEventInterface;
 final readonly class DealCreated implements DomainEventInterface
 {
     public function __construct(
-        private int $dealId,
+        private ?int $dealId,
         private string $title,
         private string $amount,
         private int $managerId,
@@ -21,7 +21,7 @@ final readonly class DealCreated implements DomainEventInterface
     }
 
     public static function create(
-        int $dealId,
+        ?int $dealId,
         string $title,
         string $amount,
         int $managerId,

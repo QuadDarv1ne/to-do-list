@@ -148,6 +148,12 @@ class RecurringTaskServiceTest extends TestCase
 
         // Mock the task creation process
         $template = new Task();
+        $template->setTitle('Test Task');
+        $template->setDescription('Test Description');
+        $template->setPriority('medium');
+        
+        $recurrence->setTask($template);
+        
         $this->taskRepository->expects($this->any())
             ->method('find')
             ->willReturn($template);

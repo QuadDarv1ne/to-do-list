@@ -7,7 +7,7 @@ use ApiPlatform\State\ProviderInterface;
 use App\Api\Dto\TaskDto;
 use App\Entity\Task;
 use App\Repository\TaskRepository;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Bundle\SecurityBundle\Security;
 
 class TaskProvider implements ProviderInterface
 {
@@ -16,7 +16,7 @@ class TaskProvider implements ProviderInterface
         private Security $security
     ) {}
 
-    public function provide(Operation $operation, array $uriVariables = [], array $context = []): mixed
+    public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
     {
         $user = $this->security->getUser();
 
