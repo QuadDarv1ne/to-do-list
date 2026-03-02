@@ -8,6 +8,7 @@ namespace App\Service;
 class PerformanceMonitorService
 {
     private array $timings = [];
+
     private array $slowQueries = [];
 
     public function startTiming(string $operation): void
@@ -34,17 +35,17 @@ class PerformanceMonitorService
     public function getMetrics(): array
     {
         return [
-            'active_timings' => count($this->timings),
-            'slow_queries' => count($this->slowQueries),
+            'active_timings' => \count($this->timings),
+            'slow_queries' => \count($this->slowQueries),
         ];
     }
 
     public function getPerformanceReport(): array
     {
         return [
-            'active_timings' => count($this->timings),
-            'slow_queries_count' => count($this->slowQueries),
-            'slow_queries' => array_slice($this->slowQueries, 0, 10),
+            'active_timings' => \count($this->timings),
+            'slow_queries_count' => \count($this->slowQueries),
+            'slow_queries' => \array_slice($this->slowQueries, 0, 10),
             'memory_usage' => memory_get_usage(true),
             'memory_peak' => memory_get_peak_usage(true),
         ];
