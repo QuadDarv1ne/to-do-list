@@ -42,7 +42,7 @@ class CommentController extends AbstractController
         $performanceMonitor?->startTiming('comment_controller_create');
 
         try {
-            $task = $this->getDoctrine()->getRepository(Task::class)->find($taskId);
+            $task = $this->entityManager->getRepository(Task::class)->find($taskId);
 
             if (!$task) {
                 $this->addFlash('error', 'Задача не найдена.');

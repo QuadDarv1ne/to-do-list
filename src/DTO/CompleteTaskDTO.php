@@ -48,4 +48,13 @@ final readonly class CompleteTaskDTO
     {
         return $this->notify;
     }
+
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            id: $data['id'] ?? throw new \InvalidArgumentException('ID is required'),
+            comment: $data['comment'] ?? null,
+            notify: $data['notify'] ?? true,
+        );
+    }
 }
