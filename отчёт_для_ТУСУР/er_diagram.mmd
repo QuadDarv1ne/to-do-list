@@ -1,0 +1,278 @@
+# ER-диаграмма базы данных системы управления задачами
+
+```mermaid
+erDiagram
+    USERS {
+        int id PK
+        string username UK
+        string email UK
+        json roles
+        string password
+        string first_name
+        string last_name
+        string phone
+        string position
+        string department
+        string timezone
+        string locale
+        boolean is_active
+        datetime last_login_at
+        datetime created_at
+        datetime updated_at
+    }
+
+    TASKS {
+        int id PK
+        string title
+        text description
+        string status
+        int priority
+        date due_date
+        date start_date
+        datetime completed_at
+        decimal estimated_hours
+        decimal actual_hours
+        int user_id FK
+        int category_id FK
+        int parent_id FK
+        datetime created_at
+        datetime updated_at
+    }
+
+    TASK_CATEGORIES {
+        int id PK
+        string name
+        string color
+        string icon
+        boolean is_active
+        int user_id FK
+        datetime created_at
+    }
+
+    TAGS {
+        int id PK
+        string name
+        string color
+        int user_id FK
+        datetime created_at
+    }
+
+    TASK_TAGS {
+        int task_id FK
+        int tag_id FK
+    }
+
+    COMMENTS {
+        int id PK
+        text content
+        int task_id FK
+        int user_id FK
+        int parent_id FK
+        boolean is_pinned
+        datetime created_at
+        datetime updated_at
+    }
+
+    TIME_TRACKING {
+        int id PK
+        int task_id FK
+        int user_id FK
+        datetime start_time
+        datetime end_time
+        int duration
+        text description
+        boolean is_billable
+        datetime created_at
+    }
+
+    RECURRING_TASKS {
+        int id PK
+        int task_id FK
+        int user_id FK
+        string frequency
+        int interval
+        text days_of_week
+        int day_of_month
+        int month
+        date start_date
+        date end_date
+        date next_run_date
+        boolean is_active
+        datetime created_at
+    }
+
+    NOTIFICATIONS {
+        int id PK
+        int user_id FK
+        string type
+        string title
+        text message
+        string entity_type
+        int entity_id
+        boolean is_read
+        datetime read_at
+        datetime created_at
+    }
+
+    CLIENTS {
+        int id PK
+        string company_name
+        string inn
+        string kpp
+        string contact_person
+        string phone
+        string email
+        text address
+        string segment
+        string category
+        int manager_id FK
+        text notes
+        datetime created_at
+        datetime updated_at
+    }
+
+    DEALS {
+        int id PK
+        string title
+        int client_id FK
+        int manager_id FK
+        decimal amount
+        string currency
+        string status
+        int probability
+        date expected_close_date
+        date actual_close_date
+        datetime created_at
+        datetime updated_at
+    }
+
+    BUDGETS {
+        int id PK
+        string name
+        decimal total_amount
+        decimal spent_amount
+        date start_date
+        date end_date
+        int created_by FK
+        string status
+        string currency
+        datetime created_at
+        datetime updated_at
+    }
+
+    PRODUCTS {
+        int id PK
+        string name
+        string sku UK
+        text description
+        string category
+        decimal price
+        decimal cost
+        string unit
+        boolean is_active
+        datetime created_at
+        datetime updated_at
+    }
+
+    DOCUMENTS {
+        int id PK
+        string title
+        text content
+        string document_type
+        string status
+        int created_by FK
+        datetime created_at
+        datetime updated_at
+    }
+
+    GOALS {
+        int id PK
+        string title
+        text description
+        int user_id FK
+        string status
+        int priority
+        date start_date
+        date end_date
+        int progress
+        datetime created_at
+        datetime updated_at
+    }
+
+    HABITS {
+        int id PK
+        string name
+        text description
+        int user_id FK
+        string frequency
+        int target_count
+        boolean is_active
+        datetime created_at
+    }
+
+    KNOWLEDGE_BASE_ARTICLES {
+        int id PK
+        int category_id FK
+        int author_id FK
+        string title
+        text content
+        string status
+        int views_count
+        boolean is_featured
+        datetime published_at
+        datetime created_at
+        datetime updated_at
+    }
+
+    KNOWLEDGE_BASE_CATEGORIES {
+        int id PK
+        string name
+        text description
+        string slug
+        boolean is_active
+        datetime created_at
+        datetime updated_at
+    }
+
+    %% Relationships
+    TASKS ||--o{ COMMENTS : "has"
+    TASKS ||--o{ TIME_TRACKING : "tracked"
+    TASKS ||--o| RECURRING_TASKS : "recurring"
+    TASKS ||--o{ TASK_TAGS : "tagged_with"
+    TASKS ||--|| TASKS : "parent_child"
+    TASKS }o--|| TASK_CATEGORIES : "belongs_to"
+    TASKS }o--|| USERS : "assigned_to"
+    
+    TAGS }o--|| USERS : "owned_by"
+    TAGS ||--o{ TASK_TAGS : "used_in"
+    
+    COMMENTS }o--|| USERS : "authored_by"
+    COMMENTS ||--|| COMMENTS : "parent_child"
+    
+    TIME_TRACKING }o--|| USERS : "tracked_by"
+    TIME_TRACKING }o--|| TASKS : "tracks"
+    
+    RECURRING_TASKS }o--|| USERS : "created_by"
+    RECURRING_TASKS }o--|| TASKS : "for"
+    
+    NOTIFICATIONS }o--|| USERS : "sent_to"
+    
+    CLIENTS }o--|| USERS : "managed_by"
+    CLIENTS ||--o{ DEALS : "has"
+    
+    DEALS }o--|| USERS : "managed_by"
+    DEALS }o--|| CLIENTS : "for"
+    
+    BUDGETS }o--|| USERS : "created_by"
+    
+    PRODUCTS }o--|| USERS : "owned_by"
+    
+    DOCUMENTS }o--|| USERS : "created_by"
+    
+    GOALS }o--|| USERS : "owned_by"
+    
+    HABITS }o--|| USERS : "owned_by"
+    
+    KNOWLEDGE_BASE_ARTICLES }o--|| USERS : "authored_by"
+    KNOWLEDGE_BASE_ARTICLES }o--|| KNOWLEDGE_BASE_CATEGORIES : "categorized_as"
+```

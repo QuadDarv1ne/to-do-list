@@ -1,0 +1,169 @@
+# ER-диаграмма системы управления задачами
+
+## Основные сущности и связи
+
+```mermaid
+erDiagram
+    USERS {
+        int id PK
+        string username UK
+        string email UK
+        json roles
+        string password
+        string first_name
+        string last_name
+        string phone
+        string position
+        string department
+        boolean is_active
+        datetime last_login_at
+        datetime created_at
+        datetime updated_at
+    }
+
+    TASKS {
+        int id PK
+        string title
+        text description
+        string status
+        int priority
+        date due_date
+        date start_date
+        datetime completed_at
+        decimal estimated_hours
+        decimal actual_hours
+        int user_id FK
+        int category_id FK
+        int parent_id FK
+        datetime created_at
+        datetime updated_at
+    }
+
+    TASK_CATEGORIES {
+        int id PK
+        string name
+        string color
+        string icon
+        boolean is_active
+        int user_id FK
+        datetime created_at
+    }
+
+    %% Relationships
+    USERS ||--o{ TASKS : "creates"
+    TASKS }o--|| TASK_CATEGORIES : "belongs_to"
+```
+
+## Подробная диаграмма всех сущностей
+
+```mermaid
+graph TD
+    subgraph "Пользователи и безопасность"
+        USERS[Users]
+        ROLES[Roles]
+        PERMISSIONS[Permissions]
+    end
+
+    subgraph "Система задач"
+        TASKS[Task]
+        CATEGORIES[Task Category]
+        TAGS[Tags]
+        COMMENTS[Comments]
+        ATTACHMENTS[Attachments]
+        HISTORY[Task History]
+        DEPENDENCIES[Task Dependencies]
+        RECURRENCE[Task Recurrence]
+        TEMPLATES[Task Templates]
+        TIME_TRACKING[Time Tracking]
+    end
+
+    subgraph "CRM-система"
+        CLIENTS[Client]
+        DEALS[Deal]
+        INTERACTIONS[Client Interactions]
+    end
+
+    subgraph "Финансовая система"
+        BUDGETS[Budget]
+        PRODUCTS[Product]
+        DOCUMENTS[Document]
+    end
+
+    subgraph "Система уведомлений"
+        NOTIFICATIONS[Notifications]
+        PREFERENCES[Notification Preferences]
+        TEMPLATES[Notification Templates]
+    end
+
+    subgraph "Персональные функции"
+        GOALS[Goals]
+        MILESTONES[Goal Milestones]
+        HABITS[Habits]
+        KNOWLEDGE[Knowledge Base]
+        CATEGORIES_KB[Knowledge Base Categories]
+    end
+
+    %% Основные связи
+    USERS --> TASKS
+    USERS --> CATEGORIES
+    USERS --> TAGS
+    USERS --> COMMENTS
+    USERS --> TIME_TRACKING
+    USERS --> NOTIFICATIONS
+    USERS --> GOALS
+    USERS --> HABITS
+    
+    TASKS --> CATEGORIES
+    TASKS --> TAGS
+    TASKS --> COMMENTS
+    TASKS --> ATTACHMENTS
+    TASKS --> HISTORY
+    TASKS --> DEPENDENCIES
+    TASKS --> RECURRENCE
+    TASKS --> TIME_TRACKING
+    
+    CLIENTS --> DEALS
+    CLIENTS --> INTERACTIONS
+    
+    BUDGETS --> USERS
+    PRODUCTS --> USERS
+    DOCUMENTS --> USERS
+    
+    GOALS --> MILESTONES
+    KNOWLEDGE --> CATEGORIES_KB
+    
+    NOTIFICATIONS --> USERS
+    NOTIFICATIONS --> TEMPLATES
+```
+
+## Основные связи между сущностями
+
+### Связь "Пользователь - Задачи":
+- Один пользователь может создавать много задач
+- Одна задача принадлежит одному пользователю
+- Связь: USERS (1) - TASKS (0..N)
+
+### Связь "Задача - Категория":
+- Одна задача принадлежит одной категории
+- Одна категория может содержать много задач
+- Связь: TASKS (0..1) - CATEGORIES (1)
+
+### Связь "Задача - Теги":
+- Одна задача может иметь много тегов
+- Один тег может быть присвоен многим задачам
+- Связь: TASKS (0..N) - TAGS (0..N) через промежуточную таблицу
+
+### Связь "Задача - Комментарии":
+- Одна задача может иметь много комментариев
+- Один комментарий относится к одной задаче
+- Связь: TASKS (1) - COMMENTS (0..N)
+
+### Связь "Клиент - Сделки":
+- Один клиент может иметь много сделок
+- Одна сделка относится к одному клиенту
+- Связь: CLIENTS (1) - DEALS (0..N)
+
+## Типы связей:
+- 1:1 (один к одному) - используется редко
+- 1:N (один ко многим) - самый распространенный тип
+- N:M (многие ко многим) - через промежуточные таблицы

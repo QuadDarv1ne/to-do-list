@@ -1,0 +1,175 @@
+ER ДИАГРАММА СИСТЕМЫ УПРАВЛЕНИЯ ЗАДАЧАМИ
+=========================================
+
+LEGEND:
+=======
+PK = Primary Key
+FK = Foreign Key
+UK = Unique Key
+NN = Not Null
+
+ОСНОВНЫЕ СУЩНОСТИ:
+==================
+
+[USERS] - Пользователи
+-----------------------
+PK | id (INTEGER)
+   | username (VARCHAR 180) UK NN
+   | email (VARCHAR 180) UK NN
+   | roles (JSON) NN
+   | password (VARCHAR 255) NN
+   | first_name (VARCHAR 100)
+   | last_name (VARCHAR 100)
+   | phone (VARCHAR 20)
+   | position (VARCHAR 255)
+   | department (VARCHAR 255)
+   | is_active (BOOLEAN) NN
+   | last_login_at (DATETIME)
+   | created_at (DATETIME) NN
+   | updated_at (DATETIME)
+
+[TASKS] - Задачи
+-----------------
+PK | id (INTEGER)
+   | title (VARCHAR 255) NN
+   | description (TEXT)
+   | status (VARCHAR 50) NN
+   | priority (INTEGER) NN
+   | due_date (DATE)
+   | start_date (DATE)
+   | completed_at (DATETIME)
+   | estimated_hours (DECIMAL 5,2)
+   | actual_hours (DECIMAL 5,2)
+FK | user_id (INTEGER) NN
+FK | category_id (INTEGER)
+FK | parent_id (INTEGER)
+   | created_at (DATETIME) NN
+   | updated_at (DATETIME)
+
+[TASK_CATEGORIES] - Категории задач
+------------------------------------
+PK | id (INTEGER)
+   | name (VARCHAR 255) NN
+   | color (VARCHAR 7)
+   | icon (VARCHAR 50)
+   | is_active (BOOLEAN) NN
+FK | user_id (INTEGER) NN
+   | created_at (DATETIME) NN
+
+[TAGS] - Теги
+---------------
+PK | id (INTEGER)
+   | name (VARCHAR 100) NN
+   | color (VARCHAR 7)
+FK | user_id (INTEGER) NN
+   | created_at (DATETIME) NN
+
+TASK_TAGS - Связь задач и тегов (Many-to-Many)
+-----------------------------------------------
+FK | task_id (INTEGER) NN
+FK | tag_id (INTEGER) NN
+
+[COMMENTS] - Комментарии
+-------------------------
+PK | id (INTEGER)
+   | content (TEXT) NN
+FK | task_id (INTEGER) NN
+FK | user_id (INTEGER) NN
+FK | parent_id (INTEGER)
+   | is_pinned (BOOLEAN)
+   | created_at (DATETIME) NN
+   | updated_at (DATETIME)
+
+[TIME_TRACKING] - Учет времени
+-------------------------------
+PK | id (INTEGER)
+FK | task_id (INTEGER) NN
+FK | user_id (INTEGER) NN
+   | start_time (DATETIME) NN
+   | end_time (DATETIME)
+   | duration (INTEGER) NN
+   | description (TEXT)
+   | is_billable (BOOLEAN) NN
+   | created_at (DATETIME) NN
+
+[CLIENTS] - Клиенты
+--------------------
+PK | id (INTEGER)
+   | company_name (VARCHAR 255) NN
+   | inn (VARCHAR 12)
+   | kpp (VARCHAR 9)
+   | contact_person (VARCHAR 255)
+   | phone (VARCHAR 20)
+   | email (VARCHAR 180)
+   | address (TEXT)
+   | segment (VARCHAR 50) NN
+   | category (VARCHAR 50) NN
+FK | manager_id (INTEGER)
+   | notes (TEXT)
+   | created_at (DATETIME) NN
+   | updated_at (DATETIME)
+
+[DEALS] - Сделки
+-----------------
+PK | id (INTEGER)
+   | title (VARCHAR 255) NN
+FK | client_id (INTEGER) NN
+FK | manager_id (INTEGER) NN
+   | amount (DECIMAL 15,2) NN
+   | currency (VARCHAR 10) NN
+   | status (VARCHAR 50) NN
+   | probability (INTEGER) NN
+   | expected_close_date (DATE)
+   | actual_close_date (DATE)
+   | created_at (DATETIME) NN
+   | updated_at (DATETIME)
+
+СВЯЗИ МЕЖДУ СУЩНОСТЯМИ:
+========================
+
+1. USERS (1) -----> TASKS (0..N)
+   "Пользователь создает много задач"
+
+2. USERS (1) -----> TASK_CATEGORIES (0..N)
+   "Пользователь владеет категориями"
+
+3. USERS (1) -----> TAGS (0..N)
+   "Пользователь создает теги"
+
+4. USERS (1) -----> COMMENTS (0..N)
+   "Пользователь оставляет комментарии"
+
+5. USERS (1) -----> TIME_TRACKING (0..N)
+   "Пользователь отслеживает время"
+
+6. TASKS (1) -----> TASK_CATEGORIES (0..1)
+   "Задача принадлежит категории"
+
+7. TASKS (1) -----> COMMENTS (0..N)
+   "Задача имеет много комментариев"
+
+8. TASKS (1) -----> TIME_TRACKING (0..N)
+   "Задача имеет много записей учета времени"
+
+9. TASKS (0..N) -----> TAGS (0..N)
+   "Задача может иметь много тегов, тег может быть у многих задач"
+   через TASK_TAGS
+
+10. CLIENTS (1) -----> DEALS (0..N)
+    "Клиент может иметь много сделок"
+
+ТИПЫ СВЯЗЕЙ:
+==============
+- 1:1 (один к одному) - редко используется
+- 1:N (один ко многим) - основной тип связи
+- N:M (многие ко многим) - через промежуточные таблицы
+
+ИНДЕКСЫ:
+========
+- idx_users_email (users.email)
+- idx_users_username (users.username)
+- idx_tasks_user (tasks.user_id)
+- idx_tasks_status (tasks.status)
+- idx_tasks_due_date (tasks.due_date)
+- idx_comments_task (comments.task_id)
+- idx_notifications_user (notifications.user_id)

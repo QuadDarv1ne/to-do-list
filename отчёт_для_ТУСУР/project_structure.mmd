@@ -1,0 +1,109 @@
+# Диаграмма структуры проекта
+
+```mermaid
+graph TB
+    subgraph "APPLICATION_ROOT [Корень приложения]"
+        A["composer.json<br/>package.json<br/>.env<br/>symfony.lock"]
+        
+        subgraph "SRC [Исходный код]"
+            B1["Controller/<br/>• 67 файлов"]
+            B2["Entity/<br/>• 46 файлов"]
+            B3["Repository/<br/>• 45 файлов"]
+            B4["Service/<br/>• 92 файла"]
+            B5["Form/<br/>• 12 файлов"]
+            B6["EventListener/<br/>• 21 файл"]
+            B7["Security/<br/>• 11 файлов"]
+            B8["Command/<br/>• 33 файла"]
+            B9["ApiResource/<br/>• 1 файл"]
+            B10["DTO/<br/>• 9 файлов"]
+            B11["Validator/<br/>• 4 файла"]
+        end
+        
+        subgraph "CONFIG [Конфигурация]"
+            C1["bundles.php<br/>services.yaml"]
+            C2["routes.yaml<br/>packages/"]
+            C3[".env<br/>preload.php"]
+        end
+        
+        subgraph "TEMPLATES [Шаблоны]"
+            D1["task/<br/>• 8 файлов"]
+            D2["dashboard/<br/>• 2 файла"]
+            D3["user/<br/>• 1 файл"]
+            D4["components/<br/>• 13 файлов"]
+            D5["base.html.twig"]
+            D6["... другие шаблоны"]
+        end
+        
+        subgraph "MIGRATIONS [Миграции БД]"
+            E1["Version*.php<br/>• 67 миграций"]
+            E2["archive/<br/>• 58 файлов"]
+        end
+        
+        subgraph "PUBLIC [Публичные ресурсы]"
+            F1["css/, js/, icons/"]
+            F2["index.php"]
+            F3["assets/"]
+        end
+        
+        subgraph "ASSETS [Ресурсы]"
+            G1["controllers/<br/>• 9 файлов"]
+            G2["styles/<br/>• 5 файлов"]
+            G3["app.js"]
+        end
+    end
+    
+    A --> SRC
+    A --> CONFIG
+    A --> TEMPLATES
+    A --> MIGRATIONS
+    A --> PUBLIC
+    A --> ASSETS
+    
+    style APPLICATION_ROOT fill:#e1f5fe
+    style SRC fill:#f3e5f5
+    style CONFIG fill:#e8f5e8
+    style TEMPLATES fill:#fff3e0
+    style MIGRATIONS fill:#fce4ec
+    style PUBLIC fill:#f1f8e9
+    style ASSETS fill:#e0f2f1
+```
+
+## Описание структуры проекта:
+
+### SRC (Исходный код):
+- **Controller**: 67 контроллеров для обработки HTTP-запросов
+- **Entity**: 46 сущностей Doctrine для представления таблиц БД
+- **Repository**: 45 репозиториев для работы с БД
+- **Service**: 92 сервиса для бизнес-логики
+- **Form**: 12 форм для обработки пользовательского ввода
+- **EventListener**: 21 обработчик событий
+- **Security**: 11 компонентов безопасности
+- **Command**: 33 команды для CLI
+- **ApiResource**: 1 ресурс для API
+- **DTO**: 9 объектов передачи данных
+- **Validator**: 4 ограничения валидации
+
+### CONFIG (Конфигурация):
+- **bundles.php**: Конфигурация Symfony бандлов
+- **services.yaml**: Определение сервисов
+- **routes.yaml**: Маршруты приложения
+- **.env**: Переменные окружения
+
+### TEMPLATES (Шаблоны):
+- **task**: Шаблоны для модуля задач
+- **dashboard**: Шаблоны дашбордов
+- **user**: Шаблоны пользовательского профиля
+- **components**: Переиспользуемые компоненты
+
+### MIGRATIONS (Миграции):
+- **67 миграций**: Для управления схемой БД
+- **Архив**: 58 старых миграций
+
+### PUBLIC (Публичные ресурсы):
+- **CSS/JS**: Стили и скрипты
+- **index.php**: Входная точка приложения
+
+### ASSETS (Ресурсы):
+- **controllers**: Stimulus-контроллеры
+- **styles**: Стилевые файлы
+- **app.js**: Главный JS-файл
