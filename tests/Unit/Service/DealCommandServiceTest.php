@@ -18,9 +18,13 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 class DealCommandServiceTest extends TestCase
 {
     private EntityManagerInterface|MockObject $entityManager;
+
     private DealRepository|MockObject $dealRepository;
+
     private ClientRepository|MockObject $clientRepository;
+
     private EventDispatcherInterface|MockObject $eventDispatcher;
+
     private DealCommandService $service;
 
     protected function setUp(): void
@@ -39,7 +43,7 @@ class DealCommandServiceTest extends TestCase
             $this->entityManager,
             $this->dealRepository,
             $this->clientRepository,
-            $this->eventDispatcher
+            $this->eventDispatcher,
         );
     }
 
@@ -47,7 +51,7 @@ class DealCommandServiceTest extends TestCase
     {
         $client = $this->createMock(Client::class);
         $client->method('getId')->willReturn(1);
-        
+
         $manager = $this->createMock(User::class);
         $manager->method('getId')->willReturn(1);
 
@@ -209,7 +213,7 @@ class DealCommandServiceTest extends TestCase
 
         $updater = $this->createMock(User::class);
         $updater->method('getId')->willReturn(1);
-        
+
         $reason = 'Цена слишком высокая';
 
         $this->entityManager
@@ -366,7 +370,7 @@ class DealCommandServiceTest extends TestCase
     {
         $dto = new \ReflectionClass(CreateDealDTO::class);
         $instance = $dto->newInstanceWithoutConstructor();
-        
+
         $reflection = new \ReflectionClass($instance);
         $properties = array_merge([
             'clientId' => 1,
@@ -376,13 +380,13 @@ class DealCommandServiceTest extends TestCase
             'description' => null,
             'expectedCloseDate' => null,
         ], $data);
-        
+
         foreach ($properties as $name => $value) {
             $property = $reflection->getProperty($name);
             $property->setAccessible(true);
             $property->setValue($instance, $value);
         }
-        
+
         return $instance;
     }
 
@@ -390,7 +394,7 @@ class DealCommandServiceTest extends TestCase
     {
         $dto = new \ReflectionClass(UpdateDealDTO::class);
         $instance = $dto->newInstanceWithoutConstructor();
-        
+
         $reflection = new \ReflectionClass($instance);
         $properties = array_merge([
             'id' => 1,
@@ -402,13 +406,13 @@ class DealCommandServiceTest extends TestCase
             'expectedCloseDate' => null,
             'lostReason' => null,
         ], $data);
-        
+
         foreach ($properties as $name => $value) {
             $property = $reflection->getProperty($name);
             $property->setAccessible(true);
             $property->setValue($instance, $value);
         }
-        
+
         return $instance;
     }
 }

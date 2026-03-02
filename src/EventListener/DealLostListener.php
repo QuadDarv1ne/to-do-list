@@ -9,7 +9,7 @@ use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
 /**
  * Слушатель события DealLost
- * 
+ *
  * Обрабатывает отклонение сделки:
  * - Записывает запись в Activity Log
  * - Анализирует причину отказа
@@ -41,10 +41,10 @@ final class DealLostListener
         $activityLog->setAction('deal_lost');
         $activityLog->setEventType('deal.lost');
         $activityLog->setCreatedAt(new \DateTimeImmutable());
-        $activityLog->setDescription(sprintf(
+        $activityLog->setDescription(\sprintf(
             'Сделка "%s" отклонена. Причина: %s',
             $event->getTitle(),
-            $event->getReason()
+            $event->getReason(),
         ));
 
         $this->entityManager->persist($activityLog);

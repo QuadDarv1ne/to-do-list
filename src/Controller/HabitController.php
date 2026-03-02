@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\Habit;
-use App\Entity\HabitLog;
 use App\Repository\HabitLogRepository;
 use App\Repository\HabitRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -116,19 +115,19 @@ class HabitController extends AbstractController
     {
         // Получаем логи за последние 30 дней
         $last30DaysRaw = $this->logRepository->findLastDays($habit, 30);
-        
+
         // Генерируем последние 30 дней с отметками о выполнении
         $last30Days = [];
         $logsByDate = [];
-        
+
         foreach ($last30DaysRaw as $log) {
             $logsByDate[$log->getDate()->format('Y-m-d')] = $log;
         }
-        
+
         for ($i = 29; $i >= 0; $i--) {
             $date = (new \DateTime())->modify("-$i days");
             $dateKey = $date->format('Y-m-d');
-            
+
             $last30Days[] = [
                 'date' => $date,
                 'completed' => isset($logsByDate[$dateKey]),
@@ -139,21 +138,21 @@ class HabitController extends AbstractController
 
         // Получаем общую статистику
         $stats = $this->logRepository->getHabitStats($habit);
-        
+
         // Получаем серию
         $currentStreak = $this->logRepository->getCurrentStreak($habit);
         $bestStreak = $this->logRepository->getLongestStreak($habit);
-        
+
         // Получаем процент выполнения
         $completionRate = round($this->logRepository->getCompletionRate($habit, 30));
-        
+
         // Рассчитываем успешность
         $totalDays = 30;
-        $completedDays = count($last30DaysRaw);
+        $completedDays = \count($last30DaysRaw);
         $successRate = $totalDays > 0 ? round(($completedDays / $totalDays) * 100) : 0;
 
         // Получаем последние логи
-        $logs = array_slice($last30DaysRaw, 0, 20);
+        $logs = \array_slice($last30DaysRaw, 0, 20);
 
         return [
             'currentStreak' => $currentStreak,

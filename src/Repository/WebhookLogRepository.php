@@ -2,9 +2,9 @@
 
 namespace App\Repository;
 
+use App\Entity\User;
 use App\Entity\Webhook;
 use App\Entity\WebhookLog;
-use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -138,7 +138,7 @@ class WebhookLogRepository extends ServiceEntityRepository
         ?int $responseTimeMs,
         bool $isSuccess,
         ?string $errorMessage = null,
-        ?array $response = null
+        ?array $response = null,
     ): WebhookLog {
         $log = new WebhookLog();
         $log->setWebhook($webhook);

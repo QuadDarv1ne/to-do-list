@@ -5,7 +5,6 @@ namespace App\Entity;
 use App\Repository\TaskTimeTrackingRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: TaskTimeTrackingRepository::class)]
 #[ORM\Table(name: 'task_time_tracking')]
@@ -199,8 +198,9 @@ class TaskTimeTracking
         }
 
         $end = $this->endedAt ?? new \DateTimeImmutable();
-        return $this->startedAt->diff($end)->s + 
-               ($this->startedAt->diff($end)->i * 60) + 
+
+        return $this->startedAt->diff($end)->s +
+               ($this->startedAt->diff($end)->i * 60) +
                ($this->startedAt->diff($end)->h * 3600);
     }
 
@@ -240,7 +240,7 @@ class TaskTimeTracking
         $this->startedAt = new \DateTimeImmutable();
         $this->isActive = true;
         $this->endedAt = null;
-        
+
         return $this;
     }
 
@@ -252,7 +252,7 @@ class TaskTimeTracking
         $this->endedAt = new \DateTimeImmutable();
         $this->isActive = false;
         $this->durationSeconds = $this->calculateDuration();
-        
+
         return $this;
     }
 }

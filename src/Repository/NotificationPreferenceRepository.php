@@ -53,13 +53,13 @@ class NotificationPreferenceRepository extends ServiceEntityRepository
     public function getOrCreateForUser(User $user): NotificationPreference
     {
         $preference = $this->findOneByUser($user);
-        
+
         if (!$preference) {
             $preference = new NotificationPreference();
             $preference->setUser($user);
             $this->save($preference);
         }
-        
+
         return $preference;
     }
 }

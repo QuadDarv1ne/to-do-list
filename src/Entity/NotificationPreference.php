@@ -94,6 +94,7 @@ class NotificationPreference
     public function setUser(?User $user): self
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -105,6 +106,7 @@ class NotificationPreference
     public function setEmailSettings(array $emailSettings): self
     {
         $this->emailSettings = $emailSettings;
+
         return $this;
     }
 
@@ -116,6 +118,7 @@ class NotificationPreference
     public function setPushSettings(array $pushSettings): self
     {
         $this->pushSettings = $pushSettings;
+
         return $this;
     }
 
@@ -127,6 +130,7 @@ class NotificationPreference
     public function setInAppSettings(array $inAppSettings): self
     {
         $this->inAppSettings = $inAppSettings;
+
         return $this;
     }
 
@@ -138,6 +142,7 @@ class NotificationPreference
     public function setQuietHours(?array $quietHours): self
     {
         $this->quietHours = $quietHours;
+
         return $this;
     }
 
@@ -149,6 +154,7 @@ class NotificationPreference
     public function setFrequency(?array $frequency): self
     {
         $this->frequency = $frequency;
+
         return $this;
     }
 
@@ -160,6 +166,7 @@ class NotificationPreference
     public function setCreatedAt(\DateTimeInterface $createdAt): self
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 
@@ -171,6 +178,7 @@ class NotificationPreference
     public function setUpdatedAt(?\DateTimeInterface $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
+
         return $this;
     }
 

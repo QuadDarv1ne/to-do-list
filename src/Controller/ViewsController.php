@@ -57,26 +57,27 @@ class ViewsController extends AbstractController
         $user = $this->getUser();
 
         // Валидация имени
-        if (empty($name) || !is_string($name)) {
+        if (empty($name) || !\is_string($name)) {
             return $this->json(['error' => 'View name is required'], 400);
         }
-        
-        if (strlen($name) > 255) {
+
+        if (\strlen($name) > 255) {
             return $this->json(['error' => 'View name is too long (max 255 characters)'], 400);
         }
-        
+
         // Валидация фильтров
-        if (!is_array($filters)) {
+        if (!\is_array($filters)) {
             return $this->json(['error' => 'Filters must be an array'], 400);
         }
-        
+
         // Валидация колонок
-        if (!is_array($columns)) {
+        if (!\is_array($columns)) {
             return $this->json(['error' => 'Columns must be an array'], 400);
         }
 
         try {
             $view = $this->viewService->createCustomView($name, $filters, $columns, $user);
+
             return $this->json($view);
         } catch (\Exception $e) {
             return $this->json(['error' => 'Failed to create view: ' . $e->getMessage()], 500);
@@ -132,21 +133,22 @@ class ViewsController extends AbstractController
     public function share(int $id, Request $request): JsonResponse
     {
         $userIds = $request->request->all('user_ids');
-        
+
         // Валидация user_ids
-        if (!is_array($userIds)) {
+        if (!\is_array($userIds)) {
             return $this->json(['error' => 'User IDs must be an array'], 400);
         }
-        
+
         // Проверка что все ID - числа
         foreach ($userIds as $userId) {
             if (!is_numeric($userId) || $userId <= 0) {
                 return $this->json(['error' => 'Invalid user ID'], 400);
             }
         }
-        
+
         try {
             $this->viewService->shareView($id, $userIds);
+
             return $this->json(['success' => true]);
         } catch (\Exception $e) {
             return $this->json(['error' => 'Failed to share view: ' . $e->getMessage()], 500);

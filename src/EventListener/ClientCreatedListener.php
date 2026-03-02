@@ -9,7 +9,7 @@ use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
 /**
  * Слушатель события ClientCreated
- * 
+ *
  * Обрабатывает создание клиента:
  * - Записывает запись в Activity Log
  * - Отправляет приветственное письмо (опционально)
@@ -37,11 +37,11 @@ final class ClientCreatedListener
         $activityLog->setAction('client_created');
         $activityLog->setEventType('client.created');
         $activityLog->setCreatedAt(new \DateTimeImmutable());
-        $activityLog->setDescription(sprintf(
+        $activityLog->setDescription(\sprintf(
             'Создан клиент "%s" (Email: %s, Телефон: %s)',
             $event->getName(),
             $event->getEmail() ?: 'не указан',
-            $event->getPhone() ?: 'не указан'
+            $event->getPhone() ?: 'не указан',
         ));
 
         $this->entityManager->persist($activityLog);

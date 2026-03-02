@@ -56,6 +56,7 @@ class SavedSearch
     public function setName(string $name): self
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -67,6 +68,7 @@ class SavedSearch
     public function setFilters(array $filters): self
     {
         $this->filters = $filters;
+
         return $this;
     }
 
@@ -78,6 +80,7 @@ class SavedSearch
     public function setColumns(?array $columns): self
     {
         $this->columns = $columns;
+
         return $this;
     }
 
@@ -89,6 +92,7 @@ class SavedSearch
     public function setIsDefault(bool $isDefault): self
     {
         $this->isDefault = $isDefault;
+
         return $this;
     }
 
@@ -100,6 +104,7 @@ class SavedSearch
     public function setCreatedAt(\DateTimeInterface $createdAt): self
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 
@@ -111,6 +116,7 @@ class SavedSearch
     public function setUpdatedAt(?\DateTimeInterface $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
+
         return $this;
     }
 
@@ -122,6 +128,7 @@ class SavedSearch
     public function setUser(?User $user): self
     {
         $this->user = $user;
+
         return $this;
     }
 

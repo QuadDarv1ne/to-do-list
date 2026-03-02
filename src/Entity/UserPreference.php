@@ -14,8 +14,11 @@ use Doctrine\ORM\Mapping as ORM;
 class UserPreference
 {
     public const KEY_WIDGET_SETTINGS = 'widget_settings';
+
     public const KEY_NOTIFICATION_SETTINGS = 'notification_settings';
+
     public const KEY_DASHBOARD_SETTINGS = 'dashboard_settings';
+
     public const KEY_TASK_SETTINGS = 'task_settings';
 
     #[ORM\Id]
@@ -132,6 +135,7 @@ class UserPreference
     public function getWidgetSetting(string $widgetId): ?array
     {
         $settings = $this->getWidgetSettings();
+
         return $settings[$widgetId] ?? null;
     }
 

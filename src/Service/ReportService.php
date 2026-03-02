@@ -311,6 +311,7 @@ class ReportService
         }
 
         $completed = $this->getCompletedTasks($user, $from, $to);
+
         return round(($completed / $total) * 100, 2);
     }
 

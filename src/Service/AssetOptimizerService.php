@@ -12,7 +12,9 @@ use Twig\Environment;
 class AssetOptimizerService
 {
     private Filesystem $filesystem;
+
     private string $publicDir;
+
     private string $projectDir;
 
     public function __construct(
@@ -74,16 +76,16 @@ class AssetOptimizerService
     private function minifyCSS(string $css): string
     {
         // Remove comments
-        $css = preg_replace('!/\*[^*]*\*+([^/][^*]*\*+)*/!', '', $css);
+        $css = preg_replace('!/\\*[^*]*\\*+([^/][^*]*\\*+)*/!', '', $css);
 
         // Remove whitespace
-        $css = preg_replace('/\s+/', ' ', $css);
+        $css = preg_replace('/\\s+/', ' ', $css);
 
         // Remove spaces around special characters
-        $css = preg_replace('/\s*([{}:;,>+~])\s*/', '$1', $css);
+        $css = preg_replace('/\\s*([{}:;,>+~])\\s*/', '$1', $css);
 
         // Remove last semicolon in block
-        $css = preg_replace('/;(?=\s*})/', '', $css);
+        $css = preg_replace('/;(?=\\s*})/', '', $css);
 
         return trim($css);
     }
@@ -214,7 +216,7 @@ class AssetOptimizerService
 
             if (is_dir($path)) {
                 $images = array_merge($images, $this->findImages($path));
-            } elseif (preg_match('/\.(jpg|jpeg|png|gif|webp)$/i', $item)) {
+            } elseif (preg_match('/\\.(jpg|jpeg|png|gif|webp)$/i', $item)) {
                 $images[] = $path;
             }
         }
@@ -277,7 +279,7 @@ class AssetOptimizerService
             $content = file_get_contents($phpFile);
 
             // Match render() calls
-            preg_match_all('/render\([\'"]([^\'"]+\.twig)[\'"]/', $content, $matches);
+            preg_match_all('/render\\([\'"]([^\'"]+\\.twig)[\'"]/', $content, $matches);
             foreach ($matches[1] as $template) {
                 $usedTemplates[$template] = true;
             }
@@ -290,7 +292,7 @@ class AssetOptimizerService
                 $content = file_get_contents($templatePath);
 
                 // Match extends, include, embed
-                preg_match_all('/{%\s*(extends|include|embed)\s+[\'"]([^\'"]+\.twig)[\'"]/', $content, $matches);
+                preg_match_all('/{%\\s*(extends|include|embed)\\s+[\'"]([^\'"]+\\.twig)[\'"]/', $content, $matches);
                 foreach ($matches[2] as $referencedTemplate) {
                     $usedTemplates[$referencedTemplate] = true;
                 }

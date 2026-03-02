@@ -157,16 +157,16 @@ class MobileAPIService
     private function getRecentNotifications(User $user, int $limit): array
     {
         $qb = $this->entityManager->createQueryBuilder();
-        
+
         $qb->select('n')
             ->from(\App\Entity\Notification::class, 'n')
             ->where('n.user = :user')
             ->setParameter('user', $user)
             ->orderBy('n.createdAt', 'DESC')
             ->setMaxResults($limit);
-        
+
         $notifications = $qb->getQuery()->getResult();
-        
+
         return array_map(fn ($n) => [
             'id' => $n->getId(),
             'title' => $n->getTitle(),
@@ -345,7 +345,7 @@ class MobileAPIService
 
     /**
      * Sync offline changes with conflict resolution
-     * 
+     *
      * Features implemented:
      * - Conflict detection using updated_at timestamps
      * - Server-side priority (last-write-wins strategy)
@@ -357,10 +357,10 @@ class MobileAPIService
     {
         $results = [];
         $conflicts = [];
-        
+
         // Start database transaction for atomic operations
         $this->entityManager->beginTransaction();
-        
+
         try {
             foreach ($changes as $change) {
                 try {
@@ -400,19 +400,19 @@ class MobileAPIService
                     ];
                 }
             }
-            
+
             // Commit transaction if all operations succeeded
             $this->entityManager->commit();
-            
+
             // Log conflicts for analysis
             if (!empty($conflicts)) {
                 $this->logSyncConflicts($user, $conflicts);
             }
-            
+
         } catch (\Exception $e) {
             // Rollback on any error
             $this->entityManager->rollBack();
-            
+
             return [
                 'success' => false,
                 'error' => 'Sync failed: ' . $e->getMessage(),
@@ -448,10 +448,10 @@ class MobileAPIService
         if ($existingTask) {
             // Potential duplicate - check if created within same timeframe
             $createdDiff = abs(
-                (new \DateTime())->getTimestamp() - 
-                $existingTask->getCreatedAt()->getTimestamp()
+                (new \DateTime())->getTimestamp() -
+                $existingTask->getCreatedAt()->getTimestamp(),
             );
-            
+
             // If created within 5 minutes, consider it the same task
             if ($createdDiff < 300) {
                 return [
@@ -470,11 +470,11 @@ class MobileAPIService
         $task->setPriority($data['priority'] ?? 'medium');
         $task->setStatus($data['status'] ?? 'pending');
         $task->setUser($user);
-        
+
         if (isset($data['due_date'])) {
             $task->setDueDate(new \DateTime($data['due_date']));
         }
-        
+
         if (isset($data['assigned_user_id'])) {
             // Assign user if specified
             // Note: In production, fetch from UserRepository
@@ -508,10 +508,10 @@ class MobileAPIService
         // Conflict detection using timestamps
         $clientTime = $clientTimestamp ? new \DateTime($clientTimestamp) : new \DateTime();
         $serverTime = $task->getUpdatedAt() ?? $task->getCreatedAt();
-        
+
         $conflictDetected = false;
         $resolution = 'none';
-        
+
         // If server has newer changes, detect conflict
         if ($serverTime > $clientTime) {
             $conflictDetected = true;
@@ -573,7 +573,7 @@ class MobileAPIService
         if ($clientTimestamp) {
             $clientTime = new \DateTime($clientTimestamp);
             $serverTime = $task->getUpdatedAt() ?? $task->getCreatedAt();
-            
+
             if ($serverTime > $clientTime) {
                 $conflictDetected = true;
                 // Log but proceed with deletion
@@ -608,24 +608,24 @@ class MobileAPIService
                 'resolution' => $conflict['resolution'],
                 'timestamp' => (new \DateTime())->format('Y-m-d H:i:s'),
             ], JSON_THROW_ON_ERROR));
-            
+
             $this->entityManager->persist($log);
         }
-        
+
         $this->entityManager->flush();
     }
-    
+
     private function deleteTask(int $taskId, User $user): array
     {
         $task = $this->taskRepository->find($taskId);
-        
+
         if (!$task || $task->getUser() !== $user) {
             return ['error' => 'Task not found or access denied'];
         }
-        
+
         $this->entityManager->remove($task);
         $this->entityManager->flush();
-        
+
         return ['success' => true];
     }
 
@@ -663,10 +663,10 @@ class MobileAPIService
         $device->setDeviceToken($deviceData['device_token'] ?? '');
         $device->setPlatform($deviceData['platform'] ?? 'unknown');
         $device->setAppVersion($deviceData['app_version'] ?? '1.0');
-        
+
         $this->entityManager->persist($device);
         $this->entityManager->flush();
-        
+
         return [
             'success' => true,
             'device_id' => $device->getId(),

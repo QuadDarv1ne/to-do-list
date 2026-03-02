@@ -76,7 +76,7 @@ class SettingsController extends AbstractController
     #[Route('/notifications', name: 'app_settings_notifications', methods: ['POST'])]
     public function updateNotifications(
         Request $request,
-        \App\Service\NotificationPreferenceService $preferenceService
+        \App\Service\NotificationPreferenceService $preferenceService,
     ): JsonResponse {
         $data = json_decode($request->getContent(), true);
         $user = $this->getUser();

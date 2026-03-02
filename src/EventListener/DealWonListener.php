@@ -9,7 +9,7 @@ use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
 /**
  * Слушатель события DealWon
- * 
+ *
  * Обрабатывает выигрыш сделки:
  * - Записывает запись в Activity Log
  * - Обновляет статистику
@@ -41,10 +41,10 @@ final class DealWonListener
         $activityLog->setAction('deal_won');
         $activityLog->setEventType('deal.won');
         $activityLog->setCreatedAt(new \DateTimeImmutable());
-        $activityLog->setDescription(sprintf(
+        $activityLog->setDescription(\sprintf(
             'Сделка "%s" выиграна! Сумма: %s ₽',
             $event->getTitle(),
-            number_format((float) $event->getAmount(), 0, '.', ' ')
+            number_format((float) $event->getAmount(), 0, '.', ' '),
         ));
 
         $this->entityManager->persist($activityLog);

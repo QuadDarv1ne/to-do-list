@@ -31,11 +31,11 @@ class MentionExtension extends AbstractExtension
             $user = $this->userRepository->findOneBy(['username' => $matches[1]]);
 
             if ($user) {
-                return sprintf(
+                return \sprintf(
                     '<span class="mention-tag" data-user-id="%d" title="%s">@%s</span>',
                     $user->getId(),
                     htmlspecialchars($user->getFullName(), ENT_QUOTES, 'UTF-8'),
-                    $username
+                    $username,
                 );
             }
 

@@ -17,8 +17,9 @@ class TaskProcessor implements ProcessorInterface
         private EntityManagerInterface $entityManager,
         private UserRepository $userRepository,
         private TaskCategoryRepository $categoryRepository,
-        private Security $security
-    ) {}
+        private Security $security,
+    ) {
+    }
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): ?object
     {
@@ -120,7 +121,7 @@ class TaskProcessor implements ProcessorInterface
         $dto->userId = $task->getUser()?->getId();
         $dto->assignedUserId = $task->getAssignedUser()?->getId();
         $dto->categoryId = $task->getCategory()?->getId();
-        $dto->tags = $task->getTags()->map(fn($tag) => ['id' => $tag->getId(), 'name' => $tag->getName()])->toArray();
+        $dto->tags = $task->getTags()->map(fn ($tag) => ['id' => $tag->getId(), 'name' => $tag->getName()])->toArray();
         $dto->commentsCount = $task->getComments()->count();
         $dto->isOverdue = $task->isOverdue();
 

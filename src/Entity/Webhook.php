@@ -74,6 +74,7 @@ class Webhook
     public function setName(?string $name): static
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -85,6 +86,7 @@ class Webhook
     public function setUrl(?string $url): static
     {
         $this->url = $url;
+
         return $this;
     }
 
@@ -96,6 +98,7 @@ class Webhook
     public function setSecret(?string $secret): static
     {
         $this->secret = $secret;
+
         return $this;
     }
 
@@ -113,14 +116,16 @@ class Webhook
     public function setEvents(array $events): static
     {
         $this->events = $events;
+
         return $this;
     }
 
     public function addEvent(string $event): static
     {
-        if (!in_array($event, $this->events, true)) {
+        if (!\in_array($event, $this->events, true)) {
             $this->events[] = $event;
         }
+
         return $this;
     }
 
@@ -131,12 +136,13 @@ class Webhook
             unset($this->events[$key]);
             $this->events = array_values($this->events);
         }
+
         return $this;
     }
 
     public function hasEvent(string $event): bool
     {
-        return in_array($event, $this->events, true) || in_array('*', $this->events, true);
+        return \in_array($event, $this->events, true) || \in_array('*', $this->events, true);
     }
 
     public function isActive(): bool
@@ -147,6 +153,7 @@ class Webhook
     public function setIsActive(bool $isActive): static
     {
         $this->isActive = $isActive;
+
         return $this;
     }
 
@@ -158,6 +165,7 @@ class Webhook
     public function setLastTriggeredAt(?\DateTimeInterface $lastTriggeredAt): static
     {
         $this->lastTriggeredAt = $lastTriggeredAt;
+
         return $this;
     }
 
@@ -169,6 +177,7 @@ class Webhook
     public function setCreatedAt(\DateTimeInterface $createdAt): static
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 
@@ -180,6 +189,7 @@ class Webhook
     public function setUpdatedAt(?\DateTimeInterface $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
+
         return $this;
     }
 
@@ -191,6 +201,7 @@ class Webhook
     public function setUser(?User $user): static
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -208,6 +219,7 @@ class Webhook
             $this->logs->add($log);
             $log->setWebhook($this);
         }
+
         return $this;
     }
 
@@ -216,6 +228,7 @@ class Webhook
         if ($this->logs->removeElement($log) && $log->getWebhook() === $this) {
             $log->setWebhook(null);
         }
+
         return $this;
     }
 
@@ -238,6 +251,7 @@ class Webhook
     public function generateSecret(): string
     {
         $this->secret = bin2hex(random_bytes(32));
+
         return $this->secret;
     }
 

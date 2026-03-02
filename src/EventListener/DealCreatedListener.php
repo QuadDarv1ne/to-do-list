@@ -6,11 +6,10 @@ use App\Domain\Deal\Event\DealCreated;
 use App\Entity\ActivityLog;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
-use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Слушатель события DealCreated
- * 
+ *
  * Обрабатывает создание сделки:
  * - Записывает запись в Activity Log
  * - Отправляет уведомления
@@ -38,11 +37,11 @@ final class DealCreatedListener
         $activityLog->setAction('deal_created');
         $activityLog->setEventType('deal.created');
         $activityLog->setCreatedAt(new \DateTimeImmutable());
-        $activityLog->setDescription(sprintf(
+        $activityLog->setDescription(\sprintf(
             'Создана сделка "%s" на сумму %s ₽ (Этап: %s)',
             $event->getTitle(),
             number_format((float) $event->getAmount(), 0, '.', ' '),
-            $this->getStageLabel($event->getStage())
+            $this->getStageLabel($event->getStage()),
         ));
 
         // Устанавливаем пользователя (менеджера)

@@ -38,11 +38,11 @@ class RecurringTaskService
         $recurrence->setFrequency($frequency);
         $recurrence->setInterval($interval);
         $recurrence->setEndDate($endDate);
-        
+
         if ($daysOfWeek !== null) {
             $recurrence->setDaysOfWeekFromArray($daysOfWeek);
         }
-        
+
         if ($daysOfMonth !== null) {
             $recurrence->setDaysOfMonthFromArray($daysOfMonth);
         }
@@ -73,7 +73,7 @@ class RecurringTaskService
 
         foreach ($recurrences as $recurrence) {
             /** @var TaskRecurrence $recurrence */
-            
+
             // Check if end date has passed
             if ($recurrence->getEndDate() !== null && $recurrence->getEndDate() < $now) {
                 continue;
@@ -145,7 +145,7 @@ class RecurringTaskService
             default => 0
         };
 
-        return in_array($currentDay, array_map('intval', $days));
+        return \in_array($currentDay, array_map('intval', $days));
     }
 
     /**
@@ -197,9 +197,9 @@ class RecurringTaskService
     {
         $today = new \DateTimeImmutable();
         $dateStr = $today->format('d.m.Y');
-        
+
         // Check if title already contains date
-        if (preg_match('/\d{2}\.\d{2}\.\d{4}/', $template->getTitle())) {
+        if (preg_match('/\\d{2}\\.\\d{2}\\.\\d{4}/', $template->getTitle())) {
             return $template->getTitle();
         }
 
@@ -351,15 +351,15 @@ class RecurringTaskService
     public function getStatistics(User $user): array
     {
         $recurrences = $this->getUserRecurringTasks($user);
-        
-        $total = count($recurrences);
+
+        $total = \count($recurrences);
         $active = 0;
         $byFrequency = [];
 
         foreach ($recurrences as $recurrence) {
             /** @var TaskRecurrence $recurrence */
             $freq = $recurrence->getFrequency();
-            
+
             if (!isset($byFrequency[$freq])) {
                 $byFrequency[$freq] = 0;
             }
@@ -404,6 +404,7 @@ class RecurringTaskService
         for ($i = 1; $i <= 31; $i++) {
             $days[$i] = "{$i}-е число";
         }
+
         return $days;
     }
 
@@ -413,12 +414,12 @@ class RecurringTaskService
     public function skipWeekend(\DateTimeImmutable $date): \DateTimeImmutable
     {
         $dayOfWeek = (int) $date->format('N');
-        
+
         // If Saturday (6), move to Friday (5)
         if ($dayOfWeek === 6) {
             return $date->modify('-1 day');
         }
-        
+
         // If Sunday (7), move to Monday (1)
         if ($dayOfWeek === 7) {
             return $date->modify('+1 day');

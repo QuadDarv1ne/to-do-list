@@ -10,7 +10,7 @@ use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
 /**
  * Слушатель событий TaskStatusChanged
- * 
+ *
  * Обрабатывает событие изменения статуса задачи:
  * - Записывает запись в Activity Log
  * - Отправляет уведомления при изменении статуса
@@ -45,11 +45,11 @@ final class TaskStatusChangedListener
         $activityLog->setAction('status_changed');
         $activityLog->setEventType('task.status_changed');
         $activityLog->setCreatedAt(new \DateTimeImmutable());
-        $activityLog->setDescription(sprintf(
+        $activityLog->setDescription(\sprintf(
             'Статус задачи "%s" изменён с "%s" на "%s"',
             $task->getTitle(),
             $this->getStatusLabel($event->getOldStatus()->value),
-            $this->getStatusLabel($event->getNewStatus()->value)
+            $this->getStatusLabel($event->getNewStatus()->value),
         ));
 
         $this->entityManager->persist($activityLog);

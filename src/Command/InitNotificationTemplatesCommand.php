@@ -29,29 +29,30 @@ class InitNotificationTemplatesCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        
+
         $io->title('Initializing Notification Templates');
-        
+
         try {
             $this->templateService->createDefaultTemplates();
             $io->success('Notification templates have been successfully initialized!');
-            
+
             // Show created templates
             $templates = [
                 'task_assigned' => 'Task Assigned (Email)',
-                'task_completed' => 'Task Completed (Email)', 
+                'task_completed' => 'Task Completed (Email)',
                 'deadline_reminder' => 'Deadline Reminder (Email)',
                 'system_alert' => 'System Alert (Email)',
             ];
-            
+
             $io->section('Created templates:');
             foreach ($templates as $key => $name) {
                 $io->writeln("• {$name} ({$key})");
             }
-            
+
             return Command::SUCCESS;
         } catch (\Exception $e) {
             $io->error('Failed to initialize templates: ' . $e->getMessage());
+
             return Command::FAILURE;
         }
     }

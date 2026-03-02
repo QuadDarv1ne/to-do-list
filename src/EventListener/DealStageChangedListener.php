@@ -9,7 +9,7 @@ use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
 /**
  * Слушатель события DealStageChanged
- * 
+ *
  * Обрабатывает изменение этапа сделки:
  * - Записывает запись в Activity Log
  * - Отправляет уведомления
@@ -37,11 +37,11 @@ final class DealStageChangedListener
         $activityLog->setAction('deal_stage_changed');
         $activityLog->setEventType('deal.stage_changed');
         $activityLog->setCreatedAt(new \DateTimeImmutable());
-        $activityLog->setDescription(sprintf(
+        $activityLog->setDescription(\sprintf(
             'Сделка "%s" перешла с этапа "%s" на этап "%s"',
             $event->getTitle(),
             $this->getStageLabel($event->getOldStage()),
-            $this->getStageLabel($event->getNewStage())
+            $this->getStageLabel($event->getNewStage()),
         ));
 
         $this->entityManager->persist($activityLog);
@@ -51,7 +51,7 @@ final class DealStageChangedListener
     private function notifyIfImportant(DealStageChanged $event): void
     {
         // Отправляем уведомление при переходе на финальные этапы
-        if (in_array($event->getNewStage(), ['negotiation', 'closing'])) {
+        if (\in_array($event->getNewStage(), ['negotiation', 'closing'])) {
             // Здесь можно отправить уведомление
             // Например, через NotificationService
         }

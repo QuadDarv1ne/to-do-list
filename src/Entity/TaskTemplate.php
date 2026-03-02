@@ -85,6 +85,7 @@ class TaskTemplate
     public function setName(string $name): self
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -96,6 +97,7 @@ class TaskTemplate
     public function setIcon(?string $icon): self
     {
         $this->icon = $icon;
+
         return $this;
     }
 
@@ -107,6 +109,7 @@ class TaskTemplate
     public function setCategory(?string $category): self
     {
         $this->category = $category;
+
         return $this;
     }
 
@@ -118,6 +121,7 @@ class TaskTemplate
     public function setDescription(?string $description): self
     {
         $this->description = $description;
+
         return $this;
     }
 
@@ -129,6 +133,7 @@ class TaskTemplate
     public function setTemplateData(array $templateData): self
     {
         $this->templateData = $templateData;
+
         return $this;
     }
 
@@ -140,6 +145,7 @@ class TaskTemplate
     public function setIsDefault(bool $isDefault): self
     {
         $this->isDefault = $isDefault;
+
         return $this;
     }
 
@@ -151,6 +157,7 @@ class TaskTemplate
     public function setIsActive(bool $isActive): self
     {
         $this->isActive = $isActive;
+
         return $this;
     }
 
@@ -162,6 +169,7 @@ class TaskTemplate
     public function setIsPublic(bool $isPublic): self
     {
         $this->isPublic = $isPublic;
+
         return $this;
     }
 
@@ -173,6 +181,7 @@ class TaskTemplate
     public function setUsageCount(int $usageCount): self
     {
         $this->usageCount = $usageCount;
+
         return $this;
     }
 
@@ -180,6 +189,7 @@ class TaskTemplate
     {
         $this->usageCount++;
         $this->lastUsedAt = new \DateTime();
+
         return $this;
     }
 
@@ -191,6 +201,7 @@ class TaskTemplate
     public function setLastUsedAt(?\DateTimeInterface $lastUsedAt): self
     {
         $this->lastUsedAt = $lastUsedAt;
+
         return $this;
     }
 
@@ -202,6 +213,7 @@ class TaskTemplate
     public function setCreatedAt(\DateTimeInterface $createdAt): self
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 
@@ -213,6 +225,7 @@ class TaskTemplate
     public function setUpdatedAt(?\DateTimeInterface $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
+
         return $this;
     }
 
@@ -224,6 +237,7 @@ class TaskTemplate
     public function setUser(?User $user): self
     {
         $this->user = $user;
+
         return $this;
     }
 

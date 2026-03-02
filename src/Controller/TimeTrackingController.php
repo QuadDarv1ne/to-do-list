@@ -6,7 +6,6 @@ use App\Controller\Traits\FlashMessageTrait;
 use App\Entity\Task;
 use App\Entity\TaskTimeTracking;
 use App\Service\TimeTrackingService;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,7 +23,7 @@ class TimeTrackingController extends AbstractController
     public function index(TimeTrackingService $timeTrackingService, Request $request): Response
     {
         $user = $this->getUser();
-        
+
         // Get date range from query params
         $from = new \DateTime($request->query->get('from', 'monday this week'));
         $to = new \DateTime($request->query->get('to', 'sunday this week'));
@@ -190,7 +189,7 @@ class TimeTrackingController extends AbstractController
     public function report(TimeTrackingService $timeTrackingService, Request $request): Response
     {
         $user = $this->getUser();
-        
+
         $from = new \DateTime($request->query->get('from', 'first day of this month'));
         $to = new \DateTime($request->query->get('to', 'last day of this month'));
 

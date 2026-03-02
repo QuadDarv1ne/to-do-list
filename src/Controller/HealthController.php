@@ -2,15 +2,14 @@
 
 namespace App\Controller;
 
-use App\Repository\TaskRepository;
 use App\Repository\ClientRepository;
 use App\Repository\DealRepository;
+use App\Repository\TaskRepository;
 use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/health', name: 'health_')]
 class HealthController extends AbstractController
@@ -18,7 +17,7 @@ class HealthController extends AbstractController
     #[Route('', name: 'index', methods: ['GET'])]
     public function index(
         Connection $connection,
-        #[Autowire('%env(APP_ENV)%')] string $env
+        #[Autowire('%env(APP_ENV)%')] string $env,
     ): JsonResponse {
         $checks = [
             'status' => 'ok',
@@ -37,7 +36,7 @@ class HealthController extends AbstractController
 
         // Redis check (если настроен)
         try {
-            if (class_exists('\Redis')) {
+            if (class_exists('\\Redis')) {
                 $redis = new \Redis();
                 $redis->connect('127.0.0.1', 6379);
                 $redis->ping();
@@ -100,7 +99,7 @@ class HealthController extends AbstractController
     public function metrics(
         TaskRepository $taskRepository,
         ClientRepository $clientRepository,
-        DealRepository $dealRepository
+        DealRepository $dealRepository,
     ): JsonResponse {
         // Базовые метрики
         $metrics = [

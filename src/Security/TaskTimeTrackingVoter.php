@@ -10,7 +10,9 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 class TaskTimeTrackingVoter extends Voter
 {
     public const VIEW = 'view';
+
     public const EDIT = 'edit';
+
     public const DELETE = 'delete';
 
     protected function supports(string $attribute, mixed $subject): bool

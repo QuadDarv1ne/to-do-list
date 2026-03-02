@@ -65,6 +65,7 @@ class WebhookLog
     public function setCreatedAt(\DateTimeInterface $createdAt): static
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 
@@ -76,6 +77,7 @@ class WebhookLog
     public function setPayload(array $payload): static
     {
         $this->payload = $payload;
+
         return $this;
     }
 
@@ -87,6 +89,7 @@ class WebhookLog
     public function setResponse(?array $response): static
     {
         $this->response = $response;
+
         return $this;
     }
 
@@ -98,6 +101,7 @@ class WebhookLog
     public function setEvent(?string $event): static
     {
         $this->event = $event;
+
         return $this;
     }
 
@@ -109,6 +113,7 @@ class WebhookLog
     public function setStatusCode(?int $statusCode): static
     {
         $this->statusCode = $statusCode;
+
         return $this;
     }
 
@@ -120,6 +125,7 @@ class WebhookLog
     public function setResponseTimeMs(?int $responseTimeMs): static
     {
         $this->responseTimeMs = $responseTimeMs;
+
         return $this;
     }
 
@@ -131,6 +137,7 @@ class WebhookLog
     public function setIsSuccess(bool $isSuccess): static
     {
         $this->isSuccess = $isSuccess;
+
         return $this;
     }
 
@@ -142,6 +149,7 @@ class WebhookLog
     public function setErrorMessage(?string $errorMessage): static
     {
         $this->errorMessage = $errorMessage;
+
         return $this;
     }
 
@@ -153,6 +161,7 @@ class WebhookLog
     public function setWebhook(?Webhook $webhook): static
     {
         $this->webhook = $webhook;
+
         return $this;
     }
 }

@@ -235,7 +235,7 @@ class TaskTemplateLibraryService
     {
         $templates = $this->templateRepository->findByUser($user);
         $result = [];
-        
+
         foreach ($templates as $template) {
             $result['custom_' . $template->getId()] = [
                 'name' => $template->getName(),
@@ -247,7 +247,7 @@ class TaskTemplateLibraryService
                 'usage_count' => $template->getUsageCount(),
             ];
         }
-        
+
         return $result;
     }
 
@@ -258,7 +258,7 @@ class TaskTemplateLibraryService
     {
         $popular = $this->templateRepository->findPopular($limit);
         $result = [];
-        
+
         foreach ($popular as $template) {
             $result['popular_' . $template->getId()] = [
                 'name' => $template->getName(),
@@ -268,14 +268,14 @@ class TaskTemplateLibraryService
                 'usage_count' => $template->getUsageCount(),
             ];
         }
-        
+
         // Если мало популярных шаблонов, дополняем стандартными
-        if (count($popular) < $limit) {
+        if (\count($popular) < $limit) {
             $allTemplates = $this->getAllTemplates();
-            $remaining = $limit - count($popular);
-            $result = array_merge($result, array_slice($allTemplates, 0, $remaining));
+            $remaining = $limit - \count($popular);
+            $result = array_merge($result, \array_slice($allTemplates, 0, $remaining));
         }
-        
+
         return $result;
     }
 
@@ -305,7 +305,7 @@ class TaskTemplateLibraryService
     public function updateTemplate(int $templateId, array $data, User $user): ?TaskTemplateEntity
     {
         $template = $this->templateRepository->findOneByUserAndId($user, $templateId);
-        
+
         if (!$template) {
             return null;
         }
@@ -334,7 +334,7 @@ class TaskTemplateLibraryService
     public function deleteTemplate(int $templateId, User $user): bool
     {
         $template = $this->templateRepository->findOneByUserAndId($user, $templateId);
-        
+
         if (!$template) {
             return false;
         }

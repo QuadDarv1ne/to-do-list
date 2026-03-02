@@ -11,7 +11,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:optimize-performance',
-    description: 'Оптимизирует производительность приложения'
+    description: 'Оптимизирует производительность приложения',
 )]
 class OptimizePerformanceCommand extends Command
 {
@@ -29,9 +29,10 @@ class OptimizePerformanceCommand extends Command
 
         // Unified asset optimization (CSS, Images, Twig, Themes)
         $io->section('Оптимизация всех ресурсов');
+
         try {
             $results = $this->assetOptimizer->optimizeAll();
-            
+
             $io->success('CSS: ' . ($results['css']['optimized'] ?? 0) . ' файлов оптимизировано');
             $io->success('Изображения: ' . ($results['images']['optimized'] ?? 0) . ' файлов оптимизировано');
             $io->success('Twig: ' . ($results['twig']['templates_warmed'] ?? 0) . ' шаблонов прогрето');

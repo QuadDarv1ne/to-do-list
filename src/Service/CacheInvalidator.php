@@ -2,8 +2,8 @@
 
 namespace App\Service;
 
-use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 class CacheInvalidator implements EventSubscriberInterface
@@ -32,7 +32,7 @@ class CacheInvalidator implements EventSubscriberInterface
                 $response->setMaxAge(3600);
                 $response->setSharedMaxAge(3600);
                 $response->headers->addCacheControlDirective('public');
-            } 
+            }
             // Динамические страницы - короткое кэширование
             else {
                 $response->setMaxAge(60);

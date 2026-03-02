@@ -6,7 +6,6 @@ use App\Entity\Webhook;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\UrlType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -70,7 +69,7 @@ class WebhookType extends AbstractType
                 'multiple' => true,
                 'attr' => [
                     'class' => 'form-select',
-                    'size' => count($availableEvents),
+                    'size' => \count($availableEvents),
                 ],
                 'help' => 'Выберите события, на которые будет реагировать webhook. Выберите "*" для всех событий.',
                 'constraints' => [

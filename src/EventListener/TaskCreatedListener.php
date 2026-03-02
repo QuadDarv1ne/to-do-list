@@ -9,11 +9,10 @@ use App\Repository\TaskRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Слушатель событий TaskCreated
- * 
+ *
  * Обрабатывает событие создания задачи:
  * - Записывает запись в Activity Log
  * - Отправляет уведомления
@@ -52,10 +51,10 @@ final class TaskCreatedListener
         $activityLog->setAction('created');
         $activityLog->setEventType('task.created');
         $activityLog->setCreatedAt(new \DateTimeImmutable());
-        $activityLog->setDescription(sprintf(
+        $activityLog->setDescription(\sprintf(
             'Создана задача "%s" с приоритетом %s',
             $task->getTitle(),
-            $this->getPriorityLabel($task->getPriority())
+            $this->getPriorityLabel($task->getPriority()),
         ));
 
         $this->entityManager->persist($activityLog);
@@ -75,10 +74,10 @@ final class TaskCreatedListener
         $notification->setUser($assignedUser);
         $notification->setType('task_assigned');
         $notification->setTitle('Вам назначена новая задача');
-        $notification->setMessage(sprintf(
+        $notification->setMessage(\sprintf(
             'Пользователь %s назначил вам задачу: %s',
             $task->getUser()->getFullName(),
-            $task->getTitle()
+            $task->getTitle(),
         ));
         $notification->setLink($this->urlGenerator->generate('app_task_show', ['id' => $task->getId()]));
         $notification->setMetadata([

@@ -30,6 +30,7 @@ class TaskDependencyService
             $this->logger->warning('Task cannot depend on itself', [
                 'task_id' => $task->getId(),
             ]);
+
             return false;
         }
 
@@ -39,6 +40,7 @@ class TaskDependencyService
                 'task_id' => $task->getId(),
                 'depends_on_id' => $dependsOn->getId(),
             ]);
+
             return false;
         }
 
@@ -53,6 +55,7 @@ class TaskDependencyService
                 'task_id' => $task->getId(),
                 'depends_on_id' => $dependsOn->getId(),
             ]);
+
             return false;
         }
 
@@ -270,9 +273,9 @@ class TaskDependencyService
             $this->notificationService->createTaskNotification(
                 $task->getAssignedUser(),
                 'Задача разблокирована',
-                sprintf('Задача "%s" готова к выполнению - все зависимости завершены', $task->getTitle()),
+                \sprintf('Задача "%s" готова к выполнению - все зависимости завершены', $task->getTitle()),
                 $task->getId(),
-                $task->getTitle()
+                $task->getTitle(),
             );
         }
 
@@ -304,7 +307,7 @@ class TaskDependencyService
     public function getStatistics(?int $userId = null): array
     {
         $qb = $this->dependencyRepository->createQueryBuilder('d');
-        
+
         if ($userId) {
             $qb->innerJoin('d.dependentTask', 't')
                ->where('t.user = :userId OR t.assignedUser = :userId')
@@ -316,7 +319,7 @@ class TaskDependencyService
             ->getSingleScalarResult();
 
         $blockedTasks = $this->getBlockedTasks($userId);
-        
+
         // Calculate average chain length
         $avgChainLength = 0;
         if ($userId) {
@@ -333,16 +336,16 @@ class TaskDependencyService
             $totalChainLength = 0;
             foreach ($tasks as $task) {
                 $chain = $this->getDependencyChain($task);
-                $totalChainLength += count($chain);
+                $totalChainLength += \count($chain);
             }
-            $avgChainLength = round($totalChainLength / count($tasks), 2);
+            $avgChainLength = round($totalChainLength / \count($tasks), 2);
         }
 
         return [
             'total_dependencies' => $totalDependencies,
-            'blocked_tasks' => count($blockedTasks),
+            'blocked_tasks' => \count($blockedTasks),
             'average_chain_length' => $avgChainLength,
-            'tasks_with_dependencies' => count($tasks),
+            'tasks_with_dependencies' => \count($tasks),
         ];
     }
 

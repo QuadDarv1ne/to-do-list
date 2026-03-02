@@ -9,7 +9,7 @@ use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
 /**
  * Слушатель события CommentRemoved
- * 
+ *
  * Обрабатывает удаление комментария:
  * - Записывает запись в Activity Log
  */
@@ -33,12 +33,12 @@ final class CommentRemovedListener
         $activityLog->setAction('comment_removed');
         $activityLog->setEventType('comment.removed');
         $activityLog->setCreatedAt(new \DateTimeImmutable());
-        $activityLog->setDescription(sprintf(
+        $activityLog->setDescription(\sprintf(
             'Удалён комментарий #%d из задачи #%d (автор: #%d, удалил: #%d)',
             $event->getCommentId(),
             $event->getTaskId(),
             $event->getAuthorId(),
-            $event->getRemovedByUserId()
+            $event->getRemovedByUserId(),
         ));
 
         $this->entityManager->persist($activityLog);

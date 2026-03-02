@@ -6,7 +6,6 @@ use App\Entity\Task;
 use App\Entity\TaskTemplate;
 use App\Entity\TaskTemplateItem;
 use App\Repository\TaskTemplateRepository;
-use App\Service\PerformanceMonitorService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -68,7 +67,7 @@ class TaskTemplateController extends AbstractController
         $savedTemplates = $templateRepository->findByUser($this->getUser());
 
         return $this->render('task_template/index.html.twig', [
-            'templates'      => $this->getPredefinedTemplates(),
+            'templates' => $this->getPredefinedTemplates(),
             'savedTemplates' => $savedTemplates,
         ]);
     }
@@ -83,6 +82,7 @@ class TaskTemplateController extends AbstractController
 
         if (!isset($templates[$templateIndex])) {
             $this->addFlash('error', 'Шаблон не найден');
+
             return $this->redirectToRoute('app_task_template_index');
         }
 
@@ -103,7 +103,7 @@ class TaskTemplateController extends AbstractController
         }
 
         $entityManager->flush();
-        $this->addFlash('success', sprintf('Создано %d задач из шаблона «%s»', $created, $template['name']));
+        $this->addFlash('success', \sprintf('Создано %d задач из шаблона «%s»', $created, $template['name']));
 
         return $this->redirectToRoute('app_task_index');
     }
@@ -134,7 +134,7 @@ class TaskTemplateController extends AbstractController
         }
 
         $entityManager->flush();
-        $this->addFlash('success', sprintf('Создано %d задач из шаблона «%s»', $created, $template->getName()));
+        $this->addFlash('success', \sprintf('Создано %d задач из шаблона «%s»', $created, $template->getName()));
 
         return $this->redirectToRoute('app_task_index');
     }
@@ -153,7 +153,7 @@ class TaskTemplateController extends AbstractController
         if ($this->isCsrfTokenValid('delete-template-' . $template->getId(), $request->request->get('_token'))) {
             $entityManager->remove($template);
             $entityManager->flush();
-            $this->addFlash('success', sprintf('Шаблон «%s» удалён', $template->getName()));
+            $this->addFlash('success', \sprintf('Шаблон «%s» удалён', $template->getName()));
         }
 
         return $this->redirectToRoute('app_task_template_index');
@@ -190,7 +190,7 @@ class TaskTemplateController extends AbstractController
         $entityManager->persist($template);
         $entityManager->flush();
 
-        $this->addFlash('success', sprintf('Задача сохранена как шаблон «%s»', $template->getName()));
+        $this->addFlash('success', \sprintf('Задача сохранена как шаблон «%s»', $template->getName()));
 
         return $this->redirectToRoute('app_task_show', ['id' => $task->getId()]);
     }
@@ -204,12 +204,13 @@ class TaskTemplateController extends AbstractController
         if ($request->isMethod('POST')) {
             $templateName = trim($request->request->get('template_name', ''));
             $templateDesc = trim($request->request->get('template_description', ''));
-            $taskTitles       = $request->request->all('task_titles');
-            $taskPriorities   = $request->request->all('task_priorities');
+            $taskTitles = $request->request->all('task_titles');
+            $taskPriorities = $request->request->all('task_priorities');
             $taskDescriptions = $request->request->all('task_descriptions');
 
             if (!$templateName || empty(array_filter($taskTitles))) {
                 $this->addFlash('error', 'Пожалуйста, заполните название шаблона и хотя бы одну задачу');
+
                 return $this->render('task_template/custom.html.twig');
             }
 
@@ -235,7 +236,7 @@ class TaskTemplateController extends AbstractController
             $entityManager->persist($template);
             $entityManager->flush();
 
-            $this->addFlash('success', sprintf('Шаблон «%s» сохранён (%d задач)', $template->getName(), $template->getItems()->count()));
+            $this->addFlash('success', \sprintf('Шаблон «%s» сохранён (%d задач)', $template->getName(), $template->getItems()->count()));
 
             return $this->redirectToRoute('app_task_template_index');
         }

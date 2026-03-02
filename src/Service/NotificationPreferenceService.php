@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use App\Entity\NotificationPreference;
 use App\Entity\User;
 use App\Repository\NotificationPreferenceRepository;
 
@@ -19,7 +18,7 @@ class NotificationPreferenceService
     public function getPreferences(User $user): array
     {
         $preference = $this->preferenceRepository->getOrCreateForUser($user);
-        
+
         return [
             'email' => $preference->getEmailSettings(),
             'push' => $preference->getPushSettings(),
@@ -53,7 +52,7 @@ class NotificationPreferenceService
         }
 
         $this->preferenceRepository->save($preference);
-        
+
         return true;
     }
 
@@ -186,7 +185,7 @@ class NotificationPreferenceService
         // Получаем статистику из базы уведомлений
         $notifRepo = $this->preferenceRepository->getEntityManager()
             ->getRepository(\App\Entity\Notification::class);
-        
+
         $total = $notifRepo->createQueryBuilder('n')
             ->select('COUNT(n.id)')
             ->andWhere('n.user = :user')

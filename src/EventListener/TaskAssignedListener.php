@@ -11,7 +11,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
  * Слушатель событий TaskAssigned
- * 
+ *
  * Обрабатывает событие назначения задачи:
  * - Записывает запись в Activity Log
  * - Отправляет уведомление новому исполнителю
@@ -50,11 +50,11 @@ final class TaskAssignedListener
         $activityLog->setAction('assigned');
         $activityLog->setEventType('task.assigned');
         $activityLog->setCreatedAt(new \DateTimeImmutable());
-        
+
         $description = $event->getPreviousAssigneeId()
-            ? sprintf('Задача "%s" пере назначена', $task->getTitle())
-            : sprintf('Задаче "%s" назначен исполнитель', $task->getTitle());
-        
+            ? \sprintf('Задача "%s" пере назначена', $task->getTitle())
+            : \sprintf('Задаче "%s" назначен исполнитель', $task->getTitle());
+
         $activityLog->setDescription($description);
 
         $this->entityManager->persist($activityLog);
@@ -64,7 +64,7 @@ final class TaskAssignedListener
     private function notifyNewAssignee($task, TaskAssigned $event): void
     {
         $newAssigneeId = $event->getNewAssigneeId();
-        
+
         // Не отправляем уведомление, если задача назначена создателю
         if ($newAssigneeId === $event->getAssignedByUserId()) {
             return;
@@ -76,9 +76,9 @@ final class TaskAssignedListener
         $notification->setUser($task->getAssignedUser());
         $notification->setType('task_assigned');
         $notification->setTitle('Вам назначена задача');
-        $notification->setMessage(sprintf(
+        $notification->setMessage(\sprintf(
             'Вам назначена задача: %s',
-            $task->getTitle()
+            $task->getTitle(),
         ));
         $notification->setLink($this->urlGenerator->generate('app_task_show', ['id' => $task->getId()]));
         $notification->setMetadata([

@@ -74,6 +74,7 @@ class FilterView
     public function setName(string $name): self
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -85,6 +86,7 @@ class FilterView
     public function setFilters(array $filters): self
     {
         $this->filters = $filters;
+
         return $this;
     }
 
@@ -96,6 +98,7 @@ class FilterView
     public function setColumns(array $columns): self
     {
         $this->columns = $columns;
+
         return $this;
     }
 
@@ -107,6 +110,7 @@ class FilterView
     public function setSort(?array $sort): self
     {
         $this->sort = $sort;
+
         return $this;
     }
 
@@ -118,6 +122,7 @@ class FilterView
     public function setGroupBy(?string $groupBy): self
     {
         $this->groupBy = $groupBy;
+
         return $this;
     }
 
@@ -129,6 +134,7 @@ class FilterView
     public function setIcon(?string $icon): self
     {
         $this->icon = $icon;
+
         return $this;
     }
 
@@ -140,6 +146,7 @@ class FilterView
     public function setIsDefault(bool $isDefault): self
     {
         $this->isDefault = $isDefault;
+
         return $this;
     }
 
@@ -151,6 +158,7 @@ class FilterView
     public function setIsShared(bool $isShared): self
     {
         $this->isShared = $isShared;
+
         return $this;
     }
 
@@ -162,6 +170,7 @@ class FilterView
     public function setCreatedAt(\DateTimeInterface $createdAt): self
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 
@@ -173,6 +182,7 @@ class FilterView
     public function setUpdatedAt(?\DateTimeInterface $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
+
         return $this;
     }
 
@@ -184,6 +194,7 @@ class FilterView
     public function setUser(?User $user): self
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -201,6 +212,7 @@ class FilterView
             $this->sharedWithUsers->add($user);
             $this->isShared = true;
         }
+
         return $this;
     }
 
@@ -210,6 +222,7 @@ class FilterView
         if ($this->sharedWithUsers->isEmpty()) {
             $this->isShared = false;
         }
+
         return $this;
     }
 

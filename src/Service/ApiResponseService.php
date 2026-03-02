@@ -48,7 +48,7 @@ class ApiResponseService
         int $total,
         int $page,
         int $limit,
-        string $message = 'OK'
+        string $message = 'OK',
     ): JsonResponse {
         return new JsonResponse([
             'success' => true,
@@ -120,7 +120,7 @@ class ApiResponseService
     public function tooManyRequests(string $message = 'Too many requests', ?int $retryAfter = null): JsonResponse
     {
         $response = $this->error($message, 429);
-        
+
         if ($retryAfter) {
             $response->headers->set('Retry-After', (string) $retryAfter);
         }

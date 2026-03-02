@@ -42,7 +42,7 @@ class EnhancedNotificationService
                 $channels,
                 ['task_id' => $task?->getId()],
                 $templateKey,
-                $templateVariables
+                $templateVariables,
             );
 
             if ($task) {
@@ -63,7 +63,7 @@ class EnhancedNotificationService
     private function sendRealTimeUpdate(Notification $notification): void
     {
         // Future implementation with Mercure or WebSocket
-        $this->logger->debug("Real-time update would be sent here");
+        $this->logger->debug('Real-time update would be sent here');
     }
 
     /**

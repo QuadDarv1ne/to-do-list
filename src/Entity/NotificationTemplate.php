@@ -61,6 +61,7 @@ class NotificationTemplate
     public function setKey(string $key): self
     {
         $this->key = $key;
+
         return $this;
     }
 
@@ -72,6 +73,7 @@ class NotificationTemplate
     public function setName(string $name): self
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -83,6 +85,7 @@ class NotificationTemplate
     public function setSubject(string $subject): self
     {
         $this->subject = $subject;
+
         return $this;
     }
 
@@ -94,6 +97,7 @@ class NotificationTemplate
     public function setContent(string $content): self
     {
         $this->content = $content;
+
         return $this;
     }
 
@@ -105,6 +109,7 @@ class NotificationTemplate
     public function setChannel(string $channel): self
     {
         $this->channel = $channel;
+
         return $this;
     }
 
@@ -116,6 +121,7 @@ class NotificationTemplate
     public function setIsActive(bool $isActive): self
     {
         $this->isActive = $isActive;
+
         return $this;
     }
 
@@ -127,6 +133,7 @@ class NotificationTemplate
     public function setVariables(?array $variables): self
     {
         $this->variables = $variables;
+
         return $this;
     }
 
@@ -143,6 +150,7 @@ class NotificationTemplate
     public function setUpdatedAt(?\DateTimeImmutable $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
+
         return $this;
     }
 
@@ -162,6 +170,7 @@ class NotificationTemplate
         foreach ($variables as $key => $value) {
             $result = str_replace('{{' . $key . '}}', (string) $value, $result);
         }
+
         return $result;
     }
 }

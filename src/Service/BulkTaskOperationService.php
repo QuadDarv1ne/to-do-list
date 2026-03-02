@@ -47,7 +47,7 @@ class BulkTaskOperationService
             ->setParameter('taskIds', $taskIds)
             ->getQuery()
             ->getResult();
-        
+
         $updatedCount = 0;
         $failedTasks = [];
 
@@ -144,7 +144,7 @@ class BulkTaskOperationService
             ->setParameter('taskIds', $taskIds)
             ->getQuery()
             ->getResult();
-        
+
         $updatedCount = 0;
         $failedTasks = [];
 
@@ -196,7 +196,7 @@ class BulkTaskOperationService
             ->setParameter('taskIds', $taskIds)
             ->getQuery()
             ->getResult();
-        
+
         $updatedCount = 0;
         $failedTasks = [];
 
@@ -262,7 +262,7 @@ class BulkTaskOperationService
             ->setParameter('taskIds', $taskIds)
             ->getQuery()
             ->getResult();
-        
+
         $deletedCount = 0;
         $failedTasks = [];
 

@@ -59,7 +59,7 @@ final class ClientCommandService
         $client = $this->clientRepository->find($dto->getId());
 
         if (!$client) {
-            throw new \InvalidArgumentException(sprintf('Client with id %d not found', $dto->getId()));
+            throw new \InvalidArgumentException(\sprintf('Client with id %d not found', $dto->getId()));
         }
 
         // Сохраняем старые значения для Domain Events

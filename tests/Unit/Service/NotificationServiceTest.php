@@ -15,8 +15,11 @@ use Psr\Log\LoggerInterface;
 class NotificationServiceTest extends TestCase
 {
     private EntityManagerInterface|MockObject $entityManager;
+
     private LoggerInterface|MockObject $logger;
+
     private NotificationRepository|MockObject $notificationRepository;
+
     private NotificationService $service;
 
     protected function setUp(): void
@@ -29,7 +32,7 @@ class NotificationServiceTest extends TestCase
             $this->entityManager,
             $this->logger,
             $this->notificationRepository,
-            null // PerformanceMonitorService is optional
+            null, // PerformanceMonitorService is optional
         );
     }
 
@@ -112,7 +115,7 @@ class NotificationServiceTest extends TestCase
             ->method('findBy')
             ->with(
                 ['user' => $user, 'isRead' => false],
-                ['createdAt' => 'DESC']
+                ['createdAt' => 'DESC'],
             )
             ->willReturn($notifications);
 
@@ -185,8 +188,10 @@ class NotificationServiceTest extends TestCase
                 $qb->method('getQuery')->willReturnCallback(function () {
                     $query = $this->createMock(\Doctrine\ORM\Query::class);
                     $query->method('getResult')->willReturn([new Notification(), new Notification()]);
+
                     return $query;
                 });
+
                 return $qb;
             });
 

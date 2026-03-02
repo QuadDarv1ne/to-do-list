@@ -85,7 +85,7 @@ class TaskCacheInvalidationListener
             $this->logger->debug('Task cache invalidated', [
                 'task_id' => $entity->getId(),
                 'action' => $action,
-                'keys_invalidated' => count($keysToInvalidate),
+                'keys_invalidated' => \count($keysToInvalidate),
             ]);
         } catch (\Exception $e) {
             // Don't break the application if cache invalidation fails

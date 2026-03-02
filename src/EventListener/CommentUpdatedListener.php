@@ -9,7 +9,7 @@ use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
 /**
  * Слушатель события CommentUpdated
- * 
+ *
  * Обрабатывает обновление комментария:
  * - Записывает запись в Activity Log
  */
@@ -33,10 +33,10 @@ final class CommentUpdatedListener
         $activityLog->setAction('comment_updated');
         $activityLog->setEventType('comment.updated');
         $activityLog->setCreatedAt(new \DateTimeImmutable());
-        $activityLog->setDescription(sprintf(
+        $activityLog->setDescription(\sprintf(
             'Обновлён комментарий #%d к задаче #%d',
             $event->getCommentId(),
-            $event->getTaskId()
+            $event->getTaskId(),
         ));
 
         $this->entityManager->persist($activityLog);

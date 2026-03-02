@@ -12,7 +12,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
  * Слушатель событий TaskCompleted
- * 
+ *
  * Обрабатывает событие завершения задачи:
  * - Записывает запись в Activity Log
  * - Отправляет уведомления создателю и наблюдателям
@@ -55,9 +55,9 @@ final class TaskCompletedListener
         $activityLog->setAction('completed');
         $activityLog->setEventType('task.completed');
         $activityLog->setCreatedAt(new \DateTimeImmutable());
-        $activityLog->setDescription(sprintf(
+        $activityLog->setDescription(\sprintf(
             'Задача "%s" завершена',
-            $task->getTitle()
+            $task->getTitle(),
         ));
 
         $this->entityManager->persist($activityLog);
@@ -74,8 +74,8 @@ final class TaskCompletedListener
             $this->createNotification(
                 $task->getUser(),
                 'Задача завершена',
-                sprintf('Пользователь завершил вашу задачу: %s', $task->getTitle()),
-                $task
+                \sprintf('Пользователь завершил вашу задачу: %s', $task->getTitle()),
+                $task,
             );
         }
 

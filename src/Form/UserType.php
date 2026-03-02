@@ -21,7 +21,7 @@ class UserType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $isProfileEdit = $options['is_profile_edit'] ?? false;
-        
+
         $builder
             ->add('username', TextType::class, [
                 'label' => 'Логин',
@@ -90,7 +90,7 @@ class UserType extends AbstractType
                     'class' => 'form-control',
                 ],
             ]);
-        
+
         // Добавляем роли и статус только если это не редактирование профиля
         if (!$isProfileEdit) {
             $builder
@@ -111,7 +111,7 @@ class UserType extends AbstractType
                     'attr' => ['class' => 'form-check-input'],
                 ]);
         }
-        
+
         $builder->add('notes', TextareaType::class, [
             'label' => 'Заметки',
             'required' => false,

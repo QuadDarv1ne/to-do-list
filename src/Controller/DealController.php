@@ -59,10 +59,10 @@ class DealController extends AbstractController
 
         // Считаем статистику
         $stats = [
-            'total' => count($deals),
-            'in_progress' => count(array_filter($deals, fn($d) => $d->getStatus() === 'in_progress')),
-            'won' => count(array_filter($deals, fn($d) => $d->getStatus() === 'won')),
-            'lost' => count(array_filter($deals, fn($d) => $d->getStatus() === 'lost')),
+            'total' => \count($deals),
+            'in_progress' => \count(array_filter($deals, fn ($d) => $d->getStatus() === 'in_progress')),
+            'won' => \count(array_filter($deals, fn ($d) => $d->getStatus() === 'won')),
+            'lost' => \count(array_filter($deals, fn ($d) => $d->getStatus() === 'lost')),
         ];
 
         return $this->render('deals/funnel.html.twig', [

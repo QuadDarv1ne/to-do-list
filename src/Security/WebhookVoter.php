@@ -2,8 +2,8 @@
 
 namespace App\Security;
 
-use App\Entity\Webhook;
 use App\Entity\User;
+use App\Entity\Webhook;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 

@@ -13,14 +13,14 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:process-reminders',
-    description: 'Обработать напоминания о задачах'
+    description: 'Обработать напоминания о задачах',
 )]
 class ProcessRemindersCommand extends Command
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
         private NotificationService $notificationService,
-        private TaskRepository $taskRepository
+        private TaskRepository $taskRepository,
     ) {
         parent::__construct();
     }
@@ -30,12 +30,7 @@ class ProcessRemindersCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $io->title('Обработка напоминаний о задачах');
 
-        // 1. Отправить напоминания
-        $io->section('Отправка напоминаний...');
-        $reminderResult = $this->notificationService->processTaskReminders();
-        $io->success(sprintf('Отправлено: %d, ошибок: %d', $reminderResult['sent'], $reminderResult['failed']));
-
-        // 2. Найти просроченные задачи
+        // 1. Найти просроченные задачи
         $io->section('Проверка просроченных задач...');
         $overdueTasks = $this->taskRepository->createQueryBuilder('t')
             ->andWhere('t.dueDate < :now')
@@ -51,9 +46,9 @@ class ProcessRemindersCommand extends Command
         $sent = 0;
         foreach ($overdueTasks as $task) {
             try {
-                $this->notificationService->sendOverdueNotification($task);
+                $this->notificationService->notifyTaskOverdue($task);
                 $task->setOverdueNotificationSent(true);
-                $this->entityManager->flush($task);
+                $this->entityManager->flush();
                 $sent++;
             } catch (\Exception $e) {
                 $io->warning('Ошибка отправки для задачи ' . $task->getId() . ': ' . $e->getMessage());
@@ -62,7 +57,7 @@ class ProcessRemindersCommand extends Command
 
         $io->success("Уведомлений о просроченных задачах отправлено: {$sent}");
 
-        // 3. Агрегировать статистику
+        // 2. Агрегировать статистику
         $stats = $this->getStats();
         $io->section('Статистика');
         $io->table(
@@ -72,7 +67,7 @@ class ProcessRemindersCommand extends Command
                 ['Активных', $stats['active_tasks']],
                 ['Просроченных', $stats['overdue_tasks']],
                 ['Завершённых', $stats['completed_tasks']],
-            ]
+            ],
         );
 
         return Command::SUCCESS;

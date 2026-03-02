@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use App\Entity\Task;
 use App\Entity\User;
 use App\Entity\UserIntegration;
 use App\Repository\UserIntegrationRepository;
@@ -509,6 +508,7 @@ class IntegrationService
         foreach ($tasks as $task) {
             if (!isset($task['title']) || !isset($task['due_date'])) {
                 $errors++;
+
                 continue;
             }
 
@@ -524,7 +524,7 @@ class IntegrationService
                 [
                     'description' => $task['description'] ?? '',
                     'reminder_minutes' => 30,
-                ]
+                ],
             );
 
             if ($result['success']) {
@@ -759,7 +759,7 @@ class IntegrationService
         $result = [];
         foreach ($integrations as $integration) {
             $metadata = $integration->getMetadata() ?? [];
-            
+
             $result[] = [
                 'id' => $integration->getId(),
                 'type' => $integration->getIntegrationType(),
@@ -828,7 +828,7 @@ class IntegrationService
         foreach ($integrations as $integration) {
             if ($integration->getLastSyncAt()) {
                 $totalSynced++;
-                
+
                 if ($lastSync === null || $integration->getLastSyncAt() > $lastSync) {
                     $lastSync = $integration->getLastSyncAt();
                 }
@@ -862,6 +862,7 @@ class IntegrationService
     public function hasIntegration(User $user, string $type): bool
     {
         $integration = $this->getUserIntegration($user, $type);
+
         return $integration && $integration->isActive() && $integration->isTokenValid();
     }
 
@@ -939,13 +940,13 @@ class IntegrationService
         ]);
 
         $response = @file_get_contents('https://api.github.com/user', false, $context);
-        
+
         if ($response === false) {
             return ['success' => false, 'message' => 'Не удалось подключиться к GitHub'];
         }
 
         $data = json_decode($response, true);
-        
+
         return [
             'success' => isset($data['login']),
             'message' => isset($data['login']) ? 'Подключение успешно' : 'Неверный токен',
@@ -1135,6 +1136,7 @@ class IntegrationService
         if (isset($data['ok']) && $data['ok']) {
             $integration->setLastSyncAt(new \DateTime());
             $this->entityManager->flush();
+
             return true;
         }
 
@@ -1173,6 +1175,7 @@ class IntegrationService
         if ($result !== false) {
             $integration->setLastSyncAt(new \DateTime());
             $this->entityManager->flush();
+
             return true;
         }
 

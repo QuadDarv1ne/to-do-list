@@ -42,10 +42,10 @@ class AdvancedFilterViewService
     public function getUserViews(User $user): array
     {
         $views = [];
-        
+
         // Добавляем стандартные views
         $views = $this->getDefaultViews();
-        
+
         // Добавляем пользовательские views из БД
         $userViews = $this->filterViewRepository->findByUser($user);
         foreach ($userViews as $view) {
@@ -60,7 +60,7 @@ class AdvancedFilterViewService
                 'id' => $view->getId(),
             ];
         }
-        
+
         return $views;
     }
 
@@ -289,7 +289,7 @@ class AdvancedFilterViewService
     public function updateView(int $viewId, array $data, User $user): ?FilterView
     {
         $view = $this->filterViewRepository->findOneByUserAndId($user, $viewId);
-        
+
         if (!$view) {
             return null;
         }
@@ -324,7 +324,7 @@ class AdvancedFilterViewService
     public function deleteView(int $viewId, User $user): bool
     {
         $view = $this->filterViewRepository->findOneByUserAndId($user, $viewId);
-        
+
         if (!$view) {
             return false;
         }
@@ -364,7 +364,7 @@ class AdvancedFilterViewService
     public function getDefaultView(User $user): ?array
     {
         $defaultView = $this->filterViewRepository->findDefaultView($user);
-        
+
         if ($defaultView) {
             return [
                 'name' => $defaultView->getName(),
@@ -377,7 +377,7 @@ class AdvancedFilterViewService
                 'id' => $defaultView->getId(),
             ];
         }
-        
+
         return $this->getDefaultViews()['all_tasks'];
     }
 
@@ -387,13 +387,13 @@ class AdvancedFilterViewService
     public function shareView(int $viewId, array $userIds, User $owner): bool
     {
         $view = $this->filterViewRepository->findOneByUserAndId($owner, $viewId);
-        
+
         if (!$view) {
             return false;
         }
 
         $userRepository = $this->em->getRepository(User::class);
-        
+
         foreach ($userIds as $userId) {
             $user = $userRepository->find($userId);
             if ($user) {
@@ -413,7 +413,7 @@ class AdvancedFilterViewService
     {
         $views = $this->filterViewRepository->findSharedWithUser($user);
         $result = [];
-        
+
         foreach ($views as $view) {
             $result['shared_' . $view->getId()] = [
                 'name' => $view->getName(),
@@ -427,7 +427,7 @@ class AdvancedFilterViewService
                 'id' => $view->getId(),
             ];
         }
-        
+
         return $result;
     }
 
@@ -437,7 +437,7 @@ class AdvancedFilterViewService
     public function duplicateView(int $viewId, User $user): ?FilterView
     {
         $view = $this->filterViewRepository->findOneByUserAndId($user, $viewId);
-        
+
         if (!$view) {
             return null;
         }
@@ -503,13 +503,13 @@ class AdvancedFilterViewService
     private function exportToJSON(array $tasks): string
     {
         $data = [];
-        
+
         foreach ($tasks as $task) {
             if (\is_array($task)) {
                 // Grouped tasks
                 continue;
             }
-            
+
             $data[] = [
                 'id' => $task->getId(),
                 'title' => $task->getTitle(),
@@ -521,7 +521,7 @@ class AdvancedFilterViewService
                 'assigned_user' => $task->getAssignedUser()?->getUsername(),
             ];
         }
-        
+
         return json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     }
 

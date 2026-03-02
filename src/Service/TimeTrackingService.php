@@ -162,7 +162,7 @@ class TimeTrackingService
             $byCategory[$categoryName] += $duration;
         }
 
-        $tasksCount = count($tasksTracked);
+        $tasksCount = \count($tasksTracked);
         $avgPerTask = $tasksCount > 0 ? intdiv($totalTime, $tasksCount) : 0;
         $daysCount = max(1, $from->diff($to)->days + 1);
         $avgPerDay = intdiv($totalTime, $daysCount);
@@ -221,7 +221,7 @@ class TimeTrackingService
 
         // Factor 3: Consistency (max 20 points)
         // Check if time was tracked on most days
-        $daysWithTracking = count($stats['by_day']);
+        $daysWithTracking = \count($stats['by_day']);
         $consistencyRatio = min(1, $daysWithTracking / $days);
         $score += $consistencyRatio * 20;
 
@@ -269,7 +269,7 @@ class TimeTrackingService
 
         $activeSession = $this->getActiveSession($user);
         $currentSessionTime = 0;
-        
+
         if ($activeSession !== null) {
             $currentSessionTime = $activeSession->calculateDuration();
         }
@@ -315,6 +315,7 @@ class TimeTrackingService
 
         if ($activeSession !== null) {
             $this->stopTracking($activeSession);
+
             return [
                 'action' => 'stopped',
                 'tracking' => $activeSession,
@@ -324,6 +325,7 @@ class TimeTrackingService
         }
 
         $newTracking = $this->startTracking($task, $user);
+
         return [
             'action' => 'started',
             'tracking' => $newTracking,

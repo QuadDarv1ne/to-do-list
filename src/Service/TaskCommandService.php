@@ -107,7 +107,7 @@ final class TaskCommandService
         $task = $this->taskRepository->find($dto->getId());
 
         if (!$task) {
-            throw new \InvalidArgumentException(sprintf('Task with id %d not found', $dto->getId()));
+            throw new \InvalidArgumentException(\sprintf('Task with id %d not found', $dto->getId()));
         }
 
         // Сохраняем старые значения для Domain Events
@@ -187,7 +187,7 @@ final class TaskCommandService
         $task = $this->taskRepository->find($dto->getId());
 
         if (!$task) {
-            throw new \InvalidArgumentException(sprintf('Task with id %d not found', $dto->getId()));
+            throw new \InvalidArgumentException(\sprintf('Task with id %d not found', $dto->getId()));
         }
 
         $task->setStatus('completed');

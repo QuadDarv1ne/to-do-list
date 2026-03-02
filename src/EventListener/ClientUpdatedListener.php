@@ -9,7 +9,7 @@ use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
 /**
  * Слушатель события ClientUpdated
- * 
+ *
  * Обрабатывает обновление клиента:
  * - Записывает запись в Activity Log
  * - Отправляет уведомления при важных изменениях
@@ -37,11 +37,11 @@ final class ClientUpdatedListener
         $descriptions = [];
 
         foreach ($changedFields as $field => $change) {
-            $descriptions[] = sprintf(
+            $descriptions[] = \sprintf(
                 '%s: %s → %s',
                 $this->getFieldLabel($field),
                 $this->getValueLabel($field, $change['old']),
-                $this->getValueLabel($field, $change['new'])
+                $this->getValueLabel($field, $change['new']),
             );
         }
 
@@ -49,9 +49,9 @@ final class ClientUpdatedListener
         $activityLog->setAction('client_updated');
         $activityLog->setEventType('client.updated');
         $activityLog->setCreatedAt(new \DateTimeImmutable());
-        $activityLog->setDescription(sprintf(
+        $activityLog->setDescription(\sprintf(
             'Обновлены данные клиента: %s',
-            implode(', ', $descriptions)
+            implode(', ', $descriptions),
         ));
 
         $this->entityManager->persist($activityLog);

@@ -10,8 +10,9 @@ use Doctrine\ORM\Events;
 class AuditSubscriber implements EventSubscriber
 {
     public function __construct(
-        private AuditService $auditService
-    ) {}
+        private AuditService $auditService,
+    ) {
+    }
 
     public function getSubscribedEvents(): array
     {
@@ -30,7 +31,7 @@ class AuditSubscriber implements EventSubscriber
             $this->auditService->logCreate(
                 $this->getEntityType($entity),
                 $this->getEntityId($entity),
-                $this->getEntityData($entity)
+                $this->getEntityData($entity),
             );
         }
 
@@ -39,7 +40,7 @@ class AuditSubscriber implements EventSubscriber
             $this->auditService->logUpdate(
                 $this->getEntityType($entity),
                 $this->getEntityId($entity),
-                $this->getEntityChanges($entity, $uow)
+                $this->getEntityChanges($entity, $uow),
             );
         }
 
@@ -47,7 +48,7 @@ class AuditSubscriber implements EventSubscriber
         foreach ($uow->getScheduledEntityDeletions() as $entity) {
             $this->auditService->logDelete(
                 $this->getEntityType($entity),
-                $this->getEntityId($entity)
+                $this->getEntityId($entity),
             );
         }
 
@@ -73,24 +74,25 @@ class AuditSubscriber implements EventSubscriber
     private function getEntityData(object $entity): array
     {
         $data = [];
-        
+
         // Получаем публичные свойства
         $reflection = new \ReflectionClass($entity);
         foreach ($reflection->getProperties() as $property) {
             if (!$property->isPublic()) {
                 $property->setAccessible(true);
             }
-            
+
             $value = $property->getValue($entity);
-            
+
             // Исключаем sensitive данные
-            if (in_array($property->getName(), ['password', 'token', 'secret'])) {
+            if (\in_array($property->getName(), ['password', 'token', 'secret'])) {
                 $data[$property->getName()] = '***HIDDEN***';
+
                 continue;
             }
-            
+
             // Сериализуем объекты
-            if (is_object($value)) {
+            if (\is_object($value)) {
                 if (method_exists($value, '__toString')) {
                     $data[$property->getName()] = (string) $value;
                 }
@@ -105,6 +107,7 @@ class AuditSubscriber implements EventSubscriber
     private function getEntityChanges(object $entity, $uow): array
     {
         $changes = $uow->getEntityChangeSet($entity);
+
         return array_keys($changes);
     }
 }

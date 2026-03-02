@@ -48,7 +48,7 @@ class QuickActionsService
             ->setParameter('taskIds', $taskIds)
             ->getQuery()
             ->getResult();
-        
+
         foreach ($tasks as $task) {
             $this->taskCache[$task->getId()] = $task;
         }

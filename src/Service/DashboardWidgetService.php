@@ -4,8 +4,8 @@ namespace App\Service;
 
 use App\Entity\User;
 use App\Entity\UserPreference;
-use App\Repository\UserPreferenceRepository;
 use App\Repository\TaskRepository;
+use App\Repository\UserPreferenceRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
 class DashboardWidgetService
@@ -113,7 +113,7 @@ class DashboardWidgetService
     {
         $preference = $this->preferenceRepository->findByUserAndKey(
             $user->getId(),
-            UserPreference::KEY_WIDGET_SETTINGS
+            UserPreference::KEY_WIDGET_SETTINGS,
         );
 
         if (!$preference || !$preference->getPreferenceValue()) {
@@ -139,10 +139,10 @@ class DashboardWidgetService
         $validWidgets = [];
 
         foreach ($widgets as $widgetId => $config) {
-            if (in_array($widgetId, $available, true)) {
+            if (\in_array($widgetId, $available, true)) {
                 $validWidgets[$widgetId] = array_merge(
                     ['enabled' => true, 'position' => 999, 'collapsed' => false],
-                    $config
+                    $config,
                 );
             }
         }
@@ -151,7 +151,7 @@ class DashboardWidgetService
             $user->getId(),
             $user,
             UserPreference::KEY_WIDGET_SETTINGS,
-            $validWidgets
+            $validWidgets,
         );
     }
 
@@ -214,11 +214,11 @@ class DashboardWidgetService
 
         $enabledWidgets = array_filter(
             $widgets,
-            fn($config) => $config['enabled'] ?? true
+            fn ($config) => $config['enabled'] ?? true,
         );
 
         // Сортируем по позиции
-        uasort($enabledWidgets, fn($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
+        uasort($enabledWidgets, fn ($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
 
         return $enabledWidgets;
     }

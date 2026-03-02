@@ -232,7 +232,7 @@ class ResourceController extends AbstractController
     {
         // Получаем навыки ресурса из сущности
         $skills = $resource->getSkills();
-        
+
         $skillsData = [];
         foreach ($skills as $skill) {
             $skillsData[] = [
@@ -242,7 +242,7 @@ class ResourceController extends AbstractController
                 'description' => $skill->getDescription(),
             ];
         }
-        
+
         return $this->json($skillsData);
     }
 

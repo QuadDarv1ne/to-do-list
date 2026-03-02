@@ -24,8 +24,8 @@ class TelegramNotificationService
             return false;
         }
 
-        $message = "🆕 Новая задача создана!";
-        
+        $message = '🆕 Новая задача создана!';
+
         $context = [
             'task_title' => $task->getTitle(),
             'task_url' => $this->getTaskUrl($task),
@@ -43,8 +43,8 @@ class TelegramNotificationService
             return false;
         }
 
-        $message = "✏️ Задача обновлена";
-        
+        $message = '✏️ Задача обновлена';
+
         if (!empty($changes)) {
             $message .= "\n\nИзменения:\n";
             foreach ($changes as $field => $change) {
@@ -69,7 +69,7 @@ class TelegramNotificationService
             return false;
         }
 
-        $message = "✅ Задача завершена!";
+        $message = '✅ Задача завершена!';
 
         $context = [
             'task_title' => $task->getTitle(),
@@ -107,7 +107,7 @@ class TelegramNotificationService
             return false;
         }
 
-        $message = "🚨 Задача просрочена!";
+        $message = '🚨 Задача просрочена!';
 
         $context = [
             'task_title' => $task->getTitle(),

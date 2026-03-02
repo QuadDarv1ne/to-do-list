@@ -70,13 +70,13 @@ class TaskPriorityCalculatorService
     private function getDependentTasks(Task $task): array
     {
         $qb = $this->em->createQueryBuilder();
-        
+
         $qb->select('t')
             ->from(\App\Entity\TaskDependency::class, 'td')
             ->join('td.task', 't')
             ->andWhere('td.dependsOn = :task')
             ->setParameter('task', $task);
-        
+
         return $qb->getQuery()->getResult();
     }
 
@@ -108,7 +108,7 @@ class TaskPriorityCalculatorService
         usort($tasksWithScores, fn ($a, $b) => $b['score'] <=> $a['score']);
 
         // Возвращаем топ-N задач
-        return array_slice($tasksWithScores, 0, $limit);
+        return \array_slice($tasksWithScores, 0, $limit);
     }
 
     /**

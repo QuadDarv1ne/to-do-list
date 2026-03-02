@@ -282,12 +282,14 @@ class SearchService
         foreach ($allCommands as $command) {
             if (mb_stripos($command['name'], $query) !== false) {
                 $matched[] = $command;
+
                 continue;
             }
 
             foreach ($command['keywords'] as $keyword) {
                 if (mb_stripos($keyword, $query) !== false) {
                     $matched[] = $command;
+
                     break;
                 }
             }
@@ -362,7 +364,7 @@ class SearchService
     {
         $searches = $this->savedSearchRepository->findByUser($user);
         $result = [];
-        
+
         foreach ($searches as $search) {
             $result[] = [
                 'id' => $search->getId(),
@@ -373,7 +375,7 @@ class SearchService
                 'created_at' => $search->getCreatedAt()->format('Y-m-d H:i:s'),
             ];
         }
-        
+
         return $result;
     }
 }

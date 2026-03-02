@@ -7,7 +7,9 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 class ImageOptimizationService
 {
     private const MAX_WIDTH = 1920;
+
     private const MAX_HEIGHT = 1080;
+
     private const QUALITY = 85;
 
     /**
@@ -19,7 +21,7 @@ class ImageOptimizationService
         $extension = strtolower($file->getClientOriginalExtension());
 
         // Проверяем, является ли файл изображением
-        if (!in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+        if (!\in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
             return ['error' => 'Неподдерживаемый формат'];
         }
 
@@ -35,7 +37,7 @@ class ImageOptimizationService
         try {
             // Создаём изображение из файла
             $image = $this->createImageFromFile($file);
-            
+
             if (!$image) {
                 return ['error' => 'Не удалось создать изображение'];
             }
@@ -45,7 +47,7 @@ class ImageOptimizationService
 
             // Конвертируем в WebP для лучшего сжатия
             $optimizedFilename = $this->convertToWebP($image, $filename);
-            
+
             $result['optimized_name'] = $optimizedFilename;
             $result['optimized_size'] = filesize($this->getUploadDir() . '/' . $optimizedFilename);
             $result['saved_bytes'] = $result['original_size'] - $result['optimized_size'];
@@ -67,7 +69,7 @@ class ImageOptimizationService
     private function createImageFromFile(UploadedFile $file): \GdImage|false
     {
         $extension = strtolower($file->getClientOriginalExtension());
-        
+
         $imageCreate = match($extension) {
             'jpg', 'jpeg' => 'imagecreatefromjpeg',
             'png' => 'imagecreatefrompng',
@@ -102,7 +104,7 @@ class ImageOptimizationService
 
         // Создаём новое изображение
         $resized = imagecreatetruecolor($newWidth, $newHeight);
-        
+
         // Сохраняем прозрачность для PNG
         if (imageistruecolor($image)) {
             imagealphablending($resized, false);
@@ -111,10 +113,16 @@ class ImageOptimizationService
 
         // Изменяем размер
         imagecopyresampled(
-            $resized, $image,
-            0, 0, 0, 0,
-            $newWidth, $newHeight,
-            $width, $height
+            $resized,
+            $image,
+            0,
+            0,
+            0,
+            0,
+            $newWidth,
+            $newHeight,
+            $width,
+            $height,
         );
 
         imagedestroy($image);
@@ -150,14 +158,14 @@ class ImageOptimizationService
     public function createThumbnail(UploadedFile $file, int $width = 200, int $height = 200): ?string
     {
         $image = $this->createImageFromFile($file);
-        
+
         if (!$image) {
             return null;
         }
 
         // Создаём thumbnail
         $thumb = imagecreatetruecolor($width, $height);
-        
+
         // Сохраняем прозрачность
         imagealphablending($thumb, false);
         imagesavealpha($thumb, true);
@@ -165,16 +173,22 @@ class ImageOptimizationService
         // Вычисляем размеры для crop
         $srcWidth = imagesx($image);
         $srcHeight = imagesy($image);
-        
+
         $ratio = max($width / $srcWidth, $height / $srcHeight);
         $srcX = ($srcWidth - $width / $ratio) / 2;
         $srcY = ($srcHeight - $height / $ratio) / 2;
 
         imagecopyresampled(
-            $thumb, $image,
-            0, 0, $srcX, $srcY,
-            $width, $height,
-            $width / $ratio, $height / $ratio
+            $thumb,
+            $image,
+            0,
+            0,
+            $srcX,
+            $srcY,
+            $width,
+            $height,
+            $width / $ratio,
+            $height / $ratio,
         );
 
         $baseName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);

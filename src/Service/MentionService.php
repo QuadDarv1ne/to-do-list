@@ -31,7 +31,7 @@ class MentionService
 
         if (!empty($matches[1])) {
             $uniqueUsernames = array_unique($matches[1]);
-            
+
             // Batch load users for better performance
             if (!empty($uniqueUsernames)) {
                 $users = $this->userRepository->createQueryBuilder('u')
@@ -66,18 +66,18 @@ class MentionService
     {
         // First escape HTML to prevent XSS
         $text = htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
-        
+
         // Then convert mentions to links
         return preg_replace_callback('/@([a-zA-Z0-9_]+)/', function ($matches) {
             $username = $matches[1];
             $user = $this->userRepository->findOneBy(['username' => $username]);
 
             if ($user) {
-                return sprintf(
+                return \sprintf(
                     '<a href="/users/%d" class="mention" data-user-id="%d">@%s</a>',
                     $user->getId(),
                     $user->getId(),
-                    htmlspecialchars($username, ENT_QUOTES, 'UTF-8')
+                    htmlspecialchars($username, ENT_QUOTES, 'UTF-8'),
                 );
             }
 
@@ -95,7 +95,7 @@ class MentionService
             $mention = new Mention();
             $mention->setMentionedUser($user);
             $mention->setMentionedByUser($mentionedBy);
-            
+
             if (isset($context['entity_type'])) {
                 $mention->setEntityType($context['entity_type']);
             }
@@ -105,9 +105,9 @@ class MentionService
             if (isset($context['content'])) {
                 $mention->setContent($context['content']);
             }
-            
+
             $this->mentionRepository->save($mention);
-            
+
             // Отправляем уведомление
             $this->notificationService->notifyMention($user, $context, $mentionedBy);
         }
@@ -134,7 +134,7 @@ class MentionService
     public function getUserMentions(User $user, int $limit = 20): array
     {
         $mentions = $this->mentionRepository->findByUser($user, $limit);
-        
+
         return array_map(fn ($m) => [
             'id' => $m->getId(),
             'mentioned_by' => [
@@ -155,7 +155,7 @@ class MentionService
     public function markAsRead(int $mentionId, User $user): bool
     {
         $mention = $this->mentionRepository->findOneByIdAndUser($mentionId, $user);
-        
+
         if (!$mention) {
             return false;
         }

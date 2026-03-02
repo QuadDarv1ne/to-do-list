@@ -8,7 +8,6 @@ use App\Domain\Comment\Event\CommentUpdated;
 use App\DTO\CreateCommentDTO;
 use App\DTO\UpdateCommentDTO;
 use App\Entity\Comment;
-use App\Entity\Task;
 use App\Entity\User;
 use App\Repository\CommentRepository;
 use App\Repository\TaskRepository;
@@ -36,7 +35,7 @@ final class CommentCommandService
         $task = $this->taskRepository->find($dto->getTaskId());
 
         if (!$task) {
-            throw new \InvalidArgumentException(sprintf('Task with id %d not found', $dto->getTaskId()));
+            throw new \InvalidArgumentException(\sprintf('Task with id %d not found', $dto->getTaskId()));
         }
 
         $comment = new Comment();
@@ -61,7 +60,7 @@ final class CommentCommandService
         $comment = $this->commentRepository->find($dto->getId());
 
         if (!$comment) {
-            throw new \InvalidArgumentException(sprintf('Comment with id %d not found', $dto->getId()));
+            throw new \InvalidArgumentException(\sprintf('Comment with id %d not found', $dto->getId()));
         }
 
         // Обновляем поля из DTO
@@ -87,7 +86,7 @@ final class CommentCommandService
         $comment = $this->commentRepository->find($commentId);
 
         if (!$comment) {
-            throw new \InvalidArgumentException(sprintf('Comment with id %d not found', $commentId));
+            throw new \InvalidArgumentException(\sprintf('Comment with id %d not found', $commentId));
         }
 
         $taskId = $comment->getTask()->getId();

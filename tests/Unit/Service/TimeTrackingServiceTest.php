@@ -15,8 +15,11 @@ use Psr\Log\LoggerInterface;
 class TimeTrackingServiceTest extends TestCase
 {
     private TaskTimeTrackingRepository|MockObject $timeTrackingRepository;
+
     private EntityManagerInterface|MockObject $entityManager;
+
     private LoggerInterface|MockObject $logger;
+
     private TimeTrackingService $service;
 
     protected function setUp(): void
@@ -24,11 +27,11 @@ class TimeTrackingServiceTest extends TestCase
         $this->timeTrackingRepository = $this->createMock(TaskTimeTrackingRepository::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->logger = $this->createMock(LoggerInterface::class);
-        
+
         $this->service = new TimeTrackingService(
             $this->timeTrackingRepository,
             $this->entityManager,
-            $this->logger
+            $this->logger,
         );
     }
 
@@ -58,7 +61,7 @@ class TimeTrackingServiceTest extends TestCase
     {
         $tracking = new TaskTimeTracking();
         $tracking->start();
-        
+
         // Small delay to ensure duration > 0
         usleep(10000); // 10ms
 
@@ -135,7 +138,7 @@ class TimeTrackingServiceTest extends TestCase
         $tracking1->setTask($task);
         $tracking1->setDurationSeconds(3600);
         $tracking1->setDateLogged(new \DateTimeImmutable());
-        
+
         $tracking2 = new TaskTimeTracking();
         $tracking2->setTask($task);
         $tracking2->setDurationSeconds(1800);
@@ -183,7 +186,7 @@ class TimeTrackingServiceTest extends TestCase
     public function testGetProductivityScoreReturnsValidRange(): void
     {
         $user = new User();
-        
+
         $this->timeTrackingRepository->expects($this->any())
             ->method('findByUserAndDateRange')
             ->willReturn([]);

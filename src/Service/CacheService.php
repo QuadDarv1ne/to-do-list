@@ -11,7 +11,9 @@ use Symfony\Contracts\Cache\ItemInterface;
 class CacheService
 {
     private const DEFAULT_TTL = 3600; // 1 hour
+
     private const STATS_TTL = 300; // 5 minutes
+
     private const USER_TTL = 1800; // 30 minutes
 
     public function __construct(
@@ -23,6 +25,7 @@ class CacheService
     {
         return $this->cache->get($key, function (ItemInterface $item) use ($callback, $ttl) {
             $item->expiresAfter($ttl ?? self::DEFAULT_TTL);
+
             return $callback();
         });
     }

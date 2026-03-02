@@ -259,18 +259,18 @@ class CollaborationService
 
         // Get workload (active tasks count)
         $qb->addSelect('(
-            SELECT COUNT(t1.id) 
-            FROM App\Entity\Task t1 
-            WHERE (t1.assignedUser = u OR t1.user = u) 
+            SELECT COUNT(t1.id)
+            FROM App\\Entity\\Task t1
+            WHERE (t1.assignedUser = u OR t1.user = u)
             AND t1.status != :completed
         ) as workload');
 
         // Get collaboration count with task creator
         $qb->addSelect('(
-            SELECT COUNT(t2.id) 
-            FROM App\Entity\Task t2 
+            SELECT COUNT(t2.id)
+            FROM App\\Entity\\Task t2
             WHERE (
-                (t2.user = :creator AND t2.assignedUser = u) OR 
+                (t2.user = :creator AND t2.assignedUser = u) OR
                 (t2.user = u AND t2.assignedUser = :creator)
             )
         ) as collaborations');
@@ -278,10 +278,10 @@ class CollaborationService
         // Get category experience if category exists
         if ($category) {
             $qb->addSelect('(
-                SELECT COUNT(t3.id) 
-                FROM App\Entity\Task t3 
-                WHERE (t3.assignedUser = u OR t3.user = u) 
-                AND t3.category = :category 
+                SELECT COUNT(t3.id)
+                FROM App\\Entity\\Task t3
+                WHERE (t3.assignedUser = u OR t3.user = u)
+                AND t3.category = :category
                 AND t3.status = :completed
             ) as categoryExperience')
             ->setParameter('category', $category);
@@ -340,7 +340,7 @@ class CollaborationService
             return [];
         }
 
-        $userIds = array_map(fn($u) => $u->getId(), $users);
+        $userIds = array_map(fn ($u) => $u->getId(), $users);
 
         // Batch load all collaboration data in one query
         $collaborationData = $this->taskRepository->createQueryBuilder('t')
@@ -389,7 +389,7 @@ class CollaborationService
 
             // Sort and limit to top 5 collaborators
             arsort($userCollaborations);
-            $topCollaborators = array_slice($userCollaborations, 0, 5, true);
+            $topCollaborators = \array_slice($userCollaborations, 0, 5, true);
 
             $collaborators = [];
             foreach ($topCollaborators as $collaboratorId => $count) {

@@ -204,7 +204,7 @@ class TaskImportService
     {
         // Получаем статистику из задач пользователя
         $qb = $this->em->createQueryBuilder();
-        
+
         // Общее количество задач
         $totalTasks = (int) $qb->select('COUNT(t.id)')
             ->from(\App\Entity\Task::class, 't')

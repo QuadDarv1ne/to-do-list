@@ -172,8 +172,8 @@ class RecurringTaskController extends AbstractController
 
         return new JsonResponse([
             'success' => true,
-            'created_count' => count($created),
-            'message' => sprintf('Создано задач: %d', count($created)),
+            'created_count' => \count($created),
+            'message' => \sprintf('Создано задач: %d', \count($created)),
         ]);
     }
 

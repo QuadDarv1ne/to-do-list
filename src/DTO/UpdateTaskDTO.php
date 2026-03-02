@@ -13,10 +13,8 @@ final readonly class UpdateTaskDTO
      * @param positive-int         $id
      * @param ?non-empty-string    $title
      * @param ?non-empty-string    $description
-     * @param ?'pending'|'in_progress'|'completed' $status
-     * @param ?'low'|'medium'|'high'|'urgent' $priority
-     * @param ?int                 $assignedUserId
-     * @param ?int                 $categoryId
+     * @param 'completed'|'in_progress'|?'pending' $status
+     * @param 'high'|?'low'|'medium'|'urgent' $priority
      * @param ?string              $dueDate ISO 8601 format
      * @param ?int                 $progress 0-100
      * @param array<int>           $tagIds

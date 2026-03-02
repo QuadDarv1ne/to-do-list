@@ -34,19 +34,19 @@ class AdvancedAnalyticsService
         $totalTasks = $this->taskRepository->countByStatus($user);
         $completedTasks = $this->taskRepository->countByStatus($user, true);
         $inProgressTasks = $this->taskRepository->countByStatus($user, false, 'in_progress');
-        
+
         $now = new \DateTime();
-        $overdueTasks = count(array_filter(
+        $overdueTasks = \count(array_filter(
             $this->taskRepository->findByAssignedUser($user),
-            fn($task) => $task->getDueDate() && $task->getDueDate() < $now && !$task->isCompleted()
+            fn ($task) => $task->getDueDate() && $task->getDueDate() < $now && !$task->isCompleted(),
         ));
-        
+
         $completionRate = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100) : 0;
-        
+
         // Расчет среднего времени выполнения
         $completedTasksList = $this->taskRepository->findByUserAndStatus($user, 'done', $from, $to);
         $avgCompletionTime = $this->calculateAverageCompletionTime($completedTasksList);
-        
+
         return [
             'total_tasks' => $totalTasks,
             'completed_tasks' => $completedTasks,
@@ -58,16 +58,16 @@ class AdvancedAnalyticsService
             'quality_score' => $this->calculateQualityScore($user, $from, $to),
         ];
     }
-    
+
     private function calculateAverageCompletionTime(array $tasks): float
     {
         if (empty($tasks)) {
             return 0;
         }
-        
+
         $totalDays = 0;
         $count = 0;
-        
+
         foreach ($tasks as $task) {
             if ($task->getCreatedAt() && $task->getUpdatedAt()) {
                 $diff = $task->getCreatedAt()->diff($task->getUpdatedAt());
@@ -75,25 +75,25 @@ class AdvancedAnalyticsService
                 $count++;
             }
         }
-        
+
         return $count > 0 ? round($totalDays / $count, 1) : 0;
     }
-    
+
     private function calculateQualityScore(User $user, \DateTime $from, \DateTime $to): int
     {
         $tasks = $this->taskRepository->findByUserAndStatus($user, 'done', $from, $to);
         if (empty($tasks)) {
             return 0;
         }
-        
+
         $onTimeCount = 0;
         foreach ($tasks as $task) {
             if ($task->getDueDate() && $task->getUpdatedAt() && $task->getUpdatedAt() <= $task->getDueDate()) {
                 $onTimeCount++;
             }
         }
-        
-        return round(($onTimeCount / count($tasks)) * 100);
+
+        return round(($onTimeCount / \count($tasks)) * 100);
     }
 
     /**
@@ -125,17 +125,19 @@ class AdvancedAnalyticsService
             }
 
             $allTasks = $this->taskRepository->findByAssignedUser($user);
-            
-            $created = count(array_filter($allTasks, function($task) use ($current, $weekEnd) {
+
+            $created = \count(array_filter($allTasks, function ($task) use ($current, $weekEnd) {
                 $createdAt = $task->getCreatedAt();
+
                 return $createdAt && $createdAt >= $current && $createdAt < $weekEnd;
             }));
-            
-            $completed = count(array_filter($allTasks, function($task) use ($current, $weekEnd) {
+
+            $completed = \count(array_filter($allTasks, function ($task) use ($current, $weekEnd) {
                 $updatedAt = $task->getUpdatedAt();
+
                 return $task->isCompleted() && $updatedAt && $updatedAt >= $current && $updatedAt < $weekEnd;
             }));
-            
+
             $velocity = $completed > 0 ? round($completed / 7, 1) : 0;
 
             $data[] = [
@@ -382,7 +384,7 @@ class AdvancedAnalyticsService
 
         // Рассчитываем среднее количество завершённых задач в день
         $totalCompleted = array_sum(array_column($history, 'count'));
-        $totalDays = count($history) > 0 ? count($history) : 1;
+        $totalDays = \count($history) > 0 ? \count($history) : 1;
         $avgDailyCompletion = $totalCompleted / $totalDays;
 
         // Рассчитываем стандартное отклонение для доверительного интервала
@@ -391,7 +393,7 @@ class AdvancedAnalyticsService
         $forecast = [];
         for ($i = 1; $i <= $days; $i++) {
             $date = (new \DateTime())->modify("+$i days");
-            
+
             // Учитываем день недели (будни/выходные)
             $dayOfWeek = (int) $date->format('N');
             $weekdayFactor = ($dayOfWeek <= 5) ? 1.1 : 0.8;
@@ -421,8 +423,8 @@ class AdvancedAnalyticsService
             return 2.0; // Значение по умолчанию
         }
 
-        $mean = array_sum($values) / count($values);
-        $variance = array_sum(array_map(fn($v) => pow($v - $mean, 2), $values)) / count($values);
+        $mean = array_sum($values) / \count($values);
+        $variance = array_sum(array_map(fn ($v) => pow($v - $mean, 2), $values)) / \count($values);
 
         return sqrt($variance);
     }
@@ -459,16 +461,16 @@ class AdvancedAnalyticsService
     private function exportToPDF(array $data): string
     {
         $dompdf = new \Dompdf\Dompdf();
-        
+
         $html = $this->generatePDFHTML($data);
-        
+
         $dompdf->loadHtml($html);
         $dompdf->setPaper('A4', 'portrait');
         $dompdf->render();
-        
+
         return $dompdf->output();
     }
-    
+
     private function generatePDFHTML(array $data): string
     {
         $html = '<!DOCTYPE html>
@@ -491,7 +493,7 @@ class AdvancedAnalyticsService
 <body>
     <h1>Аналитический отчет</h1>
     <p>Дата создания: ' . date('d.m.Y H:i') . '</p>';
-        
+
         if (isset($data['overview'])) {
             $html .= '<h2>Общие метрики</h2>';
             foreach ($data['overview'] as $key => $value) {
@@ -502,7 +504,7 @@ class AdvancedAnalyticsService
                 </div>';
             }
         }
-        
+
         if (isset($data['trends']['weekly_data'])) {
             $html .= '<h2>Недельные тренды</h2>
             <table>
@@ -515,7 +517,7 @@ class AdvancedAnalyticsService
                     </tr>
                 </thead>
                 <tbody>';
-            
+
             foreach ($data['trends']['weekly_data'] as $week) {
                 $html .= '<tr>
                     <td>' . htmlspecialchars($week['week']) . '</td>
@@ -524,17 +526,17 @@ class AdvancedAnalyticsService
                     <td>' . htmlspecialchars($week['velocity']) . '</td>
                 </tr>';
             }
-            
+
             $html .= '</tbody></table>';
         }
-        
+
         $html .= '<div class="footer">
             <p>Сгенерировано системой управления задачами</p>
             <p>&copy; ' . date('Y') . ' Dupley Maxim Igorevich. Все права защищены.</p>
         </div>
     </body>
 </html>';
-        
+
         return $html;
     }
 
@@ -542,20 +544,20 @@ class AdvancedAnalyticsService
     {
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        
+
         // Заголовок
         $sheet->setCellValue('A1', 'Аналитический отчет');
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
         $sheet->setCellValue('A2', 'Дата: ' . date('d.m.Y H:i'));
-        
+
         $row = 4;
-        
+
         // Общие метрики
         if (isset($data['overview'])) {
             $sheet->setCellValue('A' . $row, 'Общие метрики');
             $sheet->getStyle('A' . $row)->getFont()->setBold(true)->setSize(14);
             $row += 2;
-            
+
             foreach ($data['overview'] as $key => $value) {
                 $label = ucfirst(str_replace('_', ' ', $key));
                 $sheet->setCellValue('A' . $row, $label);
@@ -564,20 +566,20 @@ class AdvancedAnalyticsService
             }
             $row += 2;
         }
-        
+
         // Недельные тренды
         if (isset($data['trends']['weekly_data'])) {
             $sheet->setCellValue('A' . $row, 'Недельные тренды');
             $sheet->getStyle('A' . $row)->getFont()->setBold(true)->setSize(14);
             $row += 2;
-            
+
             $sheet->setCellValue('A' . $row, 'Неделя');
             $sheet->setCellValue('B' . $row, 'Создано');
             $sheet->setCellValue('C' . $row, 'Завершено');
             $sheet->setCellValue('D' . $row, 'Скорость');
             $sheet->getStyle('A' . $row . ':D' . $row)->getFont()->setBold(true);
             $row++;
-            
+
             foreach ($data['trends']['weekly_data'] as $week) {
                 $sheet->setCellValue('A' . $row, $week['week']);
                 $sheet->setCellValue('B' . $row, $week['created']);
@@ -586,20 +588,20 @@ class AdvancedAnalyticsService
                 $row++;
             }
         }
-        
+
         // Автоширина колонок
         foreach (range('A', 'D') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
-        
+
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-        
+
         $tempFile = tempnam(sys_get_temp_dir(), 'analytics_');
         $writer->save($tempFile);
-        
+
         $content = file_get_contents($tempFile);
         unlink($tempFile);
-        
+
         return $content;
     }
 
@@ -698,23 +700,23 @@ class AdvancedAnalyticsService
     {
         // Получаем активные задачи пользователя
         $activeTasks = $this->countActiveTasks($user);
-        
+
         // Получаем просроченные задачи
         $overdueTasks = $this->countOverdueTasks($user);
-        
+
         // Получаем задачи с высоким приоритетом
         $highPriorityTasks = $this->countHighPriorityTasks($user);
-        
+
         // Рассчитываем рабочую нагрузку (0-100)
         $workload = min(100, ($activeTasks * 3) + ($overdueTasks * 5) + ($highPriorityTasks * 2));
-        
+
         // Получаем среднее время работы в день (по времени трекингу)
         $avgDailyHours = $this->getAverageDailyWorkHours($user);
         $overtime = max(0, $avgDailyHours - 8); // Сверхурочные часы
-        
+
         // Рассчитываем сложность задач (1-10)
         $taskComplexity = $this->calculateAverageTaskComplexity($user);
-        
+
         // Рассчитываем риск выгорания
         $riskScore = ($workload * 0.4) + ($overtime * 2) + ($taskComplexity * 3);
         $riskLevel = match(true) {
@@ -722,7 +724,7 @@ class AdvancedAnalyticsService
             $riskScore < 75 => 'medium',
             default => 'high'
         };
-        
+
         // Рассчитываем work-life balance
         $workLifeBalance = $this->calculateWorkLifeBalance($user);
 
@@ -741,7 +743,7 @@ class AdvancedAnalyticsService
             'recommendations' => $this->getBurnoutRecommendations($riskLevel),
         ];
     }
-    
+
     /**
      * Посчитать активные задачи
      */
@@ -753,10 +755,10 @@ class AdvancedAnalyticsService
             ->andWhere('t.status != :completed')
             ->setParameter('user', $user)
             ->setParameter('completed', 'completed');
-        
+
         return (int) $qb->getQuery()->getSingleScalarResult();
     }
-    
+
     /**
      * Посчитать просроченные задачи
      */
@@ -770,10 +772,10 @@ class AdvancedAnalyticsService
             ->setParameter('user', $user)
             ->setParameter('now', new \DateTime())
             ->setParameter('completed', 'completed');
-        
+
         return (int) $qb->getQuery()->getSingleScalarResult();
     }
-    
+
     /**
      * Посчитать задачи с высоким приоритетом
      */
@@ -787,10 +789,10 @@ class AdvancedAnalyticsService
             ->setParameter('user', $user)
             ->setParameter('priorities', ['high', 'urgent'])
             ->setParameter('completed', 'completed');
-        
+
         return (int) $qb->getQuery()->getSingleScalarResult();
     }
-    
+
     /**
      * Получить среднее количество рабочих часов в день
      */
@@ -800,7 +802,7 @@ class AdvancedAnalyticsService
         // Для простоты возвращаем среднее по задачам
         return 8.0;
     }
-    
+
     /**
      * Рассчитать среднюю сложность задач
      */
@@ -812,14 +814,14 @@ class AdvancedAnalyticsService
             ->andWhere('t.status != :completed')
             ->setParameter('user', $user)
             ->setParameter('completed', 'completed');
-        
+
         $result = $qb->getQuery()->getOneOrNullResult();
         $avgProgress = (float) ($result['avg_progress'] ?? 50);
-        
+
         // Конвертируем прогресс в сложность (1-10)
         return ($avgProgress / 100) * 10;
     }
-    
+
     /**
      * Рассчитать work-life balance
      */
@@ -827,15 +829,15 @@ class AdvancedAnalyticsService
     {
         // Базовый баланс
         $balance = 80;
-        
+
         // Вычитаем за перегрузку
         $activeTasks = $this->countActiveTasks($user);
         $balance -= min(30, $activeTasks * 2);
-        
+
         // Вычитаем за просрочки
         $overdueTasks = $this->countOverdueTasks($user);
         $balance -= min(20, $overdueTasks * 3);
-        
+
         return max(10, min(100, $balance));
     }
 
@@ -877,55 +879,67 @@ class AdvancedAnalyticsService
             ->setParameter('completed', 'completed')
             ->orderBy('t.createdAt', 'DESC')
             ->setMaxResults(100);
-        
+
         $tasks = $qb->getQuery()->getResult();
-        
+
         // Анализируем продуктивное время
         $hourDistribution = [];
         $dayDistribution = [];
-        
+
         foreach ($tasks as $task) {
             $createdAt = $task['createdAt'];
             if ($createdAt instanceof \DateTime) {
                 $hour = (int) $createdAt->format('H');
                 $day = $createdAt->format('l');
-                
+
                 $hourDistribution[$hour] = ($hourDistribution[$hour] ?? 0) + 1;
                 $dayDistribution[$day] = ($dayDistribution[$day] ?? 0) + 1;
             }
         }
-        
+
         // Находим самый продуктивный час и день
         $mostProductiveHour = !empty($hourDistribution) ? array_keys($hourDistribution, max($hourDistribution))[0] : 10;
         $mostProductiveDay = !empty($dayDistribution) ? array_keys($dayDistribution, max($dayDistribution))[0] : 'Tuesday';
-        
+
         // Распределение задач по времени суток
-        $morning = 0; $afternoon = 0; $evening = 0;
+        $morning = 0;
+        $afternoon = 0;
+        $evening = 0;
         foreach ($hourDistribution as $hour => $count) {
-            if ($hour >= 6 && $hour < 12) $morning += $count;
-            elseif ($hour >= 12 && $hour < 18) $afternoon += $count;
-            else $evening += $count;
+            if ($hour >= 6 && $hour < 12) {
+                $morning += $count;
+            } elseif ($hour >= 12 && $hour < 18) {
+                $afternoon += $count;
+            } else {
+                $evening += $count;
+            }
         }
-        
+
         $total = $morning + $afternoon + $evening;
         $total = max(1, $total);
-        
+
         // Паттерны выполнения
-        $quickWins = 0; $standard = 0; $complex = 0;
+        $quickWins = 0;
+        $standard = 0;
+        $complex = 0;
         foreach ($tasks as $task) {
             $createdAt = $task['createdAt'];
             $completedAt = $task['completedAt'];
-            
+
             if ($createdAt && $completedAt && $createdAt instanceof \DateTime && $completedAt instanceof \DateTime) {
                 $diff = $createdAt->diff($completedAt)->days;
-                if ($diff < 1) $quickWins++;
-                elseif ($diff <= 3) $standard++;
-                else $complex++;
+                if ($diff < 1) {
+                    $quickWins++;
+                } elseif ($diff <= 3) {
+                    $standard++;
+                } else {
+                    $complex++;
+                }
             }
         }
-        
+
         $totalPatterns = max(1, $quickWins + $standard + $complex);
-        
+
         // Рассчитываем procrastination score
         $procrastinationScore = $this->calculateProcrastinationScore($user, $tasks);
 
@@ -933,12 +947,12 @@ class AdvancedAnalyticsService
             'most_productive_time' => [
                 'hour' => $mostProductiveHour,
                 'day_of_week' => $mostProductiveDay,
-                'productivity_score' => min(100, round(count($tasks) / max(1, count($tasks)) * 100)),
+                'productivity_score' => min(100, round(\count($tasks) / max(1, \count($tasks)) * 100)),
             ],
             'least_productive_time' => [
                 'hour' => $mostProductiveHour >= 15 ? 10 : 15,
                 'day_of_week' => $mostProductiveDay === 'Friday' ? 'Monday' : 'Friday',
-                'productivity_score' => max(0, 100 - min(100, count($tasks) / max(1, count($tasks)) * 100)),
+                'productivity_score' => max(0, 100 - min(100, \count($tasks) / max(1, \count($tasks)) * 100)),
             ],
             'task_distribution' => [
                 'morning' => round(($morning / $total) * 100),
@@ -953,7 +967,7 @@ class AdvancedAnalyticsService
             'procrastination_score' => $procrastinationScore,
         ];
     }
-    
+
     /**
      * Рассчитать score прокрастинации
      */
@@ -968,19 +982,19 @@ class AdvancedAnalyticsService
             ->setParameter('user', $user)
             ->setParameter('now', new \DateTime())
             ->setParameter('completed', 'completed');
-        
+
         $overdueCount = (int) $qb->getQuery()->getSingleScalarResult();
-        
+
         // Получаем общее количество активных задач
         $activeCount = $this->countActiveTasks($user);
-        
+
         // Рассчитываем score (0 = нет прокрастинации, 100 = высокая)
         if ($activeCount === 0) {
             return 0;
         }
-        
+
         $overdueRatio = $overdueCount / $activeCount;
-        
+
         return min(100, round($overdueRatio * 100));
     }
 
@@ -993,13 +1007,13 @@ class AdvancedAnalyticsService
         $activeTasks = $this->countActiveTasks($user);
         $completedTasks = $this->countCompletedTasks($user);
         $overdueTasks = $this->countOverdueTasks($user);
-        
+
         // Рассчитываем overall score
         $totalTasks = $activeTasks + $completedTasks;
         $completionRate = $totalTasks > 0 ? ($completedTasks / $totalTasks) * 100 : 0;
         $overduePenalty = min(30, $overdueTasks * 5);
         $overallScore = max(0, min(100, round($completionRate - $overduePenalty)));
-        
+
         // Формируем сильные стороны на основе данных
         $strengths = [];
         if ($completionRate >= 80) {
@@ -1014,7 +1028,7 @@ class AdvancedAnalyticsService
         if (empty($strengths)) {
             $strengths[] = 'Работа над задачами';
         }
-        
+
         // Формируем области для улучшения
         $areasForImprovement = [];
         if ($overdueTasks >= 3) {
@@ -1029,7 +1043,7 @@ class AdvancedAnalyticsService
         if (empty($areasForImprovement)) {
             $areasForImprovement[] = 'Поддержание текущего уровня';
         }
-        
+
         // Получаем достижения
         $achievements = $this->getUserAchievements($user);
 
@@ -1040,7 +1054,7 @@ class AdvancedAnalyticsService
             'overall_score' => $overallScore,
         ];
     }
-    
+
     /**
      * Посчитать завершённые задачи
      */
@@ -1052,20 +1066,20 @@ class AdvancedAnalyticsService
             ->andWhere('t.status = :completed')
             ->setParameter('user', $user)
             ->setParameter('completed', 'completed');
-        
+
         return (int) $qb->getQuery()->getSingleScalarResult();
     }
-    
+
     /**
      * Получить достижения пользователя
      */
     private function getUserAchievements(User $user): array
     {
         $achievements = [];
-        
+
         // Достижение за количество завершённых задач
         $completedCount = $this->countCompletedTasks($user);
-        
+
         if ($completedCount >= 100) {
             $achievements[] = [
                 'title' => 'Ветеран',
@@ -1088,7 +1102,7 @@ class AdvancedAnalyticsService
                 'icon' => 'fa-star',
             ];
         }
-        
+
         // Достижение за серию дней без просрочек
         if ($this->countOverdueTasks($user) === 0 && $completedCount > 0) {
             $achievements[] = [
@@ -1098,7 +1112,7 @@ class AdvancedAnalyticsService
                 'icon' => 'fa-check-circle',
             ];
         }
-        
+
         return $achievements;
     }
 }

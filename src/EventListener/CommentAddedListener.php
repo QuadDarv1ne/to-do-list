@@ -9,7 +9,7 @@ use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
 /**
  * Слушатель события CommentAdded
- * 
+ *
  * Обрабатывает добавление комментария:
  * - Записывает запись в Activity Log
  * - Отправляет уведомления участникам задачи
@@ -37,10 +37,10 @@ final class CommentAddedListener
         $activityLog->setAction('comment_added');
         $activityLog->setEventType('comment.added');
         $activityLog->setCreatedAt(new \DateTimeImmutable());
-        $activityLog->setDescription(sprintf(
+        $activityLog->setDescription(\sprintf(
             'Добавлен комментарий к задаче #%d (длина: %d симв.)',
             $event->getTaskId(),
-            strlen($event->getContent())
+            \strlen($event->getContent()),
         ));
 
         $this->entityManager->persist($activityLog);

@@ -18,16 +18,16 @@ class MentionController extends AbstractController
     {
         $query = trim($request->query->get('q', ''));
 
-        if (strlen($query) < 1) {
+        if (\strlen($query) < 1) {
             return new JsonResponse([]);
         }
 
         $users = $mentionService->getSuggestions($query, 8);
 
-        $data = array_map(static fn($user) => [
-            'id'       => $user->getId(),
+        $data = array_map(static fn ($user) => [
+            'id' => $user->getId(),
             'username' => $user->getUsername(),
-            'name'     => $user->getFullName(),
+            'name' => $user->getFullName(),
             'initials' => mb_strtoupper(mb_substr($user->getFirstName(), 0, 1) . mb_substr($user->getLastName(), 0, 1)),
         ], $users);
 

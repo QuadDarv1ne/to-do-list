@@ -125,6 +125,7 @@ class UserDashboardLayout
         foreach ($this->widgets as $key => $existingWidget) {
             if (($existingWidget['id'] ?? '') === ($widget['id'] ?? '')) {
                 $this->widgets[$key] = $widget;
+
                 return $this;
             }
         }
@@ -145,7 +146,7 @@ class UserDashboardLayout
 
         $this->widgets = array_filter(
             $this->widgets,
-            fn($widget) => ($widget['id'] ?? '') !== $widgetId
+            fn ($widget) => ($widget['id'] ?? '') !== $widgetId,
         );
 
         return $this;
@@ -158,7 +159,7 @@ class UserDashboardLayout
 
     public function setTheme(string $theme): static
     {
-        if (!in_array($theme, ['light', 'dark', 'auto'], true)) {
+        if (!\in_array($theme, ['light', 'dark', 'auto'], true)) {
             throw new \InvalidArgumentException('Theme must be one of: light, dark, auto');
         }
 
@@ -241,7 +242,7 @@ class UserDashboardLayout
         }
 
         $widgets = $this->widgets;
-        usort($widgets, fn($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
+        usort($widgets, fn ($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
 
         return $widgets;
     }
@@ -257,7 +258,7 @@ class UserDashboardLayout
 
         return array_filter(
             $this->widgets,
-            fn($widget) => $widget['enabled'] ?? true
+            fn ($widget) => $widget['enabled'] ?? true,
         );
     }
 

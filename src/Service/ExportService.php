@@ -2,16 +2,12 @@
 
 namespace App\Service;
 
-use App\Entity\Task;
-use App\Entity\Client;
-use App\Entity\Deal;
-use App\Repository\TaskRepository;
 use App\Repository\ClientRepository;
 use App\Repository\DealRepository;
+use App\Repository\TaskRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ExportService
@@ -20,8 +16,9 @@ class ExportService
         private EntityManagerInterface $entityManager,
         private TaskRepository $taskRepository,
         private ClientRepository $clientRepository,
-        private DealRepository $dealRepository
-    ) {}
+        private DealRepository $dealRepository,
+    ) {
+    }
 
     /**
      * Экспорт задач в Excel
@@ -133,9 +130,9 @@ class ExportService
      */
     public function exportToCsv(string $entityType, array $filters = []): StreamedResponse
     {
-        $callback = function() use ($entityType, $filters) {
+        $callback = function () use ($entityType, $filters) {
             $handle = fopen('php://output', 'w');
-            
+
             // Заголовки
             switch ($entityType) {
                 case 'tasks':
@@ -147,11 +144,12 @@ class ExportService
                             $task->getTitle(),
                             $task->getStatus(),
                             $task->getPriority(),
-                            $task->getDueDate()?->format('d.m.Y')
+                            $task->getDueDate()?->format('d.m.Y'),
                         ]);
                     }
+
                     break;
-                    
+
                 case 'clients':
                     fputcsv($handle, ['ID', 'Имя', 'Email', 'Телефон']);
                     $entities = $this->getFilteredClients($filters);
@@ -160,12 +158,13 @@ class ExportService
                             $client->getId(),
                             $client->getName(),
                             $client->getEmail(),
-                            $client->getPhone()
+                            $client->getPhone(),
                         ]);
                     }
+
                     break;
             }
-            
+
             fclose($handle);
         };
 
@@ -220,7 +219,7 @@ class ExportService
     {
         $writer = new Xlsx($spreadsheet);
 
-        $response = new StreamedResponse(function() use ($writer) {
+        $response = new StreamedResponse(function () use ($writer) {
             $writer->save('php://output');
         }, 200, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

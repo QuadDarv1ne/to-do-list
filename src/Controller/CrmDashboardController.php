@@ -18,13 +18,13 @@ class CrmDashboardController extends AbstractController
     public function dashboard(
         ClientRepository $clientRepository,
         DealRepository $dealRepository,
-        ProductRepository $productRepository
+        ProductRepository $productRepository,
     ): Response {
         $user = $this->getUser();
         $isAdmin = $this->isGranted('ROLE_ADMIN');
 
         // Статистика по клиентам
-        $totalClients = $isAdmin 
+        $totalClients = $isAdmin
             ? $clientRepository->getTotalCount()
             : $clientRepository->getTotalCount($user);
 
@@ -34,7 +34,7 @@ class CrmDashboardController extends AbstractController
 
         // Статистика по сделкам - оптимизировано через DQL
         $dealsStats = $dealRepository->getDealsStatsByStatus($isAdmin ? null : $user);
-        
+
         // Общая выручка
         $totalRevenue = $dealRepository->getTotalRevenue($isAdmin ? null : $user);
 
@@ -55,7 +55,7 @@ class CrmDashboardController extends AbstractController
         $recentDeals = $isAdmin
             ? $dealRepository->findAllWithRelations()
             : $dealRepository->findByManager($user);
-        $recentDeals = array_slice($recentDeals, 0, 5);
+        $recentDeals = \array_slice($recentDeals, 0, 5);
 
         // Статистика по товарам
         $totalProducts = $productRepository->countAll();

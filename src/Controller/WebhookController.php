@@ -216,7 +216,7 @@ class WebhookController extends AbstractController
     public function apiList(WebhookRepository $webhookRepository): JsonResponse
     {
         $user = $this->getUser();
-        
+
         $webhooks = $webhookRepository->createQueryBuilder('w')
             ->andWhere('w.user = :user')
             ->setParameter('user', $user)
@@ -225,7 +225,7 @@ class WebhookController extends AbstractController
             ->getResult();
 
         return $this->json([
-            'data' => array_map(fn(Webhook $webhook) => [
+            'data' => array_map(fn (Webhook $webhook) => [
                 'id' => $webhook->getId(),
                 'name' => $webhook->getName(),
                 'url' => $webhook->getUrl(),

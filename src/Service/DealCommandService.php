@@ -36,7 +36,7 @@ final class DealCommandService
         $client = $this->clientRepository->find($dto->getClientId());
 
         if (!$client) {
-            throw new \InvalidArgumentException(sprintf('Client with id %d not found', $dto->getClientId()));
+            throw new \InvalidArgumentException(\sprintf('Client with id %d not found', $dto->getClientId()));
         }
 
         $deal = new Deal();
@@ -69,7 +69,7 @@ final class DealCommandService
         $deal = $this->dealRepository->find($dto->getId());
 
         if (!$deal) {
-            throw new \InvalidArgumentException(sprintf('Deal with id %d not found', $dto->getId()));
+            throw new \InvalidArgumentException(\sprintf('Deal with id %d not found', $dto->getId()));
         }
 
         // Сохраняем старые значения для Domain Events
@@ -93,7 +93,7 @@ final class DealCommandService
             $deal->setStatus($dto->getStatus());
 
             // Устанавливаем дату закрытия при смене статуса на won/lost
-            if (in_array($dto->getStatus(), ['won', 'lost'])) {
+            if (\in_array($dto->getStatus(), ['won', 'lost'])) {
                 $deal->setActualCloseDate(new \DateTime());
             }
 

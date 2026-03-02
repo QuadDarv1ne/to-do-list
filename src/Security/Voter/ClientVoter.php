@@ -10,12 +10,14 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 class ClientVoter extends Voter
 {
     public const VIEW = 'view';
+
     public const EDIT = 'edit';
+
     public const DELETE = 'delete';
 
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return in_array($attribute, [self::VIEW, self::EDIT, self::DELETE])
+        return \in_array($attribute, [self::VIEW, self::EDIT, self::DELETE])
             && $subject instanceof Client;
     }
 
@@ -31,7 +33,7 @@ class ClientVoter extends Voter
         $client = $subject;
 
         // Админы имеют полный доступ
-        if (in_array('ROLE_ADMIN', $user->getRoles())) {
+        if (\in_array('ROLE_ADMIN', $user->getRoles())) {
             return true;
         }
 

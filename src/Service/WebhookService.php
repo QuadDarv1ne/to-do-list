@@ -5,8 +5,8 @@ namespace App\Service;
 use App\Entity\User;
 use App\Entity\Webhook;
 use App\Entity\WebhookLog;
-use App\Repository\WebhookRepository;
 use App\Repository\WebhookLogRepository;
+use App\Repository\WebhookRepository;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -26,7 +26,7 @@ class WebhookService
     public function send(string $url, string $event, array $data, ?string $secret = null): bool
     {
         $startTime = microtime(true);
-        
+
         $payload = [
             'event' => $event,
             'timestamp' => time(),
@@ -81,7 +81,7 @@ class WebhookService
 
         } catch (\Exception $e) {
             $responseTime = (int) ((microtime(true) - $startTime) * 1000);
-            
+
             $this->logger->error('Webhook error', [
                 'url' => $url,
                 'event' => $event,
@@ -99,7 +99,7 @@ class WebhookService
     public function sendAndLog(Webhook $webhook, string $event, array $data): bool
     {
         $startTime = microtime(true);
-        
+
         $payload = [
             'event' => $event,
             'timestamp' => time(),
@@ -144,7 +144,7 @@ class WebhookService
                 $responseTime,
                 $isSuccess,
                 null,
-                json_decode($responseBody, true, 512, JSON_THROW_ON_ERROR)
+                json_decode($responseBody, true, 512, JSON_THROW_ON_ERROR),
             );
 
             if ($isSuccess) {
@@ -169,7 +169,7 @@ class WebhookService
 
         } catch (\Exception $e) {
             $responseTime = (int) ((microtime(true) - $startTime) * 1000);
-            
+
             // Log the error
             $this->webhookLogRepository->logDelivery(
                 $webhook,
@@ -179,9 +179,9 @@ class WebhookService
                 $responseTime,
                 false,
                 $e->getMessage(),
-                null
+                null,
             );
-            
+
             $this->logger->error('Webhook error', [
                 'webhook_id' => $webhook->getId(),
                 'url' => $webhook->getUrl(),

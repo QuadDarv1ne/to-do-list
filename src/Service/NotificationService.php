@@ -461,8 +461,8 @@ class NotificationService
 
         try {
             $title = 'Новый комментарий к задаче';
-            $preview = mb_strlen($commentPreview) > 100 
-                ? mb_substr($commentPreview, 0, 100) . '...' 
+            $preview = mb_strlen($commentPreview) > 100
+                ? mb_substr($commentPreview, 0, 100) . '...'
                 : $commentPreview;
 
             $message = \sprintf(
@@ -496,8 +496,8 @@ class NotificationService
 
         try {
             $title = 'Вас упомянули в комментарии';
-            $preview = mb_strlen($context) > 100 
-                ? mb_substr($context, 0, 100) . '...' 
+            $preview = mb_strlen($context) > 100
+                ? mb_substr($context, 0, 100) . '...'
                 : $context;
 
             $message = \sprintf(
@@ -634,5 +634,24 @@ class NotificationService
                 $this->performanceMonitor->stopTiming('notification_service_cleanup_old_notifications');
             }
         }
+    }
+
+    /**
+     * Уведомление о просроченной задаче
+     */
+    public function notifyTaskOverdue(Task $task): void
+    {
+        $user = $task->getUser();
+        if (!$user) {
+            return;
+        }
+
+        $this->createTaskNotification(
+            $user,
+            'Просроченная задача',
+            "Задача '{$task->getTitle()}' просрочена!",
+            $task->getId(),
+            $task->getTitle(),
+        );
     }
 }

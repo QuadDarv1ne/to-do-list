@@ -6,14 +6,13 @@ use App\Entity\Task;
 use App\Repository\TaskRepository;
 use App\Service\PerformanceOptimizerService;
 use Doctrine\ORM\EntityManagerInterface;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-
-use OpenApi\Attributes as OA;
 
 /**
  * REST API Controller для задач
@@ -40,37 +39,37 @@ class TaskApiController extends AbstractController
         path: '/api/tasks',
         summary: 'Получить список задач',
         description: 'Возвращает список задач текущего пользователя с поддержкой фильтрации и пагинации',
-        tags: ['Tasks']
+        tags: ['Tasks'],
     )]
     #[OA\Parameter(
         name: 'page',
         in: 'query',
         description: 'Номер страницы',
-        schema: new OA\Schema(type: 'integer', default: 1)
+        schema: new OA\Schema(type: 'integer', default: 1),
     )]
     #[OA\Parameter(
         name: 'limit',
         in: 'query',
         description: 'Количество элементов на странице',
-        schema: new OA\Schema(type: 'integer', default: 20, maximum: 100)
+        schema: new OA\Schema(type: 'integer', default: 20, maximum: 100),
     )]
     #[OA\Parameter(
         name: 'status',
         in: 'query',
         description: 'Фильтр по статусу',
-        schema: new OA\Schema(type: 'string', enum: ['pending', 'in_progress', 'completed', 'cancelled'])
+        schema: new OA\Schema(type: 'string', enum: ['pending', 'in_progress', 'completed', 'cancelled']),
     )]
     #[OA\Parameter(
         name: 'priority',
         in: 'query',
         description: 'Фильтр по приоритету',
-        schema: new OA\Schema(type: 'string', enum: ['low', 'medium', 'high', 'urgent'])
+        schema: new OA\Schema(type: 'string', enum: ['low', 'medium', 'high', 'urgent']),
     )]
     #[OA\Parameter(
         name: 'search',
         in: 'query',
         description: 'Поиск по названию и описанию',
-        schema: new OA\Schema(type: 'string')
+        schema: new OA\Schema(type: 'string'),
     )]
     #[OA\Response(
         response: 200,
@@ -82,10 +81,10 @@ class TaskApiController extends AbstractController
                     new OA\Property(property: 'total', type: 'integer'),
                     new OA\Property(property: 'page', type: 'integer'),
                     new OA\Property(property: 'limit', type: 'integer'),
-                    new OA\Property(property: 'pages', type: 'integer')
-                ], type: 'object')
-            ]
-        )
+                    new OA\Property(property: 'pages', type: 'integer'),
+                ], type: 'object'),
+            ],
+        ),
     )]
     #[OA\Response(response: 401, description: 'Не авторизован')]
     public function list(Request $request, TaskRepository $taskRepo): JsonResponse
@@ -222,7 +221,7 @@ class TaskApiController extends AbstractController
         // Validate priority
         $allowedPriorities = ['low', 'medium', 'high', 'urgent'];
         $priority = $data['priority'] ?? 'medium';
-        if (!in_array($priority, $allowedPriorities)) {
+        if (!\in_array($priority, $allowedPriorities)) {
             return $this->json([
                 'success' => false,
                 'error' => 'Invalid priority. Allowed values: ' . implode(', ', $allowedPriorities),
@@ -232,7 +231,7 @@ class TaskApiController extends AbstractController
         // Validate status
         $allowedStatuses = ['pending', 'in_progress', 'completed', 'cancelled'];
         $status = $data['status'] ?? 'pending';
-        if (!in_array($status, $allowedStatuses)) {
+        if (!\in_array($status, $allowedStatuses)) {
             return $this->json([
                 'success' => false,
                 'error' => 'Invalid status. Allowed values: ' . implode(', ', $allowedStatuses),
@@ -305,7 +304,7 @@ class TaskApiController extends AbstractController
 
         if (isset($data['priority'])) {
             $allowedPriorities = ['low', 'medium', 'high', 'urgent'];
-            if (!in_array($data['priority'], $allowedPriorities)) {
+            if (!\in_array($data['priority'], $allowedPriorities)) {
                 return $this->json([
                     'success' => false,
                     'error' => 'Invalid priority. Allowed values: ' . implode(', ', $allowedPriorities),
@@ -316,7 +315,7 @@ class TaskApiController extends AbstractController
 
         if (isset($data['status'])) {
             $allowedStatuses = ['pending', 'in_progress', 'completed', 'cancelled'];
-            if (!in_array($data['status'], $allowedStatuses)) {
+            if (!\in_array($data['status'], $allowedStatuses)) {
                 return $this->json([
                     'success' => false,
                     'error' => 'Invalid status. Allowed values: ' . implode(', ', $allowedStatuses),
@@ -465,7 +464,7 @@ class TaskApiController extends AbstractController
         // Validate changes before applying
         if (isset($changes['status'])) {
             $allowedStatuses = ['pending', 'in_progress', 'completed', 'cancelled'];
-            if (!in_array($changes['status'], $allowedStatuses)) {
+            if (!\in_array($changes['status'], $allowedStatuses)) {
                 return $this->json([
                     'success' => false,
                     'error' => 'Invalid status. Allowed values: ' . implode(', ', $allowedStatuses),
@@ -475,7 +474,7 @@ class TaskApiController extends AbstractController
 
         if (isset($changes['priority'])) {
             $allowedPriorities = ['low', 'medium', 'high', 'urgent'];
-            if (!in_array($changes['priority'], $allowedPriorities)) {
+            if (!\in_array($changes['priority'], $allowedPriorities)) {
                 return $this->json([
                     'success' => false,
                     'error' => 'Invalid priority. Allowed values: ' . implode(', ', $allowedPriorities),

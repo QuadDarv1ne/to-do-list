@@ -72,7 +72,7 @@ class TemplateService
     {
         $templates = $this->templateRepository->findByUser($user);
         $result = [];
-        
+
         foreach ($templates as $template) {
             $result[] = [
                 'id' => $template->getId(),
@@ -84,7 +84,7 @@ class TemplateService
                 'created_at' => $template->getCreatedAt()->format('Y-m-d H:i:s'),
             ];
         }
-        
+
         return $result;
     }
 
@@ -191,7 +191,7 @@ class TemplateService
     public function getTemplateStats(): array
     {
         $predefined = \count($this->getPredefinedTemplates());
-        
+
         // Получаем количество пользовательских шаблонов
         $qb = $this->entityManager->createQueryBuilder();
         $userCreated = (int) $qb->select('COUNT(t.id)')

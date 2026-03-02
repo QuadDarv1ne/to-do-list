@@ -16,9 +16,13 @@ use Psr\Log\LoggerInterface;
 class RecurringTaskServiceTest extends TestCase
 {
     private TaskRecurrenceRepository|MockObject $recurrenceRepository;
+
     private TaskRepository|MockObject $taskRepository;
+
     private EntityManagerInterface|MockObject $entityManager;
+
     private LoggerInterface|MockObject $logger;
+
     private RecurringTaskService $service;
 
     protected function setUp(): void
@@ -32,7 +36,7 @@ class RecurringTaskServiceTest extends TestCase
             $this->recurrenceRepository,
             $this->taskRepository,
             $this->entityManager,
-            $this->logger
+            $this->logger,
         );
     }
 
@@ -103,9 +107,9 @@ class RecurringTaskServiceTest extends TestCase
     {
         // Saturday (2026-02-21)
         $saturday = new \DateTimeImmutable('2026-02-21');
-        
+
         $result = $this->service->skipWeekend($saturday);
-        
+
         $this->assertEquals('2026-02-20', $result->format('Y-m-d'));
     }
 
@@ -113,9 +117,9 @@ class RecurringTaskServiceTest extends TestCase
     {
         // Sunday (2026-02-22)
         $sunday = new \DateTimeImmutable('2026-02-22');
-        
+
         $result = $this->service->skipWeekend($sunday);
-        
+
         $this->assertEquals('2026-02-23', $result->format('Y-m-d'));
     }
 
@@ -123,16 +127,16 @@ class RecurringTaskServiceTest extends TestCase
     {
         // Wednesday (2026-02-18)
         $wednesday = new \DateTimeImmutable('2026-02-18');
-        
+
         $result = $this->service->skipWeekend($wednesday);
-        
+
         $this->assertEquals('2026-02-18', $result->format('Y-m-d'));
     }
 
     #[\PHPUnit\Framework\Attributes\DataProvider('frequencyProvider')]
     public function testCalculateNextDateForAllFrequencies(
         string $frequency,
-        string $expectedDate
+        string $expectedDate,
     ): void {
         $from = new \DateTimeImmutable('2026-02-20');
         $interval = 1;
@@ -151,9 +155,9 @@ class RecurringTaskServiceTest extends TestCase
         $template->setTitle('Test Task');
         $template->setDescription('Test Description');
         $template->setPriority('medium');
-        
+
         $recurrence->setTask($template);
-        
+
         $this->taskRepository->expects($this->any())
             ->method('find')
             ->willReturn($template);
@@ -168,17 +172,19 @@ class RecurringTaskServiceTest extends TestCase
 
         $this->assertEquals(
             $expectedDate,
-            $recurrence->getLastGenerated()->format('Y-m-d')
+            $recurrence->getLastGenerated()->format('Y-m-d'),
         );
     }
 
     public static function frequencyProvider(): array
     {
+        $yesterday = (new \DateTime())->modify('-1 day')->format('Y-m-d');
+
         return [
-            'daily' => ['daily', '2026-02-20'],
-            'weekly' => ['weekly', '2026-02-20'],
-            'monthly' => ['monthly', '2026-02-20'],
-            'yearly' => ['yearly', '2026-02-20'],
+            'daily' => ['daily', $yesterday],
+            'weekly' => ['weekly', $yesterday],
+            'monthly' => ['monthly', $yesterday],
+            'yearly' => ['yearly', $yesterday],
         ];
     }
 
@@ -202,7 +208,7 @@ class RecurringTaskServiceTest extends TestCase
         $this->assertArrayHasKey('active', $stats);
         $this->assertArrayHasKey('inactive', $stats);
         $this->assertArrayHasKey('by_frequency', $stats);
-        
+
         $this->assertEquals(2, $stats['total']);
         $this->assertArrayHasKey('daily', $stats['by_frequency']);
         $this->assertArrayHasKey('weekly', $stats['by_frequency']);
@@ -243,7 +249,7 @@ class RecurringTaskServiceTest extends TestCase
         $result = $this->service->updateRecurring(
             $recurrence,
             $newFrequency,
-            $newInterval
+            $newInterval,
         );
 
         $this->assertInstanceOf(TaskRecurrence::class, $result);

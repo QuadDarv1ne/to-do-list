@@ -31,20 +31,68 @@ class TaskTemplateItem
     #[ORM\Column(type: Types::INTEGER, options: ['default' => 0])]
     private int $sortOrder = 0;
 
-    public function getId(): ?int { return $this->id; }
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 
-    public function getTemplate(): ?TaskTemplate { return $this->template; }
-    public function setTemplate(?TaskTemplate $template): static { $this->template = $template; return $this; }
+    public function getTemplate(): ?TaskTemplate
+    {
+        return $this->template;
+    }
 
-    public function getTitle(): string { return $this->title; }
-    public function setTitle(string $title): static { $this->title = $title; return $this; }
+    public function setTemplate(?TaskTemplate $template): static
+    {
+        $this->template = $template;
 
-    public function getDescription(): ?string { return $this->description; }
-    public function setDescription(?string $description): static { $this->description = $description; return $this; }
+        return $this;
+    }
 
-    public function getPriority(): string { return $this->priority; }
-    public function setPriority(string $priority): static { $this->priority = $priority; return $this; }
+    public function getTitle(): string
+    {
+        return $this->title;
+    }
 
-    public function getSortOrder(): int { return $this->sortOrder; }
-    public function setSortOrder(int $sortOrder): static { $this->sortOrder = $sortOrder; return $this; }
+    public function setTitle(string $title): static
+    {
+        $this->title = $title;
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): static
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function getPriority(): string
+    {
+        return $this->priority;
+    }
+
+    public function setPriority(string $priority): static
+    {
+        $this->priority = $priority;
+
+        return $this;
+    }
+
+    public function getSortOrder(): int
+    {
+        return $this->sortOrder;
+    }
+
+    public function setSortOrder(int $sortOrder): static
+    {
+        $this->sortOrder = $sortOrder;
+
+        return $this;
+    }
 }

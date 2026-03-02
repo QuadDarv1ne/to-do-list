@@ -218,7 +218,7 @@ class TaskBatchOperationService
     {
         // Получаем статистику из истории задач
         $qb = $this->em->createQueryBuilder();
-        
+
         // Количество изменений статусов
         $statusChanges = (int) $qb->select('COUNT(h.id)')
             ->from(\App\Entity\TaskHistory::class, 'h')

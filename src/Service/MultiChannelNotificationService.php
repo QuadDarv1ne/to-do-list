@@ -63,34 +63,40 @@ class MultiChannelNotificationService
     private function sendThroughChannel(
         NotificationEntity $notification,
         string $channel,
-        array $templateVariables = []
+        array $templateVariables = [],
     ): void {
         try {
             switch ($channel) {
                 case NotificationEntity::CHANNEL_IN_APP:
                     $this->sendInAppNotification($notification);
+
                     break;
-                    
+
                 case NotificationEntity::CHANNEL_EMAIL:
                     $this->sendEmailNotification($notification, $templateVariables);
+
                     break;
-                    
+
                 case NotificationEntity::CHANNEL_PUSH:
                     $this->sendPushNotification($notification, $templateVariables);
+
                     break;
-                    
+
                 case NotificationEntity::CHANNEL_SMS:
                     $this->sendSmsNotification($notification, $templateVariables);
+
                     break;
-                    
+
                 case NotificationEntity::CHANNEL_SLACK:
                     $this->sendSlackNotification($notification, $templateVariables);
+
                     break;
-                    
+
                 case NotificationEntity::CHANNEL_TELEGRAM:
                     $this->sendTelegramNotification($notification, $templateVariables);
+
                     break;
-                    
+
                 default:
                     $this->logger->warning("Unknown notification channel: {$channel}");
                     $notification->markAsFailed("Unknown channel: {$channel}");
@@ -118,9 +124,10 @@ class MultiChannelNotificationService
     private function sendEmailNotification(NotificationEntity $notification, array $variables = []): void
     {
         $user = $notification->getUser();
-        
+
         if (!$user->getEmail()) {
             $notification->markAsFailed('User has no email address');
+
             return;
         }
 
@@ -137,7 +144,7 @@ class MultiChannelNotificationService
                         'user_name' => $user->getFullName(),
                         'notification_title' => $notification->getTitle(),
                         'notification_message' => $notification->getMessage(),
-                    ])
+                    ]),
                 );
                 $subject = $template['subject'];
                 $content = $template['content'];
@@ -150,11 +157,12 @@ class MultiChannelNotificationService
                 ->html($content);
 
             $this->mailer->send($email);
-            
+
             $notification->markAsSent();
             $this->logger->info("Email notification sent to {$user->getEmail()}");
         } catch (\Exception $e) {
             $notification->markAsFailed($e->getMessage());
+
             throw $e;
         }
     }
@@ -166,35 +174,37 @@ class MultiChannelNotificationService
     {
         if (!$this->notifier) {
             $notification->markAsFailed('Notifier service not configured');
+
             return;
         }
 
         try {
             $user = $notification->getUser();
             $recipient = new Recipient($user->getEmail(), $user->getFullName());
-            
+
             $message = $notification->getMessage();
             if ($notification->getTemplateKey()) {
                 $template = $this->templateService->renderTemplate(
                     $notification->getTemplateKey(),
                     NotificationEntity::CHANNEL_PUSH,
-                    $variables
+                    $variables,
                 );
                 $message = $template['content'];
             }
 
             $pushNotification = new \Symfony\Component\Notifier\Notification\Notification(
                 $notification->getTitle(),
-                ['push']
+                ['push'],
             );
             $pushNotification->content($message);
 
             $this->notifier->send($pushNotification, $recipient);
-            
+
             $notification->markAsSent();
             $this->logger->info("Push notification sent to user {$user->getId()}");
         } catch (\Exception $e) {
             $notification->markAsFailed($e->getMessage());
+
             throw $e;
         }
     }
@@ -206,6 +216,7 @@ class MultiChannelNotificationService
     {
         if (!$this->notifier) {
             $notification->markAsFailed('Notifier service not configured');
+
             return;
         }
 
@@ -213,32 +224,34 @@ class MultiChannelNotificationService
             $user = $notification->getUser();
             if (!$user->getPhone()) {
                 $notification->markAsFailed('User has no phone number');
+
                 return;
             }
 
             $recipient = new Recipient($user->getEmail(), $user->getFullName());
             $message = $notification->getMessage();
-            
+
             if ($notification->getTemplateKey()) {
                 $template = $this->templateService->renderTemplate(
                     $notification->getTemplateKey(),
                     NotificationEntity::CHANNEL_SMS,
-                    $variables
+                    $variables,
                 );
                 $message = $template['content'];
             }
 
             $smsNotification = new \Symfony\Component\Notifier\Notification\Notification(
                 $message,
-                ['sms']
+                ['sms'],
             );
 
             $this->notifier->send($smsNotification, $recipient);
-            
+
             $notification->markAsSent();
             $this->logger->info("SMS notification sent to user {$user->getId()}");
         } catch (\Exception $e) {
             $notification->markAsFailed($e->getMessage());
+
             throw $e;
         }
     }
@@ -250,35 +263,37 @@ class MultiChannelNotificationService
     {
         if (!$this->notifier) {
             $notification->markAsFailed('Notifier service not configured');
+
             return;
         }
 
         try {
             $user = $notification->getUser();
             $recipient = new Recipient($user->getEmail(), $user->getFullName());
-            
+
             $message = $notification->getMessage();
             if ($notification->getTemplateKey()) {
                 $template = $this->templateService->renderTemplate(
                     $notification->getTemplateKey(),
                     NotificationEntity::CHANNEL_SLACK,
-                    $variables
+                    $variables,
                 );
                 $message = $template['content'];
             }
 
             $slackNotification = new \Symfony\Component\Notifier\Notification\Notification(
                 $notification->getTitle(),
-                ['chat/slack']
+                ['chat/slack'],
             );
             $slackNotification->content($message);
 
             $this->notifier->send($slackNotification, $recipient);
-            
+
             $notification->markAsSent();
             $this->logger->info("Slack notification sent to user {$user->getId()}");
         } catch (\Exception $e) {
             $notification->markAsFailed($e->getMessage());
+
             throw $e;
         }
     }
@@ -290,35 +305,37 @@ class MultiChannelNotificationService
     {
         if (!$this->notifier) {
             $notification->markAsFailed('Notifier service not configured');
+
             return;
         }
 
         try {
             $user = $notification->getUser();
             $recipient = new Recipient($user->getEmail(), $user->getFullName());
-            
+
             $message = $notification->getMessage();
             if ($notification->getTemplateKey()) {
                 $template = $this->templateService->renderTemplate(
                     $notification->getTemplateKey(),
                     NotificationEntity::CHANNEL_TELEGRAM,
-                    $variables
+                    $variables,
                 );
                 $message = $template['content'];
             }
 
             $telegramNotification = new \Symfony\Component\Notifier\Notification\Notification(
                 $notification->getTitle(),
-                ['chat/telegram']
+                ['chat/telegram'],
             );
             $telegramNotification->content($message);
 
             $this->notifier->send($telegramNotification, $recipient);
-            
+
             $notification->markAsSent();
             $this->logger->info("Telegram notification sent to user {$user->getId()}");
         } catch (\Exception $e) {
             $notification->markAsFailed($e->getMessage());
+
             throw $e;
         }
     }

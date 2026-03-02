@@ -112,7 +112,7 @@ class HabitLogRepository extends ServiceEntityRepository
     public function getCurrentStreak(Habit $habit): int
     {
         $logs = $this->findLastDays($habit, 365);
-        
+
         $streak = 0;
         $currentDate = new \DateTime();
         $currentDate->setTime(0, 0, 0);
@@ -179,9 +179,9 @@ class HabitLogRepository extends ServiceEntityRepository
     public function getCompletionRate(Habit $habit, int $days = 30): float
     {
         $startDate = (new \DateTime())->modify("-$days days");
-        
+
         $stats = $this->getStatsForPeriod($habit, $startDate, new \DateTime());
-        
+
         return $days > 0 ? ($stats['completions'] / $days) * 100 : 0;
     }
 

@@ -41,6 +41,7 @@ class CommentController extends AbstractController
 
             if (!$task) {
                 $this->addFlash('error', 'Задача не найдена.');
+
                 return $this->redirectToRoute('app_task_index');
             }
 
@@ -68,7 +69,7 @@ class CommentController extends AbstractController
                         'taskId' => $taskId,
                         'content' => $sanitizedContent,
                     ]),
-                    $this->getUser()
+                    $this->getUser(),
                 );
 
                 // Process mentions (@username)
@@ -81,7 +82,7 @@ class CommentController extends AbstractController
                                 $this->getUser(),
                                 $task->getId(),
                                 $task->getTitle(),
-                                $sanitizedContent
+                                $sanitizedContent,
                             );
                         }
                     }
@@ -131,10 +132,11 @@ class CommentController extends AbstractController
                         'id' => $comment->getId(),
                         'content' => $sanitizedContent,
                     ]),
-                    $this->getUser()
+                    $this->getUser(),
                 );
 
                 $this->addFlash('success', 'Комментарий успешно обновлен.');
+
                 return $this->redirectToRoute('app_task_show', ['id' => $comment->getTask()->getId()]);
             }
 
@@ -193,7 +195,7 @@ class CommentController extends AbstractController
                 $currentUser,
                 $task->getId(),
                 $task->getTitle(),
-                $comment->getContent()
+                $comment->getContent(),
             );
             $notifiedUsers[] = $task->getUser()->getId();
         }
@@ -201,13 +203,13 @@ class CommentController extends AbstractController
         // Notify assigned user
         if ($task->getAssignedUser() &&
             $task->getAssignedUser()->getId() !== $currentUser->getId() &&
-            !in_array($task->getAssignedUser()->getId(), $notifiedUsers)) {
+            !\in_array($task->getAssignedUser()->getId(), $notifiedUsers)) {
             $notificationService->sendCommentNotification(
                 $task->getAssignedUser(),
                 $currentUser,
                 $task->getId(),
                 $task->getTitle(),
-                $comment->getContent()
+                $comment->getContent(),
             );
             $notifiedUsers[] = $task->getAssignedUser()->getId();
         }
@@ -217,13 +219,13 @@ class CommentController extends AbstractController
             $author = $existingComment->getAuthor();
             if ($author &&
                 $author->getId() !== $currentUser->getId() &&
-                !in_array($author->getId(), $notifiedUsers)) {
+                !\in_array($author->getId(), $notifiedUsers)) {
                 $notificationService->sendCommentNotification(
                     $author,
                     $currentUser,
                     $task->getId(),
                     $task->getTitle(),
-                    $comment->getContent()
+                    $comment->getContent(),
                 );
                 $notifiedUsers[] = $author->getId();
             }

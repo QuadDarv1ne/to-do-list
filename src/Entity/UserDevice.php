@@ -61,6 +61,7 @@ class UserDevice
     public function setDeviceToken(string $deviceToken): self
     {
         $this->deviceToken = $deviceToken;
+
         return $this;
     }
 
@@ -72,6 +73,7 @@ class UserDevice
     public function setPlatform(string $platform): self
     {
         $this->platform = $platform;
+
         return $this;
     }
 
@@ -83,6 +85,7 @@ class UserDevice
     public function setAppVersion(?string $appVersion): self
     {
         $this->appVersion = $appVersion;
+
         return $this;
     }
 
@@ -94,6 +97,7 @@ class UserDevice
     public function setDeviceName(?string $deviceName): self
     {
         $this->deviceName = $deviceName;
+
         return $this;
     }
 
@@ -105,6 +109,7 @@ class UserDevice
     public function setIsActive(bool $isActive): self
     {
         $this->isActive = $isActive;
+
         return $this;
     }
 
@@ -116,6 +121,7 @@ class UserDevice
     public function setCreatedAt(\DateTimeInterface $createdAt): self
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 
@@ -127,6 +133,7 @@ class UserDevice
     public function setLastUsedAt(?\DateTimeInterface $lastUsedAt): self
     {
         $this->lastUsedAt = $lastUsedAt;
+
         return $this;
     }
 
@@ -138,6 +145,7 @@ class UserDevice
     public function setUser(?User $user): self
     {
         $this->user = $user;
+
         return $this;
     }
 }

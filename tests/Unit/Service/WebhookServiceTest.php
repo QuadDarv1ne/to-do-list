@@ -16,9 +16,13 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 class WebhookServiceTest extends TestCase
 {
     private HttpClientInterface|MockObject $httpClient;
+
     private LoggerInterface|MockObject $logger;
+
     private WebhookRepository|MockObject $webhookRepository;
+
     private WebhookLogRepository|MockObject $webhookLogRepository;
+
     private WebhookService $service;
 
     protected function setUp(): void
@@ -32,7 +36,7 @@ class WebhookServiceTest extends TestCase
             $this->httpClient,
             $this->logger,
             $this->webhookRepository,
-            $this->webhookLogRepository
+            $this->webhookLogRepository,
         );
     }
 
@@ -150,7 +154,7 @@ class WebhookServiceTest extends TestCase
         $events = Webhook::getAvailableEvents();
 
         $this->assertIsArray($events);
-        $this->assertGreaterThan(0, count($events));
+        $this->assertGreaterThan(0, \count($events));
         $this->assertArrayHasKey('task.created', $events);
         $this->assertArrayHasKey('task.completed', $events);
         $this->assertArrayHasKey('deal.won', $events);
@@ -182,7 +186,7 @@ class WebhookServiceTest extends TestCase
         $secret = $webhook->generateSecret();
 
         $this->assertIsString($secret);
-        $this->assertEquals(64, strlen($secret));
+        $this->assertEquals(64, \strlen($secret));
         $this->assertEquals($secret, $webhook->getSecret());
     }
 

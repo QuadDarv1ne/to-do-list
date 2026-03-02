@@ -16,6 +16,7 @@ class TaskCompletedTest extends TestCase
         $instance = $reflection->newInstanceWithoutConstructor();
         $property = $reflection->getProperty('value');
         $property->setValue($instance, $id);
+
         return $instance;
     }
 
@@ -38,7 +39,7 @@ class TaskCompletedTest extends TestCase
         $event = TaskCompleted::create(
             $this->createTaskId(1),
             1,
-            new \DateTimeImmutable()
+            new \DateTimeImmutable(),
         );
 
         $this->assertEquals('task.completed', $event->getEventName());
@@ -50,7 +51,7 @@ class TaskCompletedTest extends TestCase
         $event = TaskCompleted::create(
             $this->createTaskId(123),
             456,
-            $completedAt
+            $completedAt,
         );
 
         $array = $event->toArray();
@@ -85,7 +86,7 @@ class TaskStatusChangedTest extends TestCase
             new TaskId(1),
             TaskStatus::from('pending'),
             TaskStatus::from('completed'),
-            1
+            1,
         );
 
         $this->assertEquals('task.status_changed', $event->getEventName());
@@ -97,7 +98,7 @@ class TaskStatusChangedTest extends TestCase
             new TaskId(789),
             TaskStatus::from('in_progress'),
             TaskStatus::from('completed'),
-            99
+            99,
         );
 
         $array = $event->toArray();

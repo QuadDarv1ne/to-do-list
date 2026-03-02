@@ -31,9 +31,10 @@ class NotificationTemplateService
     public function renderTemplate(string $key, string $channel, array $variables = []): array
     {
         $template = $this->getTemplate($key, $channel);
-        
+
         if (!$template) {
             $this->logger->warning("Template not found for key: {$key}, channel: {$channel}");
+
             return [
                 'subject' => 'Notification',
                 'content' => 'No template found',

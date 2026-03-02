@@ -20,6 +20,7 @@ class EnhancedNotificationController extends AbstractController
     public function notificationStream(EnhancedNotificationService $notificationService): StreamedResponse
     {
         $user = $this->getUser();
+
         return $notificationService->createNotificationStream($user);
     }
 
@@ -28,7 +29,7 @@ class EnhancedNotificationController extends AbstractController
     {
         $user = $this->getUser();
         $notifications = $notificationService->getUnreadNotifications($user);
-        
+
         $data = [];
         foreach ($notifications as $notification) {
             $data[] = [
@@ -42,7 +43,7 @@ class EnhancedNotificationController extends AbstractController
                 'task_id' => $notification->getTask()?->getId(),
             ];
         }
-        
+
         return $this->json($data);
     }
 
@@ -51,7 +52,7 @@ class EnhancedNotificationController extends AbstractController
     {
         $user = $this->getUser();
         $stats = $notificationService->getNotificationStats($user);
-        
+
         return $this->json($stats);
     }
 
@@ -59,20 +60,20 @@ class EnhancedNotificationController extends AbstractController
     public function test(
         Request $request,
         EnhancedNotificationService $notificationService,
-        NotificationTemplateService $templateService
+        NotificationTemplateService $templateService,
     ): JsonResponse {
         $user = $this->getUser();
         $data = json_decode($request->getContent(), true);
-        
+
         $title = $data['title'] ?? 'Test Notification';
         $message = $data['message'] ?? 'This is a test notification';
         $type = $data['type'] ?? 'info';
         $channels = $data['channels'] ?? ['in_app'];
         $useTemplate = $data['use_template'] ?? false;
-        
+
         $templateKey = null;
         $templateVariables = [];
-        
+
         if ($useTemplate) {
             $templateKey = 'task_assigned';
             $templateVariables = [
@@ -83,7 +84,7 @@ class EnhancedNotificationController extends AbstractController
                 'task_url' => 'https://example.com/task/123',
             ];
         }
-        
+
         $notification = $notificationService->createNotification(
             $user,
             $title,
@@ -92,9 +93,9 @@ class EnhancedNotificationController extends AbstractController
             $type,
             $channels,
             $templateKey,
-            $templateVariables
+            $templateVariables,
         );
-        
+
         return $this->json([
             'success' => true,
             'notification_id' => $notification->getId(),
@@ -106,7 +107,7 @@ class EnhancedNotificationController extends AbstractController
     public function templates(NotificationTemplateService $templateService): JsonResponse
     {
         $templates = $templateService->getTemplatesByChannel('email');
-        
+
         $data = [];
         foreach ($templates as $template) {
             $data[] = [
@@ -119,10 +120,10 @@ class EnhancedNotificationController extends AbstractController
                 'is_active' => $template->isActive(),
             ];
         }
-        
+
         return $this->json($data);
     }
-    
+
     #[Route('/test-page', name: 'app_notifications_test_page', methods: ['GET'])]
     public function testPage(): Response
     {

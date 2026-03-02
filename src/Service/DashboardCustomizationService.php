@@ -172,6 +172,7 @@ class DashboardCustomizationService
             $widget['position'] = $position;
             $layout->addWidget($widget);
             $this->layoutRepository->save($layout);
+
             return true;
         }
 

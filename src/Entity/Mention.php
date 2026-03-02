@@ -62,6 +62,7 @@ class Mention
     public function setMentionedUser(?User $mentionedUser): self
     {
         $this->mentionedUser = $mentionedUser;
+
         return $this;
     }
 
@@ -73,6 +74,7 @@ class Mention
     public function setMentionedByUser(?User $mentionedByUser): self
     {
         $this->mentionedByUser = $mentionedByUser;
+
         return $this;
     }
 
@@ -84,6 +86,7 @@ class Mention
     public function setEntityType(string $entityType): self
     {
         $this->entityType = $entityType;
+
         return $this;
     }
 
@@ -95,6 +98,7 @@ class Mention
     public function setEntityId(int $entityId): self
     {
         $this->entityId = $entityId;
+
         return $this;
     }
 
@@ -106,6 +110,7 @@ class Mention
     public function setContent(?string $content): self
     {
         $this->content = $content;
+
         return $this;
     }
 
@@ -120,6 +125,7 @@ class Mention
         if ($isRead && !$this->readAt) {
             $this->readAt = new \DateTime();
         }
+
         return $this;
     }
 
@@ -131,6 +137,7 @@ class Mention
     public function setCreatedAt(\DateTimeInterface $createdAt): self
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 
@@ -142,6 +149,7 @@ class Mention
     public function setReadAt(?\DateTimeInterface $readAt): self
     {
         $this->readAt = $readAt;
+
         return $this;
     }
 }

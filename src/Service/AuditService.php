@@ -2,19 +2,20 @@
 
 namespace App\Service;
 
-use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
 
 class AuditService
 {
     private array $buffer = [];
+
     private const BUFFER_SIZE = 10;
 
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private Security $security
-    ) {}
+        private Security $security,
+    ) {
+    }
 
     /**
      * Записать действие в журнал аудита
@@ -22,7 +23,7 @@ class AuditService
     public function log(string $action, string $entityType, int $entityId, array $data = []): void
     {
         $user = $this->security->getUser();
-        
+
         $entry = [
             'action' => $action,
             'entity_type' => $entityType,
@@ -38,7 +39,7 @@ class AuditService
         $this->buffer[] = $entry;
 
         // Сбрасываем буфер если достигли лимита
-        if (count($this->buffer) >= self::BUFFER_SIZE) {
+        if (\count($this->buffer) >= self::BUFFER_SIZE) {
             $this->flush();
         }
     }
@@ -96,13 +97,13 @@ class AuditService
         // Для примера просто логируем
         foreach ($this->buffer as $entry) {
             // Логирование в файл или БД
-            error_log(sprintf(
+            error_log(\sprintf(
                 '[AUDIT] %s | %s | %s | %s | %s',
                 $entry['timestamp'],
                 $entry['action'],
                 $entry['entity_type'],
                 $entry['entity_id'],
-                $entry['user_email'] ?? 'anonymous'
+                $entry['user_email'] ?? 'anonymous',
             ));
         }
 

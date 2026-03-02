@@ -3,9 +3,9 @@
 namespace App\Controller;
 
 use App\Controller\Traits\FlashMessageTrait;
+use App\DTO\CompleteTaskDTO;
 use App\DTO\CreateTaskDTO;
 use App\DTO\UpdateTaskDTO;
-use App\DTO\CompleteTaskDTO;
 use App\Entity\Task;
 use App\Entity\User;
 use App\Form\TaskType;
@@ -238,7 +238,7 @@ class TaskController extends AbstractController
                 'categoryId' => $task->getCategory()?->getId(),
                 'dueDate' => $task->getDueDate()?->format(\DateTimeInterface::ATOM),
                 'parentId' => $parentTask?->getId(),
-                'tags' => $task->getTags()->map(fn($tag) => $tag->getId())->toArray(),
+                'tags' => $task->getTags()->map(fn ($tag) => $tag->getId())->toArray(),
             ]);
 
             // Используем сервис для создания задачи с Domain Events
@@ -246,6 +246,7 @@ class TaskController extends AbstractController
 
             if ($createdTask->isSubtask()) {
                 $this->flashCreated('Подзадача успешно создана');
+
                 return $this->redirectToRoute('app_task_show', ['id' => $createdTask->getParent()->getId()], Response::HTTP_SEE_OTHER);
             }
 
@@ -332,7 +333,7 @@ class TaskController extends AbstractController
                 'categoryId' => $task->getCategory()?->getId(),
                 'dueDate' => $task->getDueDate()?->format(\DateTimeInterface::ATOM),
                 'progress' => $task->getProgress(),
-                'tags' => $task->getTags()->map(fn($tag) => $tag->getId())->toArray(),
+                'tags' => $task->getTags()->map(fn ($tag) => $tag->getId())->toArray(),
                 'notify' => true, // Уведомления отправляются через Event Listeners
             ]);
 
@@ -764,36 +765,36 @@ class TaskController extends AbstractController
         $response = new \Symfony\Component\HttpFoundation\StreamedResponse();
         $response->headers->set('Content-Type', 'text/csv; charset=utf-8');
         $response->headers->set('Content-Disposition', 'attachment; filename="tasks_export_' . date('Y-m-d_H-i-s') . '.csv"');
-        
-        $response->setCallback(function() use ($qb) {
+
+        $response->setCallback(function () use ($qb) {
             $handle = fopen('php://output', 'w');
-            
+
             // Write BOM for UTF-8
-            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
-            
+            fprintf($handle, \chr(0xEF).\chr(0xBB).\chr(0xBF));
+
             // Write header
             fputcsv($handle, ['ID', 'Название', 'Описание', 'Статус', 'Приоритет', 'Дата создания', 'Срок выполнения', 'Категория', 'Назначен пользователю', 'Теги']);
-            
+
             // Process tasks in batches to avoid memory issues
             $batchSize = 100;
             $offset = 0;
-            
+
             while (true) {
                 $tasks = $qb->setFirstResult($offset)
                     ->setMaxResults($batchSize)
                     ->getQuery()
                     ->getResult();
-                
+
                 if (empty($tasks)) {
                     break;
                 }
-                
+
                 foreach ($tasks as $task) {
                     $tagNames = [];
                     foreach ($task->getTags() as $tag) {
                         $tagNames[] = $tag->getName();
                     }
-                    
+
                     fputcsv($handle, [
                         $task->getId(),
                         $task->getTitle(),
@@ -807,19 +808,17 @@ class TaskController extends AbstractController
                         implode(', ', $tagNames),
                     ]);
                 }
-                
+
                 // Clear entity manager to free memory
                 $qb->getEntityManager()->clear();
                 $offset += $batchSize;
             }
-            
+
             fclose($handle);
         });
 
         return $response;
     }
-
-
 
     #[Route('/quick-create', name: 'app_task_quick_create', methods: ['POST'])]
     public function quickCreate(Request $request, EntityManagerInterface $entityManager, ?PerformanceMonitorService $performanceMonitor = null, ?SanitizationService $sanitizationService = null): Response

@@ -453,7 +453,7 @@ class TaskDependencyController extends AbstractController
         }
 
         $data = json_decode($content, true);
-        
+
         if (json_last_error() !== JSON_ERROR_NONE) {
             try {
                 return new JsonResponse(['error' => 'Invalid JSON: ' . json_last_error_msg()], 400);
@@ -463,8 +463,8 @@ class TaskDependencyController extends AbstractController
                 }
             }
         }
-        
-        if (!is_array($data)) {
+
+        if (!\is_array($data)) {
             try {
                 return new JsonResponse(['error' => 'Request body must be a JSON object'], 400);
             } finally {
@@ -476,9 +476,9 @@ class TaskDependencyController extends AbstractController
 
         $dependencyTaskIds = $data['dependency_task_ids'] ?? [];
         $type = $data['type'] ?? 'blocking';
-        
+
         // Валидация типа
-        if (!in_array($type, ['blocking', 'related', 'duplicate'], true)) {
+        if (!\in_array($type, ['blocking', 'related', 'duplicate'], true)) {
             try {
                 return new JsonResponse(['error' => 'Invalid dependency type'], 400);
             } finally {

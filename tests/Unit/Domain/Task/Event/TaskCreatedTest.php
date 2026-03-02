@@ -2,13 +2,9 @@
 
 namespace App\Tests\Unit\Domain\Task\Event;
 
-use App\Domain\Task\Event\TaskAssigned;
-use App\Domain\Task\Event\TaskCompleted;
 use App\Domain\Task\Event\TaskCreated;
-use App\Domain\Task\Event\TaskStatusChanged;
 use App\Domain\Task\ValueObject\TaskId;
 use App\Domain\Task\ValueObject\TaskPriority;
-use App\Domain\Task\ValueObject\TaskStatus;
 use App\Domain\Task\ValueObject\TaskTitle;
 use PHPUnit\Framework\TestCase;
 
@@ -20,6 +16,7 @@ class TaskCreatedTest extends TestCase
         $instance = $reflection->newInstanceWithoutConstructor();
         $property = $reflection->getProperty('value');
         $property->setValue($instance, $id);
+
         return $instance;
     }
 
@@ -48,7 +45,7 @@ class TaskCreatedTest extends TestCase
             TaskTitle::fromString('Test'),
             TaskPriority::from('medium'),
             1,
-            2
+            2,
         );
 
         $this->assertEquals('task.created', $event->getEventName());
@@ -61,7 +58,7 @@ class TaskCreatedTest extends TestCase
             TaskTitle::fromString('Test Task'),
             TaskPriority::from('urgent'),
             10,
-            20
+            20,
         );
 
         $array = $event->toArray();
@@ -82,7 +79,7 @@ class TaskCreatedTest extends TestCase
             TaskTitle::fromString('Test'),
             TaskPriority::from('low'),
             1,
-            2
+            2,
         );
 
         // Проверяем, что данные не могут быть изменены

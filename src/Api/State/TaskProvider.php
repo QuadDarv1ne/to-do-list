@@ -13,8 +13,9 @@ class TaskProvider implements ProviderInterface
 {
     public function __construct(
         private TaskRepository $taskRepository,
-        private Security $security
-    ) {}
+        private Security $security,
+    ) {
+    }
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
     {
@@ -41,7 +42,7 @@ class TaskProvider implements ProviderInterface
     private function getCollection(array $context): array
     {
         $user = $this->security->getUser();
-        
+
         $tasks = $this->taskRepository->createQueryBuilder('t')
             ->leftJoin('t.assignedUser', 'au')->addSelect('au')
             ->leftJoin('t.category', 'c')->addSelect('c')
@@ -52,13 +53,13 @@ class TaskProvider implements ProviderInterface
             ->getQuery()
             ->getResult();
 
-        return array_map(fn(Task $task) => $this->mapToDto($task), $tasks);
+        return array_map(fn (Task $task) => $this->mapToDto($task), $tasks);
     }
 
     private function getItem(int $id): ?TaskDto
     {
         $user = $this->security->getUser();
-        
+
         $task = $this->taskRepository->createQueryBuilder('t')
             ->leftJoin('t.assignedUser', 'au')->addSelect('au')
             ->leftJoin('t.category', 'c')->addSelect('c')
@@ -89,7 +90,7 @@ class TaskProvider implements ProviderInterface
         $dto->userId = $task->getUser()?->getId();
         $dto->assignedUserId = $task->getAssignedUser()?->getId();
         $dto->categoryId = $task->getCategory()?->getId();
-        $dto->tags = $task->getTags()->map(fn($tag) => ['id' => $tag->getId(), 'name' => $tag->getName()])->toArray();
+        $dto->tags = $task->getTags()->map(fn ($tag) => ['id' => $tag->getId(), 'name' => $tag->getName()])->toArray();
         $dto->commentsCount = $task->getComments()->count();
         $dto->isOverdue = $task->isOverdue();
 

@@ -89,7 +89,7 @@ class AIAssistantService
             ]);
 
             $data = $response->toArray();
-            
+
             return explode("\n", $data['choices'][0]['message']['content'] ?? '');
         } catch (\Exception $e) {
             return [];
@@ -185,18 +185,18 @@ class AIAssistantService
 
         foreach ($users as $user) {
             $score = 0;
-            
+
             // Получаем статистику пользователя
             $userStats = $this->getUserStats($user);
-            
+
             // Учитываем опыт выполнения похожих задач
             $similarTasks = $this->getSimilarTasksCount($user, $keywords);
             $score += $similarTasks * 10;
-            
+
             // Учитываем текущую загрузку (меньше задач = выше приоритет)
             $activeTasks = $userStats['active_tasks'] ?? 0;
             $score += max(0, 20 - $activeTasks * 2);
-            
+
             // Учитываем успешность выполнения
             $completionRate = $userStats['completion_rate'] ?? 50;
             $score += $completionRate / 10;
@@ -212,14 +212,15 @@ class AIAssistantService
 
         if (!empty($userScores) && $userScores[0]['score'] > 0) {
             $bestUser = $userScores[0]['user'];
+
             return [
                 'user_id' => $bestUser->getId(),
                 'confidence' => min(0.9, $userScores[0]['score'] / 50),
-                'reason' => sprintf(
+                'reason' => \sprintf(
                     'Лучший кандидат: %d похожих задач, %d активных, %.1f%% завершений',
                     $similarTasks ?? 0,
                     $activeTasks ?? 0,
-                    $completionRate ?? 0
+                    $completionRate ?? 0,
                 ),
             ];
         }
@@ -237,7 +238,7 @@ class AIAssistantService
     private function getUserStats(User $user): array
     {
         $qb = $this->em->createQueryBuilder();
-        
+
         // Активные задачи
         $active = (int) $qb->select('COUNT(t.id)')
             ->from(\App\Entity\Task::class, 't')
@@ -278,8 +279,8 @@ class AIAssistantService
         }
 
         $qb = $this->em->createQueryBuilder();
-        $pattern = '%' . implode('%', array_slice($keywords, 0, 2)) . '%';
-        
+        $pattern = '%' . implode('%', \array_slice($keywords, 0, 2)) . '%';
+
         return (int) $qb->select('COUNT(t.id)')
             ->from(\App\Entity\Task::class, 't')
             ->where('t.assignedUser = :user')
@@ -518,10 +519,10 @@ class AIAssistantService
     public function predictCompletionTime(Task $task): array
     {
         $complexity = $this->estimateComplexity($task);
-        
+
         // Получаем среднее время выполнения похожих задач
         $avgTime = $this->getAverageCompletionTime($task);
-        
+
         // Учитываем приоритет (срочные задачи делаются быстрее)
         $priorityFactor = match($task->getPriority()) {
             'urgent' => 0.7,
@@ -573,21 +574,21 @@ class AIAssistantService
     private function getAverageCompletionTime(Task $task): float
     {
         $qb = $this->em->createQueryBuilder();
-        
+
         $qb->select('AVG(t.completedAt - t.createdAt) as avg_time')
             ->from(\App\Entity\Task::class, 't')
             ->where('t.status = :completed')
             ->andWhere('t.category = :category')
             ->setParameter('completed', 'completed')
             ->setParameter('category', $task->getCategory());
-        
+
         $result = $qb->getQuery()->getOneOrNullResult();
-        
+
         if ($result && $result['avg_time']) {
             // Конвертируем секунды в часы
             return (float) ($result['avg_time'] / 3600);
         }
-        
+
         return 0;
     }
 }

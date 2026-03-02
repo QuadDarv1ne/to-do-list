@@ -57,11 +57,13 @@ class IntegrationController extends AbstractController
 
         if ($error) {
             $this->addFlash('error', 'Ошибка авторизации Slack: '.$error);
+
             return $this->redirectToRoute('app_integrations_index');
         }
 
         if (!$code) {
             $this->addFlash('error', 'Код авторизации не получен');
+
             return $this->redirectToRoute('app_integrations_index');
         }
 
@@ -112,11 +114,13 @@ class IntegrationController extends AbstractController
 
         if ($error) {
             $this->addFlash('error', 'Ошибка авторизации Google: '.$error);
+
             return $this->redirectToRoute('app_integrations_index');
         }
 
         if (!$code) {
             $this->addFlash('error', 'Код авторизации не получен');
+
             return $this->redirectToRoute('app_integrations_index');
         }
 

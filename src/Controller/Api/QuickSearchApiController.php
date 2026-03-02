@@ -2,9 +2,9 @@
 
 namespace App\Controller\Api;
 
-use App\Repository\TaskRepository;
 use App\Repository\ClientRepository;
 use App\Repository\DealRepository;
+use App\Repository\TaskRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,15 +16,16 @@ class QuickSearchApiController extends AbstractController
     public function __construct(
         private TaskRepository $taskRepository,
         private ClientRepository $clientRepository,
-        private DealRepository $dealRepository
-    ) {}
+        private DealRepository $dealRepository,
+    ) {
+    }
 
     public function __invoke(Request $request): JsonResponse
     {
         $query = $request->query->get('q', '');
         $limit = (int) $request->query->get('limit', 10);
 
-        if (strlen($query) < 2) {
+        if (\strlen($query) < 2) {
             return $this->json(['results' => []]);
         }
 
@@ -87,11 +88,11 @@ class QuickSearchApiController extends AbstractController
         }
 
         // Ограничиваем общее количество
-        $results = array_slice($results, 0, $limit);
+        $results = \array_slice($results, 0, $limit);
 
         return $this->json([
             'results' => $results,
-            'total' => count($results),
+            'total' => \count($results),
         ]);
     }
 }
