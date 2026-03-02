@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Controller\Traits\EntityManagerTrait;
 use App\DTO\CreateCommentDTO;
 use App\DTO\UpdateCommentDTO;
 use App\Entity\Comment;
@@ -11,6 +12,7 @@ use App\Service\CommentCommandService;
 use App\Service\MentionService;
 use App\Service\NotificationService;
 use App\Service\PerformanceMonitorService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,8 +23,11 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class CommentController extends AbstractController
 {
+    use EntityManagerTrait;
+
     public function __construct(
         private CommentCommandService $commentCommandService,
+        private EntityManagerInterface $entityManager,
     ) {
     }
 

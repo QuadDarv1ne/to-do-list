@@ -2,6 +2,8 @@
 
 namespace App\Controller\Traits;
 
+use Doctrine\ORM\EntityManagerInterface;
+
 /**
  * Trait for EntityManager operations
  */
@@ -34,5 +36,14 @@ trait EntityManagerTrait
         }
 
         $this->entityManager->flush();
+    }
+
+    protected function getDoctrine(): EntityManagerInterface
+    {
+        if (!property_exists($this, 'entityManager')) {
+            throw new \LogicException('EntityManager property not found. Inject EntityManagerInterface in constructor.');
+        }
+
+        return $this->entityManager;
     }
 }

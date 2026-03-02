@@ -57,4 +57,9 @@ trait FlashMessageTrait
     {
         $this->flashError('Неверные данные');
     }
+
+    protected function flashDanger(string $message): void
+    {
+        $this->flashError($message);
+    }
 }

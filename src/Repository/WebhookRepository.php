@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\User;
 use App\Entity\Webhook;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -17,6 +18,8 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class WebhookRepository extends ServiceEntityRepository
 {
+    protected EntityManagerInterface $_em;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Webhook::class);
