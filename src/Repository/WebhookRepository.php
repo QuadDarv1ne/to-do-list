@@ -23,6 +23,7 @@ class WebhookRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Webhook::class);
+        $this->_em = $this->getEntityManager();
     }
 
     /**
