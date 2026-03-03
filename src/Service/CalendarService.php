@@ -259,7 +259,7 @@ class CalendarService
         $task = $this->taskRepository->find($taskId);
 
         if (!$task) {
-            throw new \Exception('Задача не найдена');
+            throw new \InvalidArgumentException('Задача не найдена: ' . $taskId);
         }
 
         $task->setDeadline($newDate);
