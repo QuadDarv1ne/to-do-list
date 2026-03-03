@@ -10,14 +10,8 @@ use Symfony\Contracts\Cache\ItemInterface;
 /**
  * Advanced cache service with multiple cache pools and intelligent caching strategies
  */
-class AdvancedCacheService
+final readonly class AdvancedCacheService
 {
-    private CacheInterface $cache;
-
-    private CacheItemPoolInterface $cachePool;
-
-    private LoggerInterface $logger;
-
     // Cache pool names
     private const POOL_QUERIES = 'cache.app_queries';
 
@@ -32,13 +26,10 @@ class AdvancedCacheService
     private const POOL_NOTIFICATIONS = 'cache.app_notifications';
 
     public function __construct(
-        CacheInterface $cache,
-        CacheItemPoolInterface $cachePool,
-        LoggerInterface $logger,
+        private CacheInterface $cache,
+        private CacheItemPoolInterface $cachePool,
+        private LoggerInterface $logger,
     ) {
-        $this->cache = $cache;
-        $this->cachePool = $cachePool;
-        $this->logger = $logger;
     }
 
     /**
