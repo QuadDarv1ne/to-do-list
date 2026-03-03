@@ -43,36 +43,36 @@ class AutomateTasksCommand extends Command
         // Auto-assign
         if ($runAll || $input->getOption('auto-assign')) {
             $io->section('Auto-assigning tasks');
-            $assigned = $this->automationService->autoAssignTasks();
-            $io->success(\sprintf('Assigned %d tasks', \count($assigned)));
+            $result = $this->automationService->autoAssignTasks();
+            $io->success(\sprintf('Assigned %d tasks', $result['assigned']));
         }
 
         // Escalate overdue
         if ($runAll || $input->getOption('escalate')) {
             $io->section('Escalating overdue tasks');
-            $escalated = $this->automationService->autoEscalateOverdueTasks();
-            $io->success(\sprintf('Escalated %d tasks', \count($escalated)));
+            $result = $this->automationService->autoEscalateOverdueTasks();
+            $io->success(\sprintf('Escalated %d tasks', $result['escalated']));
         }
 
         // Archive old tasks
         if ($runAll || $input->getOption('archive')) {
             $io->section('Archiving old completed tasks');
-            $archived = $this->automationService->autoArchiveOldTasks();
-            $io->success(\sprintf('Archived %d tasks', \count($archived)));
+            $result = $this->automationService->autoArchiveOldTasks();
+            $io->success(\sprintf('Archived %d tasks', $result['archived']));
         }
 
         // Update stale tasks
         if ($runAll || $input->getOption('update-stale')) {
             $io->section('Updating stale tasks');
-            $updated = $this->automationService->autoUpdateStaleTaskStatus();
-            $io->success(\sprintf('Updated %d stale tasks', \count($updated)));
+            $result = $this->automationService->autoUpdateStaleTaskStatus();
+            $io->success(\sprintf('Updated %d stale tasks', $result['updated']));
         }
 
         // Execute custom rules
         if ($runAll) {
             $io->section('Executing automation rules');
-            $executed = $this->automationService->executeRules();
-            $io->success(\sprintf('Executed %d rules', \count($executed)));
+            $result = $this->automationService->executeRules();
+            $io->success(\sprintf('Executed %d rules', $result['executed']));
         }
 
         $io->success('Task automation completed');
