@@ -7,6 +7,7 @@ use App\Entity\User;
 use App\Repository\TaskCategoryRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 
 class TaskImportService
 {
@@ -14,6 +15,7 @@ class TaskImportService
         private EntityManagerInterface $entityManager,
         private TaskCategoryRepository $categoryRepository,
         private UserRepository $userRepository,
+        private LoggerInterface $logger,
     ) {
     }
 
@@ -60,9 +62,14 @@ class TaskImportService
             try {
                 $this->importTaskFromRow($data, $creator);
                 $results['success']++;
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $results['failed']++;
                 $results['errors'][] = "Строка {$lineNumber}: " . $e->getMessage();
+                $this->logger->warning('Task import failed', [
+                    'line' => $lineNumber,
+                    'error' => $e->getMessage(),
+                    'class' => \get_class($e),
+                ]);
             }
         }
 

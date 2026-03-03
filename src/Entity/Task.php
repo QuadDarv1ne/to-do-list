@@ -399,14 +399,6 @@ class Task
     }
 
     /**
-     * @deprecated Use isCompleted() instead
-     */
-    public function isDone(): bool
-    {
-        return $this->isCompleted();
-    }
-
-    /**
      * @return Collection<int, Comment>
      */
     public function getComments(): Collection
