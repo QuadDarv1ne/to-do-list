@@ -383,7 +383,6 @@ class DealCommandServiceTest extends TestCase
 
         foreach ($properties as $name => $value) {
             $property = $reflection->getProperty($name);
-            $property->setAccessible(true);
             $property->setValue($instance, $value);
         }
 
@@ -409,7 +408,6 @@ class DealCommandServiceTest extends TestCase
 
         foreach ($properties as $name => $value) {
             $property = $reflection->getProperty($name);
-            $property->setAccessible(true);
             $property->setValue($instance, $value);
         }
 
