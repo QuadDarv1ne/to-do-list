@@ -7,6 +7,7 @@ use App\Entity\Webhook;
 use App\Entity\WebhookLog;
 use App\Repository\WebhookLogRepository;
 use App\Repository\WebhookRepository;
+use Psr\Cache\CacheItemPoolInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -17,6 +18,7 @@ class WebhookService
         private LoggerInterface $logger,
         private WebhookRepository $webhookRepository,
         private WebhookLogRepository $webhookLogRepository,
+        private ?CacheItemPoolInterface $cache = null,
     ) {
     }
 
@@ -399,7 +401,27 @@ class WebhookService
      */
     public function getWebhookStats(int $webhookId, int $periodDays = 7): array
     {
-        return $this->webhookLogRepository->getStatistics($webhookId, $periodDays);
+        // Проверяем кэш
+        if ($this->cache) {
+            $cacheKey = 'webhook_stats_' . $webhookId;
+            $item = $this->cache->getItem($cacheKey);
+            
+            if ($item->isHit()) {
+                return $item->get();
+            }
+        }
+        
+        $stats = $this->webhookLogRepository->getStatistics($webhookId, $periodDays);
+        
+        // Сохраняем в кэш на 10 минут
+        if ($this->cache) {
+            $item = $this->cache->getItem($cacheKey);
+            $item->set($stats);
+            $item->expiresAfter(600); // 10 минут
+            $this->cache->save($item);
+        }
+        
+        return $stats;
     }
 
     /**
