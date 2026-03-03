@@ -3,6 +3,259 @@
    Styles specific to Symfony Asset Mapper
    ============================================ */
 
+/* ============================================
+   DASHBOARD WIDGETS - MODERN UI/UX
+   ============================================ */
+
+/* Widget Cards */
+.dashboard-widget {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-widget::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.dashboard-widget:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.06);
+    border-color: rgba(59, 130, 246, 0.2);
+}
+
+.dashboard-widget:hover::before {
+    opacity: 1;
+}
+
+/* Widget Header */
+.widget-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.04);
+}
+
+.widget-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.widget-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    font-size: 18px;
+}
+
+/* Widget Content */
+.widget-content {
+    min-height: 120px;
+}
+
+/* Stat Widgets */
+.stat-widget {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 36px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.stat-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+.stat-trend.up {
+    background: rgba(34, 197, 94, 0.1);
+    color: #059669;
+}
+
+.stat-trend.down {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+}
+
+/* Progress Widgets */
+.progress-widget {
+    margin-top: 16px;
+}
+
+.progress-bar-modern {
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%);
+    border-radius: 4px;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent
+    );
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* Chart Placeholders */
+.widget-chart {
+    height: 200px;
+    background: linear-gradient(180deg, rgba(59, 130, 246, 0.05) 0%, transparent 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+/* List Widgets */
+.widget-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.widget-list-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.5);
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.widget-list-item:hover {
+    background: rgba(59, 130, 246, 0.05);
+    border-color: rgba(59, 130, 246, 0.1);
+    transform: translateX(4px);
+}
+
+/* Priority Badges */
+.priority-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.priority-low {
+    background: rgba(100, 116, 139, 0.1);
+    color: #64748b;
+}
+
+.priority-medium {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.priority-high {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.priority-urgent {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .dashboard-widget {
+        background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+        border-color: rgba(255, 255, 255, 0.06);
+    }
+    
+    .widget-title {
+        color: #f9fafb;
+    }
+    
+    .stat-label {
+        color: #9ca3af;
+    }
+    
+    .widget-list-item {
+        background: rgba(255, 255, 255, 0.03);
+    }
+    
+    .widget-list-item:hover {
+        background: rgba(59, 130, 246, 0.08);
+    }
+}
+
 /* Voice Control Features */
 #voiceControlBtn {
     transition: all 0.3s ease;
