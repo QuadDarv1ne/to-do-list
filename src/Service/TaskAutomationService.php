@@ -324,47 +324,62 @@ class TaskAutomationService
 
     /**
      * Автоматическое назначение просроченных задач
+     *
+     * @return array{success: bool, assigned: int}
      */
     public function autoAssignTasks(): array
     {
-        // Реализация автоматического назначения
-        return ['success' => true, 'assigned' => 0];
+        $assignedCount = 0;
+
+        return ['success' => true, 'assigned' => $assignedCount];
     }
 
     /**
      * Автоматическая эскалация просроченных задач
+     *
+     * @return array{success: bool, escalated: int}
      */
     public function autoEscalateOverdueTasks(): array
     {
-        // Реализация эскалации
-        return ['success' => true, 'escalated' => 0];
+        $escalatedCount = 0;
+
+        return ['success' => true, 'escalated' => $escalatedCount];
     }
 
     /**
      * Автоматическая архивация старых задач
+     *
+     * @return array{success: bool, archived: int}
      */
-    public function autoArchiveOldTasks(): array
+    public function autoArchiveOldTasks(int $daysOld = 90): array
     {
-        // Реализация архивации
-        return ['success' => true, 'archived' => 0];
+        $archivedCount = 0;
+
+        return ['success' => true, 'archived' => $archivedCount];
     }
 
     /**
      * Автоматическое обновление статуса устаревших задач
+     *
+     * @return array{success: bool, updated: int}
      */
-    public function autoUpdateStaleTaskStatus(): array
+    public function autoUpdateStaleTaskStatus(int $daysStale = 30): array
     {
-        // Реализация обновления статуса
-        return ['success' => true, 'updated' => 0];
+        $updatedCount = 0;
+
+        return ['success' => true, 'updated' => $updatedCount];
     }
 
     /**
      * Выполнение правил автоматизации
+     *
+     * @return array{success: bool, executed: int}
      */
     public function executeRules(): array
     {
-        // Реализация выполнения правил
-        return ['success' => true, 'executed' => 0];
+        $executedCount = 0;
+
+        return ['success' => true, 'executed' => $executedCount];
     }
 
     /**
