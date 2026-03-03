@@ -6,16 +6,24 @@ use App\Entity\User;
 use App\Repository\TaskRepository;
 use App\Service\AdvancedAnalyticsService;
 use PHPUnit\Framework\TestCase;
+use Psr\Cache\CacheItemInterface;
+use Psr\Cache\CacheItemPoolInterface;
 
 class AdvancedAnalyticsServiceTest extends TestCase
 {
     private TaskRepository $taskRepository;
+    private CacheItemPoolInterface $cache;
     private AdvancedAnalyticsService $analyticsService;
 
     protected function setUp(): void
     {
         $this->taskRepository = $this->createMock(TaskRepository::class);
-        $this->analyticsService = new AdvancedAnalyticsService($this->taskRepository);
+        $this->cache = $this->createMock(CacheItemPoolInterface::class);
+        $this->cache->method('hasItem')->willReturn(false);
+        $this->analyticsService = new AdvancedAnalyticsService(
+            $this->taskRepository,
+            $this->cache
+        );
     }
 
     public function testGetDashboardReturnsStructuredData(): void
@@ -201,6 +209,27 @@ class AdvancedAnalyticsServiceTest extends TestCase
         $this->assertArrayHasKey('task_distribution', $patterns);
         $this->assertArrayHasKey('completion_patterns', $patterns);
         $this->assertArrayHasKey('procrastination_score', $patterns);
+    }
+    
+    public function testGetDashboardUsesCache(): void
+    {
+        $user = $this->createMock(User::class);
+        $user->method('getId')->willReturn(1);
+        
+        $from = new \DateTime('2026-01-01');
+        $to = new \DateTime('2026-01-31');
+        
+        // Мокаем кэш с попаданием
+        $cacheItem = $this->createMock(CacheItemInterface::class);
+        $cacheItem->method('isHit')->willReturn(true);
+        $cacheItem->method('get')->willReturn(['cached' => 'data']);
+        
+        $this->cache->method('hasItem')->willReturn(true);
+        $this->cache->method('getItem')->willReturn($cacheItem);
+        
+        $dashboard = $this->analyticsService->getDashboard($user, $from, $to);
+        
+        $this->assertEquals(['cached' => 'data'], $dashboard);
     }
 
     private function createQueryBuilderMock(array $results): \PHPUnit\Framework\MockObject\MockObject
