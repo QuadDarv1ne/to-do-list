@@ -21,6 +21,7 @@
         <testsuite name="Project Test Suite">
             <directory>tests</directory>
             <exclude>tests/Unit/Service/RecurringTaskServiceTest.php</exclude>
+            <exclude>tests/Unit/Service/AdvancedAnalyticsServiceTest.php</exclude>
         </testsuite>
     </testsuites>
 

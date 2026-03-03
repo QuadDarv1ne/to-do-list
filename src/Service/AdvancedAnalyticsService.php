@@ -101,13 +101,129 @@ class AdvancedAnalyticsService
      */
     private function getTrends(User $user, \DateTime $from, \DateTime $to): array
     {
+        $weeklyData = $this->getWeeklyTrendData($user, $from, $to);
+        
+        // Анализируем тренды на основе данных
+        $taskCreationTrend = $this->analyzeCreationTrend($weeklyData);
+        $completionTrend = $this->analyzeCompletionTrend($weeklyData);
+        $velocityTrend = $this->analyzeVelocityTrend($weeklyData);
+        
         return [
-            'task_creation_trend' => 'increasing', // increasing, decreasing, stable
-            'completion_trend' => 'stable',
-            'velocity_trend' => 'increasing',
-            'quality_trend' => 'stable',
-            'weekly_data' => $this->getWeeklyTrendData($user, $from, $to),
+            'task_creation_trend' => $taskCreationTrend,
+            'completion_trend' => $completionTrend,
+            'velocity_trend' => $velocityTrend,
+            'quality_trend' => $this->calculateQualityTrend($user, $from, $to),
+            'weekly_data' => $weeklyData,
         ];
+    }
+    
+    /**
+     * Анализ тренда создания задач
+     */
+    private function analyzeCreationTrend(array $weeklyData): string
+    {
+        if (\count($weeklyData) < 2) {
+            return 'stable';
+        }
+        
+        $firstHalf = array_slice($weeklyData, 0, (int) floor(\count($weeklyData) / 2));
+        $secondHalf = array_slice($weeklyData, (int) ceil(\count($weeklyData) / 2));
+        
+        $firstAvg = array_sum(array_column($firstHalf, 'created')) / max(1, \count($firstHalf));
+        $secondAvg = array_sum(array_column($secondHalf, 'created')) / max(1, \count($secondHalf));
+        
+        $diff = $secondAvg - $firstAvg;
+        
+        if ($diff > 2) {
+            return 'increasing';
+        } elseif ($diff < -2) {
+            return 'decreasing';
+        }
+        
+        return 'stable';
+    }
+    
+    /**
+     * Анализ тренда завершения задач
+     */
+    private function analyzeCompletionTrend(array $weeklyData): string
+    {
+        if (\count($weeklyData) < 2) {
+            return 'stable';
+        }
+        
+        $firstHalf = array_slice($weeklyData, 0, (int) floor(\count($weeklyData) / 2));
+        $secondHalf = array_slice($weeklyData, (int) ceil(\count($weeklyData) / 2));
+        
+        $firstAvg = array_sum(array_column($firstHalf, 'completed')) / max(1, \count($firstHalf));
+        $secondAvg = array_sum(array_column($secondHalf, 'completed')) / max(1, \count($secondHalf));
+        
+        $diff = $secondAvg - $firstAvg;
+        
+        if ($diff > 2) {
+            return 'increasing';
+        } elseif ($diff < -2) {
+            return 'decreasing';
+        }
+        
+        return 'stable';
+    }
+    
+    /**
+     * Анализ тренда скорости
+     */
+    private function analyzeVelocityTrend(array $weeklyData): string
+    {
+        if (\count($weeklyData) < 2) {
+            return 'stable';
+        }
+        
+        $firstHalf = array_slice($weeklyData, 0, (int) floor(\count($weeklyData) / 2));
+        $secondHalf = array_slice($weeklyData, (int) ceil(\count($weeklyData) / 2));
+        
+        $firstAvg = array_sum(array_column($firstHalf, 'velocity')) / max(1, \count($firstHalf));
+        $secondAvg = array_sum(array_column($secondHalf, 'velocity')) / max(1, \count($secondHalf));
+        
+        $diff = $secondAvg - $firstAvg;
+        
+        if ($diff > 0.5) {
+            return 'increasing';
+        } elseif ($diff < -0.5) {
+            return 'decreasing';
+        }
+        
+        return 'stable';
+    }
+    
+    /**
+     * Расчет тренда качества
+     */
+    private function calculateQualityTrend(User $user, \DateTime $from, \DateTime $to): string
+    {
+        $tasks = $this->taskRepository->findByUserAndStatus($user, 'done', $from, $to);
+        
+        if (empty($tasks)) {
+            return 'stable';
+        }
+        
+        $onTimeCount = 0;
+        foreach ($tasks as $task) {
+            if ($task->getDueDate() && $task->getUpdatedAt() && $task->getUpdatedAt() <= $task->getDueDate()) {
+                $onTimeCount++;
+            }
+        }
+        
+        $qualityScore = ($onTimeCount / \count($tasks)) * 100;
+        
+        if ($qualityScore >= 90) {
+            return 'excellent';
+        } elseif ($qualityScore >= 70) {
+            return 'good';
+        } elseif ($qualityScore >= 50) {
+            return 'stable';
+        }
+        
+        return 'needs_improvement';
     }
 
     /**
@@ -158,13 +274,95 @@ class AdvancedAnalyticsService
      */
     private function getPredictions(User $user): array
     {
+        // Получаем активные задачи
+        $activeTasks = $this->countActiveTasks($user);
+        $overdueTasks = $this->countOverdueTasks($user);
+        
+        // Рассчитываем среднюю скорость выполнения
+        $avgDailyVelocity = $this->calculateAverageDailyVelocity($user);
+        
+        // Прогноз выполнения на следующую неделю
+        $nextWeekCompletion = min($activeTasks, round($avgDailyVelocity * 7));
+        
+        // Прогноз на месяц
+        $nextMonthCompletion = min($activeTasks, round($avgDailyVelocity * 30));
+        
+        // Риск выгорания
+        $burnoutRisk = $this->assessBurnoutRisk($activeTasks, $overdueTasks);
+        
+        // Утилизация мощности
+        $capacityUtilization = $this->calculateCapacityUtilization($activeTasks, $avgDailyVelocity);
+        
         return [
-            'next_week_completion' => 25,
-            'next_month_completion' => 100,
-            'burnout_risk' => 'low', // low, medium, high
-            'capacity_utilization' => 75,
-            'recommended_task_limit' => 30,
+            'next_week_completion' => $nextWeekCompletion,
+            'next_month_completion' => $nextMonthCompletion,
+            'burnout_risk' => $burnoutRisk,
+            'capacity_utilization' => $capacityUtilization,
+            'recommended_task_limit' => $this->calculateRecommendedTaskLimit($avgDailyVelocity),
         ];
+    }
+    
+    /**
+     * Средняя скорость выполнения задач в день
+     */
+    private function calculateAverageDailyVelocity(User $user): float
+    {
+        $thirtyDaysAgo = (new \DateTime())->modify('-30 days');
+        $now = new \DateTime();
+        
+        $qb = $this->taskRepository->createQueryBuilder('t');
+        $qb->select('COUNT(t.id) as completed')
+            ->where('t.assignedUser = :user')
+            ->andWhere('t.status = :completed')
+            ->andWhere('t.completedAt >= :from')
+            ->setParameter('user', $user)
+            ->setParameter('completed', 'completed')
+            ->setParameter('from', $thirtyDaysAgo);
+        
+        $result = $qb->getQuery()->getOneOrNullResult();
+        $completedTasks = (int) ($result['completed'] ?? 0);
+        
+        return $completedTasks > 0 ? $completedTasks / 30 : 0;
+    }
+    
+    /**
+     * Оценка риска выгорания
+     */
+    private function assessBurnoutRisk(int $activeTasks, int $overdueTasks): string
+    {
+        $riskScore = ($activeTasks * 2) + ($overdueTasks * 5);
+        
+        if ($riskScore > 50) {
+            return 'high';
+        } elseif ($riskScore > 25) {
+            return 'medium';
+        }
+        
+        return 'low';
+    }
+    
+    /**
+     * Расчет утилизации мощности
+     */
+    private function calculateCapacityUtilization(int $activeTasks, float $avgDailyVelocity): int
+    {
+        if ($avgDailyVelocity <= 0) {
+            return 0;
+        }
+        
+        $daysToComplete = $activeTasks / $avgDailyVelocity;
+        $utilization = min(100, ($daysToComplete / 30) * 100);
+        
+        return (int) round($utilization);
+    }
+    
+    /**
+     * Рекомендуемый лимит задач
+     */
+    private function calculateRecommendedTaskLimit(float $avgDailyVelocity): int
+    {
+        // Рекомендуется иметь задач не больше чем на 2 недели
+        return (int) round($avgDailyVelocity * 14);
     }
 
     /**
@@ -172,25 +370,102 @@ class AdvancedAnalyticsService
      */
     private function getInsights(User $user, \DateTime $from, \DateTime $to): array
     {
-        return [
-            [
+        $insights = [];
+        
+        // Получаем метрики
+        $activeTasks = $this->countActiveTasks($user);
+        $overdueTasks = $this->countOverdueTasks($user);
+        $completedTasks = $this->countCompletedTasks($user, $from, $to);
+        $completionRate = $this->calculateCompletionRate($user, $from, $to);
+        
+        // Позитивный инсайт если высокая продуктивность
+        if ($completionRate >= 80) {
+            $insights[] = [
                 'type' => 'positive',
                 'title' => 'Отличная продуктивность',
-                'message' => 'Ваша продуктивность выросла на 15% за последний месяц',
+                'message' => sprintf('Вы завершили %d задач с эффективностью %d%%', $completedTasks, $completionRate),
                 'icon' => 'fa-arrow-up',
-            ],
-            [
+            ];
+        }
+        
+        // Предупреждение если много просроченных
+        if ($overdueTasks > 5) {
+            $insights[] = [
                 'type' => 'warning',
                 'title' => 'Много просроченных задач',
-                'message' => 'У вас 10 просроченных задач. Рекомендуем пересмотреть приоритеты',
+                'message' => sprintf('У вас %d просроченных задач. Рекомендуем пересмотреть приоритеты', $overdueTasks),
                 'icon' => 'fa-exclamation-triangle',
-            ],
-            [
+            ];
+        }
+        
+        // Информационный инсайт о лучшем времени
+        $productivityPatterns = $this->analyzeTaskPatterns($user);
+        if (isset($productivityPatterns['most_productive_time'])) {
+            $hour = $productivityPatterns['most_productive_time']['hour'];
+            $insights[] = [
                 'type' => 'info',
                 'title' => 'Лучшее время для работы',
-                'message' => 'Вы наиболее продуктивны с 10:00 до 12:00',
+                'message' => sprintf('Вы наиболее продуктивны в %d:00', $hour),
                 'icon' => 'fa-clock',
-            ],
+            ];
+        }
+        
+        // Совет если низкая эффективность
+        if ($completionRate < 50 && $activeTasks > 10) {
+            $insights[] = [
+                'type' => 'warning',
+                'title' => 'Низкая эффективность',
+                'message' => 'Завершено менее 50% задач. Рассмотрите возможность делегирования.',
+                'icon' => 'fa-chart-line',
+            ];
+        }
+        
+        return empty($insights) ? [$this->getDefaultInsight()] : $insights;
+    }
+    
+    /**
+     * Посчитать завершенные задачи за период
+     */
+    private function countCompletedTasks(User $user, \DateTime $from, \DateTime $to): int
+    {
+        $qb = $this->taskRepository->createQueryBuilder('t');
+        $qb->select('COUNT(t.id)')
+            ->where('t.assignedUser = :user')
+            ->andWhere('t.status = :completed')
+            ->andWhere('t.completedAt BETWEEN :from AND :to')
+            ->setParameter('user', $user)
+            ->setParameter('completed', 'completed')
+            ->setParameter('from', $from)
+            ->setParameter('to', $to);
+        
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+    
+    /**
+     * Расчет процента завершения
+     */
+    private function calculateCompletionRate(User $user, \DateTime $from, \DateTime $to): int
+    {
+        $totalCreated = $this->countTasksCreated($user, $from, $to);
+        $completed = $this->countCompletedTasks($user, $from, $to);
+        
+        if ($totalCreated === 0) {
+            return 0;
+        }
+        
+        return (int) round(($completed / $totalCreated) * 100);
+    }
+    
+    /**
+     * Инсайт по умолчанию
+     */
+    private function getDefaultInsight(): array
+    {
+        return [
+            'type' => 'info',
+            'title' => 'Продолжайте в том же духе',
+            'message' => 'Система продолжает отслеживать вашу продуктивность',
+            'icon' => 'fa-info-circle',
         ];
     }
 
@@ -200,18 +475,65 @@ class AdvancedAnalyticsService
     private function getComparisons(User $user, \DateTime $from, \DateTime $to): array
     {
         $previousPeriod = $this->getPreviousPeriod($from, $to);
-
+            
+        // Текущий период
+        $currentCompleted = $this->countCompletedTasks($user, $from, $to);
+        $currentRate = $this->calculateCompletionRate($user, $from, $to);
+        $currentVelocity = $this->calculateVelocity($user, $from, $to);
+            
+        // Предыдущий период
+        $prevFrom = $previousPeriod['from'];
+        $prevTo = $previousPeriod['to'];
+        $previousCompleted = $this->countCompletedTasks($user, $prevFrom, $prevTo);
+        $previousRate = $this->calculateCompletionRate($user, $prevFrom, $prevTo);
+        $previousVelocity = $this->calculateVelocity($user, $prevFrom, $prevTo);
+            
+        // Командные средние (заглушка, пока нет сервиса команды)
+        $teamAvgProductivity = 75;
+        $teamAvgQuality = 80;
+            
         return [
             'vs_previous_period' => [
-                'tasks_completed' => ['current' => 120, 'previous' => 100, 'change' => 20],
-                'completion_rate' => ['current' => 80, 'previous' => 75, 'change' => 5],
-                'velocity' => ['current' => 4.5, 'previous' => 4.0, 'change' => 0.5],
+                'tasks_completed' => [
+                    'current' => $currentCompleted,
+                    'previous' => $previousCompleted,
+                    'change' => $currentCompleted - $previousCompleted,
+                ],
+                'completion_rate' => [
+                    'current' => $currentRate,
+                    'previous' => $previousRate,
+                    'change' => $currentRate - $previousRate,
+                ],
+                'velocity' => [
+                    'current' => round($currentVelocity, 1),
+                    'previous' => round($previousVelocity, 1),
+                    'change' => round($currentVelocity - $previousVelocity, 1),
+                ],
             ],
             'vs_team_average' => [
-                'productivity' => ['user' => 85, 'team' => 78, 'difference' => 7],
-                'quality' => ['user' => 90, 'team' => 85, 'difference' => 5],
+                'productivity' => [
+                    'user' => min(100, $currentRate),
+                    'team' => $teamAvgProductivity,
+                    'difference' => min(100, $currentRate) - $teamAvgProductivity,
+                ],
+                'quality' => [
+                    'user' => min(100, $this->calculateQualityScore($user, $from, $to)),
+                    'team' => $teamAvgQuality,
+                    'difference' => min(100, $this->calculateQualityScore($user, $from, $to)) - $teamAvgQuality,
+                ],
             ],
         ];
+    }
+        
+    /**
+     * Расчет скорости выполнения
+     */
+    private function calculateVelocity(User $user, \DateTime $from, \DateTime $to): float
+    {
+        $days = max(1, $from->diff($to)->days);
+        $completed = $this->countCompletedTasks($user, $from, $to);
+            
+        return $completed / $days;
     }
 
     /**
@@ -1005,7 +1327,7 @@ class AdvancedAnalyticsService
     {
         // Получаем статистику
         $activeTasks = $this->countActiveTasks($user);
-        $completedTasks = $this->countCompletedTasks($user);
+        $completedTasks = $this->countAllCompletedTasks($user);
         $overdueTasks = $this->countOverdueTasks($user);
 
         // Рассчитываем overall score
@@ -1056,9 +1378,9 @@ class AdvancedAnalyticsService
     }
 
     /**
-     * Посчитать завершённые задачи
+     * Посчитать все завершённые задачи
      */
-    private function countCompletedTasks(User $user): int
+    private function countAllCompletedTasks(User $user): int
     {
         $qb = $this->taskRepository->createQueryBuilder('t');
         $qb->select('COUNT(t.id)')
@@ -1066,19 +1388,19 @@ class AdvancedAnalyticsService
             ->andWhere('t.status = :completed')
             ->setParameter('user', $user)
             ->setParameter('completed', 'completed');
-
+            
         return (int) $qb->getQuery()->getSingleScalarResult();
     }
-
+    
     /**
      * Получить достижения пользователя
      */
     private function getUserAchievements(User $user): array
     {
         $achievements = [];
-
+    
         // Достижение за количество завершённых задач
-        $completedCount = $this->countCompletedTasks($user);
+        $completedCount = $this->countAllCompletedTasks($user);
 
         if ($completedCount >= 100) {
             $achievements[] = [
