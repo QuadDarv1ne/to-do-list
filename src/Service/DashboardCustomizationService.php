@@ -245,6 +245,10 @@ class DashboardCustomizationService
         try {
             $layout = json_decode($json, true);
 
+            if (!\is_array($layout)) {
+                return false;
+            }
+
             return $this->saveLayout($user, $layout);
         } catch (\Exception $e) {
             return false;

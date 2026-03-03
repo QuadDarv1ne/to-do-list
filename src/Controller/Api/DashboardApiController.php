@@ -5,6 +5,7 @@ namespace App\Controller\Api;
 use App\Repository\ActivityLogRepository;
 use App\Repository\TaskRepository;
 use App\Service\QueryCacheService;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,6 +14,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/dashboard')]
 #[IsGranted('ROLE_USER')]
+#[OA\Tag(name: 'Dashboard')]
 class DashboardApiController extends AbstractController
 {
     public function __construct(
@@ -22,7 +24,42 @@ class DashboardApiController extends AbstractController
     ) {
     }
 
+    /**
+     * Получить последние задачи
+     */
     #[Route('/recent-tasks', name: 'api_dashboard_recent_tasks', methods: ['GET'])]
+    #[OA\Get(
+        path: '/api/dashboard/recent-tasks',
+        summary: 'Последние задачи',
+        description: 'Возвращает последние созданные задачи пользователя',
+        tags: ['Dashboard'],
+    )]
+    #[OA\Parameter(
+        name: 'limit',
+        in: 'query',
+        description: 'Количество задач (1-10)',
+        schema: new OA\Schema(type: 'integer', default: 5, minimum: 1, maximum: 10),
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Список последних задач',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(
+                properties: [
+                    new OA\Property(property: 'id', type: 'integer'),
+                    new OA\Property(property: 'title', type: 'string'),
+                    new OA\Property(property: 'description', type: 'string'),
+                    new OA\Property(property: 'status', type: 'string'),
+                    new OA\Property(property: 'priority', type: 'string'),
+                    new OA\Property(property: 'category', type: 'string'),
+                    new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
+                    new OA\Property(property: 'dueDate', type: 'string', format: 'date-time'),
+                ],
+            ),
+        ),
+    )]
+    #[OA\Response(response: 401, description: 'Не авторизован')]
     public function getRecentTasks(Request $request): JsonResponse
     {
         $user = $this->getUser();
@@ -58,7 +95,29 @@ class DashboardApiController extends AbstractController
         return $this->json($data);
     }
 
+    /**
+     * Получить статистику дашборда
+     */
     #[Route('/statistics', name: 'api_dashboard_statistics', methods: ['GET'])]
+    #[OA\Get(
+        path: '/api/dashboard/statistics',
+        summary: 'Статистика дашборда',
+        description: 'Возвращает основную статистику по задачам пользователя',
+        tags: ['Dashboard'],
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Статистика задач',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'total', type: 'integer'),
+                new OA\Property(property: 'completed', type: 'integer'),
+                new OA\Property(property: 'in_progress', type: 'integer'),
+                new OA\Property(property: 'overdue', type: 'integer'),
+            ],
+        ),
+    )]
+    #[OA\Response(response: 401, description: 'Не авторизован')]
     public function getStatistics(): JsonResponse
     {
         $user = $this->getUser();
@@ -72,7 +131,37 @@ class DashboardApiController extends AbstractController
         return $this->json($stats);
     }
 
+    /**
+     * Получить ленту активности
+     */
     #[Route('/activity', name: 'api_dashboard_activity', methods: ['GET'])]
+    #[OA\Get(
+        path: '/api/dashboard/activity',
+        summary: 'Лента активности',
+        description: 'Возвращает последние действия пользователя',
+        tags: ['Dashboard'],
+    )]
+    #[OA\Parameter(
+        name: 'limit',
+        in: 'query',
+        description: 'Количество записей (1-20)',
+        schema: new OA\Schema(type: 'integer', default: 10, minimum: 1, maximum: 20),
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Лента активности',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(
+                properties: [
+                    new OA\Property(property: 'type', type: 'string'),
+                    new OA\Property(property: 'text', type: 'string'),
+                    new OA\Property(property: 'timestamp', type: 'string', format: 'date-time'),
+                ],
+            ),
+        ),
+    )]
+    #[OA\Response(response: 401, description: 'Не авторизован')]
     public function getActivity(Request $request): JsonResponse
     {
         $user = $this->getUser();
