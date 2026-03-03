@@ -38,7 +38,7 @@ class ClientRepository extends ServiceEntityRepository
                 ->orderBy('c.companyName', 'ASC')
                 ->getQuery()
                 ->getResult(),
-            600 // Cache for 10 minutes
+            600, // Cache for 10 minutes
         );
     }
 
@@ -56,7 +56,7 @@ class ClientRepository extends ServiceEntityRepository
                 ->orderBy('c.companyName', 'ASC')
                 ->getQuery()
                 ->getResult(),
-            600 // Cache for 10 minutes
+            600, // Cache for 10 minutes
         );
     }
 
@@ -84,7 +84,7 @@ class ClientRepository extends ServiceEntityRepository
 
                 return $qb->getQuery()->getResult();
             },
-            300 // Cache for 5 minutes
+            300, // Cache for 5 minutes
         );
     }
 
@@ -185,7 +185,7 @@ class ClientRepository extends ServiceEntityRepository
 
                 return (int) $qb->getQuery()->getSingleScalarResult();
             },
-            300 // Cache for 5 minutes
+            300, // Cache for 5 minutes
         );
     }
 

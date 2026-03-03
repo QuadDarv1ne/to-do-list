@@ -186,7 +186,7 @@ class AIAssistantService
             ->setMaxResults(50) // Ограничиваем количество пользователей для анализа
             ->getQuery()
             ->getResult();
-        
+
         if (empty($users)) {
             return [
                 'user_id' => null,

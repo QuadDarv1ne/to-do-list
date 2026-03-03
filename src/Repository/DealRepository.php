@@ -39,7 +39,7 @@ class DealRepository extends ServiceEntityRepository
                 ->orderBy('d.createdAt', 'DESC')
                 ->getQuery()
                 ->getResult(),
-            600 // Cache for 10 minutes
+            600, // Cache for 10 minutes
         );
     }
 
@@ -58,7 +58,7 @@ class DealRepository extends ServiceEntityRepository
                 ->orderBy('d.createdAt', 'DESC')
                 ->getQuery()
                 ->getResult(),
-            600 // Cache for 10 minutes
+            600, // Cache for 10 minutes
         );
     }
 
@@ -214,7 +214,7 @@ class DealRepository extends ServiceEntityRepository
 
                 return $stats;
             },
-            300 // Cache for 5 minutes
+            300, // Cache for 5 minutes
         );
     }
 
@@ -240,7 +240,7 @@ class DealRepository extends ServiceEntityRepository
 
                 return (float) ($qb->getQuery()->getSingleScalarResult() ?? 0);
             },
-            300 // Cache for 5 minutes
+            300, // Cache for 5 minutes
         );
     }
 

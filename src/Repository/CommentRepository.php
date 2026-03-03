@@ -41,7 +41,7 @@ class CommentRepository extends ServiceEntityRepository
                 ->orderBy('c.createdAt', 'ASC')
                 ->getQuery()
                 ->getResult(),
-            300 // Cache for 5 minutes
+            300, // Cache for 5 minutes
         );
     }
 
@@ -61,7 +61,7 @@ class CommentRepository extends ServiceEntityRepository
                 ->setMaxResults(100)
                 ->getQuery()
                 ->getResult(),
-            600 // Cache for 10 minutes
+            600, // Cache for 10 minutes
         );
     }
 

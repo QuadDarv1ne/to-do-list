@@ -10,6 +10,7 @@ use PHPUnit\Framework\TestCase;
 class AdvancedAnalyticsServiceTest extends TestCase
 {
     private TaskRepository $taskRepository;
+
     private AdvancedAnalyticsService $analyticsService;
 
     protected function setUp(): void
@@ -27,13 +28,13 @@ class AdvancedAnalyticsServiceTest extends TestCase
         // Мокируем все вызовы репозитория чтобы избежать циклов
         $this->taskRepository->method('countByStatus')
             ->willReturn(0);
-        
+
         $this->taskRepository->method('findByAssignedUser')
             ->willReturn([]);
-        
+
         $this->taskRepository->method('findByUserAndStatus')
             ->willReturn([]);
-        
+
         $this->taskRepository->method('createQueryBuilder')
             ->willReturn($this->createQueryBuilderMock([]));
 
@@ -139,7 +140,7 @@ class AdvancedAnalyticsServiceTest extends TestCase
 
         $this->assertIsArray($forecast);
         $this->assertCount(7, $forecast);
-        
+
         foreach ($forecast as $day) {
             $this->assertArrayHasKey('date', $day);
             $this->assertArrayHasKey('predicted_completions', $day);
@@ -178,7 +179,7 @@ class AdvancedAnalyticsServiceTest extends TestCase
 
         $this->assertIsArray($trends);
         $this->assertCount(2, $trends);
-        
+
         foreach ($trends as $month) {
             $this->assertArrayHasKey('month', $month);
             $this->assertArrayHasKey('productivity_score', $month);
@@ -206,7 +207,7 @@ class AdvancedAnalyticsServiceTest extends TestCase
     private function createQueryBuilderMock(array $results): \PHPUnit\Framework\MockObject\MockObject
     {
         $query = $this->createMock(\Doctrine\ORM\Query::class);
-        
+
         $query->method('getResult')
             ->willReturn($results);
         $query->method('getOneOrNullResult')

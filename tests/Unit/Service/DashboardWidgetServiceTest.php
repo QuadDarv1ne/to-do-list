@@ -12,8 +12,11 @@ use PHPUnit\Framework\TestCase;
 class DashboardWidgetServiceTest extends TestCase
 {
     private TaskRepository $taskRepository;
+
     private EntityManagerInterface $entityManager;
+
     private UserPreferenceRepository $preferenceRepository;
+
     private DashboardWidgetService $widgetService;
 
     protected function setUp(): void
@@ -24,7 +27,7 @@ class DashboardWidgetServiceTest extends TestCase
         $this->widgetService = new DashboardWidgetService(
             $this->taskRepository,
             $this->entityManager,
-            $this->preferenceRepository
+            $this->preferenceRepository,
         );
     }
 
@@ -164,10 +167,10 @@ class DashboardWidgetServiceTest extends TestCase
     public function testGetRecentTasksData(): void
     {
         $user = $this->createMock(User::class);
-        
+
         // Just test that method returns array with tasks key
         $data = $this->widgetService->getWidgetData('recent_tasks', $user);
-        
+
         $this->assertIsArray($data);
         $this->assertArrayHasKey('tasks', $data);
     }
@@ -187,10 +190,10 @@ class DashboardWidgetServiceTest extends TestCase
     public function testGetCategoryBreakdownData(): void
     {
         $user = $this->createMock(User::class);
-        
+
         // Just test that method returns array with categories key
         $data = $this->widgetService->getWidgetData('category_breakdown', $user);
-        
+
         $this->assertIsArray($data);
         $this->assertArrayHasKey('categories', $data);
     }
@@ -209,7 +212,7 @@ class DashboardWidgetServiceTest extends TestCase
     public function testGetTeamActivityDataWithExceptionHandling(): void
     {
         $user = $this->createMock(User::class);
-        
+
         // Mock entity manager to throw exception when accessing ActivityLog repository
         $this->entityManager
             ->method('getRepository')

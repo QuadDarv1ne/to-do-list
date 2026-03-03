@@ -20,7 +20,7 @@ class NotificationService
     private NotificationRepository $notificationRepository;
 
     private ?PerformanceMonitorService $performanceMonitor;
-    
+
     private ?CacheItemPoolInterface $cache;
 
     public function __construct(
@@ -63,7 +63,7 @@ class NotificationService
 
             $this->entityManager->persist($notification);
             $this->entityManager->flush();
-            
+
             // Очищаем кэш уведомлений пользователя
             if ($this->cache) {
                 $cacheKey = 'unread_notifications_' . $user->getId();
@@ -119,17 +119,17 @@ class NotificationService
             if ($this->cache) {
                 $cacheKey = 'unread_notifications_' . $user->getId();
                 $item = $this->cache->getItem($cacheKey);
-                
+
                 if ($item->isHit()) {
                     return $item->get();
                 }
             }
-            
+
             $notifications = $this->notificationRepository->findBy([
                 'user' => $user,
                 'isRead' => false,
             ], ['createdAt' => 'DESC']);
-            
+
             // Сохраняем в кэш на 5 минут
             if ($this->cache) {
                 $item = $this->cache->getItem($cacheKey);
@@ -137,7 +137,7 @@ class NotificationService
                 $item->expiresAfter(300); // 5 минут
                 $this->cache->save($item);
             }
-            
+
             return $notifications;
         } finally {
             if ($this->performanceMonitor) {

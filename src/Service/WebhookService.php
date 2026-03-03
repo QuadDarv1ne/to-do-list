@@ -405,14 +405,14 @@ class WebhookService
         if ($this->cache) {
             $cacheKey = 'webhook_stats_' . $webhookId;
             $item = $this->cache->getItem($cacheKey);
-            
+
             if ($item->isHit()) {
                 return $item->get();
             }
         }
-        
+
         $stats = $this->webhookLogRepository->getStatistics($webhookId, $periodDays);
-        
+
         // Сохраняем в кэш на 10 минут
         if ($this->cache) {
             $item = $this->cache->getItem($cacheKey);
@@ -420,7 +420,7 @@ class WebhookService
             $item->expiresAfter(600); // 10 минут
             $this->cache->save($item);
         }
-        
+
         return $stats;
     }
 
