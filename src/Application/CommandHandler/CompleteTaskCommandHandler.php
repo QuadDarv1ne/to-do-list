@@ -25,7 +25,7 @@ final readonly class CompleteTaskCommandHandler
         $task = $this->taskRepository->find($command->getTaskId());
 
         if (!$task) {
-            throw new \InvalidArgumentException('Task not found');
+            throw new \InvalidArgumentException(\sprintf('Task not found: taskId=%d', $command->getTaskId()));
         }
 
         $task->setStatus('completed');

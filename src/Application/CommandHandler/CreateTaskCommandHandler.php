@@ -38,7 +38,7 @@ final readonly class CreateTaskCommandHandler
         $assignedUser = $this->userRepository->find($command->getAssignedUserId());
 
         if (!$user || !$assignedUser) {
-            throw new \InvalidArgumentException('User not found');
+            throw new \InvalidArgumentException(\sprintf('User not found for task creation: userId=%d, assignedUserId=%d', $command->getUserId(), $command->getAssignedUserId() ?? 0));
         }
 
         // Create task entity
