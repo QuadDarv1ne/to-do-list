@@ -326,10 +326,15 @@ class TaskDependencyService
             $tasks = $this->taskRepository->createQueryBuilder('t')
                 ->where('t.user = :userId OR t.assignedUser = :userId')
                 ->setParameter('userId', $userId)
+                ->setMaxResults(100) // Ограничиваем для производительности
                 ->getQuery()
                 ->getResult();
         } else {
-            $tasks = $this->taskRepository->findAll();
+            // Для глобальной статистики используем лимит
+            $tasks = $this->taskRepository->createQueryBuilder('t')
+                ->setMaxResults(100)
+                ->getQuery()
+                ->getResult();
         }
 
         if (!empty($tasks)) {

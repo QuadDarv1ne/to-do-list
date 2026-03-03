@@ -179,10 +179,23 @@ class AIAssistantService
             ];
         }
 
-        // Анализируем загрузку пользователей
-        $users = $this->userRepository->findAll();
-        $userScores = [];
+        // Анализируем загрузку пользователей (оптимизировано)
+        // Вместо загрузки всех пользователей, используем лимит
+        $users = $this->userRepository->createQueryBuilder('u')
+            ->select('u')
+            ->setMaxResults(50) // Ограничиваем количество пользователей для анализа
+            ->getQuery()
+            ->getResult();
+        
+        if (empty($users)) {
+            return [
+                'user_id' => null,
+                'confidence' => 0.0,
+                'reason' => 'Недостаточно данных для анализа',
+            ];
+        }
 
+        $userScores = [];
         foreach ($users as $user) {
             $score = 0;
 
