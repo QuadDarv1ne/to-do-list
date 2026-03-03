@@ -70,11 +70,13 @@ class CommentRepository extends ServiceEntityRepository
      */
     public function countByTask(Task $task): int
     {
-        return $this->createQueryBuilder('c')
+        $result = $this->createQueryBuilder('c')
             ->select('COUNT(c.id)')
             ->andWhere('c.task = :task')
             ->setParameter('task', $task)
             ->getQuery()
             ->getSingleScalarResult();
+
+        return (int)$result;
     }
 }
