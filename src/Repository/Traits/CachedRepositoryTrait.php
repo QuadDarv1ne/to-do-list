@@ -28,6 +28,18 @@ trait CachedRepositoryTrait
     }
 
     /**
+     * Cache result with custom key and TTL
+     */
+    protected function getCached(string $key, callable $callback, int $ttl = 300): mixed
+    {
+        if (!$this->cacheService) {
+            return $callback();
+        }
+
+        return $this->cacheService->cacheQuery($key, $callback, $ttl);
+    }
+
+    /**
      * Execute cached user query
      */
     protected function cachedUserQuery(int $userId, string $queryName, callable $queryCallback, array $parameters = [], int $ttl = 300)

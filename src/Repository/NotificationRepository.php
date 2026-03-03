@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Notification;
+use App\Entity\User;
 use App\Repository\Traits\CachedRepositoryTrait;
 use App\Service\QueryCacheService;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -29,7 +30,7 @@ class NotificationRepository extends ServiceEntityRepository
      * @return Notification[]
      * Optimized with JOIN to preload related task data
      */
-    public function findByUserUnread($user): array
+    public function findByUserUnread(int|User $user): array
     {
         return $this->getCached(
             "notifications.unread.user.{$user}",
@@ -51,7 +52,7 @@ class NotificationRepository extends ServiceEntityRepository
      * @return Notification[]
      * Optimized with JOIN to preload related task data
      */
-    public function findByUser($user): array
+    public function findByUser(int|User $user): array
     {
         return $this->getCached(
             "notifications.user.{$user}.recent",
@@ -70,9 +71,9 @@ class NotificationRepository extends ServiceEntityRepository
     /**
      * Count unread notifications for a user (optimized query)
      */
-    public function countUnreadByUser($user): int
+    public function countUnreadByUser(int|User $user): int
     {
-        return $this->createQueryBuilder('n')
+        $result = $this->createQueryBuilder('n')
             ->select('COUNT(n.id)')
             ->andWhere('n.user = :user')
             ->andWhere('n.isRead = :isRead')
@@ -80,6 +81,8 @@ class NotificationRepository extends ServiceEntityRepository
             ->setParameter('isRead', false)
             ->getQuery()
             ->getSingleScalarResult();
+
+        return (int)$result;
     }
 
     /**
@@ -88,7 +91,7 @@ class NotificationRepository extends ServiceEntityRepository
      *
      * @return Notification[]
      */
-    public function findUnreadForUserSince(\DateTimeInterface $date, $user): array
+    public function findUnreadForUserSince(\DateTimeInterface $date, int|User $user): array
     {
         return $this->createQueryBuilder('n')
             ->leftJoin('n.task', 't')->addSelect('t')

@@ -10,6 +10,7 @@ use Psr\Cache\CacheItemPoolInterface;
 
 class TaskPriorityCalculatorService
 {
+    /** @var array<int, float> */
     private array $priorityScoreCache = [];
 
     public function __construct(
@@ -83,6 +84,8 @@ class TaskPriorityCalculatorService
 
     /**
      * Get tasks that depend on this task
+     *
+     * @return array<Task>
      */
     private function getDependentTasks(Task $task): array
     {
@@ -99,6 +102,8 @@ class TaskPriorityCalculatorService
 
     /**
      * Get recommended tasks for user
+     *
+     * @return array<array{task: Task, score: float}>
      */
     public function getRecommendedTasks(User $user, int $limit = 5): array
     {
@@ -162,6 +167,8 @@ class TaskPriorityCalculatorService
 
     /**
      * Get priority distribution
+     *
+     * @return array<string, int>
      */
     public function getPriorityDistribution(User $user): array
     {
