@@ -115,14 +115,21 @@ class TaskRepository extends ServiceEntityRepository
      */
     public function findUpcomingDeadlines(\DateTimeImmutable $beforeDate): array
     {
-        return $this->createQueryBuilder('t')
-            ->andWhere('t.dueDate IS NOT NULL')
-            ->andWhere('t.dueDate <= :beforeDate')
-            ->andWhere('t.status = :status')
-            ->setParameter('beforeDate', $beforeDate)
-            ->setParameter('status', 'pending')
-            ->getQuery()
-            ->getResult();
+        return $this->getCached(
+            "tasks.upcoming_deadlines." . $beforeDate->format('Y-m-d'),
+            fn () => $this->createQueryBuilder('t')
+                ->leftJoin('t.assignedUser', 'au')->addSelect('au')
+                ->leftJoin('t.category', 'c')->addSelect('c')
+                ->andWhere('t.dueDate IS NOT NULL')
+                ->andWhere('t.dueDate <= :beforeDate')
+                ->andWhere('t.status = :status')
+                ->setParameter('beforeDate', $beforeDate)
+                ->setParameter('status', 'pending')
+                ->orderBy('t.dueDate', 'ASC')
+                ->getQuery()
+                ->getResult(),
+            300 // Cache for 5 minutes
+        );
     }
 
     /**
@@ -252,20 +259,25 @@ class TaskRepository extends ServiceEntityRepository
      */
     public function findByUserAndStatus(User $user, string $status, \DateTime $fromDate, \DateTime $toDate): array
     {
-        return $this->createQueryBuilder('t')
-            ->leftJoin('t.assignedUser', 'au')->addSelect('au')
-            ->leftJoin('t.user', 'cu')->addSelect('cu')
-            ->leftJoin('t.category', 'c')->addSelect('c')
-            ->leftJoin('t.tags', 'tags')->addSelect('tags')
-            ->andWhere('(t.assignedUser = :user OR t.user = :user)')
-            ->andWhere('t.status = :status')
-            ->andWhere('t.createdAt BETWEEN :fromDate AND :toDate')
-            ->setParameter('user', $user)
-            ->setParameter('status', $status)
-            ->setParameter('fromDate', $fromDate)
-            ->setParameter('toDate', $toDate)
-            ->getQuery()
-            ->getResult();
+        return $this->getCached(
+            "tasks.user_status_date.{$user->getId()}.{$status}." . $fromDate->format('Y-m-d') . '.' . $toDate->format('Y-m-d'),
+            fn () => $this->createQueryBuilder('t')
+                ->leftJoin('t.assignedUser', 'au')->addSelect('au')
+                ->leftJoin('t.user', 'cu')->addSelect('cu')
+                ->leftJoin('t.category', 'c')->addSelect('c')
+                ->leftJoin('t.tags', 'tags')->addSelect('tags')
+                ->andWhere('(t.assignedUser = :user OR t.user = :user)')
+                ->andWhere('t.status = :status')
+                ->andWhere('t.createdAt BETWEEN :fromDate AND :toDate')
+                ->setParameter('user', $user)
+                ->setParameter('status', $status)
+                ->setParameter('fromDate', $fromDate)
+                ->setParameter('toDate', $toDate)
+                ->orderBy('t.createdAt', 'DESC')
+                ->getQuery()
+                ->getResult(),
+            300 // Cache for 5 minutes
+        );
     }
 
     /**

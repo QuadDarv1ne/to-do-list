@@ -49,25 +49,33 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
 
     public function findActiveUsers(): array
     {
-        return $this->createQueryBuilder('u')
-            ->andWhere('u.isActive = :active')
-            ->setParameter('active', true)
-            ->orderBy('u.lastName', 'ASC')
-            ->addOrderBy('u.firstName', 'ASC')
-            ->getQuery()
-            ->getResult();
+        return $this->getCached(
+            'users.active',
+            fn () => $this->createQueryBuilder('u')
+                ->andWhere('u.isActive = :active')
+                ->setParameter('active', true)
+                ->orderBy('u.lastName', 'ASC')
+                ->addOrderBy('u.firstName', 'ASC')
+                ->getQuery()
+                ->getResult(),
+            600 // Cache for 10 minutes
+        );
     }
 
     public function findByRole(string $role): array
     {
-        return $this->createQueryBuilder('u')
-            ->andWhere('u.roles LIKE :role')
-            ->setParameter('role', '%"' . $role . '"%')
-            ->andWhere('u.isActive = :active')
-            ->setParameter('active', true)
-            ->orderBy('u.createdAt', 'DESC')
-            ->getQuery()
-            ->getResult();
+        return $this->getCached(
+            "users.role.{$role}",
+            fn () => $this->createQueryBuilder('u')
+                ->andWhere('u.roles LIKE :role')
+                ->setParameter('role', '%"' . $role . '"%')
+                ->andWhere('u.isActive = :active')
+                ->setParameter('active', true)
+                ->orderBy('u.createdAt', 'DESC')
+                ->getQuery()
+                ->getResult(),
+            600 // Cache for 10 minutes
+        );
     }
 
     public function findManagers(): array
@@ -82,48 +90,58 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
 
     public function findUserByEmailOrUsername(string $identifier): ?User
     {
-        return $this->createQueryBuilder('u')
-            ->andWhere('u.email = :identifier OR u.username = :identifier')
-            ->setParameter('identifier', $identifier)
-            ->getQuery()
-            ->getOneOrNullResult();
+        return $this->getCached(
+            "users.search." . md5($identifier),
+            fn () => $this->createQueryBuilder('u')
+                ->andWhere('u.email = :identifier OR u.username = :identifier')
+                ->setParameter('identifier', $identifier)
+                ->getQuery()
+                ->getOneOrNullResult(),
+            300 // Cache for 5 minutes
+        );
     }
 
     public function getStatistics(): array
     {
-        // Optimize by using single query with conditional aggregation
-        $qb = $this->createQueryBuilder('u')
-            ->select('
-                COUNT(u.id) as total,
-                SUM(CASE WHEN u.isActive = true THEN 1 ELSE 0 END) as active,
-                SUM(CASE WHEN u.roles LIKE :admin_role THEN 1 ELSE 0 END) as admins,
-                SUM(CASE WHEN u.roles LIKE :manager_role THEN 1 ELSE 0 END) as managers
-            ')
-            ->setParameter('admin_role', '%ROLE_ADMIN%')
-            ->setParameter('manager_role', '%ROLE_MANAGER%');
+        return $this->getCached(
+            'users.statistics',
+            function () {
+                // Optimize by using single query with conditional aggregation
+                $qb = $this->createQueryBuilder('u')
+                    ->select('
+                        COUNT(u.id) as total,
+                        SUM(CASE WHEN u.isActive = true THEN 1 ELSE 0 END) as active,
+                        SUM(CASE WHEN u.roles LIKE :admin_role THEN 1 ELSE 0 END) as admins,
+                        SUM(CASE WHEN u.roles LIKE :manager_role THEN 1 ELSE 0 END) as managers
+                    ')
+                    ->setParameter('admin_role', '%ROLE_ADMIN%')
+                    ->setParameter('manager_role', '%ROLE_MANAGER%');
 
-        $stats = $qb->getQuery()->getSingleResult();
+                $stats = $qb->getQuery()->getSingleResult();
 
-        // Get users who logged in today
-        $today = new \DateTime();
-        $todayStart = $today->format('Y-m-d 00:00:00');
-        $todayEnd = $today->format('Y-m-d 23:59:59');
+                // Get users who logged in today
+                $today = new \DateTime();
+                $todayStart = $today->format('Y-m-d 00:00:00');
+                $todayEnd = $today->format('Y-m-d 23:59:59');
 
-        $activeToday = $this->createQueryBuilder('u')
-            ->select('COUNT(u.id)')
-            ->where('u.lastLoginAt BETWEEN :start AND :end')
-            ->setParameter('start', $todayStart)
-            ->setParameter('end', $todayEnd)
-            ->getQuery()
-            ->getSingleScalarResult();
+                $activeToday = $this->createQueryBuilder('u')
+                    ->select('COUNT(u.id)')
+                    ->where('u.lastLoginAt BETWEEN :start AND :end')
+                    ->setParameter('start', $todayStart)
+                    ->setParameter('end', $todayEnd)
+                    ->getQuery()
+                    ->getSingleScalarResult();
 
-        return [
-            'total' => (int) $stats['total'],
-            'active' => (int) $stats['active'],
-            'admins' => (int) $stats['admins'],
-            'managers' => (int) $stats['managers'],
-            'active_today' => (int) $activeToday,
-        ];
+                return [
+                    'total' => (int) $stats['total'],
+                    'active' => (int) $stats['active'],
+                    'admins' => (int) $stats['admins'],
+                    'managers' => (int) $stats['managers'],
+                    'active_today' => (int) $activeToday,
+                ];
+            },
+            300 // Cache for 5 minutes
+        );
     }
 
     public function lockUser(User $user, int $minutes = 15): void

@@ -32,12 +32,16 @@ class ActivityLogRepository extends ServiceEntityRepository
      */
     public function findByTask(Task $task): array
     {
-        return $this->createQueryBuilder('al')
-            ->andWhere('al.task = :task')
-            ->setParameter('task', $task)
-            ->orderBy('al.createdAt', 'DESC')
-            ->getQuery()
-            ->getResult();
+        return $this->getCached(
+            "activity.task.{$task->getId()}",
+            fn () => $this->createQueryBuilder('al')
+                ->andWhere('al.task = :task')
+                ->setParameter('task', $task)
+                ->orderBy('al.createdAt', 'DESC')
+                ->getQuery()
+                ->getResult(),
+            300 // Cache for 5 minutes
+        );
     }
 
     /**
@@ -45,12 +49,16 @@ class ActivityLogRepository extends ServiceEntityRepository
      */
     public function findByUser(User $user): array
     {
-        return $this->createQueryBuilder('al')
-            ->andWhere('al.user = :user')
-            ->setParameter('user', $user)
-            ->orderBy('al.createdAt', 'DESC')
-            ->getQuery()
-            ->getResult();
+        return $this->getCached(
+            "activity.user.{$user->getId()}",
+            fn () => $this->createQueryBuilder('al')
+                ->andWhere('al.user = :user')
+                ->setParameter('user', $user)
+                ->orderBy('al.createdAt', 'DESC')
+                ->getQuery()
+                ->getResult(),
+            300 // Cache for 5 minutes
+        );
     }
 
     /**
@@ -58,11 +66,15 @@ class ActivityLogRepository extends ServiceEntityRepository
      */
     public function findRecent(int $limit = 10): array
     {
-        return $this->createQueryBuilder('al')
-            ->orderBy('al.createdAt', 'DESC')
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult();
+        return $this->getCached(
+            "activity.recent.{$limit}",
+            fn () => $this->createQueryBuilder('al')
+                ->orderBy('al.createdAt', 'DESC')
+                ->setMaxResults($limit)
+                ->getQuery()
+                ->getResult(),
+            180 // Cache for 3 minutes
+        );
     }
 
     /**
@@ -102,15 +114,19 @@ class ActivityLogRepository extends ServiceEntityRepository
      */
     public function findLoginEventsForUser(User $user, int $limit = 10): array
     {
-        return $this->createQueryBuilder('al')
-            ->andWhere('al.user = :user')
-            ->andWhere('al.eventType = :eventType')
-            ->setParameter('user', $user)
-            ->setParameter('eventType', 'login')
-            ->orderBy('al.createdAt', 'DESC')
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult();
+        return $this->getCached(
+            "activity.login.user.{$user->getId()}.{$limit}",
+            fn () => $this->createQueryBuilder('al')
+                ->andWhere('al.user = :user')
+                ->andWhere('al.eventType = :eventType')
+                ->setParameter('user', $user)
+                ->setParameter('eventType', 'login')
+                ->orderBy('al.createdAt', 'DESC')
+                ->setMaxResults($limit)
+                ->getQuery()
+                ->getResult(),
+            300 // Cache for 5 minutes
+        );
     }
 
     /**
@@ -118,12 +134,16 @@ class ActivityLogRepository extends ServiceEntityRepository
      */
     public function findRecentLoginEvents(int $limit = 10): array
     {
-        return $this->createQueryBuilder('al')
-            ->andWhere('al.eventType = :eventType')
-            ->setParameter('eventType', 'login')
-            ->orderBy('al.createdAt', 'DESC')
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult();
+        return $this->getCached(
+            "activity.login.recent.{$limit}",
+            fn () => $this->createQueryBuilder('al')
+                ->andWhere('al.eventType = :eventType')
+                ->setParameter('eventType', 'login')
+                ->orderBy('al.createdAt', 'DESC')
+                ->setMaxResults($limit)
+                ->getQuery()
+                ->getResult(),
+            180 // Cache for 3 minutes
+        );
     }
 }
