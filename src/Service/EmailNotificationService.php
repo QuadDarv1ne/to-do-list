@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\TaskNotification;
 use App\Entity\User;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -16,6 +17,7 @@ class EmailNotificationService
         private Environment $twig,
         private UrlGeneratorInterface $urlGenerator,
         private ?PerformanceMonitorService $performanceMonitor = null,
+        private ?LoggerInterface $logger = null,
         private string $fromEmail = '',
     ) {
     }
@@ -30,6 +32,17 @@ class EmailNotificationService
             $recipient = $notification->getRecipient();
             $task = $notification->getTask();
 
+            // Проверяем email получателя
+            if (!$recipient->getEmail()) {
+                if ($this->logger) {
+                    $this->logger->warning('Получатель без email', [
+                        'user_id' => $recipient->getId(),
+                        'notification_id' => $notification->getId(),
+                    ]);
+                }
+                return;
+            }
+
             $email = (new Email())
                 ->from($this->fromEmail)
                 ->to($recipient->getEmail())
@@ -38,8 +51,28 @@ class EmailNotificationService
 
             $this->mailer->send($email);
 
+            // Логируем отправку
+            if ($this->logger) {
+                $this->logger->info('Email уведомление отправлено', [
+                    'notification_id' => $notification->getId(),
+                    'recipient' => $recipient->getEmail(),
+                    'type' => $notification->getType(),
+                ]);
+            }
+
             // Mark as sent
             $notification->setIsSent(true);
+        } catch (\Exception $e) {
+            // Логируем ошибку
+            if ($this->logger) {
+                $this->logger->error('Ошибка отправки email уведомления', [
+                    'notification_id' => $notification->getId(),
+                    'error' => $e->getMessage(),
+                    'exception_class' => get_class($e),
+                ]);
+            }
+            
+            throw $e;
         } finally {
             if ($this->performanceMonitor) {
                 $this->performanceMonitor->stopTiming('email_notification_service_send_task_notification');
