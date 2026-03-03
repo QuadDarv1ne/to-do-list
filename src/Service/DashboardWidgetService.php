@@ -83,6 +83,36 @@ class DashboardWidgetService
                 'icon' => 'fa-bell',
                 'size' => 'col-md-6',
             ],
+            'time_tracking' => [
+                'name' => 'Трекер времени',
+                'description' => 'Учет рабочего времени',
+                'icon' => 'fa-stopwatch',
+                'size' => 'col-md-6',
+            ],
+            'goals_progress' => [
+                'name' => 'Прогресс по целям',
+                'description' => 'Достижение ключевых целей',
+                'icon' => 'fa-bullseye',
+                'size' => 'col-md-6',
+            ],
+            'workload_distribution' => [
+                'name' => 'Распределение нагрузки',
+                'description' => 'Загрузка по дням недели',
+                'icon' => 'fa-chart-bar',
+                'size' => 'col-md-12',
+            ],
+            'skill_development' => [
+                'name' => 'Развитие навыков',
+                'description' => 'Прогресс в обучении',
+                'icon' => 'fa-graduation-cap',
+                'size' => 'col-md-6',
+            ],
+            'focus_time' => [
+                'name' => 'Время фокусировки',
+                'description' => 'Периоды максимальной концентрации',
+                'icon' => 'fa-brain',
+                'size' => 'col-md-6',
+            ],
         ];
     }
 
@@ -102,6 +132,11 @@ class DashboardWidgetService
             'team_activity' => $this->getTeamActivityData($user),
             'quick_actions' => $this->getQuickActionsData($user),
             'notifications_widget' => $this->getNotificationsData($user),
+            'time_tracking' => $this->getTimeTrackingData($user),
+            'goals_progress' => $this->getGoalsProgressData($user),
+            'workload_distribution' => $this->getWorkloadDistributionData($user),
+            'skill_development' => $this->getSkillDevelopmentData($user),
+            'focus_time' => $this->getFocusTimeData($user),
             default => []
         };
     }
@@ -393,16 +428,128 @@ class DashboardWidgetService
     private function getNotificationsData(User $user): array
     {
         try {
-            $notificationRepo = $this->entityManager->getRepository('App\\Entity\\Notification');
+            $notificationRepo = $this->entityManager->getRepository('App\Entity\Notification');
             $notifications = $notificationRepo->findBy(
                 ['user' => $user],
                 ['createdAt' => 'DESC'],
                 5,
             );
-
+    
             return ['notifications' => $notifications];
         } catch (\Exception $e) {
             return ['notifications' => []];
         }
+    }
+    
+    private function getTimeTrackingData(User $user): array
+    {
+        // Получаем задачи с отслеживанием времени
+        $qb = $this->taskRepository->createQueryBuilder('t')
+            ->select('t.title, t.timeSpent, t.estimatedTime')
+            ->where('t.user = :user OR t.assignedUser = :user')
+            ->andWhere('t.status != :completed')
+            ->orderBy('t.createdAt', 'DESC')
+            ->setMaxResults(5)
+            ->setParameter('user', $user)
+            ->setParameter('completed', 'completed');
+    
+        $tasks = $qb->getQuery()->getResult();
+    
+        $totalTime = 0;
+        foreach ($tasks as $task) {
+            $totalTime += (int)($task['timeSpent'] ?? 0);
+        }
+    
+        return [
+            'active_tasks' => $tasks,
+            'total_time_today' => $totalTime,
+            'average_time' => \count($tasks) > 0 ? round($totalTime / \count($tasks)) : 0,
+        ];
+    }
+    
+    private function getGoalsProgressData(User $user): array
+    {
+        // Пример данных для целей (в будущем можно подключить Goals entity)
+        return [
+            'goals' => [
+                ['title' => 'Завершить 10 задач', 'current' => 7, 'target' => 10, 'progress' => 70],
+                ['title' => 'Учиться 20 часов', 'current' => 12, 'target' => 20, 'progress' => 60],
+                ['title' => 'Заработать $5000', 'current' => 3200, 'target' => 5000, 'progress' => 64],
+            ],
+        ];
+    }
+    
+    private function getWorkloadDistributionData(User $user): array
+    {
+        // Распределение задач по дням недели
+        $days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+        $distribution = array_fill(0, 7, 0);
+    
+        $tasks = $this->taskRepository->createQueryBuilder('t')
+            ->select('t.createdAt')
+            ->where('t.user = :user OR t.assignedUser = :user')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getResult();
+    
+        foreach ($tasks as $task) {
+            if (isset($task['createdAt'])) {
+                $date = $task['createdAt'] instanceof \DateTime ? $task['createdAt'] : new \DateTime($task['createdAt']);
+                $dayOfWeek = (int)$date->format('N') - 1;
+                if ($dayOfWeek >= 0 && $dayOfWeek < 7) {
+                    $distribution[$dayOfWeek]++;
+                }
+            }
+        }
+    
+        return [
+            'distribution' => array_combine($days, $distribution),
+            'busiest_day' => $days[array_search(max($distribution), $distribution)],
+            'average_per_day' => round(array_sum($distribution) / 7, 1),
+        ];
+    }
+    
+    private function getSkillDevelopmentData(User $user): array
+    {
+        // Прогресс по навыкам (заглушка для будущего функционала)
+        return [
+            'skills' => [
+                ['name' => 'PHP/Symfony', 'level' => 75, 'color' => '#3b82f6'],
+                ['name' => 'JavaScript', 'level' => 60, 'color' => '#f59e0b'],
+                ['name' => 'CSS/Tailwind', 'level' => 70, 'color' => '#8b5cf6'],
+                ['name' => 'Database', 'level' => 65, 'color' => '#10b981'],
+            ],
+        ];
+    }
+    
+    private function getFocusTimeData(User $user): array
+    {
+        // Анализ продуктивных часов
+        $hours = array_fill(0, 24, 0);
+    
+        $tasks = $this->taskRepository->createQueryBuilder('t')
+            ->select('t.createdAt, t.updatedAt')
+            ->where('t.user = :user OR t.assignedUser = :user')
+            ->andWhere('t.status = :completed')
+            ->setParameter('user', $user)
+            ->setParameter('completed', 'completed')
+            ->getQuery()
+            ->getResult();
+    
+        foreach ($tasks as $task) {
+            if (isset($task['updatedAt'])) {
+                $date = $task['updatedAt'] instanceof \DateTime ? $task['updatedAt'] : new \DateTime($task['updatedAt']);
+                $hour = (int)$date->format('H');
+                $hours[$hour]++;
+            }
+        }
+    
+        $peakHour = array_search(max($hours), $hours);
+    
+        return [
+            'hours' => $hours,
+            'peak_hour' => $peakHour,
+            'peak_period' => $peakHour >= 9 && $peakHour <= 12 ? 'Утро' : ($peakHour >= 13 && $peakHour <= 17 ? 'День' : 'Вечер'),
+        ];
     }
 }
