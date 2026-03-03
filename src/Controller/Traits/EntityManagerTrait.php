@@ -11,39 +11,34 @@ trait EntityManagerTrait
 {
     protected function persistAndFlush(object $entity): void
     {
-        if (!property_exists($this, 'entityManager')) {
-            throw new \LogicException('EntityManager property not found. Inject EntityManagerInterface in constructor.');
-        }
-
-        $this->entityManager->persist($entity);
-        $this->entityManager->flush();
+        $em = $this->getEntityManager();
+        $em->persist($entity);
+        $em->flush();
     }
 
     protected function removeAndFlush(object $entity): void
     {
-        if (!property_exists($this, 'entityManager')) {
-            throw new \LogicException('EntityManager property not found. Inject EntityManagerInterface in constructor.');
-        }
-
-        $this->entityManager->remove($entity);
-        $this->entityManager->flush();
+        $em = $this->getEntityManager();
+        $em->remove($entity);
+        $em->flush();
     }
 
     protected function flush(): void
     {
-        if (!property_exists($this, 'entityManager')) {
-            throw new \LogicException('EntityManager property not found. Inject EntityManagerInterface in constructor.');
-        }
-
-        $this->entityManager->flush();
+        $this->getEntityManager()->flush();
     }
 
-    protected function getDoctrine(): EntityManagerInterface
+    protected function getEntityManager(): EntityManagerInterface
     {
-        if (!property_exists($this, 'entityManager')) {
-            throw new \LogicException('EntityManager property not found. Inject EntityManagerInterface in constructor.');
+        if (!$this instanceof \Symfony\Bundle\FrameworkBundle\Controller\AbstractController) {
+            throw new \LogicException('EntityManagerTrait requires AbstractController');
         }
 
-        return $this->entityManager;
+        $em = $this->container?->get('doctrine.orm.entity_manager');
+        if (!$em instanceof EntityManagerInterface) {
+            throw new \LogicException('EntityManager not available in container');
+        }
+
+        return $em;
     }
 }
