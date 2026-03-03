@@ -8,7 +8,7 @@ use App\Repository\CommentRepository;
 use App\Repository\TaskRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
-class ActivityFeedService
+final readonly class ActivityFeedService
 {
     public function __construct(
         private ActivityLogRepository $activityLogRepository,

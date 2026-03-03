@@ -8,26 +8,14 @@ use App\Repository\TaskRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 
-class AnalyticsService
+final readonly class AnalyticsService
 {
-    private EntityManagerInterface $entityManager;
-
-    private LoggerInterface $logger;
-
-    private TaskRepository $taskRepository;
-
-    private PerformanceMonitoringService $performanceMonitor;
-
     public function __construct(
-        EntityManagerInterface $entityManager,
-        LoggerInterface $logger,
-        TaskRepository $taskRepository,
-        PerformanceMonitoringService $performanceMonitor,
+        private EntityManagerInterface $entityManager,
+        private LoggerInterface $logger,
+        private TaskRepository $taskRepository,
+        private PerformanceMonitoringService $performanceMonitor,
     ) {
-        $this->entityManager = $entityManager;
-        $this->logger = $logger;
-        $this->taskRepository = $taskRepository;
-        $this->performanceMonitor = $performanceMonitor;
     }
 
     /**

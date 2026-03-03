@@ -11,28 +11,17 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Service for monitoring API performance
  */
-class ApiPerformanceMonitorService
+final class ApiPerformanceMonitorService
 {
-    private LoggerInterface $logger;
+    private array $metrics = [];
 
-    private Connection $connection;
-
-    private ContainerInterface $container;
-
-    private array $metrics;
-
-    private array $timings;
+    private array $timings = [];
 
     public function __construct(
-        LoggerInterface $logger,
-        Connection $connection,
-        ContainerInterface $container,
+        private LoggerInterface $logger,
+        private Connection $connection,
+        private ContainerInterface $container,
     ) {
-        $this->logger = $logger;
-        $this->connection = $connection;
-        $this->container = $container;
-        $this->metrics = [];
-        $this->timings = [];
     }
 
     /**
