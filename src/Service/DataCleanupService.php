@@ -18,15 +18,27 @@ class DataCleanupService
 
     /**
      * Получить статистику старых данных
+     *
+     * @param array<string, int>|int $daysToCheck Массив опций или количество дней по умолчанию
+     * @return array{activity_logs_old: int, notifications_old: int, comments_old: int, time_tracking_old: int, password_reset_requests_old: int, cutoff_date: string, estimated_cleanup_time: string}
      */
-    public function getOldDataStatistics(int $daysToCheck = 90): array
+    public function getOldDataStatistics(array|int $daysToCheck = 90): array
     {
-        $cutoffDate = new \DateTime("-{$daysToCheck} days");
+        // Если передан массив опций, используем среднее значение или первое попавшееся
+        if (\is_array($daysToCheck)) {
+            $days = reset($daysToCheck) ?: 90;
+        } else {
+            $days = $daysToCheck;
+        }
+
+        $cutoffDate = new \DateTime("-{$days} days");
 
         return [
-            'activity_logs_old' => $this->countOldActivityLogs($daysToCheck),
-            'notifications_read_old' => $this->countOldReadNotifications($daysToCheck),
-            'tasks_completed_old' => $this->countOldCompletedTasks($daysToCheck),
+            'activity_logs_old' => $this->countOldActivityLogs($days),
+            'notifications_old' => $this->countOldReadNotifications($days),
+            'comments_old' => $this->countOldComments($days),
+            'time_tracking_old' => $this->countOldTimeTracking($days),
+            'password_reset_requests_old' => $this->countOldPasswordResetRequests($days),
             'cutoff_date' => $cutoffDate->format('Y-m-d H:i:s'),
             'estimated_cleanup_time' => '5-10 минут',
         ];
@@ -95,6 +107,54 @@ class DataCleanupService
             ->where('t.status = :status')
             ->andWhere('t.completedAt < :cutoff')
             ->setParameter('status', 'completed')
+            ->setParameter('cutoff', $cutoffDate)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * Подсчитать старые комментарии
+     */
+    private function countOldComments(int $days): int
+    {
+        $cutoffDate = new \DateTime("-{$days} days");
+        $qb = $this->entityManager->createQueryBuilder();
+
+        return (int) $qb->select('COUNT(c.id)')
+            ->from('App\\Entity\\Comment', 'c')
+            ->where('c.createdAt < :cutoff')
+            ->setParameter('cutoff', $cutoffDate)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * Подсчитать старый учет времени
+     */
+    private function countOldTimeTracking(int $days): int
+    {
+        $cutoffDate = new \DateTime("-{$days} days");
+        $qb = $this->entityManager->createQueryBuilder();
+
+        return (int) $qb->select('COUNT(t.id)')
+            ->from('App\\Entity\\TaskTimeTracking', 't')
+            ->where('t.createdAt < :cutoff')
+            ->setParameter('cutoff', $cutoffDate)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * Подсчитать старые запросы сброса пароля
+     */
+    private function countOldPasswordResetRequests(int $days): int
+    {
+        $cutoffDate = new \DateTime("-{$days} days");
+        $qb = $this->entityManager->createQueryBuilder();
+
+        return (int) $qb->select('COUNT(r.id)')
+            ->from('App\\Entity\\ResetPasswordRequest', 'r')
+            ->where('r.createdAt < :cutoff')
             ->setParameter('cutoff', $cutoffDate)
             ->getQuery()
             ->getSingleScalarResult();
