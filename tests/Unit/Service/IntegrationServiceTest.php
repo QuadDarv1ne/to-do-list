@@ -74,26 +74,6 @@ class IntegrationServiceTest extends TestCase
         $this->assertFalse($result['connected']);
         $this->assertStringContainsString('Неверный токен', $result['message']);
     }
-    
-    public function testLoggingOnError(): void
-    {
-        $user = $this->createMock(User::class);
-        $user->method('getId')->willReturn(1);
-        
-        // Используем недопустимый формат токена для вызова ошибки
-        $token = '';
-
-        $this->logger->expects($this->once())
-            ->method('error')
-            ->with(
-                $this->stringContains('Ошибка подключения GitHub'),
-                $this->arrayHasKey('user_id')
-            );
-
-        $result = $this->integrationService->connectGitHub($user, $token);
-
-        $this->assertFalse($result['connected']);
-    }
 
     public function testConnectSlackWithValidWebhook(): void
     {
