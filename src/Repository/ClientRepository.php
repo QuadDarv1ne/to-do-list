@@ -4,6 +4,8 @@ namespace App\Repository;
 
 use App\Entity\Client;
 use App\Entity\User;
+use App\Repository\Traits\CachedRepositoryTrait;
+use App\Service\QueryCacheService;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -12,9 +14,16 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class ClientRepository extends ServiceEntityRepository
 {
+    use CachedRepositoryTrait;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Client::class);
+    }
+
+    public function setCacheService(QueryCacheService $cacheService): void
+    {
+        $this->cacheService = $cacheService;
     }
 
     /**
@@ -22,11 +31,15 @@ class ClientRepository extends ServiceEntityRepository
      */
     public function findAllWithRelations(): array
     {
-        return $this->createQueryBuilder('c')
-            ->leftJoin('c.manager', 'm')->addSelect('m')
-            ->orderBy('c.companyName', 'ASC')
-            ->getQuery()
-            ->getResult();
+        return $this->getCached(
+            'clients.all_with_relations',
+            fn () => $this->createQueryBuilder('c')
+                ->leftJoin('c.manager', 'm')->addSelect('m')
+                ->orderBy('c.companyName', 'ASC')
+                ->getQuery()
+                ->getResult(),
+            600 // Cache for 10 minutes
+        );
     }
 
     /**
@@ -34,13 +47,17 @@ class ClientRepository extends ServiceEntityRepository
      */
     public function findByManager(User $manager): array
     {
-        return $this->createQueryBuilder('c')
-            ->leftJoin('c.manager', 'm')->addSelect('m')
-            ->where('c.manager = :manager')
-            ->setParameter('manager', $manager)
-            ->orderBy('c.companyName', 'ASC')
-            ->getQuery()
-            ->getResult();
+        return $this->getCached(
+            "clients.manager.{$manager->getId()}",
+            fn () => $this->createQueryBuilder('c')
+                ->leftJoin('c.manager', 'm')->addSelect('m')
+                ->where('c.manager = :manager')
+                ->setParameter('manager', $manager)
+                ->orderBy('c.companyName', 'ASC')
+                ->getQuery()
+                ->getResult(),
+            600 // Cache for 10 minutes
+        );
     }
 
     /**
@@ -48,19 +65,27 @@ class ClientRepository extends ServiceEntityRepository
      */
     public function searchByName(string $query, ?User $manager = null): array
     {
-        $qb = $this->createQueryBuilder('c')
-            ->leftJoin('c.manager', 'm')->addSelect('m')
-            ->where('c.companyName LIKE :query')
-            ->setParameter('query', '%' . $query . '%')
-            ->orderBy('c.companyName', 'ASC')
-            ->setMaxResults(10);
+        $cacheKey = 'clients.search.' . md5($query . '_' . ($manager ? $manager->getId() : 'all'));
 
-        if ($manager) {
-            $qb->andWhere('c.manager = :manager')
-               ->setParameter('manager', $manager);
-        }
+        return $this->getCached(
+            $cacheKey,
+            function () use ($query, $manager) {
+                $qb = $this->createQueryBuilder('c')
+                    ->leftJoin('c.manager', 'm')->addSelect('m')
+                    ->where('c.companyName LIKE :query')
+                    ->setParameter('query', '%' . $query . '%')
+                    ->orderBy('c.companyName', 'ASC')
+                    ->setMaxResults(10);
 
-        return $qb->getQuery()->getResult();
+                if ($manager) {
+                    $qb->andWhere('c.manager = :manager')
+                       ->setParameter('manager', $manager);
+                }
+
+                return $qb->getQuery()->getResult();
+            },
+            300 // Cache for 5 minutes
+        );
     }
 
     /**
@@ -145,15 +170,23 @@ class ClientRepository extends ServiceEntityRepository
      */
     public function getTotalCount(?User $manager = null): int
     {
-        $qb = $this->createQueryBuilder('c')
-            ->select('COUNT(c.id)');
+        $cacheKey = $manager ? "clients.count.manager.{$manager->getId()}" : 'clients.count.all';
 
-        if ($manager) {
-            $qb->where('c.manager = :manager')
-               ->setParameter('manager', $manager);
-        }
+        return $this->getCached(
+            $cacheKey,
+            function () use ($manager) {
+                $qb = $this->createQueryBuilder('c')
+                    ->select('COUNT(c.id)');
 
-        return (int) $qb->getQuery()->getSingleScalarResult();
+                if ($manager) {
+                    $qb->where('c.manager = :manager')
+                       ->setParameter('manager', $manager);
+                }
+
+                return (int) $qb->getQuery()->getSingleScalarResult();
+            },
+            300 // Cache for 5 minutes
+        );
     }
 
     /**
