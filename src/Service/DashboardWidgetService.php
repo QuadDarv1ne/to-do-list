@@ -335,7 +335,10 @@ class DashboardWidgetService
         ];
 
         foreach ($results as $result) {
-            $distribution[$result['priority']] = (int)$result['count'];
+            $priority = $result['priority'] ?? 'medium';
+            if (isset($distribution[$priority])) {
+                $distribution[$priority] = (int)$result['count'];
+            }
         }
 
         return $distribution;

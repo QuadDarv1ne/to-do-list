@@ -260,6 +260,9 @@ class AdvancedAnalyticsService
     {
         $data = [];
         $current = clone $from;
+        
+        // Загружаем задачи один раз
+        $allTasks = $this->taskRepository->findByAssignedUser($user);
 
         while ($current <= $to) {
             $weekEnd = (clone $current)->modify('+7 days');
@@ -267,19 +270,21 @@ class AdvancedAnalyticsService
                 $weekEnd = clone $to;
             }
 
-            $allTasks = $this->taskRepository->findByAssignedUser($user);
+            $created = 0;
+            $completed = 0;
 
-            $created = \count(array_filter($allTasks, function ($task) use ($current, $weekEnd) {
+            foreach ($allTasks as $task) {
                 $createdAt = $task->getCreatedAt();
-
-                return $createdAt && $createdAt >= $current && $createdAt < $weekEnd;
-            }));
-
-            $completed = \count(array_filter($allTasks, function ($task) use ($current, $weekEnd) {
                 $updatedAt = $task->getUpdatedAt();
 
-                return $task->isCompleted() && $updatedAt && $updatedAt >= $current && $updatedAt < $weekEnd;
-            }));
+                if ($createdAt && $createdAt >= $current && $createdAt < $weekEnd) {
+                    $created++;
+                }
+
+                if ($task->isCompleted() && $updatedAt && $updatedAt >= $current && $updatedAt < $weekEnd) {
+                    $completed++;
+                }
+            }
 
             $velocity = $completed > 0 ? round($completed / 7, 1) : 0;
 
