@@ -4,6 +4,8 @@ namespace App\Repository;
 
 use App\Entity\Deal;
 use App\Entity\User;
+use App\Repository\Traits\CachedRepositoryTrait;
+use App\Service\QueryCacheService;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -12,9 +14,16 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class DealRepository extends ServiceEntityRepository
 {
+    use CachedRepositoryTrait;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Deal::class);
+    }
+
+    public function setCacheService(QueryCacheService $cacheService): void
+    {
+        $this->cacheService = $cacheService;
     }
 
     /**
@@ -22,12 +31,16 @@ class DealRepository extends ServiceEntityRepository
      */
     public function findAllWithRelations(): array
     {
-        return $this->createQueryBuilder('d')
-            ->leftJoin('d.client', 'c')->addSelect('c')
-            ->leftJoin('d.manager', 'm')->addSelect('m')
-            ->orderBy('d.createdAt', 'DESC')
-            ->getQuery()
-            ->getResult();
+        return $this->getCached(
+            'deals.all_with_relations',
+            fn () => $this->createQueryBuilder('d')
+                ->leftJoin('d.client', 'c')->addSelect('c')
+                ->leftJoin('d.manager', 'm')->addSelect('m')
+                ->orderBy('d.createdAt', 'DESC')
+                ->getQuery()
+                ->getResult(),
+            600 // Cache for 10 minutes
+        );
     }
 
     /**
@@ -35,14 +48,18 @@ class DealRepository extends ServiceEntityRepository
      */
     public function findByManager(User $manager): array
     {
-        return $this->createQueryBuilder('d')
-            ->leftJoin('d.client', 'c')->addSelect('c')
-            ->leftJoin('d.manager', 'm')->addSelect('m')
-            ->where('d.manager = :manager')
-            ->setParameter('manager', $manager)
-            ->orderBy('d.createdAt', 'DESC')
-            ->getQuery()
-            ->getResult();
+        return $this->getCached(
+            "deals.manager.{$manager->getId()}",
+            fn () => $this->createQueryBuilder('d')
+                ->leftJoin('d.client', 'c')->addSelect('c')
+                ->leftJoin('d.manager', 'm')->addSelect('m')
+                ->where('d.manager = :manager')
+                ->setParameter('manager', $manager)
+                ->orderBy('d.createdAt', 'DESC')
+                ->getQuery()
+                ->getResult(),
+            600 // Cache for 10 minutes
+        );
     }
 
     /**
@@ -166,31 +183,39 @@ class DealRepository extends ServiceEntityRepository
      */
     public function getDealsStatsByStatus(?User $manager = null): array
     {
-        $qb = $this->createQueryBuilder('d')
-            ->select('d.status, COUNT(d.id) as count')
-            ->groupBy('d.status');
+        $cacheKey = $manager ? "deals.stats.manager.{$manager->getId()}" : 'deals.stats.all';
 
-        if ($manager) {
-            $qb->where('d.manager = :manager')
-               ->setParameter('manager', $manager);
-        }
+        return $this->getCached(
+            $cacheKey,
+            function () use ($manager) {
+                $qb = $this->createQueryBuilder('d')
+                    ->select('d.status, COUNT(d.id) as count')
+                    ->groupBy('d.status');
 
-        $results = $qb->getQuery()->getResult();
+                if ($manager) {
+                    $qb->where('d.manager = :manager')
+                       ->setParameter('manager', $manager);
+                }
 
-        $stats = [
-            'total' => 0,
-            'in_progress' => 0,
-            'won' => 0,
-            'lost' => 0,
-            'postponed' => 0,
-        ];
+                $results = $qb->getQuery()->getResult();
 
-        foreach ($results as $result) {
-            $stats[$result['status']] = (int) $result['count'];
-            $stats['total'] += (int) $result['count'];
-        }
+                $stats = [
+                    'total' => 0,
+                    'in_progress' => 0,
+                    'won' => 0,
+                    'lost' => 0,
+                    'postponed' => 0,
+                ];
 
-        return $stats;
+                foreach ($results as $result) {
+                    $stats[$result['status']] = (int) $result['count'];
+                    $stats['total'] += (int) $result['count'];
+                }
+
+                return $stats;
+            },
+            300 // Cache for 5 minutes
+        );
     }
 
     /**
@@ -198,17 +223,25 @@ class DealRepository extends ServiceEntityRepository
      */
     public function getTotalRevenue(?User $manager = null): float
     {
-        $qb = $this->createQueryBuilder('d')
-            ->select('SUM(d.amount)')
-            ->where('d.status = :status')
-            ->setParameter('status', 'won');
+        $cacheKey = $manager ? "deals.revenue.manager.{$manager->getId()}" : 'deals.revenue.total';
 
-        if ($manager) {
-            $qb->andWhere('d.manager = :manager')
-               ->setParameter('manager', $manager);
-        }
+        return $this->getCached(
+            $cacheKey,
+            function () use ($manager) {
+                $qb = $this->createQueryBuilder('d')
+                    ->select('SUM(d.amount)')
+                    ->where('d.status = :status')
+                    ->setParameter('status', 'won');
 
-        return (float) ($qb->getQuery()->getSingleScalarResult() ?? 0);
+                if ($manager) {
+                    $qb->andWhere('d.manager = :manager')
+                       ->setParameter('manager', $manager);
+                }
+
+                return (float) ($qb->getQuery()->getSingleScalarResult() ?? 0);
+            },
+            300 // Cache for 5 minutes
+        );
     }
 
     /**
