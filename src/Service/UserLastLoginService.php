@@ -31,18 +31,17 @@ class UserLastLoginService
         try {
             $user->setLastLoginAt(new \DateTime());
 
-            // В целях производительности, обновляем только конкретного пользователя
-            // без полной фиксации изменений в базе данных
             $this->entityManager->persist($user);
-
-            // Выполняем flush только для конкретного объекта
             $this->entityManager->getUnitOfWork()->computeChangeSets();
             $this->entityManager->flush([$user]);
 
-            $this->logger->info('User last login time updated: ' . $user->getId());
-        } catch (\Exception $e) {
-            // Логируем ошибку, но не прерываем основной процесс
-            $this->logger->error('Failed to update user last login time: ' . $e->getMessage());
+            $this->logger->info('User last login time updated', ['user_id' => $user->getId()]);
+        } catch (\Throwable $e) {
+            $this->logger->error('Failed to update user last login time', [
+                'user_id' => $user->getId(),
+                'error' => $e->getMessage(),
+                'class' => \get_class($e),
+            ]);
         }
     }
 }

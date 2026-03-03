@@ -51,7 +51,7 @@ class TwoFactorAuthService
         $qrCodeUrl = $this->googleAuthenticator->getQRContent($user);
 
         // Generate QR code image
-        $qrCodeImage = $this->generateQrCode($qrCodeUrl);
+        $qrCodeImage = $this->generateQrCode($qrCodeUrl, $user);
 
         $this->logger->info("2FA enabled initiated for user {$user->getId()}");
 
@@ -207,10 +207,9 @@ class TwoFactorAuthService
     /**
      * Generate QR code image
      */
-    private function generateQrCode(string $content): string
+    private function generateQrCode(string $content, ?User $user = null): string
     {
         try {
-            // For endroid/qr-code v6+
             $builder = new Builder(
                 writer: new PngWriter(),
                 writerOptions: [],
@@ -226,8 +225,12 @@ class TwoFactorAuthService
             $result = $builder->build();
 
             return 'data:image/png;base64,' . base64_encode($result->getString());
-        } catch (\Exception $e) {
-            $this->logger->error('Failed to generate QR code: ' . $e->getMessage());
+        } catch (\Throwable $e) {
+            $this->logger->error('Failed to generate QR code', [
+                'user_id' => $user?->getId(),
+                'error' => $e->getMessage(),
+                'class' => \get_class($e),
+            ]);
 
             return '';
         }

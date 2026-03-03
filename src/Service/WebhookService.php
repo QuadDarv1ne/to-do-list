@@ -167,7 +167,7 @@ class WebhookService
 
             return $isSuccess;
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $responseTime = (int) ((microtime(true) - $startTime) * 1000);
 
             // Log the error
@@ -187,6 +187,7 @@ class WebhookService
                 'url' => $webhook->getUrl(),
                 'event' => $event,
                 'error' => $e->getMessage(),
+                'error_class' => \get_class($e),
                 'response_time_ms' => $responseTime,
             ]);
 
