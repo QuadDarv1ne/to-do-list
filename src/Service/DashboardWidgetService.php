@@ -7,6 +7,7 @@ use App\Entity\UserPreference;
 use App\Repository\TaskRepository;
 use App\Repository\UserPreferenceRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Cache\CacheItemPoolInterface;
 
 class DashboardWidgetService
 {
@@ -14,6 +15,7 @@ class DashboardWidgetService
         private TaskRepository $taskRepository,
         private EntityManagerInterface $entityManager,
         private UserPreferenceRepository $preferenceRepository,
+        private ?CacheItemPoolInterface $cache = null,
     ) {
     }
 
@@ -481,6 +483,16 @@ class DashboardWidgetService
     
     private function getWorkloadDistributionData(User $user): array
     {
+        // Кэшируем на 1 час
+        if ($this->cache) {
+            $cacheKey = 'workload_distribution_' . $user->getId();
+            $cacheItem = $this->cache->getItem($cacheKey);
+            
+            if ($cacheItem->isHit()) {
+                return $cacheItem->get();
+            }
+        }
+        
         // Распределение задач по дням недели
         $days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
         $distribution = array_fill(0, 7, 0);
