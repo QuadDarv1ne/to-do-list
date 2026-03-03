@@ -122,7 +122,7 @@ class DocumentService
         try {
             $file->move($uploadDir, $fileName);
         } catch (FileException $e) {
-            throw new \Exception('Failed to upload file: ' . $e->getMessage());
+            throw new \RuntimeException('Failed to upload file: ' . $e->getMessage(), 0, $e);
         }
 
         // Create document record
@@ -155,7 +155,7 @@ class DocumentService
     public function getFilePath(Document $document): string
     {
         if (!$document->getFileName()) {
-            throw new \Exception('Document does not have a file associated with it');
+            throw new \LogicException('Document does not have a file associated with it');
         }
 
         return $this->uploadDirectory . '/' . $document->getFileName();

@@ -97,30 +97,30 @@ class FileAttachmentService
     {
         // Check file size
         if ($file->getSize() > self::MAX_FILE_SIZE) {
-            throw new \Exception('Файл слишком большой. Максимальный размер: 10MB');
+            throw new \RuntimeException('Файл слишком большой. Максимальный размер: 10MB');
         }
 
         // Check extension from filename
         $originalExtension = strtolower(pathinfo($file->getClientOriginalName(), PATHINFO_EXTENSION));
         if (\in_array($originalExtension, self::DANGEROUS_EXTENSIONS)) {
-            throw new \Exception('Опасный тип файла запрещен');
+            throw new \InvalidArgumentException('Опасный тип файла запрещен');
         }
 
         // Check guessed extension
         $extension = $file->guessExtension();
         if (!\in_array($extension, self::ALLOWED_EXTENSIONS)) {
-            throw new \Exception('Недопустимый тип файла. Разрешены: ' . implode(', ', self::ALLOWED_EXTENSIONS));
+            throw new \InvalidArgumentException('Недопустимый тип файла. Разрешены: ' . implode(', ', self::ALLOWED_EXTENSIONS));
         }
 
         // Check MIME type
         $mimeType = $file->getMimeType();
         if (!\in_array($mimeType, self::ALLOWED_MIME_TYPES)) {
-            throw new \Exception('Недопустимый MIME тип файла');
+            throw new \InvalidArgumentException('Недопустимый MIME тип файла');
         }
 
         // Additional security: check for double extensions
         if (substr_count($file->getClientOriginalName(), '.') > 1) {
-            throw new \Exception('Файлы с двойным расширением запрещены');
+            throw new \InvalidArgumentException('Файлы с двойным расширением запрещены');
         }
     }
 

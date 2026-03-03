@@ -25,12 +25,12 @@ class TaskImportService
     public function importFromCSV(string $filePath, User $creator): array
     {
         if (!file_exists($filePath)) {
-            throw new \Exception('File not found');
+            throw new \RuntimeException('File not found: ' . $filePath);
         }
 
         $handle = fopen($filePath, 'r');
         if (!$handle) {
-            throw new \Exception('Cannot open file');
+            throw new \RuntimeException('Cannot open file: ' . $filePath);
         }
 
         $results = [
@@ -96,7 +96,7 @@ class TaskImportService
         $deadline = trim($row[6] ?? '');
 
         if (empty($title)) {
-            throw new \Exception('Title is required');
+            throw new \InvalidArgumentException('Title is required for task import');
         }
 
         $task = new Task();
