@@ -4,6 +4,7 @@ namespace App\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Cache\CacheItemPoolInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
@@ -28,6 +29,7 @@ class PerformanceOptimizerService
         private CacheItemPoolInterface $cache,
         private EntityManagerInterface $em,
         private RequestStack $requestStack,
+        private LoggerInterface $logger,
     ) {
     }
 
@@ -261,14 +263,12 @@ class PerformanceOptimizerService
      */
     public function __destruct()
     {
-        // Логируем статистику при завершении запроса
         if ($this->optimizationStats['optimization_time'] > 0.1) {
-            error_log(\sprintf(
-                '[PerformanceOptimizer] Queries saved: %d, Cache hits: %d, Time: %.3fs',
-                $this->optimizationStats['queries_saved'],
-                $this->optimizationStats['cache_hits'],
-                $this->optimizationStats['optimization_time'],
-            ));
+            $this->logger->info('[PerformanceOptimizer] Statistics', [
+                'queries_saved' => $this->optimizationStats['queries_saved'],
+                'cache_hits' => $this->optimizationStats['cache_hits'],
+                'optimization_time' => $this->optimizationStats['optimization_time'],
+            ]);
         }
     }
 }

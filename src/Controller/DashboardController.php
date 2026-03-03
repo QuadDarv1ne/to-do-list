@@ -6,6 +6,7 @@ use App\Repository\TaskRepository;
 use App\Service\AnalyticsService;
 use App\Service\PerformanceMonitorService;
 use App\Service\QueryCacheService;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -15,6 +16,11 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class DashboardController extends AbstractController
 {
+    public function __construct(
+        private LoggerInterface $logger,
+    ) {
+    }
+
     #[Route('/', name: 'app_dashboard', methods: ['GET'])]
     public function index(
         TaskRepository $taskRepository,
@@ -137,9 +143,11 @@ class DashboardController extends AbstractController
         if ($this->isGranted('ROLE_ADMIN') && $performanceMonitor) {
             try {
                 $performanceMetrics = $performanceMonitor->getPerformanceReport();
-            } catch (\Exception $e) {
-                // Log error but don't break the dashboard
-                error_log('Error getting performance metrics: ' . $e->getMessage());
+            } catch (\Throwable $e) {
+                $this->logger->error('Error getting performance metrics', [
+                    'error' => $e->getMessage(),
+                    'class' => \get_class($e),
+                ]);
             }
         }
 
