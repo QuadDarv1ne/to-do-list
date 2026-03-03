@@ -665,6 +665,61 @@ class TaskRepository extends ServiceEntityRepository
 
         return $stats;
     }
+    
+    /**
+     * Get user task statistics with caching
+     */
+    public function getUserStatistics(User $user): array
+    {
+        $cacheKey = 'user_stats_' . $user->getId();
+        
+        if ($this->cacheService) {
+            return $this->cachedQuery(
+                $cacheKey,
+                function () use ($user) {
+                    return $this->performGetUserStatistics($user);
+                },
+                ['user_id' => $user->getId()],
+                600, // 10 минут кэш
+            );
+        }
+        
+        return $this->performGetUserStatistics($user);
+    }
+    
+    /**
+     * Internal method to get user statistics
+     */
+    private function performGetUserStatistics(User $user): array
+    {
+        $qb = $this->createQueryBuilder('t');
+        
+        $qb->select('
+            COUNT(t.id) as total,
+            SUM(CASE WHEN t.status = \'completed\' THEN 1 ELSE 0 END) as completed,
+            SUM(CASE WHEN t.status = \'pending\' THEN 1 ELSE 0 END) as pending,
+            SUM(CASE WHEN t.dueDate < :now AND t.status != \'completed\' THEN 1 ELSE 0 END) as overdue,
+            SUM(CASE WHEN t.priority = \'urgent\' THEN 1 ELSE 0 END) as urgent,
+            SUM(CASE WHEN t.priority = \'high\' THEN 1 ELSE 0 END) as high_priority
+        ')
+        ->where('t.assignedUser = :user OR t.user = :user')
+        ->setParameter('user', $user)
+        ->setParameter('now', new \DateTime());
+        
+        $result = $qb->getQuery()->getSingleResult();
+        
+        return [
+            'total_tasks' => (int) ($result['total'] ?? 0),
+            'completed_tasks' => (int) ($result['completed'] ?? 0),
+            'pending_tasks' => (int) ($result['pending'] ?? 0),
+            'overdue_tasks' => (int) ($result['overdue'] ?? 0),
+            'urgent_tasks' => (int) ($result['urgent'] ?? 0),
+            'high_priority_tasks' => (int) ($result['high_priority'] ?? 0),
+            'completion_rate' => $result['total'] > 0 
+                ? round(($result['completed'] / $result['total']) * 100, 2) 
+                : 0,
+        ];
+    }
 
     /**
      * Calculate average completion time by priority in days
