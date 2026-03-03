@@ -8,20 +8,24 @@ use App\Repository\UserIntegrationRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Service\IntegrationService;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 
 class IntegrationServiceTest extends TestCase
 {
     private EntityManagerInterface $entityManager;
     private UserIntegrationRepository $integrationRepository;
+    private LoggerInterface $logger;
     private IntegrationService $integrationService;
 
     protected function setUp(): void
     {
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->integrationRepository = $this->createMock(UserIntegrationRepository::class);
+        $this->logger = $this->createMock(LoggerInterface::class);
         $this->integrationService = new IntegrationService(
             $this->entityManager,
-            $this->integrationRepository
+            $this->integrationRepository,
+            $this->logger
         );
     }
 
@@ -69,6 +73,26 @@ class IntegrationServiceTest extends TestCase
         $this->assertIsArray($result);
         $this->assertFalse($result['connected']);
         $this->assertStringContainsString('Неверный токен', $result['message']);
+    }
+    
+    public function testLoggingOnError(): void
+    {
+        $user = $this->createMock(User::class);
+        $user->method('getId')->willReturn(1);
+        
+        // Используем недопустимый формат токена для вызова ошибки
+        $token = '';
+
+        $this->logger->expects($this->once())
+            ->method('error')
+            ->with(
+                $this->stringContains('Ошибка подключения GitHub'),
+                $this->arrayHasKey('user_id')
+            );
+
+        $result = $this->integrationService->connectGitHub($user, $token);
+
+        $this->assertFalse($result['connected']);
     }
 
     public function testConnectSlackWithValidWebhook(): void
