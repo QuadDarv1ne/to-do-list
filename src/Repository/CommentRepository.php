@@ -32,13 +32,17 @@ class CommentRepository extends ServiceEntityRepository
      */
     public function findByTask(Task $task): array
     {
-        return $this->createQueryBuilder('c')
-            ->leftJoin('c.author', 'a')->addSelect('a')
-            ->andWhere('c.task = :task')
-            ->setParameter('task', $task)
-            ->orderBy('c.createdAt', 'ASC')
-            ->getQuery()
-            ->getResult();
+        return $this->getCached(
+            "comments.task.{$task->getId()}",
+            fn () => $this->createQueryBuilder('c')
+                ->leftJoin('c.author', 'a')->addSelect('a')
+                ->andWhere('c.task = :task')
+                ->setParameter('task', $task)
+                ->orderBy('c.createdAt', 'ASC')
+                ->getQuery()
+                ->getResult(),
+            300 // Cache for 5 minutes
+        );
     }
 
     /**
@@ -47,14 +51,18 @@ class CommentRepository extends ServiceEntityRepository
      */
     public function findByAuthor(User $author): array
     {
-        return $this->createQueryBuilder('c')
-            ->leftJoin('c.task', 't')->addSelect('t')
-            ->andWhere('c.author = :author')
-            ->setParameter('author', $author)
-            ->orderBy('c.createdAt', 'DESC')
-            ->setMaxResults(100)
-            ->getQuery()
-            ->getResult();
+        return $this->getCached(
+            "comments.author.{$author->getId()}",
+            fn () => $this->createQueryBuilder('c')
+                ->leftJoin('c.task', 't')->addSelect('t')
+                ->andWhere('c.author = :author')
+                ->setParameter('author', $author)
+                ->orderBy('c.createdAt', 'DESC')
+                ->setMaxResults(100)
+                ->getQuery()
+                ->getResult(),
+            600 // Cache for 10 minutes
+        );
     }
 
     /**

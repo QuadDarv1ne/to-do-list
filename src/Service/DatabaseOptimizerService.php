@@ -15,8 +15,6 @@ class DatabaseOptimizerService
 {
     private array $queryLog = [];
 
-    private array $optimizationSuggestions = [];
-
     private bool $debugMode = false;
 
     public function __construct(

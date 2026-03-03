@@ -6,12 +6,16 @@ use App\Entity\Task;
 use App\Entity\User;
 use App\Repository\TaskRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Cache\CacheItemPoolInterface;
 
 class TaskPriorityCalculatorService
 {
+    private array $priorityScoreCache = [];
+
     public function __construct(
         private EntityManagerInterface $em,
         private TaskRepository $taskRepository,
+        private ?CacheItemPoolInterface $cache = null,
     ) {
     }
 
@@ -20,6 +24,12 @@ class TaskPriorityCalculatorService
      */
     public function calculatePriorityScore(Task $task): float
     {
+        // Check cache first
+        $taskId = $task->getId();
+        if ($taskId && isset($this->priorityScoreCache[$taskId])) {
+            return $this->priorityScoreCache[$taskId];
+        }
+
         $score = 0;
 
         // Base priority weight
@@ -61,7 +71,14 @@ class TaskPriorityCalculatorService
         $dependents = $this->getDependentTasks($task);
         $score += \count($dependents) * 10;
 
-        return min(200, $score); // Cap at 200
+        $finalScore = min(200, $score); // Cap at 200
+
+        // Cache the result
+        if ($taskId) {
+            $this->priorityScoreCache[$taskId] = $finalScore;
+        }
+
+        return $finalScore;
     }
 
     /**
@@ -174,5 +191,17 @@ class TaskPriorityCalculatorService
         }
 
         return 'low';
+    }
+
+    /**
+     * Clear priority cache for specific task
+     */
+    public function clearCache(?int $taskId = null): void
+    {
+        if ($taskId !== null) {
+            unset($this->priorityScoreCache[$taskId]);
+        } else {
+            $this->priorityScoreCache = [];
+        }
     }
 }
