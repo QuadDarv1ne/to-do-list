@@ -31,16 +31,20 @@ class NotificationRepository extends ServiceEntityRepository
      */
     public function findByUserUnread($user): array
     {
-        return $this->createQueryBuilder('n')
-            ->leftJoin('n.task', 't')->addSelect('t')
-            ->andWhere('n.user = :user')
-            ->andWhere('n.isRead = :isRead')
-            ->setParameter('user', $user)
-            ->setParameter('isRead', false)
-            ->orderBy('n.createdAt', 'DESC')
-            ->setMaxResults(100)
-            ->getQuery()
-            ->getResult();
+        return $this->getCached(
+            "notifications.unread.user.{$user}",
+            fn () => $this->createQueryBuilder('n')
+                ->leftJoin('n.task', 't')->addSelect('t')
+                ->andWhere('n.user = :user')
+                ->andWhere('n.isRead = :isRead')
+                ->setParameter('user', $user)
+                ->setParameter('isRead', false)
+                ->orderBy('n.createdAt', 'DESC')
+                ->setMaxResults(100)
+                ->getQuery()
+                ->getResult(),
+            180 // Cache for 3 minutes
+        );
     }
 
     /**
@@ -49,14 +53,18 @@ class NotificationRepository extends ServiceEntityRepository
      */
     public function findByUser($user): array
     {
-        return $this->createQueryBuilder('n')
-            ->leftJoin('n.task', 't')->addSelect('t')
-            ->andWhere('n.user = :user')
-            ->setParameter('user', $user)
-            ->orderBy('n.createdAt', 'DESC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult();
+        return $this->getCached(
+            "notifications.user.{$user}.recent",
+            fn () => $this->createQueryBuilder('n')
+                ->leftJoin('n.task', 't')->addSelect('t')
+                ->andWhere('n.user = :user')
+                ->setParameter('user', $user)
+                ->orderBy('n.createdAt', 'DESC')
+                ->setMaxResults(10)
+                ->getQuery()
+                ->getResult(),
+            300 // Cache for 5 minutes
+        );
     }
 
     /**

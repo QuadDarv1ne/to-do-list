@@ -2,6 +2,8 @@
 
 namespace App\Service;
 
+use Symfony\Component\HttpKernel\Attribute\AsAlias;
+
 /**
  * Сервис для работы с датами и временем
  * Централизует создание DateTime объектов для лучшей производительности
@@ -45,7 +47,7 @@ class DateTimeService
      */
     public function daysAgo(int $days): \DateTime
     {
-        return (new \DateTime())->modify("-{$days} days");
+        return (new \DateTime())->sub(new \DateInterval("P{$days}D"));
     }
 
     /**
@@ -53,7 +55,7 @@ class DateTimeService
      */
     public function daysAhead(int $days): \DateTime
     {
-        return (new \DateTime())->modify("+{$days} days");
+        return (new \DateTime())->add(new \DateInterval("P{$days}D"));
     }
 
     /**
@@ -96,7 +98,7 @@ class DateTimeService
         $now = new \DateTime();
         $diff = $now->diff($date);
 
-        return $diff->invert ? -$diff->days : $diff->days;
+        return $diff->invert ? -(int)$diff->days : (int)$diff->days;
     }
 
     /**
@@ -104,7 +106,7 @@ class DateTimeService
      */
     public function daysBetween(\DateTime $start, \DateTime $end): int
     {
-        return $start->diff($end)->days;
+        return (int)$start->diff($end)->days;
     }
 
     /**
@@ -194,7 +196,7 @@ class DateTimeService
     {
         $date = $date ?? new \DateTime();
 
-        return (clone $date)->modify('monday this week')->setTime(0, 0, 0);
+        return (clone $date)->sub(new \DateInterval('P' . ($date->format('N') - 1) . 'D'))->setTime(0, 0, 0);
     }
 
     /**
@@ -204,7 +206,7 @@ class DateTimeService
     {
         $date = $date ?? new \DateTime();
 
-        return (clone $date)->modify('sunday this week')->setTime(23, 59, 59);
+        return (clone $date)->add(new \DateInterval('P' . (7 - $date->format('N')) . 'D'))->setTime(23, 59, 59);
     }
 
     /**
@@ -321,7 +323,7 @@ class DateTimeService
      */
     public function isTomorrow(\DateTimeInterface $date): bool
     {
-        $tomorrow = (new \DateTime())->modify('+1 day')->format('Y-m-d');
+        $tomorrow = (new \DateTime())->add(new \DateInterval('P1D'))->format('Y-m-d');
 
         return $date->format('Y-m-d') === $tomorrow;
     }
@@ -333,7 +335,7 @@ class DateTimeService
     {
         $diff = $start->diff($end);
 
-        return $diff->days;
+        return (int)$diff->days;
     }
 
     /**
@@ -383,7 +385,7 @@ class DateTimeService
             if ($dayOfWeek <= 5) {
                 $days++;
             }
-            $current->modify('+1 day');
+            $current = $current->add(new \DateInterval('P1D'));
         }
 
         return $days;
@@ -398,7 +400,7 @@ class DateTimeService
         $added = 0;
 
         while ($added < $days) {
-            $current->modify('+1 day');
+            $current = $current->add(new \DateInterval('P1D'));
             $dayOfWeek = (int)$current->format('N');
             if ($dayOfWeek <= 5) {
                 $added++;
