@@ -17,6 +17,7 @@ use App\Entity\Task;
 use App\Entity\User;
 use App\Repository\TaskRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
@@ -30,6 +31,7 @@ final class TaskCommandService
         private TaskRepository $taskRepository,
         private EventDispatcherInterface $eventDispatcher,
         private UrlGeneratorInterface $urlGenerator,
+        private ?LoggerInterface $logger = null,
     ) {
     }
 
@@ -92,6 +94,16 @@ final class TaskCommandService
         }
 
         $this->entityManager->flush();
+
+        // Логируем создание задачи
+        if ($this->logger) {
+            $this->logger->info('Создана новая задача', [
+                'task_id' => $task->getId(),
+                'title' => $task->getTitle(),
+                'creator_id' => $creator->getId(),
+                'assigned_user_id' => $task->getAssignedUser()?->getId(),
+            ]);
+        }
 
         // Генерируем Domain Event
         $this->dispatchTaskCreated($task, $creator);
@@ -195,6 +207,15 @@ final class TaskCommandService
         $task->setCompletedAt(new \DateTime());
 
         $this->entityManager->flush();
+
+        // Логируем завершение задачи
+        if ($this->logger) {
+            $this->logger->info('Задача завершена', [
+                'task_id' => $task->getId(),
+                'title' => $task->getTitle(),
+                'completer_id' => $completer->getId(),
+            ]);
+        }
 
         // Генерируем Domain Event
         $this->dispatchTaskCompleted($task, $completer);
