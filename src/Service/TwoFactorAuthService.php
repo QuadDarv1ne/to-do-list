@@ -12,22 +12,13 @@ use Endroid\QrCode\Writer\PngWriter;
 use Psr\Log\LoggerInterface;
 use Scheb\TwoFactorBundle\Security\TwoFactor\Provider\Google\GoogleAuthenticatorInterface;
 
-class TwoFactorAuthService
+final class TwoFactorAuthService
 {
-    private EntityManagerInterface $entityManager;
-
-    private LoggerInterface $logger;
-
-    private ?GoogleAuthenticatorInterface $googleAuthenticator;
-
     public function __construct(
-        EntityManagerInterface $entityManager,
-        LoggerInterface $logger,
-        ?GoogleAuthenticatorInterface $googleAuthenticator = null,
+        private EntityManagerInterface $entityManager,
+        private LoggerInterface $logger,
+        private ?GoogleAuthenticatorInterface $googleAuthenticator = null,
     ) {
-        $this->entityManager = $entityManager;
-        $this->logger = $logger;
-        $this->googleAuthenticator = $googleAuthenticator;
     }
 
     /**

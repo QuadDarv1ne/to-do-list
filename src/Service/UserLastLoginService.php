@@ -1,31 +1,19 @@
 <?php
 
-// src/Service/UserLastLoginService.php
-
 namespace App\Service;
 
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 
-class UserLastLoginService
+final readonly class UserLastLoginService
 {
-    private EntityManagerInterface $entityManager;
-
-    private LoggerInterface $logger;
-
     public function __construct(
-        EntityManagerInterface $entityManager,
-        LoggerInterface $logger,
+        private EntityManagerInterface $entityManager,
+        private LoggerInterface $logger,
     ) {
-        $this->entityManager = $entityManager;
-        $this->logger = $logger;
     }
 
-    /**
-     * Обновляет время последнего входа пользователя
-     * В режиме разработки выполняет немедленное обновление, в продакшене - асинхронное
-     */
     public function updateUserLastLogin(User $user): void
     {
         try {
