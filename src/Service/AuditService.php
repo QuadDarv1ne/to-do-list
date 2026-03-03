@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Security\Core\Security;
 
 class AuditService
@@ -14,6 +15,7 @@ class AuditService
     public function __construct(
         private EntityManagerInterface $entityManager,
         private Security $security,
+        private LoggerInterface $logger,
     ) {
     }
 
@@ -93,18 +95,13 @@ class AuditService
             return;
         }
 
-        // В реальном приложении здесь был бы INSERT в таблицу audit_log
-        // Для примера просто логируем
         foreach ($this->buffer as $entry) {
-            // Логирование в файл или БД
-            error_log(\sprintf(
-                '[AUDIT] %s | %s | %s | %s | %s',
-                $entry['timestamp'],
-                $entry['action'],
-                $entry['entity_type'],
-                $entry['entity_id'],
-                $entry['user_email'] ?? 'anonymous',
-            ));
+            $this->logger->info('[AUDIT] ' . $entry['action'], [
+                'entity_type' => $entry['entity_type'],
+                'entity_id' => $entry['entity_id'],
+                'user_email' => $entry['user_email'] ?? 'anonymous',
+                'timestamp' => $entry['timestamp'],
+            ]);
         }
 
         $this->buffer = [];

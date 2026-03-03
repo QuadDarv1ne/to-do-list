@@ -6,12 +6,14 @@ use App\Entity\Task;
 use App\Entity\TaskNotification;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 
 class ReminderService
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
         private RealTimeNotificationService $notificationService,
+        private LoggerInterface $logger,
     ) {
     }
 
@@ -100,9 +102,12 @@ class ReminderService
             try {
                 $this->sendReminder($reminder);
                 $sentCount++;
-            } catch (\Exception $e) {
-                // Log error but continue
-                error_log('Failed to send reminder: ' . $e->getMessage());
+            } catch (\Throwable $e) {
+                $this->logger->error('Failed to send reminder', [
+                    'reminder_id' => $reminder->getId(),
+                    'error' => $e->getMessage(),
+                    'class' => \get_class($e),
+                ]);
             }
         }
 

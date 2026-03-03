@@ -7,6 +7,7 @@ namespace App\Security;
 use App\Entity\User;
 use App\Service\UserLastLoginService;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -34,6 +35,7 @@ class LoginAuthenticator extends AbstractAuthenticator implements Authentication
         private UrlGeneratorInterface $urlGenerator,
         private EntityManagerInterface $entityManager,
         private UserLastLoginService $userLastLoginService,
+        private LoggerInterface $logger,
     ) {
     }
 
@@ -90,30 +92,26 @@ class LoginAuthenticator extends AbstractAuthenticator implements Authentication
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
-        // Log successful authentication
-        error_log('Authentication successful for user: ' . $token->getUser()->getUserIdentifier());
+        $this->logger->info('Authentication successful', ['user' => $token->getUser()->getUserIdentifier()]);
 
-        // Перенаправляем на предыдущую страницу или на дашборд
         $targetPath = $this->getTargetPath($request->getSession(), $firewallName);
         if ($targetPath) {
-            error_log('Redirecting to target path: ' . $targetPath);
+            $this->logger->debug('Redirecting to target path', ['path' => $targetPath]);
 
             return new RedirectResponse($targetPath);
         }
 
-        // Явно указываем маршрут дашборда
         $dashboardUrl = $this->urlGenerator->generate('app_dashboard');
-        error_log('Redirecting to dashboard: ' . $dashboardUrl);
+        $this->logger->debug('Redirecting to dashboard', ['url' => $dashboardUrl]);
 
         return new RedirectResponse($dashboardUrl);
     }
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
     {
-        error_log('Authentication failed: ' . $exception->getMessage());
+        $this->logger->warning('Authentication failed', ['error' => $exception->getMessage()]);
         $request->getSession()->set(SecurityRequestAttributes::AUTHENTICATION_ERROR, $exception);
 
-        // Handle failed login attempts and account locking
         $email = $request->request->get('email', '');
         if ($email) {
             $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
@@ -121,13 +119,15 @@ class LoginAuthenticator extends AbstractAuthenticator implements Authentication
                 $failedAttempts = $user->getFailedLoginAttempts() + 1;
                 $user->setFailedLoginAttempts($failedAttempts);
 
-                // Lock account after 5 failed attempts
                 if ($failedAttempts >= 5) {
                     $lockedUntil = new \DateTime();
-                    $lockedUntil->modify('+15 minutes'); // Lock for 15 minutes
+                    $lockedUntil->modify('+15 minutes');
                     $user->lockAccount($lockedUntil);
 
-                    error_log('Account locked for user: ' . $user->getEmail() . ' until ' . $lockedUntil->format('Y-m-d H:i:s'));
+                    $this->logger->warning('Account locked', [
+                        'user' => $user->getEmail(),
+                        'locked_until' => $lockedUntil->format('Y-m-d H:i:s'),
+                    ]);
                 }
 
                 $this->entityManager->flush();
