@@ -6,12 +6,14 @@ use App\Entity\User;
 use App\Entity\UserIntegration;
 use App\Repository\UserIntegrationRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 
 class IntegrationService
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
         private UserIntegrationRepository $integrationRepository,
+        private ?LoggerInterface $logger = null,
     ) {
     }
 
@@ -64,6 +66,14 @@ class IntegrationService
                 'github_username' => $userData['login'] ?? '',
             ];
         } catch (\Exception $e) {
+            // Логируем ошибку
+            if ($this->logger) {
+                $this->logger->error('Ошибка подключения GitHub: ' . $e->getMessage(), [
+                    'user_id' => $user->getId(),
+                    'exception' => get_class($e),
+                ]);
+            }
+            
             return [
                 'connected' => false,
                 'message' => 'Ошибка подключения: ' . $e->getMessage(),
