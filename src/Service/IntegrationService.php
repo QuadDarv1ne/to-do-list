@@ -70,10 +70,10 @@ class IntegrationService
             if ($this->logger) {
                 $this->logger->error('Ошибка подключения GitHub: ' . $e->getMessage(), [
                     'user_id' => $user->getId(),
-                    'exception' => get_class($e),
+                    'exception' => \get_class($e),
                 ]);
             }
-            
+
             return [
                 'connected' => false,
                 'message' => 'Ошибка подключения: ' . $e->getMessage(),

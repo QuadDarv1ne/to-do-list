@@ -5,15 +5,18 @@ namespace App\Tests\Unit\Service;
 use App\Entity\User;
 use App\Repository\ClientRepository;
 use App\Repository\DealRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use App\Service\CRMAnalyticsService;
+use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 
 class CRMAnalyticsServiceTest extends TestCase
 {
     private DealRepository $dealRepository;
+
     private ClientRepository $clientRepository;
+
     private EntityManagerInterface $entityManager;
+
     private CRMAnalyticsService $analyticsService;
 
     protected function setUp(): void
@@ -21,11 +24,11 @@ class CRMAnalyticsServiceTest extends TestCase
         $this->dealRepository = $this->createMock(DealRepository::class);
         $this->clientRepository = $this->createMock(ClientRepository::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
-        
+
         $this->analyticsService = new CRMAnalyticsService(
             $this->dealRepository,
             $this->clientRepository,
-            $this->entityManager
+            $this->entityManager,
         );
     }
 
@@ -36,10 +39,10 @@ class CRMAnalyticsServiceTest extends TestCase
         // Мокируем данные репозиториев
         $this->dealRepository->method('getTotalRevenueForPeriod')
             ->willReturnOnConsecutiveCalls(150000.0, 120000.0);
-        
+
         $this->dealRepository->method('findActiveDeals')
             ->willReturn([]); // Возвращаем массив вместо int
-        
+
         $this->dealRepository->method('getDealsByStage')
             ->willReturn([
                 ['stage' => 'new', 'count' => 10, 'total' => 50],
@@ -47,7 +50,7 @@ class CRMAnalyticsServiceTest extends TestCase
                 ['stage' => 'proposal', 'count' => 5, 'total' => 30],
                 ['stage' => 'won', 'count' => 3, 'total' => 20],
             ]);
-        
+
         $this->dealRepository->method('getDealsCountByStatus')
             ->willReturn([
                 'new' => 10,
@@ -55,19 +58,19 @@ class CRMAnalyticsServiceTest extends TestCase
                 'won' => 5,
                 'lost' => 3,
             ]);
-        
+
         $this->dealRepository->method('getOverdueDeals')
             ->willReturn([]);
-        
+
         $this->dealRepository->method('getConversionRate')
             ->willReturnOnConsecutiveCalls(25.5, 20.0);
-        
+
         $this->clientRepository->method('getTopClientsByRevenue')
             ->willReturn([]);
-        
+
         $this->clientRepository->method('getTotalCount')
             ->willReturn(100);
-        
+
         $this->clientRepository->method('getNewClientsCount')
             ->willReturn(15);
 
@@ -78,10 +81,10 @@ class CRMAnalyticsServiceTest extends TestCase
         $this->assertArrayHasKey('deals', $dashboard);
         $this->assertArrayHasKey('conversion', $dashboard);
         $this->assertArrayHasKey('clients', $dashboard);
-        
+
         // Проверяем revenue trend (25% рост)
         $this->assertEquals(25.0, $dashboard['revenue']['trend']);
-        
+
         // Проверяем conversion trend (5.5% рост)
         $this->assertEquals(5.5, $dashboard['conversion']['trend']);
     }
@@ -102,13 +105,13 @@ class CRMAnalyticsServiceTest extends TestCase
 
         $this->assertIsArray($funnel);
         $this->assertCount(4, $funnel);
-        
+
         // Проверяем первую стадию (100% конверсия)
         $this->assertEquals(100, $funnel[0]['conversion_rate']);
-        
+
         // Проверяем вторую стадию (80% конверсия)
         $this->assertEquals(80.0, $funnel[1]['conversion_rate']);
-        
+
         // Проверяем третью стадию (75% конверсия)
         $this->assertEquals(75.0, $funnel[2]['conversion_rate']);
     }
@@ -119,7 +122,7 @@ class CRMAnalyticsServiceTest extends TestCase
         $endDate = new \DateTime('2026-01-31');
 
         $query = $this->createMock(\Doctrine\ORM\Query::class);
-        
+
         // Мокаем результаты запроса
         $mockResults = [
             [
@@ -147,7 +150,7 @@ class CRMAnalyticsServiceTest extends TestCase
         ];
 
         $query->method('getResult')->willReturn($mockResults);
-        
+
         $queryBuilder = $this->createMock(\Doctrine\ORM\QueryBuilder::class);
         $queryBuilder->method('select')->willReturnSelf();
         $queryBuilder->method('from')->willReturnSelf();
@@ -168,13 +171,13 @@ class CRMAnalyticsServiceTest extends TestCase
         $this->assertArrayHasKey('summary', $performance);
         $this->assertArrayHasKey('averages', $performance);
         $this->assertArrayHasKey('top_manager', $performance);
-        
+
         // Проверяем количество менеджеров
         $this->assertCount(2, $performance['managers']);
-        
+
         // Проверяем расчёт win rate для первого менеджера (75%)
         $this->assertEquals(75.0, $performance['managers'][0]['win_rate']);
-        
+
         // Проверяем среднего менеджера
         $this->assertEquals(19.0, $performance['averages']['avg_deals_per_manager']);
     }
@@ -185,10 +188,10 @@ class CRMAnalyticsServiceTest extends TestCase
 
         $this->clientRepository->method('getNewClientsCount')
             ->willReturn(15);
-        
+
         $this->clientRepository->method('getClientsWithoutRecentContact')
             ->willReturn([]);
-        
+
         $this->clientRepository->method('getTotalCount')
             ->willReturn(100);
 
@@ -198,7 +201,7 @@ class CRMAnalyticsServiceTest extends TestCase
         $this->assertArrayHasKey('new_clients', $stats);
         $this->assertArrayHasKey('inactive_clients', $stats);
         $this->assertArrayHasKey('total_clients', $stats);
-        
+
         $this->assertEquals(15, $stats['new_clients']);
         $this->assertEquals(0, $stats['inactive_clients']);
         $this->assertEquals(100, $stats['total_clients']);
@@ -207,9 +210,9 @@ class CRMAnalyticsServiceTest extends TestCase
     public function testGetAverageDealCycleReturnsZero(): void
     {
         $manager = $this->createMock(User::class);
-        
+
         $cycle = $this->analyticsService->getAverageDealCycle($manager);
-        
+
         $this->assertEquals(0, $cycle);
     }
 
@@ -224,7 +227,7 @@ class CRMAnalyticsServiceTest extends TestCase
             ->willReturn(35.5);
 
         $winRate = $this->analyticsService->getWinRate($startDate, $endDate, $manager);
-        
+
         $this->assertEquals(35.5, $winRate);
     }
 
@@ -232,28 +235,28 @@ class CRMAnalyticsServiceTest extends TestCase
     {
         $this->dealRepository->method('getTotalRevenueForPeriod')
             ->willReturn(0.0);
-        
+
         $this->dealRepository->method('findActiveDeals')
             ->willReturn([]);
-        
+
         $this->dealRepository->method('getDealsByStage')
             ->willReturn([]);
-        
+
         $this->dealRepository->method('getDealsCountByStatus')
             ->willReturn([]);
-        
+
         $this->dealRepository->method('getOverdueDeals')
             ->willReturn([]);
-        
+
         $this->dealRepository->method('getConversionRate')
             ->willReturn(0.0);
-        
+
         $this->clientRepository->method('getTopClientsByRevenue')
             ->willReturn([]);
-        
+
         $this->clientRepository->method('getTotalCount')
             ->willReturn(0);
-        
+
         $this->clientRepository->method('getNewClientsCount')
             ->willReturn(0);
 
@@ -273,7 +276,7 @@ class CRMAnalyticsServiceTest extends TestCase
 
         $query = $this->createMock(\Doctrine\ORM\Query::class);
         $query->method('getResult')->willReturn([]);
-        
+
         $queryBuilder = $this->createMock(\Doctrine\ORM\QueryBuilder::class);
         $queryBuilder->method('select')->willReturnSelf();
         $queryBuilder->method('from')->willReturnSelf();

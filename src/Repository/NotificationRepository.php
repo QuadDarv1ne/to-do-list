@@ -44,7 +44,7 @@ class NotificationRepository extends ServiceEntityRepository
                 ->setMaxResults(100)
                 ->getQuery()
                 ->getResult(),
-            180 // Cache for 3 minutes
+            180, // Cache for 3 minutes
         );
     }
 
@@ -64,7 +64,7 @@ class NotificationRepository extends ServiceEntityRepository
                 ->setMaxResults(10)
                 ->getQuery()
                 ->getResult(),
-            300 // Cache for 5 minutes
+            300, // Cache for 5 minutes
         );
     }
 

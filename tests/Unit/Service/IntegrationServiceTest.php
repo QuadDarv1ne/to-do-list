@@ -5,16 +5,19 @@ namespace App\Tests\Unit\Service;
 use App\Entity\User;
 use App\Entity\UserIntegration;
 use App\Repository\UserIntegrationRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use App\Service\IntegrationService;
+use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 class IntegrationServiceTest extends TestCase
 {
     private EntityManagerInterface $entityManager;
+
     private UserIntegrationRepository $integrationRepository;
+
     private LoggerInterface $logger;
+
     private IntegrationService $integrationService;
 
     protected function setUp(): void
@@ -25,7 +28,7 @@ class IntegrationServiceTest extends TestCase
         $this->integrationService = new IntegrationService(
             $this->entityManager,
             $this->integrationRepository,
-            $this->logger
+            $this->logger,
         );
     }
 
@@ -58,7 +61,7 @@ class IntegrationServiceTest extends TestCase
         $this->assertIsArray($result);
         $this->assertArrayHasKey('connected', $result);
         $this->assertArrayHasKey('message', $result);
-        
+
         // Примечание: реальный тест требует мока file_get_contents
         // В данном случае проверяем структуру ответа
     }
@@ -75,13 +78,33 @@ class IntegrationServiceTest extends TestCase
         $this->assertStringContainsString('Неверный токен', $result['message']);
     }
 
+    public function testLoggingOnError(): void
+    {
+        $user = $this->createMock(User::class);
+        $user->method('getId')->willReturn(1);
+
+        // Используем недопустимый формат токена для вызова ошибки
+        $token = '';
+
+        $this->logger->expects($this->once())
+            ->method('error')
+            ->with(
+                $this->stringContains('Ошибка подключения GitHub'),
+                $this->arrayHasKey('user_id'),
+            );
+
+        $result = $this->integrationService->connectGitHub($user, $token);
+
+        $this->assertFalse($result['connected']);
+    }
+
     public function testConnectSlackWithValidWebhook(): void
     {
         $user = $this->createMock(User::class);
         $user->method('getId')->willReturn(1);
-        
+
         $webhookUrl = 'https://hooks.slack.com/services/TEST/WEBHOOK/URL';
-        
+
         // Мокаем репозиторий чтобы вернуть null (интеграция не существует)
         $this->integrationRepository->method('findByUserAndType')
             ->willReturn(null);
@@ -118,7 +141,7 @@ class IntegrationServiceTest extends TestCase
     public function testGetSlackOAuthUrl(): void
     {
         $redirectUri = 'https://example.com/callback';
-        
+
         $oauthUrl = $this->integrationService->getSlackOAuthUrl($redirectUri);
 
         $this->assertIsString($oauthUrl);
@@ -131,7 +154,7 @@ class IntegrationServiceTest extends TestCase
     public function testGetGoogleCalendarOAuthUrl(): void
     {
         $redirectUri = 'https://example.com/callback';
-        
+
         $oauthUrl = $this->integrationService->getGoogleCalendarOAuthUrl($redirectUri);
 
         $this->assertIsString($oauthUrl);
@@ -147,7 +170,7 @@ class IntegrationServiceTest extends TestCase
         $domain = 'example.atlassian.net';
         $email = 'test@example.com';
         $apiToken = 'test_api_token';
-        
+
         // Мокаем репозиторий
         $this->integrationRepository->method('findByUserAndType')
             ->willReturn(null);
@@ -163,10 +186,10 @@ class IntegrationServiceTest extends TestCase
     {
         $user = $this->createMock(User::class);
         $user->method('getId')->willReturn(1);
-        
+
         $botToken = '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11';
         $chatId = '123456789';
-        
+
         // Мокаем репозиторий
         $this->integrationRepository->method('findByUserAndType')
             ->willReturn(null);
@@ -266,7 +289,7 @@ class IntegrationServiceTest extends TestCase
     public function testTestConnectionGitHub(): void
     {
         $credentials = ['token' => 'test_token'];
-        
+
         $result = $this->integrationService->testConnection('github', $credentials);
 
         $this->assertIsArray($result);
@@ -277,7 +300,7 @@ class IntegrationServiceTest extends TestCase
     public function testTestConnectionSlack(): void
     {
         $credentials = ['webhook_url' => 'https://hooks.slack.com/test'];
-        
+
         $result = $this->integrationService->testConnection('slack', $credentials);
 
         $this->assertIsArray($result);
@@ -288,7 +311,7 @@ class IntegrationServiceTest extends TestCase
     public function testTestConnectionUnknown(): void
     {
         $credentials = [];
-        
+
         $result = $this->integrationService->testConnection('unknown_service', $credentials);
 
         $this->assertFalse($result['success']);

@@ -116,7 +116,7 @@ class TaskRepository extends ServiceEntityRepository
     public function findUpcomingDeadlines(\DateTimeImmutable $beforeDate): array
     {
         return $this->getCached(
-            "tasks.upcoming_deadlines." . $beforeDate->format('Y-m-d'),
+            'tasks.upcoming_deadlines.' . $beforeDate->format('Y-m-d'),
             fn () => $this->createQueryBuilder('t')
                 ->leftJoin('t.assignedUser', 'au')->addSelect('au')
                 ->leftJoin('t.category', 'c')->addSelect('c')
@@ -128,7 +128,7 @@ class TaskRepository extends ServiceEntityRepository
                 ->orderBy('t.dueDate', 'ASC')
                 ->getQuery()
                 ->getResult(),
-            300 // Cache for 5 minutes
+            300, // Cache for 5 minutes
         );
     }
 
@@ -276,7 +276,7 @@ class TaskRepository extends ServiceEntityRepository
                 ->orderBy('t.createdAt', 'DESC')
                 ->getQuery()
                 ->getResult(),
-            300 // Cache for 5 minutes
+            300, // Cache for 5 minutes
         );
     }
 
@@ -677,14 +677,14 @@ class TaskRepository extends ServiceEntityRepository
 
         return $stats;
     }
-    
+
     /**
      * Get user task statistics with caching
      */
     public function getUserStatistics(User $user): array
     {
         $cacheKey = 'user_stats_' . $user->getId();
-        
+
         if ($this->cacheService) {
             return $this->cachedQuery(
                 $cacheKey,
@@ -695,17 +695,17 @@ class TaskRepository extends ServiceEntityRepository
                 600, // 10 минут кэш
             );
         }
-        
+
         return $this->performGetUserStatistics($user);
     }
-    
+
     /**
      * Internal method to get user statistics
      */
     private function performGetUserStatistics(User $user): array
     {
         $qb = $this->createQueryBuilder('t');
-        
+
         $qb->select('
             COUNT(t.id) as total,
             SUM(CASE WHEN t.status = \'completed\' THEN 1 ELSE 0 END) as completed,
@@ -717,9 +717,9 @@ class TaskRepository extends ServiceEntityRepository
         ->where('t.assignedUser = :user OR t.user = :user')
         ->setParameter('user', $user)
         ->setParameter('now', new \DateTime());
-        
+
         $result = $qb->getQuery()->getSingleResult();
-        
+
         return [
             'total_tasks' => (int) ($result['total'] ?? 0),
             'completed_tasks' => (int) ($result['completed'] ?? 0),
@@ -727,8 +727,8 @@ class TaskRepository extends ServiceEntityRepository
             'overdue_tasks' => (int) ($result['overdue'] ?? 0),
             'urgent_tasks' => (int) ($result['urgent'] ?? 0),
             'high_priority_tasks' => (int) ($result['high_priority'] ?? 0),
-            'completion_rate' => $result['total'] > 0 
-                ? round(($result['completed'] / $result['total']) * 100, 2) 
+            'completion_rate' => $result['total'] > 0
+                ? round(($result['completed'] / $result['total']) * 100, 2)
                 : 0,
         ];
     }

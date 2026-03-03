@@ -12,7 +12,9 @@ use PHPUnit\Framework\TestCase;
 class DashboardCustomizationServiceTest extends TestCase
 {
     private EntityManagerInterface $entityManager;
+
     private UserDashboardLayoutRepository $layoutRepository;
+
     private DashboardCustomizationService $customizationService;
 
     protected function setUp(): void
@@ -21,7 +23,7 @@ class DashboardCustomizationServiceTest extends TestCase
         $this->layoutRepository = $this->createMock(UserDashboardLayoutRepository::class);
         $this->customizationService = new DashboardCustomizationService(
             $this->entityManager,
-            $this->layoutRepository
+            $this->layoutRepository,
         );
     }
 

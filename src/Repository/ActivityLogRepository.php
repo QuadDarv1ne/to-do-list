@@ -40,7 +40,7 @@ class ActivityLogRepository extends ServiceEntityRepository
                 ->orderBy('al.createdAt', 'DESC')
                 ->getQuery()
                 ->getResult(),
-            300 // Cache for 5 minutes
+            300, // Cache for 5 minutes
         );
     }
 
@@ -57,7 +57,7 @@ class ActivityLogRepository extends ServiceEntityRepository
                 ->orderBy('al.createdAt', 'DESC')
                 ->getQuery()
                 ->getResult(),
-            300 // Cache for 5 minutes
+            300, // Cache for 5 minutes
         );
     }
 
@@ -73,7 +73,7 @@ class ActivityLogRepository extends ServiceEntityRepository
                 ->setMaxResults($limit)
                 ->getQuery()
                 ->getResult(),
-            180 // Cache for 3 minutes
+            180, // Cache for 3 minutes
         );
     }
 
@@ -125,7 +125,7 @@ class ActivityLogRepository extends ServiceEntityRepository
                 ->setMaxResults($limit)
                 ->getQuery()
                 ->getResult(),
-            300 // Cache for 5 minutes
+            300, // Cache for 5 minutes
         );
     }
 
@@ -143,7 +143,7 @@ class ActivityLogRepository extends ServiceEntityRepository
                 ->setMaxResults($limit)
                 ->getQuery()
                 ->getResult(),
-            180 // Cache for 3 minutes
+            180, // Cache for 3 minutes
         );
     }
 }

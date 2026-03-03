@@ -40,6 +40,7 @@ class EmailNotificationService
                         'notification_id' => $notification->getId(),
                     ]);
                 }
+
                 return;
             }
 
@@ -68,10 +69,10 @@ class EmailNotificationService
                 $this->logger->error('Ошибка отправки email уведомления', [
                     'notification_id' => $notification->getId(),
                     'error' => $e->getMessage(),
-                    'exception_class' => get_class($e),
+                    'exception_class' => \get_class($e),
                 ]);
             }
-            
+
             throw $e;
         } finally {
             if ($this->performanceMonitor) {

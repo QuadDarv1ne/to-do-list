@@ -58,7 +58,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
                 ->addOrderBy('u.firstName', 'ASC')
                 ->getQuery()
                 ->getResult(),
-            600 // Cache for 10 minutes
+            600, // Cache for 10 minutes
         );
     }
 
@@ -74,7 +74,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
                 ->orderBy('u.createdAt', 'DESC')
                 ->getQuery()
                 ->getResult(),
-            600 // Cache for 10 minutes
+            600, // Cache for 10 minutes
         );
     }
 
@@ -91,13 +91,13 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     public function findUserByEmailOrUsername(string $identifier): ?User
     {
         return $this->getCached(
-            "users.search." . md5($identifier),
+            'users.search.' . md5($identifier),
             fn () => $this->createQueryBuilder('u')
                 ->andWhere('u.email = :identifier OR u.username = :identifier')
                 ->setParameter('identifier', $identifier)
                 ->getQuery()
                 ->getOneOrNullResult(),
-            300 // Cache for 5 minutes
+            300, // Cache for 5 minutes
         );
     }
 
@@ -140,7 +140,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
                     'active_today' => (int) $activeToday,
                 ];
             },
-            300 // Cache for 5 minutes
+            300, // Cache for 5 minutes
         );
     }
 

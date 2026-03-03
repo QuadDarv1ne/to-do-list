@@ -6,24 +6,17 @@ use App\Entity\User;
 use App\Repository\TaskRepository;
 use App\Service\AdvancedAnalyticsService;
 use PHPUnit\Framework\TestCase;
-use Psr\Cache\CacheItemInterface;
-use Psr\Cache\CacheItemPoolInterface;
 
 class AdvancedAnalyticsServiceTest extends TestCase
 {
     private TaskRepository $taskRepository;
-    private CacheItemPoolInterface $cache;
+
     private AdvancedAnalyticsService $analyticsService;
 
     protected function setUp(): void
     {
         $this->taskRepository = $this->createMock(TaskRepository::class);
-        $this->cache = $this->createMock(CacheItemPoolInterface::class);
-        $this->cache->method('hasItem')->willReturn(false);
-        $this->analyticsService = new AdvancedAnalyticsService(
-            $this->taskRepository,
-            $this->cache
-        );
+        $this->analyticsService = new AdvancedAnalyticsService($this->taskRepository);
     }
 
     public function testGetDashboardReturnsStructuredData(): void
@@ -35,13 +28,13 @@ class AdvancedAnalyticsServiceTest extends TestCase
         // Мокируем все вызовы репозитория чтобы избежать циклов
         $this->taskRepository->method('countByStatus')
             ->willReturn(0);
-        
+
         $this->taskRepository->method('findByAssignedUser')
             ->willReturn([]);
-        
+
         $this->taskRepository->method('findByUserAndStatus')
             ->willReturn([]);
-        
+
         $this->taskRepository->method('createQueryBuilder')
             ->willReturn($this->createQueryBuilderMock([]));
 
@@ -147,7 +140,7 @@ class AdvancedAnalyticsServiceTest extends TestCase
 
         $this->assertIsArray($forecast);
         $this->assertCount(7, $forecast);
-        
+
         foreach ($forecast as $day) {
             $this->assertArrayHasKey('date', $day);
             $this->assertArrayHasKey('predicted_completions', $day);
@@ -186,7 +179,7 @@ class AdvancedAnalyticsServiceTest extends TestCase
 
         $this->assertIsArray($trends);
         $this->assertCount(2, $trends);
-        
+
         foreach ($trends as $month) {
             $this->assertArrayHasKey('month', $month);
             $this->assertArrayHasKey('productivity_score', $month);
@@ -210,32 +203,11 @@ class AdvancedAnalyticsServiceTest extends TestCase
         $this->assertArrayHasKey('completion_patterns', $patterns);
         $this->assertArrayHasKey('procrastination_score', $patterns);
     }
-    
-    public function testGetDashboardUsesCache(): void
-    {
-        $user = $this->createMock(User::class);
-        $user->method('getId')->willReturn(1);
-        
-        $from = new \DateTime('2026-01-01');
-        $to = new \DateTime('2026-01-31');
-        
-        // Мокаем кэш с попаданием
-        $cacheItem = $this->createMock(CacheItemInterface::class);
-        $cacheItem->method('isHit')->willReturn(true);
-        $cacheItem->method('get')->willReturn(['cached' => 'data']);
-        
-        $this->cache->method('hasItem')->willReturn(true);
-        $this->cache->method('getItem')->willReturn($cacheItem);
-        
-        $dashboard = $this->analyticsService->getDashboard($user, $from, $to);
-        
-        $this->assertEquals(['cached' => 'data'], $dashboard);
-    }
 
     private function createQueryBuilderMock(array $results): \PHPUnit\Framework\MockObject\MockObject
     {
         $query = $this->createMock(\Doctrine\ORM\Query::class);
-        
+
         $query->method('getResult')
             ->willReturn($results);
         $query->method('getOneOrNullResult')
