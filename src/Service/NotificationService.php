@@ -7,6 +7,7 @@ use App\Entity\Task;
 use App\Entity\User;
 use App\Repository\NotificationRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Cache\CacheItemPoolInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -19,17 +20,21 @@ class NotificationService
     private NotificationRepository $notificationRepository;
 
     private ?PerformanceMonitorService $performanceMonitor;
+    
+    private ?CacheItemPoolInterface $cache;
 
     public function __construct(
         EntityManagerInterface $entityManager,
         LoggerInterface $logger,
         NotificationRepository $notificationRepository,
         ?PerformanceMonitorService $performanceMonitor = null,
+        ?CacheItemPoolInterface $cache = null,
     ) {
         $this->entityManager = $entityManager;
         $this->logger = $logger;
         $this->notificationRepository = $notificationRepository;
         $this->performanceMonitor = $performanceMonitor;
+        $this->cache = $cache;
     }
 
     /**
@@ -58,6 +63,12 @@ class NotificationService
 
             $this->entityManager->persist($notification);
             $this->entityManager->flush();
+            
+            // Очищаем кэш уведомлений пользователя
+            if ($this->cache) {
+                $cacheKey = 'unread_notifications_' . $user->getId();
+                $this->cache->deleteItem($cacheKey);
+            }
 
             $this->logger->info("Created notification for user {$user->getId()}: {$title}");
 
@@ -104,10 +115,30 @@ class NotificationService
         }
 
         try {
-            return $this->notificationRepository->findBy([
+            // Проверяем кэш
+            if ($this->cache) {
+                $cacheKey = 'unread_notifications_' . $user->getId();
+                $item = $this->cache->getItem($cacheKey);
+                
+                if ($item->isHit()) {
+                    return $item->get();
+                }
+            }
+            
+            $notifications = $this->notificationRepository->findBy([
                 'user' => $user,
                 'isRead' => false,
             ], ['createdAt' => 'DESC']);
+            
+            // Сохраняем в кэш на 5 минут
+            if ($this->cache) {
+                $item = $this->cache->getItem($cacheKey);
+                $item->set($notifications);
+                $item->expiresAfter(300); // 5 минут
+                $this->cache->save($item);
+            }
+            
+            return $notifications;
         } finally {
             if ($this->performanceMonitor) {
                 $this->performanceMonitor->stopTiming('notification_service_get_unread_notifications');
