@@ -348,7 +348,10 @@ class ResourceManagementService
         $conflicts = [];
 
         // Find resources that are overbooked (allocated hours > capacity)
-        $allResources = $this->resourceRepository->findAll();
+        $allResources = $this->resourceRepository->createQueryBuilder('r')
+            ->setMaxResults(100) // Ограничиваем для производительности
+            ->getQuery()
+            ->getResult();
 
         foreach ($allResources as $resource) {
             $workload = $this->getResourceWorkload($resource, $from, $to);
