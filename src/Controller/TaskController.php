@@ -16,6 +16,7 @@ use App\Repository\UserRepository;
 use App\Service\InputValidationService;
 use App\Service\NotificationService;
 use App\Service\PerformanceMonitorService;
+use App\Service\SanitizationService;
 use App\Service\TaskCommandService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

@@ -115,7 +115,6 @@ class HealthCheckController extends AbstractController
     #[Route('/health/live', name: 'app_health_live', methods: ['GET'])]
     public function healthLive(): JsonResponse
     {
-        // Простая проверка что приложение запущено
         return new JsonResponse([
             'status' => 'alive',
             'timestamp' => (new \DateTime())->format('Y-m-d\TH:i:sP'),
