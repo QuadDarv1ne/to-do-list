@@ -20,8 +20,7 @@ final readonly class UserLastLoginService
             $user->setLastLoginAt(new \DateTime());
 
             $this->entityManager->persist($user);
-            $this->entityManager->getUnitOfWork()->computeChangeSets();
-            $this->entityManager->flush([$user]);
+            $this->entityManager->flush();
 
             $this->logger->info('User last login time updated', ['user_id' => $user->getId()]);
         } catch (\Throwable $e) {
