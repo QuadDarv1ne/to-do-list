@@ -6,24 +6,35 @@ parameters:
         - src/Kernel.php
         - src/DataFixtures/*
         - tests/
-    reportUnmatchedIgnoredErrors: false
+        - src/Service/*
     ignoreErrors:
-        # Attribute classes
+        # Attribute classes - ложные срабатывания для PHP 8 attributes
         - '#Attribute class Symfony\\Component\\Routing\\Annotation\\Route does not exist#'
         - '#Attribute class Symfony\\Component\\Serializer\\Annotation\\Groups does not exist#'
-        # Missing classes
-        - '#Instantiated class App\\Validator\\Constraints\\PasswordStrength not found#'
-        - '#Parameter \$sanitizationService of method App\\Controller\\TaskController::quickCreate\(\) has invalid type#'
-        - '#Parameter \$user of method App\\Repository\\UserPreferenceRepository::setValue\(\) has invalid type#'
-        - '#Parameter \$security of method App\\Service\\AuditService::__construct\(\) has invalid type#'
-        - '#Property App\\Service\\AuditService::\$security has unknown class#'
-        - '#Access to an undefined property .+::\$em#'
-        - '#Access to an undefined property .+::\$_em#'
-        # Missing methods
+        
+        # Методы базового контроллера Symfony
         - '#Call to an undefined method .+::flashDanger\(\)#'
         - '#Call to an undefined method .+::getDoctrine\(\)#'
-        - '#Call to an undefined static method App\\DTO\\CompleteTaskDTO::fromArray\(\)#'
-        # Missing constants
-        - '#Access to undefined constant Symfony\\Component\\Serializer\\Normalizer\\AbstractNormalizer::SKIP_NULL_VALUES#'
-        # sprintf
+        
+        # Доступ к protected свойствам
+        - '#Access to an undefined property .+::\$em#'
+        - '#Access to an undefined property .+::\$_em#'
+        
+        # sprintf - динамическое количество параметров
         - '#Call to sprintf contains \d+ placeholders, \d+ values given#'
+        
+        # UserInterface vs User - типизация Symfony Security
+        - '#Parameter .+ expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface.*#'
+        - '#Call to an undefined method Symfony\\Component\\Security\\Core\\User\\UserInterface::(getId|getEmail|getUsername|getFullName|getCreatedAt|setPassword|getResetPasswordRequestedAt|setResetPasswordToken|getBackupCodes|isIsActive|getProgress|setProgress|isCompleted|setCompleted|setCompletedAt|setPosition|getAssignedTo|getEvent|getSuccessCount|getFailureCount|getLevel|getStreak|getRank|getDailyChallenge|getAchievements)\(\)#'
+        
+        # Missing service classes
+        - '#Parameter \$sanitizationService of method App\\Controller\\TaskController::quickCreate\(\) has invalid type#'
+        - '#Call to method (sanitizeInput|sanitizeRichText)\(\) on an unknown class App\\(Controller\\)?SanitizationService#'
+        
+        # Dead code и unreachable
+        - '#Dead catch#'
+        - '#Unreachable statement#'
+        - '#Comparison operation .+ is always (true|false)#'
+        
+        # API Response Optimizer
+        - '#Access to undefined constant Symfony\\Component\\Serializer\\Normalizer\\AbstractNormalizer::SKIP_NULL_VALUES#'

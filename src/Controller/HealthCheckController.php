@@ -5,44 +5,135 @@ namespace App\Controller;
 use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
+/**
+ * Контроллер для проверки здоровья системы (Health Check)
+ * Используется для мониторинга и load balancer
+ */
 class HealthCheckController extends AbstractController
 {
-    #[Route('/health', name: 'app_health_check', methods: ['GET'])]
-    public function check(Connection $connection): JsonResponse
+    public function __construct(
+        private Connection $connection,
+    ) {
+    }
+
+    /**
+     * Базовая проверка здоровья (liveness probe)
+     * Возвращает статус приложения без проверки зависимостей
+     */
+    #[Route('/health', name: 'app_health', methods: ['GET'])]
+    public function health(): JsonResponse
     {
-        $status = 'healthy';
+        return new JsonResponse([
+            'status' => 'healthy',
+            'timestamp' => (new \DateTime())->format('Y-m-d\TH:i:sP'),
+            'version' => '3.2.0',
+            'environment' => $this->getParameter('kernel.environment'),
+        ]);
+    }
+
+    /**
+     * Полная проверка здоровья (readiness probe)
+     * Проверяет подключение к базе данных и другим сервисам
+     */
+    #[Route('/health/ready', name: 'app_health_ready', methods: ['GET'])]
+    public function healthReady(): JsonResponse
+    {
         $checks = [];
+        $isHealthy = true;
 
-        // Check database connection
+        // Проверка подключения к базе данных
         try {
-            $connection->executeQuery('SELECT 1');
-            $checks['database'] = 'ok';
+            $this->connection->executeQuery('SELECT 1');
+            $checks['database'] = [
+                'status' => 'healthy',
+                'message' => 'Database connection successful',
+            ];
         } catch (\Exception $e) {
-            $checks['database'] = 'error';
-            $status = 'unhealthy';
+            $checks['database'] = [
+                'status' => 'unhealthy',
+                'message' => 'Database connection failed: ' . $e->getMessage(),
+            ];
+            $isHealthy = false;
         }
 
-        // Check cache directory
-        $cacheDir = $this->getParameter('kernel.cache_dir');
-        $checks['cache'] = is_writable($cacheDir) ? 'ok' : 'error';
-        if ($checks['cache'] === 'error') {
-            $status = 'unhealthy';
+        // Проверка кэша
+        try {
+            $cacheDir = $this->getParameter('kernel.cache_dir');
+            if (is_writable($cacheDir)) {
+                $checks['cache'] = [
+                    'status' => 'healthy',
+                    'message' => 'Cache directory is writable',
+                ];
+            } else {
+                throw new \Exception('Cache directory is not writable');
+            }
+        } catch (\Exception $e) {
+            $checks['cache'] = [
+                'status' => 'unhealthy',
+                'message' => 'Cache check failed: ' . $e->getMessage(),
+            ];
+            $isHealthy = false;
         }
 
-        // Check log directory
-        $logDir = $this->getParameter('kernel.logs_dir');
-        $checks['logs'] = is_writable($logDir) ? 'ok' : 'error';
-        if ($checks['logs'] === 'error') {
-            $status = 'unhealthy';
+        // Проверка логов
+        try {
+            $logDir = $this->getParameter('kernel.logs_dir');
+            if (is_writable($logDir)) {
+                $checks['logs'] = [
+                    'status' => 'healthy',
+                    'message' => 'Log directory is writable',
+                ];
+            } else {
+                throw new \Exception('Log directory is not writable');
+            }
+        } catch (\Exception $e) {
+            $checks['logs'] = [
+                'status' => 'unhealthy',
+                'message' => 'Log check failed: ' . $e->getMessage(),
+            ];
+            $isHealthy = false;
         }
+
+        $statusCode = $isHealthy ? Response::HTTP_OK : Response::HTTP_SERVICE_UNAVAILABLE;
 
         return new JsonResponse([
-            'status' => $status,
-            'timestamp' => time(),
+            'status' => $isHealthy ? 'ready' : 'not_ready',
+            'timestamp' => (new \DateTime())->format('Y-m-d\TH:i:sP'),
+            'version' => '3.2.0',
+            'environment' => $this->getParameter('kernel.environment'),
             'checks' => $checks,
-            'version' => $this->getParameter('kernel.environment'),
-        ], $status === 'healthy' ? 200 : 503);
+        ], $statusCode);
+    }
+
+    /**
+     * Проверка живости (liveness probe)
+     * Для Kubernetes и других оркестраторов
+     */
+    #[Route('/health/live', name: 'app_health_live', methods: ['GET'])]
+    public function healthLive(): JsonResponse
+    {
+        // Простая проверка что приложение запущено
+        return new JsonResponse([
+            'status' => 'alive',
+            'timestamp' => (new \DateTime())->format('Y-m-d\TH:i:sP'),
+        ]);
+    }
+
+    /**
+     * Проверка версии приложения
+     */
+    #[Route('/health/version', name: 'app_health_version', methods: ['GET'])]
+    public function healthVersion(): JsonResponse
+    {
+        return new JsonResponse([
+            'version' => '3.2.0',
+            'php_version' => PHP_VERSION,
+            'symfony_version' => \Symfony\Component\HttpKernel\Kernel::VERSION,
+            'environment' => $this->getParameter('kernel.environment'),
+            'debug' => $this->getParameter('kernel.debug'),
+        ]);
     }
 }

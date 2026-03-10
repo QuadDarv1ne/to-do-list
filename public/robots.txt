@@ -1,4 +1,7 @@
-# robots.txt for Task Management System
+# robots.txt for CRM Task Management System
+# ООО «Дальневосточный фермер»
+
+# Default rules for all crawlers
 User-agent: *
 Disallow: /admin/
 Disallow: /api/
@@ -10,9 +13,57 @@ Disallow: /_profiler/
 Disallow: /_wdt/
 Disallow: /assets/
 Disallow: /build/
+Disallow: /var/
+Disallow: /vendor/
+Disallow: /config/
+Disallow: /bin/
+Disallow: /migrations/
+Disallow: /translations/
+Disallow: /tests/
 
 # Allow public pages
 Allow: /
+Allow: /tasks
+Allow: /dashboard
+Allow: /calendar
+Allow: /kanban
+Allow: /clients
+Allow: /deals
+Allow: /reports
+
+# Google Bot specific settings
+User-agent: Googlebot
+Allow: /
+Disallow: /admin/
+Disallow: /login
+Disallow: /register
+
+# Yandex Bot specific settings
+User-agent: Yandex
+Allow: /
+Disallow: /admin/
+Disallow: /login
+Disallow: /register
+
+# Bing Bot specific settings
+User-agent: Bingbot
+Allow: /
+Disallow: /admin/
+Disallow: /login
+Disallow: /register
+
+# Block bad bots
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+# Crawl delay for polite crawling
+Crawl-delay: 1
 
 # Sitemap location
-Sitemap: https://example.com/sitemap.xml
+Sitemap: https://crm.dvfarm.ru/sitemap.xml

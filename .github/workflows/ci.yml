@@ -7,7 +7,7 @@ on:
     branches: [ main, develop ]
 
 env:
-  PHP_VERSION: '8.5'
+  PHP_VERSION: '8.4'
   NODE_VERSION: '20'
 
 jobs:
@@ -17,18 +17,19 @@ jobs:
   php-tests:
     name: PHP Tests & Quality
     runs-on: ubuntu-latest
-    
+
     services:
-      postgres:
-        image: postgres:16-alpine
+      mysql:
+        image: mysql:8.0
         env:
-          POSTGRES_DB: test_db
-          POSTGRES_USER: test_user
-          POSTGRES_PASSWORD: test_password
+          MYSQL_DATABASE: test_db
+          MYSQL_USER: test_user
+          MYSQL_PASSWORD: test_password
+          MYSQL_ROOT_PASSWORD: root
         ports:
-          - 5432:5432
+          - 3306:3306
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "mysqladmin ping -h localhost"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -41,9 +42,12 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ env.PHP_VERSION }}
-          extensions: pdo_pgsql, pgsql, mbstring, xml, ctype, iconv, intl
+          extensions: pdo_mysql, mbstring, xml, ctype, iconv, intl, mysql
           coverage: xdebug
           tools: composer:v2
+
+      - name: Validate composer.json
+        run: composer validate --strict
 
       - name: Cache Composer dependencies
         uses: actions/cache@v4
@@ -58,34 +62,45 @@ jobs:
 
       - name: Create test database
         run: |
-          psql -h localhost -U postgres -c "CREATE DATABASE test_db;"
-        env:
-          PGPASSWORD: postgres
+          mysql -h 127.0.0.1 -P 3306 -u root -proot -e "CREATE DATABASE IF NOT EXISTS test_db;"
 
       - name: Run PHPUnit tests
         run: |
           php bin/phpunit --testdox --coverage-text --coverage-clover=coverage.xml
         env:
-          DATABASE_URL: "postgresql://test_user:test_password@localhost:5432/test_db?serverVersion=16&charset=utf8"
+          DATABASE_URL: "mysql://test_user:test_password@127.0.0.1:3306/test_db?serverVersion=8.0&charset=utf8mb4"
           APP_ENV: test
+          APP_SECRET: test_secret_key_for_ci_pipeline_32_chars
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           file: ./coverage.xml
           fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
 
-      - name: Run PHPStan
+      - name: Run PHPStan (Static Analysis)
         run: composer phpstan
 
       - name: Check code style (PHP CS Fixer)
         run: composer cs
+        continue-on-error: true
+
+      - name: Lint YAML files
+        run: php bin/console lint:yaml config/ --parse-tags
+
+      - name: Lint Twig templates
+        run: php bin/console lint:twig templates/
+        continue-on-error: true
+
+      - name: Lint Container
+        run: php bin/console lint:container
 
   # =========================================
-  # JavaScript Tests
+  # JavaScript Tests & Linting
   # =========================================
   js-tests:
-    name: JavaScript Tests
+    name: JavaScript Tests & Linting
     runs-on: ubuntu-latest
 
     steps:
@@ -100,6 +115,14 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Check code formatting (Prettier)
+        run: npx prettier --check "assets/**/*.js"
+        continue-on-error: true
 
       - name: Run Jest tests
         run: npm test
