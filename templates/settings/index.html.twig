@@ -71,26 +71,58 @@
     text-decoration: none;
     color: #6c757d;
     font-weight: 500;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.settings-nav-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 3px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    transform: scaleY(0);
+    transition: transform 0.3s ease;
 }
 
 .settings-nav-item i {
     width: 20px;
     text-align: center;
     font-size: 1.1rem;
+    transition: transform 0.3s ease;
 }
 
 .settings-nav-item:hover {
-    background: #f8f9fa;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
     color: #667eea;
-    transform: translateX(4px);
+    transform: translateX(6px);
+}
+
+.settings-nav-item:hover i {
+    transform: scale(1.1);
 }
 
 .settings-nav-item.active {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.35);
+}
+
+.settings-nav-item.active::before {
+    transform: scaleY(1);
+}
+
+.settings-nav-item.active i {
+    animation: pulse 0.5s ease;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
 }
 
 .settings-content {
@@ -304,8 +336,8 @@
 
 .toggle-switch {
     position: relative;
-    width: 56px;
-    height: 30px;
+    width: 60px;
+    height: 34px;
     flex-shrink: 0;
 }
 
@@ -323,29 +355,93 @@
     right: 0;
     bottom: 0;
     background: #e9ecef;
-    border-radius: 30px;
-    transition: all 0.3s ease;
+    border-radius: 34px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .toggle-slider::before {
     position: absolute;
     content: "";
-    height: 24px;
-    width: 24px;
-    left: 3px;
-    bottom: 3px;
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
     background: white;
     border-radius: 50%;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.toggle-slider::after {
+    position: absolute;
+    content: "✕";
+    font-size: 10px;
+    font-weight: 700;
+    color: #9ca3af;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 1;
+    transition: opacity 0.3s ease;
 }
 
 .toggle-switch input:checked + .toggle-slider {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
 }
 
 .toggle-switch input:checked + .toggle-slider::before {
     transform: translateX(26px);
+}
+
+.toggle-switch input:checked + .toggle-slider::after {
+    content: "✓";
+    color: white;
+    right: auto;
+    left: 8px;
+    opacity: 1;
+}
+
+.toggle-switch input:disabled + .toggle-slider {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Toggle sizes */
+.toggle-switch.toggle-lg {
+    width: 68px;
+    height: 38px;
+}
+
+.toggle-switch.toggle-lg .toggle-slider::before {
+    height: 30px;
+    width: 30px;
+}
+
+.toggle-switch.toggle-lg input:checked + .toggle-slider::before {
+    transform: translateX(30px);
+}
+
+/* Toggle colors */
+.toggle-switch.toggle-primary input:checked + .toggle-slider {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+}
+
+.toggle-switch.toggle-danger input:checked + .toggle-slider {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+}
+
+.toggle-switch.toggle-warning input:checked + .toggle-slider {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+}
+
+.toggle-switch.toggle-info input:checked + .toggle-slider {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
 }
 
 /* Form Fields */
@@ -503,33 +599,290 @@
     font-weight: 600;
     font-size: 1rem;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    position: relative;
 }
 
 .btn-save-settings:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+}
+
+.btn-save-settings:active {
+    transform: translateY(-1px);
+}
+
+.btn-save-settings.sticky {
+    position: sticky;
+    top: 20px;
+    z-index: 100;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Unsaved changes badge */
+.btn-save-settings .unsaved-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.25rem 0.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+    animation: pulse-badge 2s ease infinite;
+}
+
+@keyframes pulse-badge {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+/* Save button states */
+.btn-save-settings.saving {
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+.btn-save-settings.saving::after {
+    content: "";
+    width: 18px;
+    height: 18px;
+    border: 2px solid transparent;
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-left: 0.5rem;
+}
+
+.btn-save-settings.saved {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+/* Action Buttons */
+.btn-settings-action {
+    padding: 0.625rem 1.25rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+    text-decoration: none;
+}
+
+.btn-settings-action-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.btn-settings-action-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.btn-settings-action-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.btn-settings-action-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+}
+
+.btn-settings-action-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.btn-settings-action-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+}
+
+.btn-settings-action-outline {
+    background: white;
+    color: #667eea;
+    border: 2px solid #667eea;
+}
+
+.btn-settings-action-outline:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Loading state */
+.btn-settings-action.loading {
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+.btn-settings-action.loading::after {
+    content: "";
+    width: 14px;
+    height: 14px;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
 @media (max-width: 992px) {
     .settings-layout {
         grid-template-columns: 1fr;
     }
-    
+
     .settings-sidebar {
         position: static;
     }
-    
+
     .settings-nav {
         flex-direction: row;
         overflow-x: auto;
+        padding-bottom: 0.5rem;
+        gap: 0.5rem;
     }
-    
+
     .settings-nav-item {
         white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    /* Mobile: larger touch targets */
+    .btn-settings-action {
+        padding: 0.75rem 1.5rem;
+        min-height: 44px;
+    }
+
+    .toggle-switch {
+        width: 64px;
+        height: 36px;
+    }
+
+    .toggle-switch .toggle-slider::before {
+        height: 28px;
+        width: 28px;
+    }
+
+    .btn-save-settings {
+        width: 100%;
+        justify-content: center;
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        right: 20px;
+        z-index: 1000;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    }
+
+    .btn-save-settings.sticky {
+        animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(100px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .settings-header {
+        padding: 1.5rem 1rem;
+    }
+
+    .settings-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .settings-card {
+        border-radius: 12px;
+    }
+
+    .card-header-settings {
+        padding: 1rem;
+    }
+
+    .card-body-settings {
+        padding: 1rem;
+    }
+
+    .settings-option {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .settings-option > .btn-settings-action,
+    .settings-option > .toggle-switch,
+    .settings-option > .settings-select {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .settings-container {
+        padding: 1rem;
+    }
+
+    .theme-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .btn-save-settings {
+        padding: 0.875rem 1.5rem;
+        font-size: 0.9rem;
+    }
+
+    .btn-save-settings .unsaved-badge {
+        font-size: 0.65rem;
+        padding: 0.2rem 0.4rem;
+    }
+
+    /* Ensure all interactive elements are at least 44x44px */
+    .settings-nav-item {
+        min-height: 44px;
+        padding: 0.875rem;
+    }
+
+    .settings-select,
+    .settings-input {
+        min-height: 44px;
+        padding: 0.75rem 1rem;
     }
 }
 </style>
@@ -547,8 +900,10 @@
                 </h1>
                 <p class="mb-0 opacity-75 fs-5">Персонализация и конфигурация системы</p>
             </div>
-            <button class="btn btn-light btn-lg" onclick="saveAllSettings()">
-                <i class="fas fa-save me-2"></i>Сохранить все
+            <button class="btn-save-settings" id="saveAllButton" onclick="saveAllSettings()">
+                <i class="fas fa-save me-2"></i>
+                <span>Сохранить все</span>
+                <span class="unsaved-badge d-none" id="unsavedBadge">0</span>
             </button>
         </div>
     </div>
@@ -852,7 +1207,7 @@
                                     </div>
                                     <div class="settings-option-desc">Управление активными сеансами входа</div>
                                 </div>
-                                <button class="btn btn-outline-primary btn-sm">
+                                <button class="btn-settings-action btn-settings-action-outline">
                                     <i class="fas fa-eye me-1"></i>Просмотр
                                 </button>
                             </div>
@@ -865,7 +1220,7 @@
                                     </div>
                                     <div class="settings-option-desc">Последние входы в аккаунт</div>
                                 </div>
-                                <button class="btn btn-outline-primary btn-sm">
+                                <button class="btn-settings-action btn-settings-action-outline">
                                     <i class="fas fa-list me-1"></i>История
                                 </button>
                             </div>
@@ -889,7 +1244,7 @@
                                 </div>
                                 <div class="settings-option-desc">Завершить все активные сеансы кроме текущего</div>
                             </div>
-                            <button class="btn btn-outline-danger btn-sm" onclick="logoutAllSessions()">
+                            <button class="btn-settings-action btn-settings-action-danger" onclick="logoutAllSessions()">
                                 <i class="fas fa-sign-out-alt me-1"></i>Выйти
                             </button>
                         </div>
@@ -1021,7 +1376,7 @@
                                     </div>
                                     <div class="settings-option-desc">Получать уведомления в Telegram</div>
                                 </div>
-                                <button class="btn btn-outline-primary btn-sm" onclick="connectIntegration('telegram')">
+                                <button class="btn-settings-action btn-settings-action-primary" onclick="connectIntegration('telegram')">
                                     <i class="fas fa-link me-1"></i>Подключить
                                 </button>
                             </div>
@@ -1034,7 +1389,7 @@
                                     </div>
                                     <div class="settings-option-desc">Интеграция с Slack каналом</div>
                                 </div>
-                                <button class="btn btn-outline-primary btn-sm" onclick="connectIntegration('slack')">
+                                <button class="btn-settings-action btn-settings-action-primary" onclick="connectIntegration('slack')">
                                     <i class="fas fa-link me-1"></i>Подключить
                                 </button>
                             </div>
@@ -1047,7 +1402,7 @@
                                     </div>
                                     <div class="settings-option-desc">Синхронизация с GitHub задачами</div>
                                 </div>
-                                <button class="btn btn-outline-primary btn-sm" onclick="connectIntegration('github')">
+                                <button class="btn-settings-action btn-settings-action-primary" onclick="connectIntegration('github')">
                                     <i class="fas fa-link me-1"></i>Подключить
                                 </button>
                             </div>
@@ -1109,18 +1464,56 @@
 </div>
 
 <script>
+// Track unsaved changes
+let unsavedChanges = 0;
+const unsavedBadge = document.getElementById('unsavedBadge');
+const saveButton = document.getElementById('saveAllButton');
+
+function updateUnsavedBadge() {
+    if (unsavedChanges > 0) {
+        unsavedBadge.textContent = unsavedChanges;
+        unsavedBadge.classList.remove('d-none');
+        saveButton.classList.add('sticky');
+    } else {
+        unsavedBadge.classList.add('d-none');
+        saveButton.classList.remove('sticky');
+    }
+}
+
+function markAsChanged() {
+    unsavedChanges++;
+    updateUnsavedBadge();
+}
+
+// Track changes on all inputs
+document.querySelectorAll('input, select').forEach(input => {
+    input.addEventListener('change', markAsChanged);
+});
+
+// Sticky save button on scroll
+window.addEventListener('scroll', () => {
+    if (window.scrollY > 100 && unsavedChanges > 0) {
+        saveButton.classList.add('sticky');
+    }
+});
+
 // Navigation
 document.querySelectorAll('.settings-nav-item').forEach(item => {
     item.addEventListener('click', function() {
         const section = this.dataset.section;
-        
+
         // Update nav
         document.querySelectorAll('.settings-nav-item').forEach(i => i.classList.remove('active'));
         this.classList.add('active');
-        
-        // Update section
-        document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
-        document.getElementById(section).classList.add('active');
+
+        // Update section with animation
+        document.querySelectorAll('.settings-section').forEach(s => {
+            s.classList.remove('active');
+            s.style.animation = 'none';
+        });
+        const sectionEl = document.getElementById(section);
+        sectionEl.classList.add('active');
+        sectionEl.style.animation = 'slideIn 0.4s ease-out';
     });
 });
 
@@ -1128,14 +1521,17 @@ document.querySelectorAll('.settings-nav-item').forEach(item => {
 document.querySelectorAll('.theme-option').forEach(option => {
     option.addEventListener('click', function() {
         const theme = this.dataset.theme;
-        
+
         document.querySelectorAll('.theme-option').forEach(o => o.classList.remove('active'));
         this.classList.add('active');
-        
+
         // Apply theme
         localStorage.setItem('theme', theme);
         document.documentElement.setAttribute('data-theme', theme);
-        
+
+        // Mark as changed
+        markAsChanged();
+
         // Show save notification
         showSaveNotification('Тема применена. Не забудьте сохранить изменения!');
     });
@@ -1155,7 +1551,7 @@ function showSaveNotification(message) {
         ${message}
     `;
     document.body.appendChild(notification);
-    
+
     setTimeout(() => {
         notification.style.transition = 'opacity 0.3s';
         notification.style.opacity = '0';
@@ -1165,6 +1561,9 @@ function showSaveNotification(message) {
 
 // Save all settings
 function saveAllSettings() {
+    const button = document.getElementById('saveAllButton');
+    button.classList.add('saving');
+
     const settings = {
         theme: currentTheme,
         compactMode: document.getElementById('compactMode')?.checked,
@@ -1185,7 +1584,7 @@ function saveAllSettings() {
         onlineStatus: document.getElementById('onlineStatus')?.checked,
         activityHistory: document.getElementById('activityHistory')?.checked
     };
-    
+
     fetch('{{ path('app_settings_save') }}', {
         method: 'POST',
         headers: {
@@ -1195,13 +1594,19 @@ function saveAllSettings() {
         body: JSON.stringify(settings)
     })
     .then(response => {
+        button.classList.remove('saving');
         if (response.ok) {
+            button.classList.add('saved');
+            unsavedChanges = 0;
+            updateUnsavedBadge();
             showSaveNotification('Настройки успешно сохранены!');
+            setTimeout(() => button.classList.remove('saved'), 2000);
         } else {
             showSaveNotification('Ошибка при сохранении настроек');
         }
     })
     .catch(error => {
+        button.classList.remove('saving');
         console.error('Error:', error);
         showSaveNotification('Ошибка при сохранении настроек');
     });
