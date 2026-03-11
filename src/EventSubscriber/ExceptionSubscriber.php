@@ -69,7 +69,7 @@ class ExceptionSubscriber implements EventSubscriberInterface
     private function isApiRequest($request): bool
     {
         return str_starts_with($request->getPathInfo(), '/api/') ||
-               $request->headers->get('Accept') === 'application/json' ||
-               $request->isXmlHttpRequest();
+               str_contains($request->headers->get('Accept', ''), 'application/json') ||
+               'XMLHttpRequest' === $request->headers->get('X-Requested-With');
     }
 }

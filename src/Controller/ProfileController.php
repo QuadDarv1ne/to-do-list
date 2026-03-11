@@ -191,7 +191,7 @@ class ProfileController extends AbstractController
             $entityManager->flush();
         }
 
-        if ($request->isXmlHttpRequest()) {
+        if ('XMLHttpRequest' === $request->headers->get('X-Requested-With')) {
             return new Response(json_encode(['success' => true]), 200, ['Content-Type' => 'application/json']);
         }
 
