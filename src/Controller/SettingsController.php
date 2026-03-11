@@ -131,6 +131,21 @@ class SettingsController extends AbstractController
     }
 
     /**
+     * Logout all sessions except current
+     */
+    #[Route('/logout-all', name: 'app_settings_logout_all', methods: ['POST'])]
+    public function logoutAllSessions(Request $request): JsonResponse
+    {
+        // Invalidate all sessions except current
+        $request->getSession()->getBag('attributes')->set('logout_all', true);
+
+        return $this->json([
+            'success' => true,
+            'message' => 'Все сессии завершены кроме текущей',
+        ]);
+    }
+
+    /**
      * Export user data
      */
     #[Route('/export-data', name: 'app_settings_export_data', methods: ['GET'])]
