@@ -6,7 +6,6 @@ use App\Entity\Product;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -16,23 +15,12 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class ProductController extends AbstractController
 {
     #[Route('/', name: 'app_products_index', methods: ['GET'])]
-    public function index(ProductRepository $productRepository, Request $request): Response
+    public function index(ProductRepository $productRepository): Response
     {
-        $search = $request->query->get('search');
-        $category = $request->query->get('category');
-
-        if ($search) {
-            $products = $productRepository->search($search);
-        } elseif ($category) {
-            $products = $productRepository->findByCategory($category);
-        } else {
-            $products = $productRepository->findAll();
-        }
+        $products = $productRepository->findActive();
 
         return $this->render('products/index.html.twig', [
             'products' => $products,
-            'search' => $search,
-            'category' => $category,
         ]);
     }
 
