@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="{% block meta_description %}CRM система для управления задачами и продажами{% endblock %}">
     <meta name="robots" content="index, follow">
-    
+
     <!-- Canonical URL -->
     <link rel="canonical" href="{{ url(app.request.attributes.get('_route'), app.request.attributes.get('_route_params')) }}">
 
@@ -18,10 +17,10 @@
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="{% block og_type %}website{% endblock %}">
-    <meta property="og:url" content="{{ url(app.request.attributes.get('_route'), app.request.attributes.get('_route_params'), 'absolute') }}">
+    <meta property="og:url" content="{{ url(app.request.attributes.get('_route'), app.request.attributes.get('_route_params'), true) }}">
     <meta property="og:title" content="{% block og_title %}{{ block('title') }}{% endblock %}">
     <meta property="og:description" content="{% block og_description %}{{ block('meta_description') }}{% endblock %}">
-    <meta property="og:image" content="{% block og_image %}{{ asset('og-image.svg', 'absolute') }}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ absolute_url(asset('og-image.svg')) }}{% endblock %}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:site_name" content="CRM система: Анализ продаж">
@@ -29,10 +28,10 @@
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="{% block twitter_card %}summary_large_image{% endblock %}">
-    <meta name="twitter:url" content="{{ url(app.request.attributes.get('_route'), app.request.attributes.get('_route_params'), 'absolute') }}">
+    <meta name="twitter:url" content="{{ url(app.request.attributes.get('_route'), app.request.attributes.get('_route_params'), true) }}">
     <meta name="twitter:title" content="{% block twitter_title %}{{ block('title') }}{% endblock %}">
     <meta name="twitter:description" content="{% block twitter_description %}{{ block('meta_description') }}{% endblock %}">
-    <meta name="twitter:image" content="{% block twitter_image %}{{ asset('og-image.svg', 'absolute') }}{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}{{ absolute_url(asset('og-image.svg')) }}{% endblock %}">
     <meta name="twitter:creator" content="@dvfarm">
 
     <!-- Favicon -->
