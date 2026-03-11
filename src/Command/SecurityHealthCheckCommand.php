@@ -3,7 +3,6 @@
 namespace App\Command;
 
 use App\Service\InputValidationService;
-use App\Service\SecurityAuditService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
@@ -19,7 +18,6 @@ class SecurityHealthCheckCommand extends Command
 {
     public function __construct(
         private InputValidationService $inputValidationService,
-        private SecurityAuditService $securityAuditService,
     ) {
         parent::__construct();
     }

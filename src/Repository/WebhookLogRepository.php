@@ -124,7 +124,7 @@ class WebhookLogRepository extends ServiceEntityRepository
         $dateFrom = (new \DateTime())->modify("-{$daysOld} days");
 
         $qb = $this->_em->createQueryBuilder();
-        $qb->delete($this->_getEntityName(), 'l')
+        $qb->delete(WebhookLog::class, 'l')
             ->where('l.createdAt < :dateFrom')
             ->setParameter('dateFrom', $dateFrom);
 
