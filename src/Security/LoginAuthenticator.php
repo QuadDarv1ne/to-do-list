@@ -92,7 +92,16 @@ class LoginAuthenticator extends AbstractAuthenticator implements Authentication
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
-        $this->logger->info('Authentication successful', ['user' => $token->getUser()->getUserIdentifier()]);
+        $user = $token->getUser();
+        
+        // Reset failed login attempts on successful login
+        if ($user instanceof User && $user->getFailedLoginAttempts() > 0) {
+            $user->setFailedLoginAttempts(0);
+            $user->unlockAccount();
+            $this->entityManager->flush();
+        }
+        
+        $this->logger->info('Authentication successful', ['user' => $user->getUserIdentifier()]);
 
         $targetPath = $this->getTargetPath($request->getSession(), $firewallName);
         if ($targetPath) {
