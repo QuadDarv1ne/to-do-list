@@ -2,17 +2,34 @@
 
 {% block title %}Каталог товаров и услуг{% endblock %}
 
+{% block stylesheets %}
+{{ parent() }}
+<link rel="stylesheet" href="{{ asset('css/pages/clients.css') }}">
+{% endblock %}
+
 {% block body %}
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">
-            <i class="fas fa-box me-2"></i>Каталог товаров и услуг
-        </h1>
-        {% if is_granted('ROLE_ADMIN') %}
-            <a href="{{ path('app_products_new') }}" class="btn btn-primary">
-                <i class="fas fa-plus me-2"></i>Добавить товар
-            </a>
-        {% endif %}
+{{ include('components/breadcrumbs.html.twig', {
+    items: [
+        {label: 'Главная', url: path('app_dashboard')},
+        {label: 'Товары', active: true}
+    ]
+}) }}
+
+<div class="container-fluid py-4 animate-fade-in">
+    <div class="page-header stagger-item mb-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1 class="mb-1">
+                    <i class="fas fa-box me-2 text-primary"></i>Товары и услуги
+                </h1>
+                <p class="mb-0 opacity-75">Каталог продукции и услуг компании</p>
+            </div>
+            {% if is_granted('ROLE_ADMIN') %}
+                <a href="{{ path('app_products_new') }}" class="btn btn-gradient-primary">
+                    <i class="fas fa-plus me-2"></i>Добавить товар
+                </a>
+            {% endif %}
+        </div>
     </div>
 
     {% for message in app.flashes('success') %}
@@ -22,20 +39,26 @@
         </div>
     {% endfor %}
 
-    <div class="card-modern mb-4">
+    <div class="card card-modern mb-4">
+        <div class="card-header-modern">
+            <i class="fas fa-filter me-2"></i>Фильтры и поиск
+        </div>
         <div class="card-body-modern">
             <form method="get" class="row g-3">
-                <div class="col-md-6">
-                    <input type="text" class="form-control" name="search" placeholder="Поиск по названию или артикулу" value="{{ search }}">
+                <div class="col-lg-6">
+                    <div class="search-input-group">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="form-control" name="search" placeholder="Поиск по названию или артикулу" value="{{ search }}">
+                    </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-lg-4">
                     <select class="form-select" name="category">
                         <option value="">Все категории</option>
-                        <option value="product" {% if category == 'product' %}selected{% endif %}>Товары</option>
-                        <option value="service" {% if category == 'service' %}selected{% endif %}>Услуги</option>
+                        <option value="product" {% if category == 'product' %}selected{% endif %}>📦 Товары</option>
+                        <option value="service" {% if category == 'service' %}selected{% endif %}>🔧 Услуги</option>
                     </select>
                 </div>
-                <div class="col-md-2">
+                <div class="col-lg-2">
                     <button type="submit" class="btn btn-primary w-100">
                         <i class="fas fa-search me-2"></i>Найти
                     </button>
@@ -44,78 +67,66 @@
         </div>
     </div>
 
-    <div class="row">
-        {% for product in products %}
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card-modern h-100">
-                    <div class="card-body-modern">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <h5 class="mb-0">{{ product.name }}</h5>
+    {% if products is not empty %}
+        <div class="row g-4">
+            {% for product in products %}
+                <div class="col-md-6 col-lg-4 col-xl-3">
+                    <div class="product-card-modern h-100">
+                        <div class="product-card-header">
+                            <div class="product-avatar">
+                                <i class="fas fa-{{ product.category == 'service' ? 'wrench' : 'box' }}"></i>
+                            </div>
                             {% if not product.isActive %}
                                 <span class="badge bg-secondary">Неактивен</span>
                             {% endif %}
                         </div>
-
-                        <div class="mb-2">
-                            <small class="text-muted">Артикул:</small>
-                            <strong>{{ product.sku }}</strong>
-                        </div>
-
-                        <div class="mb-2">
-                            <span class="badge bg-info">{{ product.categoryDisplayName }}</span>
-                            {% if product.unit %}
-                                <span class="badge bg-secondary">{{ product.unit }}</span>
-                            {% endif %}
-                        </div>
-
-                        {% if product.description %}
-                            <p class="text-muted small mt-2">{{ product.description|slice(0, 100) }}{% if product.description|length > 100 %}...{% endif %}</p>
-                        {% endif %}
-
-                        <div class="mt-3 pt-3 border-top">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="text-muted">Цена:</span>
-                                <strong class="fs-5 text-success">{{ product.price|number_format(2, '.', ' ') }} ₽</strong>
+                        <div class="product-card-body">
+                            <h5 class="product-title">{{ product.name }}</h5>
+                            <div class="product-sku">
+                                <small class="text-muted">Артикул:</small>
+                                <strong>{{ product.sku }}</strong>
                             </div>
-
-                            {% if product.cost %}
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="text-muted small">Себестоимость:</span>
-                                    <span class="small">{{ product.cost|number_format(2, '.', ' ') }} ₽</span>
-                                </div>
-                            {% endif %}
-
-                            {% if product.margin %}
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="text-muted small">Наценка:</span>
-                                    <span class="badge bg-success">{{ product.margin|number_format(1) }}%</span>
-                                </div>
+                            <div class="product-badges">
+                                <span class="badge badge-segment badge-{{ product.category == 'service' ? 'secondary' : 'primary' }}">
+                                    <i class="fas fa-{{ product.category == 'service' ? 'wrench' : 'box' }}"></i>
+                                    {{ product.categoryDisplayName }}
+                                </span>
+                                {% if product.unit %}
+                                    <span class="badge badge-segment badge-secondary">{{ product.unit }}</span>
+                                {% endif %}
+                            </div>
+                            {% if product.description %}
+                                <p class="product-description">{{ product.description|slice(0, 80) }}{% if product.description|length > 80 %}...{% endif %}</p>
                             {% endif %}
                         </div>
-
-                        <div class="mt-3 d-flex gap-2">
-                            <a href="{{ path('app_products_show', {id: product.id}) }}" class="btn btn-sm btn-outline-primary flex-fill">
-                                <i class="fas fa-eye me-1"></i>Просмотр
-                            </a>
+                        <div class="product-card-footer">
+                            <div class="price-row">
+                                <span class="price-label">Цена:</span>
+                                <span class="price-value">{{ product.price|number_format(2, '.', ' ') }} ₽</span>
+                            </div>
                             {% if is_granted('ROLE_ADMIN') %}
-                                <a href="{{ path('app_products_edit', {id: product.id}) }}" class="btn btn-sm btn-outline-secondary">
-                                    <i class="fas fa-edit"></i>
-                                </a>
+                                <div class="product-actions">
+                                    <a href="{{ path('app_products_show', {id: product.id}) }}" class="btn-action btn-action-info" title="Просмотр">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ path('app_products_edit', {id: product.id}) }}" class="btn-action btn-action-warning" title="Редактировать">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
                             {% endif %}
                         </div>
                     </div>
                 </div>
-            </div>
-        {% else %}
-            <div class="col-12">
-                <div class="card-modern">
-                    <div class="card-body-modern text-center py-5">
-                        <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">Товары не найдены</p>
-                    </div>
-                </div>
-            </div>
-        {% endfor %}
-    </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        {{ include('components/empty_state.html.twig', {
+            icon: 'fa-box-open',
+            title: 'Нет товаров',
+            message: 'Добавьте первый товар для начала работы',
+            action_url: is_granted('ROLE_ADMIN') ? path('app_products_new') : null,
+            action_text: 'Добавить товар'
+        }) }}
+    {% endif %}
 </div>
 {% endblock %}
