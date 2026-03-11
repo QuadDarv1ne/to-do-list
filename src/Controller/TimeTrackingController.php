@@ -63,7 +63,7 @@ class TimeTrackingController extends AbstractController
 
         $tracking = $timeTrackingService->startTracking($task, $user, $description);
 
-        if ($request->isXmlHttpRequest()) {
+        if ('XMLHttpRequest' === $request->headers->get('X-Requested-With')) {
             return new JsonResponse([
                 'success' => true,
                 'tracking_id' => $tracking->getId(),
@@ -89,7 +89,7 @@ class TimeTrackingController extends AbstractController
             throw $this->createNotFoundException('Сессия не найдена');
         }
 
-        if ($request->isXmlHttpRequest()) {
+        if ('XMLHttpRequest' === $request->headers->get('X-Requested-With')) {
             return new JsonResponse([
                 'success' => true,
                 'duration_seconds' => $tracking->getDurationSeconds(),
@@ -118,7 +118,7 @@ class TimeTrackingController extends AbstractController
 
         $result = $timeTrackingService->toggleTracking($task, $user);
 
-        if ($request->isXmlHttpRequest()) {
+        if ('XMLHttpRequest' === $request->headers->get('X-Requested-With')) {
             return new JsonResponse([
                 'success' => true,
                 'action' => $result['action'],
