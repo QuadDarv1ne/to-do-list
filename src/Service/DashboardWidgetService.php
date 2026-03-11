@@ -430,19 +430,19 @@ class DashboardWidgetService
     private function getNotificationsData(User $user): array
     {
         try {
-            $notificationRepo = $this->entityManager->getRepository('App\Entity\Notification');
+            $notificationRepo = $this->entityManager->getRepository('App\\Entity\\Notification');
             $notifications = $notificationRepo->findBy(
                 ['user' => $user],
                 ['createdAt' => 'DESC'],
                 5,
             );
-    
+
             return ['notifications' => $notifications];
         } catch (\Exception $e) {
             return ['notifications' => []];
         }
     }
-    
+
     private function getTimeTrackingData(User $user): array
     {
         // Получаем задачи с отслеживанием времени
@@ -454,21 +454,21 @@ class DashboardWidgetService
             ->setMaxResults(5)
             ->setParameter('user', $user)
             ->setParameter('completed', 'completed');
-    
+
         $tasks = $qb->getQuery()->getResult();
-    
+
         $totalTime = 0;
         foreach ($tasks as $task) {
             $totalTime += (int)($task['timeSpent'] ?? 0);
         }
-    
+
         return [
             'active_tasks' => $tasks,
             'total_time_today' => $totalTime,
             'average_time' => \count($tasks) > 0 ? round($totalTime / \count($tasks)) : 0,
         ];
     }
-    
+
     private function getGoalsProgressData(User $user): array
     {
         // Пример данных для целей (в будущем можно подключить Goals entity)
@@ -480,30 +480,30 @@ class DashboardWidgetService
             ],
         ];
     }
-    
+
     private function getWorkloadDistributionData(User $user): array
     {
         // Кэшируем на 1 час
         if ($this->cache) {
             $cacheKey = 'workload_distribution_' . $user->getId();
             $cacheItem = $this->cache->getItem($cacheKey);
-            
+
             if ($cacheItem->isHit()) {
                 return $cacheItem->get();
             }
         }
-        
+
         // Распределение задач по дням недели
         $days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
         $distribution = array_fill(0, 7, 0);
-    
+
         $tasks = $this->taskRepository->createQueryBuilder('t')
             ->select('t.createdAt')
             ->where('t.user = :user OR t.assignedUser = :user')
             ->setParameter('user', $user)
             ->getQuery()
             ->getResult();
-    
+
         foreach ($tasks as $task) {
             if (isset($task['createdAt'])) {
                 $date = $task['createdAt'] instanceof \DateTime ? $task['createdAt'] : new \DateTime($task['createdAt']);
@@ -513,14 +513,14 @@ class DashboardWidgetService
                 }
             }
         }
-    
+
         return [
             'distribution' => array_combine($days, $distribution),
             'busiest_day' => $days[array_search(max($distribution), $distribution)],
             'average_per_day' => round(array_sum($distribution) / 7, 1),
         ];
     }
-    
+
     private function getSkillDevelopmentData(User $user): array
     {
         // Прогресс по навыкам (заглушка для будущего функционала)
@@ -533,12 +533,12 @@ class DashboardWidgetService
             ],
         ];
     }
-    
+
     private function getFocusTimeData(User $user): array
     {
         // Анализ продуктивных часов
         $hours = array_fill(0, 24, 0);
-    
+
         $tasks = $this->taskRepository->createQueryBuilder('t')
             ->select('t.createdAt, t.updatedAt')
             ->where('t.user = :user OR t.assignedUser = :user')
@@ -547,7 +547,7 @@ class DashboardWidgetService
             ->setParameter('completed', 'completed')
             ->getQuery()
             ->getResult();
-    
+
         foreach ($tasks as $task) {
             if (isset($task['updatedAt'])) {
                 $date = $task['updatedAt'] instanceof \DateTime ? $task['updatedAt'] : new \DateTime($task['updatedAt']);
@@ -555,9 +555,9 @@ class DashboardWidgetService
                 $hours[$hour]++;
             }
         }
-    
+
         $peakHour = array_search(max($hours), $hours);
-    
+
         return [
             'hours' => $hours,
             'peak_hour' => $peakHour,

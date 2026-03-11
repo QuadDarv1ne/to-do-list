@@ -3,10 +3,10 @@
 namespace App\EventSubscriber;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpKernel\Event\ExceptionEvent;
-use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Symfony\Component\HttpKernel\KernelEvents;
 use Twig\Environment;
 
 /**
@@ -41,7 +41,7 @@ class ErrorSubscriber implements EventSubscriberInterface
         if ($statusCode === 404) {
             $response = new Response(
                 $this->twig->render('errors/404.html.twig'),
-                404
+                404,
             );
             $event->setResponse($response);
         }
