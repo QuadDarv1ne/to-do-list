@@ -2,145 +2,250 @@
 
 {% block title %}{{ client.companyName }}{% endblock %}
 
+{% block stylesheets %}
+{{ parent() }}
+<link rel="stylesheet" href="{{ asset('css/pages/clients.css') }}">
+{% endblock %}
+
 {% block body %}
-<div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="fas fa-building me-2"></i>{{ client.companyName }}</h1>
-        <div>
-            <a href="{{ path('app_clients_edit', {id: client.id}) }}" class="btn btn-warning">
-                <i class="fas fa-edit me-2"></i>Редактировать
-            </a>
-            <a href="{{ path('app_clients_index') }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left me-2"></i>Назад
-            </a>
+{{ include('components/breadcrumbs.html.twig', {
+    items: [
+        {label: 'Главная', url: path('app_dashboard')},
+        {label: 'Клиенты', url: path('app_clients_index')},
+        {label: client.companyName, active: true}
+    ]
+}) }}
+
+<div class="container-fluid py-4">
+    <div class="page-header-modern mb-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="client-avatar-large">
+                    {{ client.companyName|slice(0, 2)|upper }}
+                </div>
+                <div>
+                    <h1 class="mb-1">{{ client.companyName }}</h1>
+                    <p class="text-muted mb-0">
+                        <span class="badge badge-category badge-{{ client.category }} me-2">
+                            {% if client.category == 'vip' %}👑 VIP
+                            {% elseif client.category == 'new' %}⭐ Новый
+                            {% elseif client.category == 'regular' %}✓ Постоянный
+                            {% else %}💡 Потенциальный{% endif %}
+                        </span>
+                        <span class="badge badge-segment badge-{{ client.segment == 'wholesale' ? 'primary' : 'secondary' }}">
+                            {% if client.segment == 'wholesale' %}📦 Опт{% else %}🛒 Розница{% endif %}
+                        </span>
+                    </p>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ path('app_clients_index') }}" class="btn btn-outline-secondary btn-modern">
+                    <i class="fas fa-arrow-left me-2"></i>Назад
+                </a>
+                <a href="{{ path('app_clients_edit', {id: client.id}) }}" class="btn btn-warning btn-modern">
+                    <i class="fas fa-edit me-2"></i>Редактировать
+                </a>
+                <button class="btn btn-danger btn-modern" onclick="deleteClient()">
+                    <i class="fas fa-trash me-2"></i>Удалить
+                </button>
+            </div>
         </div>
     </div>
 
-    <div class="row">
+    <div class="row g-4">
         <div class="col-lg-8">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">Информация о клиенте</h5>
+            <div class="card card-modern mb-4">
+                <div class="card-header-modern">
+                    <i class="fas fa-building me-2"></i>Основная информация
                 </div>
-                <div class="card-body">
-                    <div class="row mb-3">
+                <div class="card-body-modern">
+                    <div class="row g-4">
                         <div class="col-md-6">
-                            <strong>ИНН:</strong> {{ client.inn ?? '-' }}
+                            <div class="info-item">
+                                <label><i class="fas fa-file-invoice"></i>ИНН</label>
+                                <div class="info-value">{{ client.inn ?? '-' }}</div>
+                            </div>
                         </div>
                         <div class="col-md-6">
-                            <strong>КПП:</strong> {{ client.kpp ?? '-' }}
+                            <div class="info-item">
+                                <label><i class="fas fa-stamp"></i>КПП</label>
+                                <div class="info-value">{{ client.kpp ?? '-' }}</div>
+                            </div>
                         </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label><i class="fas fa-user"></i>Контактное лицо</label>
+                                <div class="info-value">{{ client.contactPerson ?? '-' }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label><i class="fas fa-phone"></i>Телефон</label>
+                                <div class="info-value">
+                                    {% if client.phone %}
+                                        <a href="tel:{{ client.phone }}">{{ client.phone }}</a>
+                                    {% else %}-{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label><i class="fas fa-envelope"></i>Email</label>
+                                <div class="info-value">
+                                    {% if client.email %}
+                                        <a href="mailto:{{ client.email }}">{{ client.email }}</a>
+                                    {% else %}-{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label><i class="fas fa-user-tie"></i>Менеджер</label>
+                                <div class="info-value">{{ client.manager ? client.manager.fullName : '-' }}</div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="info-item">
+                                <label><i class="fas fa-map-marker-alt"></i>Адрес</label>
+                                <div class="info-value">{{ client.address ?? '-' }}</div>
+                            </div>
+                        </div>
+                        {% if client.notes %}
+                            <div class="col-12">
+                                <div class="info-item">
+                                    <label><i class="fas fa-sticky-note"></i>Заметки</label>
+                                    <div class="info-value notes">{{ client.notes }}</div>
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <strong>Контактное лицо:</strong> {{ client.contactPerson ?? '-' }}
-                        </div>
-                        <div class="col-md-6">
-                            <strong>Телефон:</strong> {{ client.phone ?? '-' }}
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <strong>Email:</strong> {{ client.email ?? '-' }}
-                        </div>
-                        <div class="col-md-6">
-                            <strong>Менеджер:</strong> {{ client.manager ? client.manager.fullName : '-' }}
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <strong>Адрес:</strong><br>
-                        {{ client.address ?? '-' }}
-                    </div>
-                    {% if client.notes %}
-                        <div class="mb-3">
-                            <strong>Заметки:</strong><br>
-                            {{ client.notes }}
-                        </div>
-                    {% endif %}
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Сделки</h5>
+            <div class="card card-modern">
+                <div class="card-header-modern">
+                    <i class="fas fa-handshake me-2"></i>Сделки
                 </div>
-                <div class="card-body">
+                <div class="card-body-modern">
                     {% if client.deals is not empty %}
                         <div class="table-responsive">
-                            <table class="table">
+                            <table class="table table-modern">
                                 <thead>
                                     <tr>
                                         <th>Название</th>
                                         <th>Сумма</th>
                                         <th>Статус</th>
                                         <th>Дата</th>
+                                        <th></th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% for deal in client.deals %}
                                         <tr>
-                                            <td><a href="{{ path('app_deals_show', {id: deal.id}) }}">{{ deal.title }}</a></td>
-                                            <td>{{ deal.amount|number_format(2) }} ₽</td>
-                                            <td><span class="badge bg-{{ deal.status == 'won' ? 'success' : 'warning' }}">{{ deal.statusDisplayName }}</span></td>
+                                            <td>
+                                                <a href="{{ path('app_deals_show', {id: deal.id}) }}" class="text-decoration-none">
+                                                    {{ deal.title }}
+                                                </a>
+                                            </td>
+                                            <td><strong>{{ deal.amount|number_format(2) }} ₽</strong></td>
+                                            <td>
+                                                <span class="badge bg-{{ deal.status == 'won' ? 'success' : (deal.status == 'lost' ? 'danger' : 'warning') }}">
+                                                    {{ deal.statusDisplayName }}
+                                                </span>
+                                            </td>
                                             <td>{{ deal.createdAt|date('d.m.Y') }}</td>
+                                            <td>
+                                                <a href="{{ path('app_deals_show', {id: deal.id}) }}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            </td>
                                         </tr>
                                     {% endfor %}
                                 </tbody>
                             </table>
                         </div>
                     {% else %}
-                        <p class="text-muted">Нет сделок</p>
+                        <div class="empty-state-small">
+                            <i class="fas fa-handshake"></i>
+                            <p>Нет сделок</p>
+                        </div>
                     {% endif %}
                 </div>
             </div>
         </div>
 
         <div class="col-lg-4">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">Статистика</h5>
+            <div class="card card-modern mb-4">
+                <div class="card-header-modern">
+                    <i class="fas fa-info-circle me-2"></i>Статус
                 </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <strong>Общая выручка:</strong><br>
-                        <h3 class="text-success">{{ client.totalRevenue|number_format(2) }} ₽</h3>
+                <div class="card-body-modern">
+                    <div class="status-item">
+                        <label>Дата создания</label>
+                        <div>{{ client.createdAt|date('d.m.Y H:i') }}</div>
                     </div>
-                    <div class="mb-3">
-                        <strong>Средний чек:</strong><br>
-                        <h4>{{ client.averageCheck|number_format(2) }} ₽</h4>
+                    <div class="status-item">
+                        <label>Последнее касание</label>
+                        <div>
+                            {% if client.lastContactAt %}
+                                {{ client.lastContactAt|date('d.m.Y H:i') }}
+                            {% else %}
+                                <span class="text-muted">Не было контактов</span>
+                            {% endif %}
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <strong>Завершённых сделок:</strong><br>
-                        <h4>{{ client.completedDealsCount }}</h4>
+                    <div class="status-item">
+                        <label>Всего сделок</label>
+                        <div>{{ client.deals|length }}</div>
                     </div>
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Дополнительно</h5>
+            <div class="card card-modern">
+                <div class="card-header-modern">
+                    <i class="fas fa-history me-2"></i>История взаимодействий
                 </div>
-                <div class="card-body">
-                    <p><strong>Сегмент:</strong> 
-                        <span class="badge bg-{{ client.segment == 'wholesale' ? 'primary' : 'secondary' }}">
-                            {{ client.segment == 'wholesale' ? 'Опт' : 'Розница' }}
-                        </span>
-                    </p>
-                    <p><strong>Категория:</strong> 
-                        <span class="badge bg-info">
-                            {% if client.category == 'new' %}Новый
-                            {% elseif client.category == 'regular' %}Постоянный
-                            {% elseif client.category == 'vip' %}VIP
-                            {% else %}Потенциальный{% endif %}
-                        </span>
-                    </p>
-                    <p><strong>Создан:</strong> {{ client.createdAt|date('d.m.Y H:i') }}</p>
-                    {% if client.lastContactAt %}
-                        <p><strong>Последний контакт:</strong> {{ client.lastContactAt|date('d.m.Y H:i') }}</p>
+                <div class="card-body-modern">
+                    {% if client.interactions is not empty %}
+                        <div class="interactions-list">
+                            {% for interaction in client.interactions|slice(0, 5) %}
+                                <div class="interaction-item">
+                                    <div class="interaction-icon">
+                                        <i class="fas fa-{{ interaction.interactionType == 'call' ? 'phone' : (interaction.interactionType == 'meeting' ? 'users' : 'envelope') }}"></i>
+                                    </div>
+                                    <div class="interaction-content">
+                                        <div class="interaction-type">{{ interaction.interactionType|capitalize }}</div>
+                                        <div class="interaction-date">{{ interaction.interactionDate|date('d.m.Y') }}</div>
+                                        {% if interaction.description %}
+                                            <div class="interaction-desc">{{ interaction.description|slice(0, 50) }}{{ interaction.description|length > 50 ? '...' : '' }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state-small">
+                            <i class="fas fa-history"></i>
+                            <p>Нет записей</p>
+                        </div>
                     {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<form id="deleteForm" method="post" style="display: none;">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete') }}">
+</form>
+
+<script>
+function deleteClient() {
+    if (confirm('Вы уверены, что хотите удалить этого клиента?')) {
+        const form = document.getElementById('deleteForm');
+        form.action = '/clients/{{ client.id }}/delete';
+        form.submit();
+    }
+}
+</script>
 {% endblock %}
