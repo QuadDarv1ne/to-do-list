@@ -1,15 +1,15 @@
 # see https://symfony.com/doc/current/reference/configuration/framework.html
 framework:
     secret: '%env(APP_SECRET)%'
-    
+
     # HTTP Cache configuration (Spotify-style)
     http_cache:
         enabled: true
         default_ttl: 7200
-    
+
     # HTTP Method Override for REST API
     http_method_override: true
-    
+
     # PHP errors in the logs (production optimization)
     php_errors:
         log: true
@@ -22,12 +22,12 @@ framework:
         handler_id: null
         cookie_lifetime: 3600
         gc_maxlifetime: 3600
-        
+
     # Property access optimization
     property_access:
         magic_call: false
-        magic_get: false
         magic_set: false
+        magic_get: false
 
     # Content Security Policy
     http_client:
@@ -37,6 +37,21 @@ framework:
                 'X-Frame-Options': 'DENY'
                 'X-XSS-Protection': '1; mode=block'
                 'Referrer-Policy': 'strict-origin-when-cross-origin'
+
+    # Rate limiter configuration
+    rate_limiter:
+        api_global:
+            policy: 'fixed_window'
+            limit: 1000
+            interval: '1 hour'
+        api_create:
+            policy: 'fixed_window'
+            limit: 100
+            interval: '1 minute'
+        authentication:
+            policy: 'sliding_window'
+            limit: 5
+            interval: '1 minute'
 
     # Enable trusted headers for reverse proxy
     # trusted_proxies: '%env(default::TRUSTED_PROXIES)%'
