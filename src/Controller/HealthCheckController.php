@@ -28,7 +28,7 @@ class HealthCheckController extends AbstractController
     {
         return new JsonResponse([
             'status' => 'healthy',
-            'timestamp' => (new \DateTime())->format('Y-m-d\TH:i:sP'),
+            'timestamp' => (new \DateTime())->format('Y-m-d\\TH:i:sP'),
             'version' => '3.2.0',
             'environment' => $this->getParameter('kernel.environment'),
         ]);
@@ -101,7 +101,7 @@ class HealthCheckController extends AbstractController
 
         return new JsonResponse([
             'status' => $isHealthy ? 'ready' : 'not_ready',
-            'timestamp' => (new \DateTime())->format('Y-m-d\TH:i:sP'),
+            'timestamp' => (new \DateTime())->format('Y-m-d\\TH:i:sP'),
             'version' => '3.2.0',
             'environment' => $this->getParameter('kernel.environment'),
             'checks' => $checks,
@@ -117,7 +117,7 @@ class HealthCheckController extends AbstractController
     {
         return new JsonResponse([
             'status' => 'alive',
-            'timestamp' => (new \DateTime())->format('Y-m-d\TH:i:sP'),
+            'timestamp' => (new \DateTime())->format('Y-m-d\\TH:i:sP'),
         ]);
     }
 

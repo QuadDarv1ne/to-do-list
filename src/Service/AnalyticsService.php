@@ -131,7 +131,7 @@ final readonly class AnalyticsService
                 ->getSingleResult();
 
             // Handle potential null result
-            if (!is_array($results)) {
+            if (!\is_array($results)) {
                 return [
                     'total_tasks' => 0,
                     'completed_tasks' => 0,
@@ -692,8 +692,9 @@ final readonly class AnalyticsService
                 ->getSingleResult();
 
             // Handle potential null results
-            if (!is_array($period1Stats) || !is_array($period2Stats)) {
+            if (!\is_array($period1Stats) || !\is_array($period2Stats)) {
                 $emptyDifferences = ['total_tasks_diff' => 0, 'completed_tasks_diff' => 0, 'completion_rate_diff' => 0, 'avg_completion_time_diff' => 0];
+
                 return [
                     'period1' => ['name' => $period1, 'total_tasks' => 0, 'completed_tasks' => 0, 'completion_rate' => 0, 'avg_completion_time' => 0],
                     'period2' => ['name' => $period2, 'total_tasks' => 0, 'completed_tasks' => 0, 'completion_rate' => 0, 'avg_completion_time' => 0],

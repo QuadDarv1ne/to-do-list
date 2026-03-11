@@ -7,7 +7,6 @@ use App\Repository\TaskRepository;
 use App\Service\AnalyticsService;
 use App\Service\PerformanceMonitoringService;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Query;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -15,9 +14,13 @@ use Psr\Log\LoggerInterface;
 class AnalyticsServiceTest extends TestCase
 {
     private EntityManagerInterface|MockObject $entityManager;
+
     private LoggerInterface|MockObject $logger;
+
     private TaskRepository|MockObject $taskRepository;
+
     private PerformanceMonitoringService|MockObject $performanceMonitor;
+
     private AnalyticsService $analyticsService;
 
     protected function setUp(): void
@@ -51,7 +54,7 @@ class AnalyticsServiceTest extends TestCase
         $queryBuilder = $this->getMockBuilder(\Doctrine\ORM\QueryBuilder::class)
             ->disableOriginalConstructor()
             ->getMock();
-        
+
         $query = $this->createMock(\Doctrine\ORM\Query::class);
         $query->method('getSingleResult')
             ->willReturn([
@@ -60,13 +63,13 @@ class AnalyticsServiceTest extends TestCase
                 'overdue_tasks' => 2,
                 'pending_tasks' => 3,
             ]);
-        
+
         $queryBuilder->method('select')->willReturn($queryBuilder);
         $queryBuilder->method('from')->willReturn($queryBuilder);
         $queryBuilder->method('where')->willReturn($queryBuilder);
         $queryBuilder->method('setParameter')->willReturn($queryBuilder);
         $queryBuilder->method('getQuery')->willReturn($query);
-        
+
         $this->entityManager
             ->method('createQueryBuilder')
             ->willReturn($queryBuilder);

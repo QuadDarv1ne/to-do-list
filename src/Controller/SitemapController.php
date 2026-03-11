@@ -2,10 +2,10 @@
 
 namespace App\Controller;
 
-use App\Repository\TaskRepository;
 use App\Repository\ClientRepository;
 use App\Repository\DealRepository;
 use App\Repository\KnowledgeBaseArticleRepository;
+use App\Repository\TaskRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,7 +25,7 @@ class SitemapController extends AbstractController
         KnowledgeBaseArticleRepository $articleRepository,
     ): Response {
         $baseUrl = 'https://crm.dvfarm.ru';
-        
+
         // Базовые страницы
         $urls = [
             [
@@ -104,7 +104,7 @@ class SitemapController extends AbstractController
             } else {
                 $lastmod = $article->getCreatedAt()->format('Y-m-d');
             }
-            
+
             $urls[] = [
                 'loc' => $baseUrl . '/knowledge-base/article/' . $article->getId(),
                 'lastmod' => $lastmod,
@@ -115,19 +115,19 @@ class SitemapController extends AbstractController
 
         // Генерируем XML
         $xml = new \SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"/>');
-        
+
         foreach ($urls as $url) {
             $urlNode = $xml->addChild('url');
             $urlNode->addChild('loc', htmlspecialchars($url['loc'], ENT_XML1));
-            
+
             if (isset($url['lastmod'])) {
                 $urlNode->addChild('lastmod', $url['lastmod']);
             }
-            
+
             if (isset($url['changefreq'])) {
                 $urlNode->addChild('changefreq', $url['changefreq']);
             }
-            
+
             if (isset($url['priority'])) {
                 $urlNode->addChild('priority', $url['priority']);
             }

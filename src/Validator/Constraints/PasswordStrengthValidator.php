@@ -13,7 +13,7 @@ class PasswordStrengthValidator extends ConstraintValidator
             return;
         }
 
-        if (null === $value || '' === $value) {
+        if ($value === null || $value === '') {
             return;
         }
 
@@ -25,6 +25,7 @@ class PasswordStrengthValidator extends ConstraintValidator
             $this->context->buildViolation($constraint->message)
                 ->setParameter('{{ length }}', $minLength)
                 ->addViolation();
+
             return;
         }
 
@@ -33,6 +34,7 @@ class PasswordStrengthValidator extends ConstraintValidator
             $this->context->buildViolation($constraint->message)
                 ->setParameter('{{ requirement }}', 'заглавную букву')
                 ->addViolation();
+
             return;
         }
 
@@ -41,6 +43,7 @@ class PasswordStrengthValidator extends ConstraintValidator
             $this->context->buildViolation($constraint->message)
                 ->setParameter('{{ requirement }}', 'строчную букву')
                 ->addViolation();
+
             return;
         }
 
@@ -49,6 +52,7 @@ class PasswordStrengthValidator extends ConstraintValidator
             $this->context->buildViolation($constraint->message)
                 ->setParameter('{{ requirement }}', 'цифру')
                 ->addViolation();
+
             return;
         }
 
@@ -57,6 +61,7 @@ class PasswordStrengthValidator extends ConstraintValidator
             $this->context->buildViolation($constraint->message)
                 ->setParameter('{{ requirement }}', 'специальный символ')
                 ->addViolation();
+
             return;
         }
     }

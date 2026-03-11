@@ -20,12 +20,13 @@ class AdvancedAnalyticsService
     public function getDashboard(User $user, \DateTime $from, \DateTime $to): array
     {
         // Кэш ключ
-        $cacheKey = sprintf('analytics_dashboard_%d_%s_%s', 
-            $user->getId(), 
-            $from->format('Y-m-d'), 
-            $to->format('Y-m-d')
+        $cacheKey = \sprintf(
+            'analytics_dashboard_%d_%s_%s',
+            $user->getId(),
+            $from->format('Y-m-d'),
+            $to->format('Y-m-d'),
         );
-        
+
         // Проверяем кэш
         if ($this->cache && $this->cache->hasItem($cacheKey)) {
             $item = $this->cache->getItem($cacheKey);
@@ -33,7 +34,7 @@ class AdvancedAnalyticsService
                 return $item->get();
             }
         }
-        
+
         $dashboard = [
             'overview' => $this->getOverviewMetrics($user, $from, $to),
             'trends' => $this->getTrends($user, $from, $to),
@@ -41,7 +42,7 @@ class AdvancedAnalyticsService
             'insights' => $this->getInsights($user, $from, $to),
             'comparisons' => $this->getComparisons($user, $from, $to),
         ];
-        
+
         // Сохраняем в кэш на 1 час
         if ($this->cache) {
             $item = $this->cache->getItem($cacheKey);
@@ -49,7 +50,7 @@ class AdvancedAnalyticsService
             $item->expiresAfter(3600); // 1 час
             $this->cache->save($item);
         }
-        
+
         return $dashboard;
     }
 
