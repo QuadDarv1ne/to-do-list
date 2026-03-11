@@ -3,7 +3,7 @@
 namespace App\Service;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 
 /**
@@ -27,12 +27,12 @@ class ApiResponseOptimizer
         array $headers = [],
     ): JsonResponse {
         $context = [
-            AbstractNormalizer::GROUPS => $groups,
-            AbstractNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($object) {
+            AbstractObjectNormalizer::GROUPS => $groups,
+            AbstractObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($object) {
                 return $object->getId();
             },
             // Skip null values to reduce response size
-            AbstractNormalizer::SKIP_NULL_VALUES => true,
+            AbstractObjectNormalizer::SKIP_NULL_VALUES => true,
         ];
 
         $json = $this->serializer->serialize($data, 'json', $context);

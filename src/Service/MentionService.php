@@ -33,18 +33,16 @@ class MentionService
             $uniqueUsernames = array_unique($matches[1]);
 
             // Batch load users for better performance
-            if (!empty($uniqueUsernames)) {
-                $users = $this->userRepository->createQueryBuilder('u')
-                    ->where('u.username IN (:usernames)')
-                    ->andWhere('u.isActive = :active')
-                    ->setParameter('usernames', $uniqueUsernames)
-                    ->setParameter('active', true)
-                    ->getQuery()
-                    ->getResult();
+            $users = $this->userRepository->createQueryBuilder('u')
+                ->where('u.username IN (:usernames)')
+                ->andWhere('u.isActive = :active')
+                ->setParameter('usernames', $uniqueUsernames)
+                ->setParameter('active', true)
+                ->getQuery()
+                ->getResult();
 
-                foreach ($users as $user) {
-                    $mentions[] = $user;
-                }
+            foreach ($users as $user) {
+                $mentions[] = $user;
             }
         }
 

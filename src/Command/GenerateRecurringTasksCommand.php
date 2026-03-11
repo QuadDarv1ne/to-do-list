@@ -135,8 +135,8 @@ class GenerateRecurringTasksCommand extends Command
                 }
 
                 // Calculate if the month interval matches
-                $monthsSinceLast = ($today->format('Y') - $lastCreated->format('Y')) * 12 +
-                                  ($today->format('n') - $lastCreated->format('n'));
+                $monthsSinceLast = ((int)$today->format('Y') - (int)$lastCreated->format('Y')) * 12 +
+                                  ((int)$today->format('n') - (int)$lastCreated->format('n'));
 
                 return $monthsSinceLast >= $recurrence->getInterval();
 
@@ -163,11 +163,11 @@ class GenerateRecurringTasksCommand extends Command
         }
     }
 
-    private function createNewRecurringTask(Task $originalTask): ?Task
+    private function createNewRecurringTask(Task $originalTask): Task
     {
         // Create a new task based on the original
         $newTask = new Task();
-        $newTask->setName($originalTask->getName());
+        $newTask->setTitle($originalTask->getTitle());
         $newTask->setDescription($originalTask->getDescription());
         $newTask->setPriority($originalTask->getPriority());
         $newTask->setUser($originalTask->getUser());

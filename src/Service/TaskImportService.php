@@ -50,9 +50,9 @@ class TaskImportService
         $lineNumber = 1;
 
         while (($data = fgetcsv($handle, 0, ';')) !== false) {
-            if (empty($data) || \count($data) < 2) {
+            if (!$data || \count($data) < 2) {
                 $data = fgetcsv($handle, 0, ',');
-                if (empty($data) || \count($data) < 2) {
+                if (!$data || \count($data) < 2) {
                     continue;
                 }
             }

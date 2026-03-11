@@ -2,7 +2,6 @@
 
 namespace App\Command;
 
-use App\Service\InputValidationService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
@@ -16,12 +15,6 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 )]
 class SecurityImprovementReportCommand extends Command
 {
-    public function __construct(
-        private InputValidationService $inputValidationService,
-    ) {
-        parent::__construct();
-    }
-
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
