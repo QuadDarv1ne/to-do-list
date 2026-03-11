@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Gedmo\SoftDeleteable\Traits\SoftDeleteableEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: DealRepository::class)]
@@ -15,8 +16,10 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(columns: ['stage'], name: 'idx_deals_stage')]
 #[ORM\Index(columns: ['created_at'], name: 'idx_deals_created_at')]
 #[ORM\Index(columns: ['expected_close_date'], name: 'idx_deals_expected_close')]
+#[Gedmo\SoftDeleteable(fieldName: 'deletedAt', timeAware: true, hardDelete: false)]
 class Deal
 {
+    use SoftDeleteableEntity;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -67,6 +70,9 @@ class Deal
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $lostReason = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $deletedAt = null;
 
     #[ORM\OneToMany(mappedBy: 'deal', targetEntity: DealHistory::class, cascade: ['persist', 'remove'])]
     #[ORM\OrderBy(['createdAt' => 'DESC'])]

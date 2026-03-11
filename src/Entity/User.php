@@ -152,6 +152,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: SocialAccount::class, orphanRemoval: true)]
     private Collection $socialAccounts;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: DashboardWidget::class, orphanRemoval: true)]
+    private Collection $dashboardWidgets;
+
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Webhook::class, orphanRemoval: true)]
     private Collection $webhooks;
 
