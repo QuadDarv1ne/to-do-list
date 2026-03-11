@@ -149,6 +149,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
     #[ORM\OneToMany(mappedBy: 'author', targetEntity: KnowledgeBaseArticle::class)]
     private Collection $articles;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: SocialAccount::class, orphanRemoval: true)]
+    private Collection $socialAccounts;
+
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Webhook::class, orphanRemoval: true)]
     private Collection $webhooks;
 
@@ -1143,5 +1146,45 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
         }
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, SocialAccount>
+     */
+    public function getSocialAccounts(): Collection
+    {
+        return $this->socialAccounts;
+    }
+
+    public function addSocialAccount(SocialAccount $socialAccount): static
+    {
+        if (!$this->socialAccounts->contains($socialAccount)) {
+            $this->socialAccounts->add($socialAccount);
+            $socialAccount->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSocialAccount(SocialAccount $socialAccount): static
+    {
+        if ($this->socialAccounts->removeElement($socialAccount)) {
+            if ($socialAccount->getUser() === $this) {
+                $socialAccount->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function hasSocialAccount(string $provider): bool
+    {
+        foreach ($this->socialAccounts as $account) {
+            if ($account->getProvider() === $provider) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
