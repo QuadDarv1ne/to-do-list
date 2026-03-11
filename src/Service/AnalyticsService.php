@@ -130,10 +130,21 @@ final readonly class AnalyticsService
                 ->getQuery()
                 ->getSingleResult();
 
-            $totalTasks = (int) $results['total_tasks'];
-            $completedTasks = (int) $results['completed_tasks'];
-            $overdueTasks = (int) $results['overdue_tasks'];
-            $pendingTasks = (int) $results['pending_tasks'];
+            // Handle potential null result
+            if (!is_array($results)) {
+                return [
+                    'total_tasks' => 0,
+                    'completed_tasks' => 0,
+                    'overdue_tasks' => 0,
+                    'pending_tasks' => 0,
+                    'completion_rate' => 0,
+                ];
+            }
+
+            $totalTasks = (int) ($results['total_tasks'] ?? 0);
+            $completedTasks = (int) ($results['completed_tasks'] ?? 0);
+            $overdueTasks = (int) ($results['overdue_tasks'] ?? 0);
+            $pendingTasks = (int) ($results['pending_tasks'] ?? 0);
 
             return [
                 'total_tasks' => $totalTasks,
@@ -680,16 +691,27 @@ final readonly class AnalyticsService
                 ->getQuery()
                 ->getSingleResult();
 
+            // Handle potential null results
+            if (!is_array($period1Stats) || !is_array($period2Stats)) {
+                $emptyDifferences = ['total_tasks_diff' => 0, 'completed_tasks_diff' => 0, 'completion_rate_diff' => 0, 'avg_completion_time_diff' => 0];
+                return [
+                    'period1' => ['name' => $period1, 'total_tasks' => 0, 'completed_tasks' => 0, 'completion_rate' => 0, 'avg_completion_time' => 0],
+                    'period2' => ['name' => $period2, 'total_tasks' => 0, 'completed_tasks' => 0, 'completion_rate' => 0, 'avg_completion_time' => 0],
+                    'differences' => $emptyDifferences,
+                    'trend' => $this->getComparisonTrend($emptyDifferences),
+                ];
+            }
+
             // Calculate completion rates
-            $period1Rate = $period1Stats['total_tasks'] > 0 ?
-                round(($period1Stats['completed_tasks'] / $period1Stats['total_tasks']) * 100, 1) : 0;
-            $period2Rate = $period2Stats['total_tasks'] > 0 ?
-                round(($period2Stats['completed_tasks'] / $period2Stats['total_tasks']) * 100, 1) : 0;
+            $period1Rate = ($period1Stats['total_tasks'] ?? 0) > 0 ?
+                round((($period1Stats['completed_tasks'] ?? 0) / ($period1Stats['total_tasks'] ?? 0)) * 100, 1) : 0;
+            $period2Rate = ($period2Stats['total_tasks'] ?? 0) > 0 ?
+                round((($period2Stats['completed_tasks'] ?? 0) / ($period2Stats['total_tasks'] ?? 0)) * 100, 1) : 0;
 
             // Calculate differences
             $differences = [
-                'total_tasks_diff' => (int)$period1Stats['total_tasks'] - (int)$period2Stats['total_tasks'],
-                'completed_tasks_diff' => (int)$period1Stats['completed_tasks'] - (int)$period2Stats['completed_tasks'],
+                'total_tasks_diff' => (int)($period1Stats['total_tasks'] ?? 0) - (int)($period2Stats['total_tasks'] ?? 0),
+                'completed_tasks_diff' => (int)($period1Stats['completed_tasks'] ?? 0) - (int)($period2Stats['completed_tasks'] ?? 0),
                 'completion_rate_diff' => $period1Rate - $period2Rate,
                 'avg_completion_time_diff' => 0, // Simplified for SQLite compatibility
             ];
@@ -697,15 +719,15 @@ final readonly class AnalyticsService
             return [
                 'period1' => [
                     'name' => $period1,
-                    'total_tasks' => (int)$period1Stats['total_tasks'],
-                    'completed_tasks' => (int)$period1Stats['completed_tasks'],
+                    'total_tasks' => (int)($period1Stats['total_tasks'] ?? 0),
+                    'completed_tasks' => (int)($period1Stats['completed_tasks'] ?? 0),
                     'completion_rate' => $period1Rate,
                     'avg_completion_time' => 0, // Simplified for SQLite compatibility
                 ],
                 'period2' => [
                     'name' => $period2,
-                    'total_tasks' => (int)$period2Stats['total_tasks'],
-                    'completed_tasks' => (int)$period2Stats['completed_tasks'],
+                    'total_tasks' => (int)($period2Stats['total_tasks'] ?? 0),
+                    'completed_tasks' => (int)($period2Stats['completed_tasks'] ?? 0),
                     'completion_rate' => $period2Rate,
                     'avg_completion_time' => 0, // Simplified for SQLite compatibility
                 ],

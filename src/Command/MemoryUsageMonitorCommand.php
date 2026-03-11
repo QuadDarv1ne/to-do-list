@@ -464,12 +464,10 @@ class MemoryUsageMonitorCommand extends Command
 
             foreach ($leaks as $leak) {
                 $report .= \sprintf(
-                    "From %s to %s: %s increase (%.2f%%)\n",
+                    "From %s to %s: %.2f%% increase\n",
                     $leak['from_snapshot'] ?? $leak['from_point'],
                     $leak['to_snapshot'] ?? $leak['to_point'],
-                    $leak['increase_percent'] . '%',
-                    $leak['from_memory'],
-                    $leak['to_memory'],
+                    $leak['increase_percent'],
                 );
                 $report .= "  {$leak['from_memory']} → {$leak['to_memory']}\n\n";
             }
