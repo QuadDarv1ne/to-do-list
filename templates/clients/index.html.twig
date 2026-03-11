@@ -4,114 +4,7 @@
 
 {% block stylesheets %}
 {{ parent() }}
-<style>
-.stats-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    margin-bottom: 2rem;
-}
-
-.stat-card-client {
-    background: white;
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    transition: all 0.3s ease;
-    border-left: 4px solid;
-}
-
-.stat-card-client:nth-child(1) { border-left-color: #667eea; }
-.stat-card-client:nth-child(2) { border-left-color: #28a745; }
-.stat-card-client:nth-child(3) { border-left-color: #ffc107; }
-.stat-card-client:nth-child(4) { border-left-color: #17a2b8; }
-
-.stat-card-client:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-}
-
-.stat-number-client {
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 0.25rem;
-}
-
-.stat-label-client {
-    color: #6c757d;
-    font-size: 0.875rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.client-card {
-    background: white;
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    transition: all 0.3s ease;
-    border-left: 4px solid #667eea;
-}
-
-.client-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-}
-
-.client-avatar {
-    width: 60px;
-    height: 60px;
-    border-radius: 12px;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    font-weight: 700;
-    flex-shrink: 0;
-}
-
-.client-info h5 {
-    margin: 0 0 0.5rem 0;
-    font-weight: 600;
-}
-
-.client-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 0.75rem;
-}
-
-.client-badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-
-.search-box {
-    background: white;
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    margin-bottom: 2rem;
-}
-
-.form-control-modern {
-    border-radius: 10px;
-    border: 2px solid #e9ecef;
-    padding: 0.75rem 1rem;
-    transition: all 0.3s ease;
-}
-
-.form-control-modern:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-}
-</style>
+<link rel="stylesheet" href="{{ asset('css/pages/clients.css') }}">
 {% endblock %}
 
 {% block body %}
@@ -123,131 +16,204 @@
 }) }}
 
 <div class="container-fluid py-4 animate-fade-in">
-    <div class="page-header stagger-item">
+    <div class="page-header stagger-item mb-4">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div>
                 <h1 class="mb-1">
-                    <i class="fas fa-users me-2"></i>
+                    <i class="fas fa-users me-2 text-primary"></i>
                     Клиенты
                 </h1>
-                <p class="mb-0 opacity-75">Управление базой клиентов</p>
+                <p class="mb-0 opacity-75">Управление базой клиентов и партнёров</p>
             </div>
-            <a href="{{ path('app_clients_new') }}" class="btn btn-gradient-primary">
-                <i class="fas fa-plus me-2"></i>
-                Добавить клиента
-            </a>
+            <div class="d-flex gap-2 flex-wrap">
+                <button class="btn btn-outline-secondary btn-modern" data-bs-toggle="modal" data-bs-target="#exportModal">
+                    <i class="fas fa-download me-2"></i>
+                    Экспорт
+                </button>
+                <a href="{{ path('app_clients_new') }}" class="btn btn-gradient-primary">
+                    <i class="fas fa-plus me-2"></i>
+                    Добавить клиента
+                </a>
+            </div>
         </div>
     </div>
 
     {% if clients is not empty %}
-        <div class="stats-row">
-            <div class="stat-card-client stagger-item delay-100">
-                <div class="stat-number-client text-primary">{{ clients|length }}</div>
-                <div class="stat-label-client">Всего клиентов</div>
+        <div class="row g-3 mb-4">
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card stat-card-primary stagger-item delay-100">
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number">{{ clients|length }}</div>
+                        <div class="stat-label">Всего клиентов</div>
+                    </div>
+                </div>
             </div>
-            <div class="stat-card-client stagger-item delay-200">
-                <div class="stat-number-client text-success">{{ clients|filter(c => c.category == 'vip')|length }}</div>
-                <div class="stat-label-client">VIP клиенты</div>
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card stat-card-success stagger-item delay-200">
+                    <div class="stat-icon bg-success bg-opacity-10 text-success">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number">{{ clients|filter(c => c.category == 'vip')|length }}</div>
+                        <div class="stat-label">VIP клиенты</div>
+                    </div>
+                </div>
             </div>
-            <div class="stat-card-client stagger-item delay-300">
-                <div class="stat-number-client text-warning">{{ clients|filter(c => c.category == 'new')|length }}</div>
-                <div class="stat-label-client">Новые</div>
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card stat-card-warning stagger-item delay-300">
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number">{{ clients|filter(c => c.category == 'new')|length }}</div>
+                        <div class="stat-label">Новые</div>
+                    </div>
+                </div>
             </div>
-            <div class="stat-card-client stagger-item delay-400">
-                <div class="stat-number-client text-info">{{ clients|filter(c => c.segment == 'wholesale')|length }}</div>
-                <div class="stat-label-client">Оптовые</div>
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card stat-card-info stagger-item delay-400">
+                    <div class="stat-icon bg-info bg-opacity-10 text-info">
+                        <i class="fas fa-boxes"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number">{{ clients|filter(c => c.segment == 'wholesale')|length }}</div>
+                        <div class="stat-label">Оптовые</div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="search-box">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <input type="text" class="form-control form-control-modern" id="searchInput" placeholder="Поиск по названию, контакту, email...">
-                </div>
-                <div class="col-md-3">
-                    <select class="form-select form-control-modern" id="segmentFilter">
-                        <option value="">Все сегменты</option>
-                        <option value="wholesale">Опт</option>
-                        <option value="retail">Розница</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <select class="form-select form-control-modern" id="categoryFilter">
-                        <option value="">Все категории</option>
-                        <option value="new">Новый</option>
-                        <option value="regular">Постоянный</option>
-                        <option value="vip">VIP</option>
-                        <option value="potential">Потенциальный</option>
-                    </select>
-                </div>
+        <div class="card card-modern mb-4">
+            <div class="card-header-modern">
+                <i class="fas fa-filter me-2"></i>
+                Фильтры и поиск
             </div>
-        </div>
-
-        <div id="clientsList">
-            {% for client in clients %}
-                <div class="client-card" 
-                     data-company="{{ client.companyName|lower }}"
-                     data-contact="{{ client.contactPerson|default('')|lower }}"
-                     data-email="{{ client.email|default('')|lower }}"
-                     data-segment="{{ client.segment }}"
-                     data-category="{{ client.category }}">
-                    <div class="d-flex align-items-start gap-3">
-                        <div class="client-avatar avatar-primary">
-                            {{ client.companyName|slice(0, 2)|upper }}
+            <div class="card-body-modern">
+                <div class="row g-3">
+                    <div class="col-lg-6">
+                        <div class="search-input-group">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" class="form-control" id="searchInput" placeholder="Поиск по названию, контакту, email...">
                         </div>
-                        <div class="flex-grow-1">
-                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
-                                <div class="client-info">
-                                    <h5>
-                                        <a href="{{ path('app_clients_show', {id: client.id}) }}" class="text-decoration-none text-dark">
-                                            {{ client.companyName }}
-                                        </a>
-                                    </h5>
-                                    <div class="text-muted small">
-                                        {% if client.contactPerson %}
-                                            <i class="fas fa-user me-1"></i>{{ client.contactPerson }}
-                                        {% endif %}
-                                        {% if client.phone %}
-                                            <span class="mx-2">•</span>
-                                            <i class="fas fa-phone me-1"></i>{{ client.phone }}
-                                        {% endif %}
-                                        {% if client.email %}
-                                            <span class="mx-2">•</span>
-                                            <i class="fas fa-envelope me-1"></i>{{ client.email }}
-                                        {% endif %}
-                                    </div>
-                                    <div class="client-meta">
-                                        <span class="client-badge bg-{{ client.segment == 'wholesale' ? 'primary' : 'secondary' }} text-white">
-                                            <i class="fas fa-{{ client.segment == 'wholesale' ? 'boxes' : 'shopping-cart' }} me-1"></i>
-                                            {{ client.segment == 'wholesale' ? 'Опт' : 'Розница' }}
-                                        </span>
-                                        <span class="client-badge bg-{{ client.category == 'vip' ? 'warning' : (client.category == 'new' ? 'info' : 'success') }} text-white">
-                                            <i class="fas fa-{{ client.category == 'vip' ? 'crown' : (client.category == 'new' ? 'star' : 'check') }} me-1"></i>
-                                            {% if client.category == 'new' %}Новый
-                                            {% elseif client.category == 'regular' %}Постоянный
-                                            {% elseif client.category == 'vip' %}VIP
-                                            {% else %}Потенциальный{% endif %}
-                                        </span>
-                                        {% if client.manager %}
-                                            <span class="client-badge bg-light text-dark">
-                                                <i class="fas fa-user-tie me-1"></i>{{ client.manager.fullName }}
-                                            </span>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                <div class="d-flex gap-2">
-                                    <a href="{{ path('app_clients_show', {id: client.id}) }}" class="btn btn-sm btn-info btn-modern">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <a href="{{ path('app_clients_edit', {id: client.id}) }}" class="btn btn-sm btn-warning btn-modern">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                </div>
+                    </div>
+                    <div class="col-lg-3">
+                        <select class="form-select" id="segmentFilter">
+                            <option value="">Все сегменты</option>
+                            <option value="wholesale">📦 Опт</option>
+                            <option value="retail">🛒 Розница</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-3">
+                        <select class="form-select" id="categoryFilter">
+                            <option value="">Все категории</option>
+                            <option value="new">⭐ Новый</option>
+                            <option value="regular">✓ Постоянный</option>
+                            <option value="vip">👑 VIP</option>
+                            <option value="potential">💡 Потенциальный</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div class="text-muted small">
+                        <span id="visibleCount">{{ clients|length }}</span> из {{ clients|length }} клиентов
+                    </div>
+                    <button class="btn btn-sm btn-outline-secondary" id="resetFilters">
+                        <i class="fas fa-times me-1"></i>
+                        Сбросить
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3" id="clientsList">
+            {% for client in clients %}
+                <div class="col-lg-6 col-xl-4">
+                    <div class="client-card-modern h-100"
+                         data-company="{{ client.companyName|lower }}"
+                         data-contact="{{ client.contactPerson|default('')|lower }}"
+                         data-email="{{ client.email|default('')|lower }}"
+                         data-segment="{{ client.segment }}"
+                         data-category="{{ client.category }}">
+                        <div class="client-card-header">
+                            <div class="client-avatar-modern">
+                                {{ client.companyName|slice(0, 2)|upper }}
                             </div>
+                            <div class="client-actions">
+                                <a href="{{ path('app_clients_show', {id: client.id}) }}" class="btn-action btn-action-info" title="Просмотр">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ path('app_clients_edit', {id: client.id}) }}" class="btn-action btn-action-warning" title="Редактировать">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button class="btn-action btn-action-danger" onclick="deleteClient({{ client.id }})" title="Удалить">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="client-card-body">
+                            <h5 class="client-title">
+                                <a href="{{ path('app_clients_show', {id: client.id}) }}" class="text-decoration-none">
+                                    {{ client.companyName }}
+                                </a>
+                            </h5>
+                            <div class="client-contact">
+                                {% if client.contactPerson %}
+                                    <div class="contact-item">
+                                        <i class="fas fa-user"></i>
+                                        <span>{{ client.contactPerson }}</span>
+                                    </div>
+                                {% endif %}
+                                {% if client.phone %}
+                                    <div class="contact-item">
+                                        <i class="fas fa-phone"></i>
+                                        <a href="tel:{{ client.phone }}">{{ client.phone }}</a>
+                                    </div>
+                                {% endif %}
+                                {% if client.email %}
+                                    <div class="contact-item">
+                                        <i class="fas fa-envelope"></i>
+                                        <a href="mailto:{{ client.email }}">{{ client.email }}</a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="client-badges">
+                                <span class="badge badge-segment badge-{{ client.segment == 'wholesale' ? 'primary' : 'secondary' }}">
+                                    <i class="fas fa-{{ client.segment == 'wholesale' ? 'boxes' : 'shopping-cart' }}"></i>
+                                    {{ client.segment == 'wholesale' ? 'Опт' : 'Розница' }}
+                                </span>
+                                <span class="badge badge-category badge-{{ client.category }}">
+                                    <i class="fas fa-{{ client.category == 'vip' ? 'crown' : (client.category == 'new' ? 'star' : (client.category == 'regular' ? 'check-circle' : 'lightbulb')) }}"></i>
+                                    {% if client.category == 'new' %}Новый
+                                    {% elseif client.category == 'regular' %}Постоянный
+                                    {% elseif client.category == 'vip' %}VIP
+                                    {% else %}Потенциальный{% endif %}
+                                </span>
+                            </div>
+                            {% if client.lastContactAt %}
+                                <div class="client-last-contact">
+                                    <i class="fas fa-clock"></i>
+                                    Последнее касание: {{ client.lastContactAt|date('d.m.Y') }}
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
             {% endfor %}
+        </div>
+
+        <div class="empty-state text-center py-5 d-none" id="emptyState">
+            <div class="empty-icon">
+                <i class="fas fa-search"></i>
+            </div>
+            <h4>Ничего не найдено</h4>
+            <p class="text-muted">Попробуйте изменить параметры поиска или фильтры</p>
+            <button class="btn btn-outline-primary" id="resetFilters2">
+                <i class="fas fa-redo me-2"></i>
+                Сбросить фильтры
+            </button>
         </div>
     {% else %}
         {{ include('components/empty_state.html.twig', {
@@ -260,64 +226,114 @@
     {% endif %}
 </div>
 
+{% if clients is not empty %}
+<div class="modal fade" id="exportModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-download me-2"></i>Экспорт клиентов</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ path('app_export_tasks_csv') }}" class="btn btn-outline-success">
+                        <i class="fas fa-file-csv me-2"></i>
+                        Экспорт в CSV
+                    </a>
+                    <a href="{{ path('app_export_tasks_excel') }}" class="btn btn-outline-success">
+                        <i class="fas fa-file-excel me-2"></i>
+                        Экспорт в Excel
+                    </a>
+                    <a href="{{ path('app_export_tasks_pdf') }}" class="btn btn-outline-danger">
+                        <i class="fas fa-file-pdf me-2"></i>
+                        Экспорт в PDF
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form id="deleteForm" method="post" style="display: none;">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete') }}">
+</form>
+{% endif %}
+
 <script>
+function deleteClient(id) {
+    if (confirm('Вы уверены, что хотите удалить этого клиента?')) {
+        const form = document.getElementById('deleteForm');
+        form.action = '/clients/' + id + '/delete';
+        form.submit();
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');
     const segmentFilter = document.getElementById('segmentFilter');
     const categoryFilter = document.getElementById('categoryFilter');
-    const clientCards = document.querySelectorAll('.client-card');
-    
+    const resetFilters = document.getElementById('resetFilters');
+    const resetFilters2 = document.getElementById('resetFilters2');
+    const clientCards = document.querySelectorAll('.client-card-modern');
+    const visibleCountEl = document.getElementById('visibleCount');
+    const emptyState = document.getElementById('emptyState');
+    const clientsList = document.getElementById('clientsList');
+
     function filterClients() {
-        const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+        const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
         const selectedSegment = segmentFilter ? segmentFilter.value : '';
         const selectedCategory = categoryFilter ? categoryFilter.value : '';
-        
+
         let visibleCount = 0;
-        
+
         clientCards.forEach(card => {
             const company = card.dataset.company || '';
             const contact = card.dataset.contact || '';
             const email = card.dataset.email || '';
             const segment = card.dataset.segment || '';
             const category = card.dataset.category || '';
-            
-            const matchesSearch = !searchTerm || 
-                company.includes(searchTerm) || 
-                contact.includes(searchTerm) || 
+
+            const matchesSearch = !searchTerm ||
+                company.includes(searchTerm) ||
+                contact.includes(searchTerm) ||
                 email.includes(searchTerm);
-            
+
             const matchesSegment = !selectedSegment || segment === selectedSegment;
             const matchesCategory = !selectedCategory || category === selectedCategory;
-            
+
             if (matchesSearch && matchesSegment && matchesCategory) {
-                card.style.display = '';
+                card.closest('.col-lg-6')?.style.display = '';
                 visibleCount++;
             } else {
-                card.style.display = 'none';
+                card.closest('.col-lg-6')?.style.display = 'none';
             }
         });
-        
-        // Show empty state if no results
-        const clientsList = document.getElementById('clientsList');
-        let emptyState = clientsList.querySelector('.empty-state');
-        
-        if (visibleCount === 0 && !emptyState) {
-            emptyState = document.createElement('div');
-            emptyState.className = 'empty-state text-center py-5';
-            emptyState.innerHTML = `
-                <i class="fas fa-search fa-4x text-muted mb-3"></i>
-                <h4>Ничего не найдено</h4>
-                <p class="text-muted">Попробуйте изменить параметры поиска</p>
-            `;
-            clientsList.appendChild(emptyState);
-        } else if (visibleCount > 0 && emptyState) {
-            emptyState.remove();
+
+        if (visibleCountEl) {
+            visibleCountEl.textContent = visibleCount;
+        }
+
+        if (visibleCount === 0) {
+            clientsList?.classList.add('d-none');
+            emptyState?.classList.remove('d-none');
+        } else {
+            clientsList?.classList.remove('d-none');
+            emptyState?.classList.add('d-none');
         }
     }
-    
+
+    function resetFilters() {
+        if (searchInput) searchInput.value = '';
+        if (segmentFilter) segmentFilter.value = '';
+        if (categoryFilter) categoryFilter.value = '';
+        filterClients();
+    }
+
     if (searchInput) searchInput.addEventListener('input', filterClients);
     if (segmentFilter) segmentFilter.addEventListener('change', filterClients);
     if (categoryFilter) categoryFilter.addEventListener('change', filterClients);
+    if (resetFilters) resetFilters.addEventListener('click', resetFilters);
+    if (resetFilters2) resetFilters2.addEventListener('click', resetFilters);
 });
 </script>
 {% endblock %}
