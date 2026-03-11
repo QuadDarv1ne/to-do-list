@@ -2,8 +2,10 @@
 
 namespace App\Service;
 
+use App\Entity\EmailTemplate;
 use App\Entity\TaskNotification;
 use App\Entity\User;
+use App\Repository\EmailTemplateRepository;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
@@ -16,6 +18,7 @@ class EmailNotificationService
         private MailerInterface $mailer,
         private Environment $twig,
         private UrlGeneratorInterface $urlGenerator,
+        private EmailTemplateRepository $templateRepository,
         private ?PerformanceMonitorService $performanceMonitor = null,
         private ?LoggerInterface $logger = null,
         private string $fromEmail = '',
@@ -78,6 +81,33 @@ class EmailNotificationService
             if ($this->performanceMonitor) {
                 $this->performanceMonitor->stopTiming('email_notification_service_send_task_notification');
             }
+        }
+    }
+
+    public function sendTemplateEmail(string $templateCode, string $to, array $params = []): void
+    {
+        $template = $this->templateRepository->findByCode($templateCode);
+        
+        if (!$template) {
+            throw new \InvalidArgumentException(sprintf('Email template "%s" not found', $templateCode));
+        }
+
+        $rendered = $template->render($params);
+
+        $email = (new Email())
+            ->from($this->fromEmail)
+            ->to($to)
+            ->subject($rendered['subject'])
+            ->html($rendered['bodyHtml'])
+            ->text($rendered['bodyText']);
+
+        $this->mailer->send($email);
+
+        if ($this->logger) {
+            $this->logger->info('Template email sent', [
+                'template' => $templateCode,
+                'to' => $to,
+            ]);
         }
     }
 

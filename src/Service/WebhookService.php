@@ -25,7 +25,29 @@ class WebhookService
     /**
      * Send webhook notification with HMAC signature
      */
-    public function send(string $url, string $event, array $data, ?string $secret = null): bool
+    public function send(string $url, string $event, array $data, ?string $secret = null, int $maxRetries = 3): bool
+    {
+        $attempt = 0;
+        
+        while ($attempt < $maxRetries) {
+            $result = $this->sendAttempt($url, $event, $data, $secret);
+            
+            if ($result) {
+                return true;
+            }
+            
+            $attempt++;
+            
+            if ($attempt < $maxRetries) {
+                $delay = pow(2, $attempt);
+                usleep($delay * 1000000);
+            }
+        }
+        
+        return false;
+    }
+    
+    private function sendAttempt(string $url, string $event, array $data, ?string $secret): bool
     {
         $startTime = microtime(true);
 
