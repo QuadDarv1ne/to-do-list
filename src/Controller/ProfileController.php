@@ -173,4 +173,28 @@ class ProfileController extends AbstractController
             }
         }
     }
+
+    #[Route('/remove-avatar', name: 'app_profile_remove_avatar', methods: ['POST'])]
+    public function removeAvatar(
+        Request $request,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        $user = $this->getUser();
+        
+        if ($user->getAvatar()) {
+            $avatarPath = $this->getParameter('kernel.project_dir') . '/public/uploads/avatars/' . $user->getAvatar();
+            if (file_exists($avatarPath)) {
+                unlink($avatarPath);
+            }
+            
+            $user->setAvatar(null);
+            $entityManager->flush();
+        }
+
+        if ($request->isXmlHttpRequest()) {
+            return new Response(json_encode(['success' => true]), 200, ['Content-Type' => 'application/json']);
+        }
+
+        return $this->redirectToRoute('app_profile_edit');
+    }
 }
