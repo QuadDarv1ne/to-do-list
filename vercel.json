@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "name": "to-do-list",
+  "builds": [
+    {
+      "src": "public/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.php"
+    }
+  ],
+  "env": {
+    "APP_ENV": "prod",
+    "APP_SECRET": "@app_secret",
+    "DATABASE_URL": "@database_url",
+    "REDIS_URL": "@redis_url"
+  },
+  "outputDirectory": "public",
+  "installCommand": "composer install --no-dev --optimize-autoloader --no-interaction",
+  "buildCommand": "php bin/console cache:clear && php bin/console asset-map:compile"
+}

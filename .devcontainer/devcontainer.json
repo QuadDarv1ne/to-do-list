@@ -1,0 +1,29 @@
+{
+  "name": "Symfony Project",
+  "dockerComposeFile": [
+    "../compose.yaml"
+  ],
+  "service": "php",
+  "workspaceFolder": "/var/www/html",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "junstyle.php-cs-fixer",
+        "neilbrayfield.php-docblocker",
+        "ryannaddy.laravel-artisan",
+        "DEVSENSE.phptools-vscode"
+      ],
+      "settings": {
+        "php.validate.enable": true,
+        "php.validate.executablePath": "/usr/local/bin/php"
+      }
+    }
+  },
+  "forwardPorts": [
+    80,
+    5432,
+    6379
+  ],
+  "postCreateCommand": "composer install && php bin/console cache:clear",
+  "remoteUser": "root"
+}

@@ -1,0 +1,41 @@
+# Fly.io Configuration
+# https://fly.io
+
+app = "to-do-list"
+primary_region = "sea"
+
+[build]
+  dockerfile = "Dockerfile.prod"
+
+[env]
+  APP_ENV = "prod"
+  PHP_VERSION = "8.4"
+
+[http_service]
+  internal_port = 80
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 250
+    soft_limit = 200
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512
+
+[[mounts]]
+  source = "var_data"
+  destination = "/var/www/html/var"
+
+[[statics]]
+  guest_path = "/var/www/html/public"
+  url_prefix = "/"
+
+[deploy]
+  release_command = "php bin/console doctrine:migrations:migrate --no-interaction"

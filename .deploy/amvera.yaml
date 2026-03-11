@@ -1,0 +1,68 @@
+# Amvera Cloud Configuration
+# https://docs.amvera.ru/
+
+meta:
+  name: to-do-list
+  version: 1.0.0
+
+build:
+  type: docker
+  dockerfile: Dockerfile.prod
+  context: .
+
+deploy:
+  type: docker-compose
+  containers:
+    - name: app
+      image: ${image}
+      resources:
+        cpu: 512
+        memory: 512MB
+      env:
+        - APP_ENV=prod
+        - APP_SECRET=${APP_SECRET}
+        - DATABASE_URL=${DATABASE_URL}
+        - REDIS_URL=${REDIS_URL}
+        - MAILER_DSN=${MAILER_DSN}
+        - MAILER_FROM_EMAIL=${MAILER_FROM_EMAIL}
+        - MAILER_FROM_NAME=${MAILER_FROM_NAME}
+      volumes:
+        - name: var-data
+          mountPath: /var/www/html/var
+      healthcheck:
+        httpGet:
+          path: /health
+          port: 80
+        initialDelaySeconds: 30
+        periodSeconds: 10
+
+    - name: database
+      image: postgres:16-alpine
+      env:
+        - POSTGRES_DB=${POSTGRES_DB:-app}
+        - POSTGRES_USER=${POSTGRES_USER:-app}
+        - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      volumes:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+      healthcheck:
+        exec:
+          command: ["pg_isready", "-d", "${POSTGRES_DB:-app}", "-U", "${POSTGRES_USER:-app}"]
+        initialDelaySeconds: 30
+        periodSeconds: 10
+
+    - name: redis
+      image: redis:7-alpine
+      volumes:
+        - name: redis-data
+          mountPath: /data
+      healthcheck:
+        exec:
+          command: ["redis-cli", "ping"]
+        initialDelaySeconds: 10
+        periodSeconds: 5
+
+volumes:
+  - name: var-data
+  - name: postgres-data
+  - name: redis-data
