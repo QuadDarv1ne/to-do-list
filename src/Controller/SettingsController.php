@@ -106,6 +106,31 @@ class SettingsController extends AbstractController
     }
 
     /**
+     * Save general settings
+     */
+    #[Route('/save', name: 'app_settings_save', methods: ['POST'])]
+    public function saveSettings(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $user = $this->getUser();
+
+        // Save settings to session or database
+        $settings = [
+            'profileVisibility' => $data['profileVisibility'] ?? 'all',
+            'onlineStatus' => $data['onlineStatus'] ?? true,
+            'activityHistory' => $data['activityHistory'] ?? true,
+        ];
+
+        $request->getSession()->set('user_settings', $settings);
+
+        return $this->json([
+            'success' => true,
+            'message' => 'Настройки сохранены',
+            'settings' => $settings,
+        ]);
+    }
+
+    /**
      * Export user data
      */
     #[Route('/export-data', name: 'app_settings_export_data', methods: ['GET'])]
