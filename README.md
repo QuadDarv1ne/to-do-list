@@ -452,4 +452,36 @@ Proprietary - ООО «Дальневосточный фермер»
 
 ---
 
+## 🚀 Деплой
+
+Проект поддерживает развертывание на следующих платформах:
+
+| Платформа | Тип | Бесплатный тариф | Ссылка |
+|-----------|-----|------------------|--------|
+| **Amvera** ☁️ | PaaS (Россия) | ❌ | [amvera.ru](https://amvera.ru) |
+| **Railway** 🚀 | PaaS | ✅ $5/мес | [railway.app](https://railway.app) |
+| **Render** 🎨 | PaaS | ✅ | [render.com](https://render.com) |
+| **Fly.io** 🪂 | IaaS | ✅ ~3 VM | [fly.io](https://fly.io) |
+| **Heroku** 📮 | PaaS | ❌ | [heroku.com](https://heroku.com) |
+
+### Быстрый старт
+
+```bash
+# Amvera
+amvera login && amvera deploy
+
+# Railway
+railway login && railway up
+
+# Fly.io
+fly auth login && fly deploy --dockerfile Dockerfile.prod
+
+# Render
+# Подключите репозиторий в Render Dashboard
+```
+
+📖 **Подробная документация:** [DEPLOYMENT.md](DEPLOYMENT.md)
+
+---
+
 Сделано с ❤️ для ООО «Дальневосточный фермер»

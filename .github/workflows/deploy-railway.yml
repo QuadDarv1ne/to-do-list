@@ -1,0 +1,44 @@
+name: Deploy to Railway
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - 'README.md'
+
+env:
+  PHP_VERSION: '8.4'
+
+jobs:
+  deploy:
+    name: Deploy to Railway
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: pdo_pgsql, intl, opcache
+
+      - name: Install Composer dependencies
+        run: composer install --no-progress --prefer-dist --optimize-autoloader --no-dev
+
+      - name: Build Docker image
+        run: docker build -t to-do-list:${{ github.sha }} -f Dockerfile.prod .
+
+      - name: Deploy to Railway
+        uses: railwayapp/deploy@v1
+        with:
+          railway-token: ${{ secrets.RAILWAY_TOKEN }}
+          railway-environment-id: ${{ secrets.RAILWAY_ENVIRONMENT_ID }}
+          dockerfile: Dockerfile.prod
+
+      - name: Health check
+        run: |
+          curl -f https://${{ secrets.RAILWAY_DOMAIN }}/health || exit 1

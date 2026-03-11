@@ -60,3 +60,14 @@ ehthumbs.db
 ###> Логи ###
 *.log
 ###< Логи ###
+
+###> Qwen ###
+.qwen/
+gha-creds-*.json
+###< Qwen ###
+
+###> Деплой конфигурации ###
+.deploy/*.local.yaml
+vercel.local.json
+fly.local.toml
+###< Деплой конфигурации ###

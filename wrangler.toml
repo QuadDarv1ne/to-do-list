@@ -1,0 +1,9 @@
+# Cloudflare Configuration
+# Cloudflare Pages не поддерживает PHP напрямую
+# Используйте Cloudflare Tunnel с Docker хостом
+
+name = "to-do-list"
+compatibility_date = "2024-01-01"
+
+[vars]
+APP_ENV = "prod"

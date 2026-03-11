@@ -1,0 +1,28 @@
+# Netlify Configuration
+# Netlify не поддерживает PHP напрямую - используйте Docker
+
+[build]
+  publish = "public"
+  command = "composer install --no-dev --optimize-autoloader && php bin/console cache:clear"
+
+[build.environment]
+  APP_ENV = "prod"
+  PHP_VERSION = "8.4"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.php"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/build/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

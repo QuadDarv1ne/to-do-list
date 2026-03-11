@@ -1,0 +1,46 @@
+# Render Configuration
+# https://render.com
+
+services:
+  - type: web
+    name: to-do-list
+    env: docker
+    region: oregon
+    plan: starter
+    branch: main
+    dockerfilePath: ./Dockerfile.prod
+    healthCheckPath: /health
+    envVars:
+      - key: APP_ENV
+        value: prod
+      - key: APP_SECRET
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: MAILER_DSN
+        sync: false
+      - key: MAILER_FROM_EMAIL
+        value: noreply@example.com
+      - key: MAILER_FROM_NAME
+        value: "To-Do List"
+    disk:
+      name: var-data
+      mountPath: /var/www/html/var
+      sizeGB: 1
+
+  - type: pserv
+    name: to-do-list-db
+    env: postgres
+    region: oregon
+    plan: starter
+    databaseName: app
+    user: app
+    ipAllowList: []
+
+  - type: redis
+    name: to-do-list-redis
+    region: oregon
+    plan: starter
+    maxmemoryPolicy: noeviction

@@ -1,0 +1,74 @@
+name: Deploy to Amvera Cloud
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Окружение для деплоя'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+      branch:
+        description: 'Ветка для деплоя'
+        required: true
+        default: 'main'
+        type: string
+
+env:
+  PHP_VERSION: '8.4'
+
+jobs:
+  deploy:
+    name: Deploy to Amvera
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: pdo_pgsql, intl, opcache
+
+      - name: Install Composer dependencies
+        run: composer install --no-progress --prefer-dist --optimize-autoloader --no-dev
+
+      - name: Install Amvera CLI
+        run: |
+          curl -fsSL https://amvera.ru/install.sh | bash
+          echo "$HOME/.amvera/bin" >> $GITHUB_PATH
+
+      - name: Login to Amvera
+        run: amvera login --token ${{ secrets.AMVERA_TOKEN }}
+
+      - name: Build Docker image
+        run: docker build -t to-do-list:${{ github.sha }} -f Dockerfile.prod .
+
+      - name: Deploy to Amvera
+        run: |
+          amvera deploy \
+            --project ${{ secrets.AMVERA_PROJECT_ID }} \
+            --image to-do-list:${{ github.sha }} \
+            --vars APP_ENV=${{ github.event.inputs.environment }}
+
+      - name: Run migrations
+        run: |
+          amvera exec --project ${{ secrets.AMVERA_PROJECT_ID }} \
+            -- php bin/console doctrine:migrations:migrate --no-interaction
+
+      - name: Clear cache
+        run: |
+          amvera exec --project ${{ secrets.AMVERA_PROJECT_ID }} \
+            -- php bin/console cache:clear
+
+      - name: Health check
+        run: |
+          curl -f https://${{ secrets.AMVERA_DOMAIN }}/health || exit 1
