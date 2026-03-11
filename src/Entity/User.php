@@ -1190,4 +1190,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, TwoFact
 
         return false;
     }
+
+    public function getDisplayName(): ?string
+    {
+        if ($this->firstName && $this->lastName) {
+            return trim($this->firstName . ' ' . $this->lastName);
+        }
+
+        if ($this->firstName) {
+            return $this->firstName;
+        }
+
+        return $this->username ?? $this->email;
+    }
 }
