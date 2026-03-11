@@ -41,7 +41,7 @@ doctrine:
                 filters:
                     soft_deleteable:
                         class: Gedmo\SoftDeleteable\Filter\SoftDeleteableFilter
-                        enabled: false
+                        enabled: true
                 
                 mappings:
                     App:
