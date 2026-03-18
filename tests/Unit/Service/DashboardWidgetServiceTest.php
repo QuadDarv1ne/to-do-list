@@ -2,226 +2,297 @@
 
 namespace App\Tests\Unit\Service;
 
+use App\Entity\DashboardWidget;
 use App\Entity\User;
+use App\Repository\DashboardWidgetRepository;
 use App\Repository\TaskRepository;
-use App\Repository\UserPreferenceRepository;
 use App\Service\DashboardWidgetService;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \App\Service\DashboardWidgetService
+ */
 class DashboardWidgetServiceTest extends TestCase
 {
-    private TaskRepository $taskRepository;
-
-    private EntityManagerInterface $entityManager;
-
-    private UserPreferenceRepository $preferenceRepository;
-
+    private EntityManagerInterface|MockObject $em;
+    private TaskRepository|MockObject $taskRepo;
+    private DashboardWidgetRepository|MockObject $widgetRepo;
     private DashboardWidgetService $widgetService;
 
     protected function setUp(): void
     {
-        $this->taskRepository = $this->createMock(TaskRepository::class);
-        $this->entityManager = $this->createMock(EntityManagerInterface::class);
-        $this->preferenceRepository = $this->createMock(UserPreferenceRepository::class);
+        $this->em = $this->createMock(EntityManagerInterface::class);
+        $this->taskRepo = $this->createMock(TaskRepository::class);
+        $this->widgetRepo = $this->createMock(DashboardWidgetRepository::class);
+
         $this->widgetService = new DashboardWidgetService(
-            $this->taskRepository,
-            $this->entityManager,
-            $this->preferenceRepository,
+            $this->em,
+            $this->taskRepo,
+            $this->widgetRepo,
         );
     }
 
-    public function testGetAvailableWidgetsReturnsAllWidgets(): void
+    public function testGetUserWidgets(): void
     {
-        $widgets = $this->widgetService->getAvailableWidgets();
+        // Arrange
+        $user = new User();
+        $user->setEmail('test@example.com');
+        $user->setUsername('testuser');
 
-        $this->assertIsArray($widgets);
-        $this->assertArrayHasKey('task_stats', $widgets);
-        $this->assertArrayHasKey('recent_tasks', $widgets);
-        $this->assertArrayHasKey('overdue_tasks', $widgets);
-        $this->assertArrayHasKey('upcoming_deadlines', $widgets);
-        $this->assertArrayHasKey('productivity_chart', $widgets);
-        $this->assertArrayHasKey('priority_distribution', $widgets);
-        $this->assertArrayHasKey('category_breakdown', $widgets);
-        $this->assertArrayHasKey('team_activity', $widgets);
-        $this->assertArrayHasKey('quick_actions', $widgets);
-        $this->assertArrayHasKey('notifications_widget', $widgets);
+        $widgets = [
+            new DashboardWidget(),
+            new DashboardWidget(),
+        ];
+
+        $this->widgetRepo->expects(self::once())
+            ->method('findBy')
+            ->with(
+                ['user' => $user, 'isActive' => true],
+                ['position' => 'ASC']
+            )
+            ->willReturn($widgets);
+
+        // Act
+        $result = $this->widgetService->getUserWidgets($user);
+
+        // Assert
+        $this->assertCount(2, $result);
     }
 
-    public function testGetWidgetDataReturnsCorrectDataForTaskStats(): void
+    public function testGetWidgetDataForStatsOverview(): void
     {
-        $user = $this->createMock(User::class);
+        // Arrange
+        $widget = new DashboardWidget();
+        $widget->setType('stats_overview');
+        $widget->setTitle('Общая статистика');
 
-        $this->taskRepository
-            ->expects($this->once())
-            ->method('getQuickStats')
-            ->with($user)
-            ->willReturn(['total' => 10, 'completed' => 5]);
+        $user = new User();
+        $user->setEmail('test@example.com');
+        $user->setUsername('testuser');
 
-        $data = $this->widgetService->getWidgetData('task_stats', $user);
+        $taskRepoResult = [
+            'total_tasks' => 100,
+            'completed_tasks' => 60,
+            'pending_tasks' => 30,
+            'in_progress_tasks' => 10,
+            'overdue_tasks' => 5,
+        ];
 
-        $this->assertEquals(['total' => 10, 'completed' => 5], $data);
-    }
+        // Создаём mock для TaskRepository с методом performGetDashboardStats
+        $taskRepoMock = $this->createMock(TaskRepository::class);
+        $taskRepoMock->method('performGetDashboardStats')
+            ->willReturn($taskRepoResult);
 
-    public function testGetUserWidgetsReturnsDefaultsWhenNoPreferenceExists(): void
-    {
-        $user = $this->createMock(User::class);
-        $user->method('getId')->willReturn(1);
+        $widgetService = new DashboardWidgetService(
+            $this->em,
+            $taskRepoMock,
+            $this->widgetRepo,
+        );
 
-        $this->preferenceRepository
-            ->expects($this->once())
-            ->method('findByUserAndKey')
-            ->with(1, 'widget_settings')
-            ->willReturn(null);
+        // Act
+        $data = $widgetService->getWidgetData($widget, $user);
 
-        $widgets = $this->widgetService->getUserWidgets($user);
-
-        $this->assertIsArray($widgets);
-        $this->assertArrayHasKey('task_stats', $widgets);
-        $this->assertArrayHasKey('recent_tasks', $widgets);
-        $this->assertArrayHasKey('upcoming_deadlines', $widgets);
-        $this->assertArrayHasKey('productivity_chart', $widgets);
-        $this->assertTrue($widgets['task_stats']['enabled']);
-    }
-
-    public function testGetUserWidgetsReturnsStoredPreference(): void
-    {
-        $user = $this->createMock(User::class);
-        $user->method('getId')->willReturn(1);
-
-        $preference = $this->createMock(\App\Entity\UserPreference::class);
-        $preference->method('getPreferenceValue')->willReturn([
-            'custom_widget' => ['enabled' => true, 'position' => 1],
-        ]);
-
-        $this->preferenceRepository
-            ->expects($this->once())
-            ->method('findByUserAndKey')
-            ->with(1, 'widget_settings')
-            ->willReturn($preference);
-
-        $widgets = $this->widgetService->getUserWidgets($user);
-
-        $this->assertEquals([
-            'custom_widget' => ['enabled' => true, 'position' => 1],
-        ], $widgets);
-    }
-
-    public function testSaveUserWidgetsValidatesAndSavesWidgets(): void
-    {
-        // Skip complex validation test for now
-        $this->markTestSkipped('Requires proper User mock integration');
-    }
-
-    public function testEnableWidgetAddsNewWidget(): void
-    {
-        // Skip - requires proper integration testing
-        $this->markTestSkipped('Requires proper User mock integration');
-    }
-
-    public function testDisableWidget(): void
-    {
-        // Skip - requires proper integration testing
-        $this->markTestSkipped('Requires proper User mock integration');
-    }
-
-    public function testUpdateWidgetConfig(): void
-    {
-        // Skip - requires proper integration testing
-        $this->markTestSkipped('Requires proper User mock integration');
-    }
-
-    public function testUpdateWidgetConfigWithNonExistentWidget(): void
-    {
-        $user = $this->createMock(User::class);
-        $user->method('getId')->willReturn(1);
-
-        $this->preferenceRepository
-            ->expects($this->once())
-            ->method('findByUserAndKey')
-            ->with(1, 'widget_settings')
-            ->willReturn(null);
-
-        $result = $this->widgetService->updateWidgetConfig($user, 'non_existent', []);
-
-        $this->assertFalse($result);
-    }
-
-    public function testGetEnabledWidgetsReturnsOnlyEnabled(): void
-    {
-        $user = $this->createMock(User::class);
-        $user->method('getId')->willReturn(1);
-
-        $this->preferenceRepository
-            ->expects($this->once())
-            ->method('findByUserAndKey')
-            ->with(1, 'widget_settings')
-            ->willReturn(null);
-
-        $enabledWidgets = $this->widgetService->getEnabledWidgets($user);
-
-        $this->assertIsArray($enabledWidgets);
-        $this->assertCount(4, $enabledWidgets); // 4 default widgets are enabled
-    }
-
-    public function testGetRecentTasksData(): void
-    {
-        $user = $this->createMock(User::class);
-
-        // Just test that method returns array with tasks key
-        $data = $this->widgetService->getWidgetData('recent_tasks', $user);
-
+        // Assert
         $this->assertIsArray($data);
-        $this->assertArrayHasKey('tasks', $data);
+        $this->assertEquals(100, $data['total']);
+        $this->assertEquals(60, $data['completed']);
+        $this->assertEquals(60.0, $data['completion_rate']);
     }
 
-    public function testGetOverdueTasksData(): void
+    public function testGetWidgetDataForRecentTasks(): void
     {
-        // Skip - service has issues with null handling
-        $this->markTestSkipped('Service needs null check fixes');
+        // Arrange
+        $widget = new DashboardWidget();
+        $widget->setType('recent_tasks');
+        $widget->setTitle('Последние задачи');
+        $widget->setConfiguration(['limit' => 5]);
+
+        $user = new User();
+        $user->setEmail('test@example.com');
+        $user->setUsername('testuser');
+
+        $tasks = [];
+        for ($i = 0; $i < 5; $i++) {
+            $task = new \App\Entity\Task();
+            $task->setTitle('Task ' . $i);
+            $tasks[] = $task;
+        }
+
+        $this->taskRepo->expects(self::once())
+            ->method('findByUserWithFilters')
+            ->willReturn($tasks);
+
+        // Act
+        $data = $this->widgetService->getWidgetData($widget, $user);
+
+        // Assert
+        $this->assertCount(5, $data);
     }
 
-    public function testGetPriorityDistributionData(): void
+    public function testGetWidgetDataForQuickActions(): void
     {
-        // Skip - requires proper QueryBuilder mocking
-        $this->markTestSkipped('Requires proper QueryBuilder mock integration');
-    }
+        // Arrange
+        $widget = new DashboardWidget();
+        $widget->setType('quick_actions');
+        $widget->setTitle('Быстрые действия');
 
-    public function testGetCategoryBreakdownData(): void
-    {
-        $user = $this->createMock(User::class);
+        $user = new User();
 
-        // Just test that method returns array with categories key
-        $data = $this->widgetService->getWidgetData('category_breakdown', $user);
+        // Act
+        $data = $this->widgetService->getWidgetData($widget, $user);
 
+        // Assert
         $this->assertIsArray($data);
-        $this->assertArrayHasKey('categories', $data);
+        $this->assertNotEmpty($data);
+        $this->assertArrayHasKey('id', $data[0]);
+        $this->assertArrayHasKey('label', $data[0]);
+        $this->assertArrayHasKey('icon', $data[0]);
+        $this->assertArrayHasKey('url', $data[0]);
     }
 
-    public function testGetQuickActionsData(): void
+    public function testGetWidgetDataForUnknownType(): void
     {
-        $user = $this->createMock(User::class);
+        // Arrange
+        $widget = new DashboardWidget();
+        $widget->setType('unknown_type');
 
-        $data = $this->widgetService->getWidgetData('quick_actions', $user);
+        $user = new User();
 
-        $this->assertArrayHasKey('actions', $data);
-        $this->assertCount(4, $data['actions']);
-        $this->assertEquals('Новая задача', $data['actions'][0]['label']);
+        // Act
+        $data = $this->widgetService->getWidgetData($widget, $user);
+
+        // Assert
+        $this->assertIsArray($data);
+        $this->assertEmpty($data);
     }
 
-    public function testGetTeamActivityDataWithExceptionHandling(): void
+    public function testCreateDefaultWidgets(): void
     {
-        $user = $this->createMock(User::class);
+        // Arrange
+        $user = new User();
+        $user->setEmail('test@example.com');
+        $user->setUsername('testuser');
 
-        // Mock entity manager to throw exception when accessing ActivityLog repository
-        $this->entityManager
-            ->method('getRepository')
-            ->with($this->stringContains('ActivityLog'))
-            ->willThrowException(new \Exception('Table does not exist'));
+        $this->widgetRepo->expects(self::exactly(4))
+            ->method('findOneBy')
+            ->willReturn(null); // Виджетов нет, создаём новые
 
-        $data = $this->widgetService->getWidgetData('team_activity', $user);
+        $this->em->expects(self::exactly(4))
+            ->method('persist');
 
-        $this->assertArrayHasKey('activities', $data);
-        $this->assertEmpty($data['activities']);
+        $this->em->expects(self::once())
+            ->method('flush');
+
+        // Act
+        $this->widgetService->createDefaultWidgets($user);
+
+        // Assert
+        // Ожидается создание 4 виджетов по умолчанию
+        $this->assertTrue(true);
+    }
+
+    public function testUpdateWidgetPosition(): void
+    {
+        // Arrange
+        $widget = new DashboardWidget();
+        $widget->setType('stats_overview');
+        $widget->setPosition(0);
+
+        $this->em->expects(self::once())
+            ->method('flush');
+
+        // Act
+        $this->widgetService->updateWidgetPosition($widget, 5);
+
+        // Assert
+        $this->assertEquals(5, $widget->getPosition());
+    }
+
+    public function testUpdateWidgetConfiguration(): void
+    {
+        // Arrange
+        $widget = new DashboardWidget();
+        $widget->setType('recent_tasks');
+        $widget->setConfiguration(['limit' => 5]);
+
+        $newConfig = ['limit' => 10, 'status' => 'pending'];
+
+        $this->em->expects(self::once())
+            ->method('flush');
+
+        // Act
+        $this->widgetService->updateWidgetConfiguration($widget, $newConfig);
+
+        // Assert
+        $this->assertEquals($newConfig, $widget->getConfiguration());
+    }
+
+    public function testRemoveWidget(): void
+    {
+        // Arrange
+        $widget = new DashboardWidget();
+        $widget->setType('stats_overview');
+        $widget->setIsActive(true);
+
+        $this->em->expects(self::once())
+            ->method('flush');
+
+        // Act
+        $this->widgetService->removeWidget($widget);
+
+        // Assert
+        $this->assertFalse($widget->isActive());
+    }
+
+    public function testResetToDefaults(): void
+    {
+        // Arrange
+        $user = new User();
+        $user->setEmail('test@example.com');
+        $user->setUsername('testuser');
+
+        $existingWidget = new DashboardWidget();
+        $existingWidget->setIsActive(true);
+
+        $this->widgetRepo->expects(self::once())
+            ->method('findBy')
+            ->willReturn([$existingWidget]);
+
+        $this->em->expects(self::atLeastOnce())
+            ->method('flush');
+
+        // Act
+        $this->widgetService->resetToDefaults($user);
+
+        // Assert
+        $this->assertFalse($existingWidget->isActive());
+    }
+
+    public function testGetAvailableTypes(): void
+    {
+        // Act
+        $types = DashboardWidget::getAvailableTypes();
+
+        // Assert
+        $this->assertIsArray($types);
+        $this->assertArrayHasKey('stats_overview', $types);
+        $this->assertArrayHasKey('task_progress', $types);
+        $this->assertArrayHasKey('recent_tasks', $types);
+        $this->assertCount(10, $types);
+    }
+
+    public function testGetSizes(): void
+    {
+        // Act
+        $sizes = DashboardWidget::getSizes();
+
+        // Assert
+        $this->assertIsArray($sizes);
+        $this->assertCount(3, $sizes);
+        $this->assertEquals('small (1 колонка)', $sizes[1]);
+        $this->assertEquals('medium (2 колонки)', $sizes[2]);
+        $this->assertEquals('large (3 колонки)', $sizes[3]);
     }
 }
