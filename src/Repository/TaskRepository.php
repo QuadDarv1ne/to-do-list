@@ -1176,4 +1176,49 @@ class TaskRepository extends ServiceEntityRepository
             'overdue_tasks' => (int)($results['overdue_tasks'] ?? 0),
         ];
     }
+
+    /**
+     * Найти задачи пользователя с фильтрами (для экспорта)
+     */
+    public function findByUserWithFilters(User $user, array $filters = []): array
+    {
+        $qb = $this->createQueryBuilder('t')
+            ->leftJoin('t.tags', 'tags')->addSelect('tags')
+            ->where('t.user = :user OR t.assignedUser = :user')
+            ->setParameter('user', $user)
+            ->orderBy('t.createdAt', 'DESC');
+
+        if (!empty($filters['status'])) {
+            $qb->andWhere('t.status = :status')
+                ->setParameter('status', $filters['status']);
+        }
+
+        if (!empty($filters['priority'])) {
+            $qb->andWhere('t.priority = :priority')
+                ->setParameter('priority', $filters['priority']);
+        }
+
+        if (!empty($filters['search'])) {
+            $qb->andWhere('LOWER(t.title) LIKE :search OR LOWER(t.description) LIKE :search')
+                ->setParameter('search', '%' . strtolower($filters['search']) . '%');
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * Количество просроченных задач
+     */
+    public function countOverdue(User $user): int
+    {
+        return (int) $this->createQueryBuilder('t')
+            ->select('COUNT(t.id)')
+            ->where('t.user = :user OR t.assignedUser = :user')
+            ->andWhere('t.dueDate < :now AND t.status != :completed')
+            ->setParameter('user', $user)
+            ->setParameter('now', new \DateTime())
+            ->setParameter('completed', 'completed')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }
