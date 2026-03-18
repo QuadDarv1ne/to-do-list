@@ -106,4 +106,32 @@ class NotificationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Подсчитать уведомления старше даты
+     */
+    public function countOlderThan(\DateTime $date): int
+    {
+        return (int) $this->createQueryBuilder('n')
+            ->select('COUNT(n.id)')
+            ->where('n.createdAt < :date')
+            ->setParameter('date', $date)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * Удалить прочитанные уведомления старше даты
+     */
+    public function removeReadOlderThan(\DateTime $date): int
+    {
+        return $this->createQueryBuilder('n')
+            ->delete()
+            ->where('n.isRead = :isRead')
+            ->andWhere('n.createdAt < :date')
+            ->setParameter('isRead', true)
+            ->setParameter('date', $date)
+            ->getQuery()
+            ->execute();
+    }
 }
