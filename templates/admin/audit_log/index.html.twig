@@ -1,0 +1,198 @@
+{% extends 'base.html.twig %}
+
+{% block title %}Журнал аудита{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .audit-log-container { padding: 2rem; }
+    .audit-filters { background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; }
+    .audit-table { width: 100%; border-collapse: collapse; }
+    .audit-table th, .audit-table td { padding: 0.75rem; border: 1px solid #dee2e6; }
+    .audit-table th { background: #e9ecef; font-weight: 600; }
+    .audit-table tr:hover { background: #f8f9fa; }
+    .audit-action { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.875rem; font-weight: 500; }
+    .audit-action-create { background: #d4edda; color: #155724; }
+    .audit-action-update { background: #fff3cd; color: #856404; }
+    .audit-action-delete { background: #f8d7da; color: #721c24; }
+    .audit-action-login { background: #d1ecf1; color: #0c5460; }
+    .audit-action-logout { background: #e2e3e5; color: #383d41; }
+    .audit-changes { font-size: 0.875rem; color: #6c757d; }
+    .pagination { display: flex; gap: 0.5rem; list-style: none; padding: 0; margin-top: 1rem; }
+    .pagination a, .pagination span { padding: 0.5rem 1rem; border: 1px solid #dee2e6; border-radius: 4px; text-decoration: none; color: #007bff; }
+    .pagination .active { background: #007bff; color: white; border-color: #007bff; }
+    .stats-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .stat-card h3 { margin: 0 0 0.5rem 0; font-size: 0.875rem; color: #6c757d; }
+    .stat-card .value { font-size: 2rem; font-weight: 700; color: #212529; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="audit-log-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>📋 Журнал аудита</h1>
+        <a href="{{ path('admin_audit_log_statistics') }}" class="btn btn-info">
+            📊 Статистика
+        </a>
+    </div>
+
+    {# Статистика #}
+    <div class="stats-cards">
+        <div class="stat-card">
+            <h3>Всего записей</h3>
+            <div class="value">{{ total }}</div>
+        </div>
+        <div class="stat-card">
+            <h3>Уникальных действий</h3>
+            <div class="value">{{ actions|length }}</div>
+        </div>
+        <div class="stat-card">
+            <h3>Записей сегодня</h3>
+            <div class="value" id="today-count">-</div>
+        </div>
+    </div>
+
+    {# Фильтры #}
+    <div class="audit-filters">
+        <form method="get" action="{{ path('admin_audit_log') }}">
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="action" class="form-label">Действие</label>
+                    <select name="action" id="action" class="form-select">
+                        <option value="">Все действия</option>
+                        {% for action in actions %}
+                            <option value="{{ action.action }}" {{ filters.action == action.action ? 'selected' : '' }}>
+                                {{ action.action }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="entity" class="form-label">Сущность</label>
+                    <input type="text" name="entity" id="entity" class="form-control" 
+                           value="{{ filters.entity }}" placeholder="App\Entity\Task">
+                </div>
+                <div class="col-md-2">
+                    <label for="date_from" class="form-label">С даты</label>
+                    <input type="date" name="date_from" id="date_from" class="form-control" 
+                           value="{{ filters.date_from }}">
+                </div>
+                <div class="col-md-2">
+                    <label for="date_to" class="form-label">По дату</label>
+                    <input type="date" name="date_to" id="date_to" class="form-control" 
+                           value="{{ filters.date_to }}">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">🔍 Фильтр</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {# Таблица #}
+    <div class="table-responsive">
+        <table class="audit-table">
+            <thead>
+                <tr>
+                    <th>Дата/Время</th>
+                    <th>Действие</th>
+                    <th>Сущность</th>
+                    <th>ID</th>
+                    <th>Пользователь</th>
+                    <th>IP адрес</th>
+                    <th>Изменения</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>{{ log.createdAt|date('d.m.Y H:i') }}</td>
+                    <td>
+                        <span class="audit-action audit-action-{{ log.action }}">
+                            {{ log.action }}
+                        </span>
+                    </td>
+                    <td>{{ log.entityName }}</td>
+                    <td>{{ log.entityId }}</td>
+                    <td>
+                        {% if log.user %}
+                            {{ log.userName }}<br>
+                            <small class="text-muted">{{ log.userEmail }}</small>
+                        {% else %}
+                            {{ log.userName ?: 'Система' }}
+                        {% endif %}
+                    </td>
+                    <td><code>{{ log.ipAddress ?: '-' }}</code></td>
+                    <td class="audit-changes">
+                        {% if log.changes %}
+                            {% if log.oldValues is defined and log.oldValues %}
+                                <details>
+                                    <summary>Показать изменения</summary>
+                                    <pre>{{ log.changes|json_encode(JSON_PRETTY_PRINT) }}</pre>
+                                </details>
+                            {% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">
+                        Записей не найдено
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {# Пагинация #}
+    {% if pages > 1 %}
+    <nav aria-label="Пагинация">
+        <ul class="pagination justify-content-center">
+            {% if page > 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ path('admin_audit_log', filters|merge({page: page - 1})) }}">← Пред.</a>
+                </li>
+            {% endif %}
+
+            {% for i in 1..pages %}
+                {% if i == 1 or i == pages or (i >= page - 2 and i <= page + 2) %}
+                    <li class="page-item {{ i == page ? 'active' : '' }}">
+                        <a class="page-link" href="{{ path('admin_audit_log', filters|merge({page: i})) }}">{{ i }}</a>
+                    </li>
+                {% elseif i == page - 3 or i == page + 3 %}
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                {% endif %}
+            {% endfor %}
+
+            {% if page < pages %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ path('admin_audit_log', filters|merge({page: page + 1})) }}">След. →</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<script>
+// Подсчёт записей сегодня
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    const todayLogs = document.querySelectorAll('tbody tr');
+    let count = 0;
+    
+    // Простая эвристика - можно улучшить через API
+    fetch('{{ path('admin_audit_log_statistics') }}')
+        .then(r => r.json())
+        .then(data => {
+            if (data.data && data.data.daily_activity) {
+                const todayData = data.data.daily_activity.find(d => d.date === today);
+                document.getElementById('today-count').textContent = todayData ? todayData.count : 0;
+            }
+        });
+});
+</script>
+{% endblock %}

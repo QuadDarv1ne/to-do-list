@@ -2,307 +2,257 @@
 
 namespace App\Service;
 
-use App\Entity\ActivityLog;
+use App\Entity\AuditLog;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
+/**
+ * Сервис для логирования действий пользователей (Audit Log)
+ *
+ * Используется для отслеживания критических операций в системе:
+ * - Изменения в сущностях (создание, обновление, удаление)
+ * - Действия администраторов
+ * - Изменения настроек безопасности
+ * - Экспорт данных
+ */
 class AuditLogService
 {
     public function __construct(
-        private EntityManagerInterface $entityManager,
+        private EntityManagerInterface $em,
         private RequestStack $requestStack,
+        private TokenStorageInterface $tokenStorage,
     ) {
     }
 
     /**
-     * Log an action
+     * Получить текущего пользователя
+     */
+    private function getUser(): ?User
+    {
+        $token = $this->tokenStorage->getToken();
+        if (!$token) {
+            return null;
+        }
+
+        $user = $token->getUser();
+        return $user instanceof User ? $user : null;
+    }
+
+    /**
+     * Логирование действия
+     *
+     * @param string $entityClass Класс сущности (например, App\Entity\Task)
+     * @param int|string $entityId ID сущности
+     * @param string $action Действие (create, update, delete, export, login, etc.)
+     * @param array $changes Изменения (oldValues и newValues)
+     * @param string|null $reason Причина изменения (для административных действий)
      */
     public function log(
+        string $entityClass,
+        int|string $entityId,
         string $action,
-        string $description,
-        ?User $user = null,
-        ?string $entityType = null,
-        ?int $entityId = null,
-        ?array $metadata = null,
-    ): ActivityLog {
-        $log = new ActivityLog();
-        $log->setAction($action);
-        $log->setDescription($description);
-        $log->setUser($user);
-        $log->setEntityType($entityType);
-        $log->setEntityId($entityId);
-        $log->setCreatedAt(new \DateTimeImmutable());
-
-        // Add request metadata
+        array $changes = [],
+        ?string $reason = null,
+    ): AuditLog {
+        $user = $this->getUser();
         $request = $this->requestStack->getCurrentRequest();
+
+        $auditLog = new AuditLog();
+        $auditLog->setEntityClass($entityClass);
+        $auditLog->setEntityId((string) $entityId);
+        $auditLog->setAction($action);
+
+        // Изменения
+        if (isset($changes['old'])) {
+            $auditLog->setOldValues($changes['old']);
+        }
+        if (isset($changes['new'])) {
+            $auditLog->setNewValues($changes['new']);
+        }
+        if (!empty($changes)) {
+            $auditLog->setChanges($changes);
+        }
+
+        // Пользователь
+        if ($user instanceof User) {
+            $auditLog->setUser($user);
+            $auditLog->setUserName($user->getFullName());
+            $auditLog->setUserEmail($user->getEmail());
+        }
+
+        // IP адрес и User Agent
         if ($request) {
-            $requestMetadata = [
-                'ip' => $request->getClientIp(),
-                'user_agent' => $request->headers->get('User-Agent'),
-                'method' => $request->getMethod(),
-                'uri' => $request->getRequestUri(),
-            ];
-
-            if ($metadata) {
-                $metadata = array_merge($metadata, $requestMetadata);
-            } else {
-                $metadata = $requestMetadata;
-            }
+            $auditLog->setIpAddress($request->getClientIp());
+            $auditLog->setUserAgent($request->headers->get('User-Agent'));
         }
 
-        if ($metadata) {
-            $log->setMetadata($metadata);
+        // Причина (для административных действий)
+        if ($reason) {
+            $auditLog->setReason($reason);
         }
 
-        $this->entityManager->persist($log);
-        $this->entityManager->flush();
+        $this->em->persist($auditLog);
+        $this->em->flush();
 
-        return $log;
+        return $auditLog;
     }
 
     /**
-     * Log task creation
+     * Логирование создания сущности
      */
-    public function logTaskCreated(User $user, $task): void
+    public function logCreate(object $entity, array $newValues = []): AuditLog
     {
-        $this->log(
-            'task.created',
-            \sprintf('Создана задача "%s"', $task->getTitle()),
-            $user,
-            'Task',
-            $task->getId(),
-            [
-                'task_title' => $task->getTitle(),
-                'priority' => $task->getPriority(),
-                'status' => $task->getStatus(),
-            ],
+        return $this->log(
+            $entity::class,
+            $this->getEntityId($entity),
+            'create',
+            ['new' => $newValues],
         );
     }
 
     /**
-     * Log task update
+     * Логирование обновления сущности
      */
-    public function logTaskUpdated(User $user, $task, array $changes): void
+    public function logUpdate(object $entity, array $oldValues, array $newValues, ?string $reason = null): AuditLog
     {
-        $this->log(
-            'task.updated',
-            \sprintf('Обновлена задача "%s"', $task->getTitle()),
-            $user,
-            'Task',
-            $task->getId(),
+        return $this->log(
+            $entity::class,
+            $this->getEntityId($entity),
+            'update',
             [
-                'task_title' => $task->getTitle(),
-                'changes' => $changes,
+                'old' => $oldValues,
+                'new' => $newValues,
             ],
+            $reason,
         );
     }
 
     /**
-     * Log task deletion
+     * Логирование удаления сущности
      */
-    public function logTaskDeleted(User $user, $task): void
+    public function logDelete(object $entity, array $oldValues = []): AuditLog
     {
-        $this->log(
-            'task.deleted',
-            \sprintf('Удалена задача "%s"', $task->getTitle()),
-            $user,
-            'Task',
-            $task->getId(),
-            [
-                'task_title' => $task->getTitle(),
-            ],
+        return $this->log(
+            $entity::class,
+            $this->getEntityId($entity),
+            'delete',
+            ['old' => $oldValues],
         );
     }
 
     /**
-     * Log task status change
+     * Логирование входа пользователя
      */
-    public function logTaskStatusChanged(User $user, $task, string $oldStatus, string $newStatus): void
+    public function logLogin(User $user): AuditLog
     {
-        $this->log(
-            'task.status_changed',
-            \sprintf('Изменен статус задачи "%s" с "%s" на "%s"', $task->getTitle(), $oldStatus, $newStatus),
-            $user,
-            'Task',
-            $task->getId(),
-            [
-                'task_title' => $task->getTitle(),
-                'old_status' => $oldStatus,
-                'new_status' => $newStatus,
-            ],
-        );
-    }
+        $request = $this->requestStack->getCurrentRequest();
 
-    /**
-     * Log task assignment
-     */
-    public function logTaskAssigned(User $user, $task, User $assignedTo): void
-    {
-        $this->log(
-            'task.assigned',
-            \sprintf('Задача "%s" назначена пользователю %s', $task->getTitle(), $assignedTo->getFullName()),
-            $user,
-            'Task',
-            $task->getId(),
-            [
-                'task_title' => $task->getTitle(),
-                'assigned_to_id' => $assignedTo->getId(),
-                'assigned_to_name' => $assignedTo->getFullName(),
-            ],
-        );
-    }
-
-    /**
-     * Log user login
-     */
-    public function logUserLogin(User $user): void
-    {
-        $this->log(
-            'user.login',
-            \sprintf('Пользователь %s вошел в систему', $user->getFullName()),
-            $user,
-            'User',
+        return $this->log(
+            User::class,
             $user->getId(),
-        );
-    }
-
-    /**
-     * Log user logout
-     */
-    public function logUserLogout(User $user): void
-    {
-        $this->log(
-            'user.logout',
-            \sprintf('Пользователь %s вышел из системы', $user->getFullName()),
-            $user,
-            'User',
-            $user->getId(),
-        );
-    }
-
-    /**
-     * Log failed login attempt
-     */
-    public function logFailedLogin(string $email): void
-    {
-        $this->log(
-            'user.login_failed',
-            \sprintf('Неудачная попытка входа для email: %s', $email),
-            null,
-            'User',
-            null,
-            ['email' => $email],
-        );
-    }
-
-    /**
-     * Log export action
-     */
-    public function logExport(User $user, string $exportType, int $recordCount): void
-    {
-        $this->log(
-            'export.' . $exportType,
-            \sprintf('Экспорт данных (%s): %d записей', $exportType, $recordCount),
-            $user,
-            null,
-            null,
+            'login',
             [
-                'export_type' => $exportType,
-                'record_count' => $recordCount,
+                'new' => [
+                    'ip' => $request?->getClientIp(),
+                    'user_agent' => $request?->headers->get('User-Agent'),
+                ],
             ],
         );
     }
 
     /**
-     * Get activity logs for entity
+     * Логирование выхода пользователя
      */
-    public function getEntityLogs(string $entityType, int $entityId, int $limit = 50): array
+    public function logLogout(User $user): AuditLog
     {
-        return $this->entityManager->getRepository(ActivityLog::class)
-            ->findBy(
-                ['entityType' => $entityType, 'entityId' => $entityId],
-                ['createdAt' => 'DESC'],
-                $limit,
-            );
+        return $this->log(
+            User::class,
+            $user->getId(),
+            'logout',
+        );
     }
 
     /**
-     * Get user activity logs
+     * Логирование экспорта данных
      */
-    public function getUserLogs(User $user, int $limit = 50): array
+    public function logExport(string $exportType, int $recordsCount): AuditLog
     {
-        return $this->entityManager->getRepository(ActivityLog::class)
-            ->findBy(
-                ['user' => $user],
-                ['createdAt' => 'DESC'],
-                $limit,
-            );
-    }
-
-    /**
-     * Get recent activity
-     */
-    public function getRecentActivity(int $limit = 20): array
-    {
-        return $this->entityManager->getRepository(ActivityLog::class)
-            ->findBy(
-                [],
-                ['createdAt' => 'DESC'],
-                $limit,
-            );
-    }
-
-    /**
-     * Get activity statistics
-     */
-    public function getActivityStatistics(\DateTime $startDate, \DateTime $endDate): array
-    {
-        $qb = $this->entityManager->createQueryBuilder();
-
-        // Total activities
-        $totalActivities = $qb->select('COUNT(a.id)')
-            ->from(ActivityLog::class, 'a')
-            ->where('a.createdAt BETWEEN :start AND :end')
-            ->setParameter('start', $startDate)
-            ->setParameter('end', $endDate)
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        // Activities by action
-        $activitiesByAction = $this->entityManager->createQueryBuilder()
-            ->select('a.action, COUNT(a.id) as count')
-            ->from(ActivityLog::class, 'a')
-            ->where('a.createdAt BETWEEN :start AND :end')
-            ->groupBy('a.action')
-            ->orderBy('count', 'DESC')
-            ->setParameter('start', $startDate)
-            ->setParameter('end', $endDate)
-            ->getQuery()
-            ->getResult();
-
-        // Most active users
-        $mostActiveUsers = $this->entityManager->createQueryBuilder()
-            ->select('u.id, u.firstName, u.lastName, COUNT(a.id) as activity_count')
-            ->from(ActivityLog::class, 'a')
-            ->join('a.user', 'u')
-            ->where('a.createdAt BETWEEN :start AND :end')
-            ->groupBy('u.id, u.firstName, u.lastName')
-            ->orderBy('activity_count', 'DESC')
-            ->setMaxResults(10)
-            ->setParameter('start', $startDate)
-            ->setParameter('end', $endDate)
-            ->getQuery()
-            ->getResult();
-
-        return [
-            'total_activities' => (int)$totalActivities,
-            'activities_by_action' => $activitiesByAction,
-            'most_active_users' => $mostActiveUsers,
-            'period' => [
-                'start' => $startDate->format('Y-m-d'),
-                'end' => $endDate->format('Y-m-d'),
+        return $this->log(
+            'Export',
+            $exportType,
+            'export',
+            [
+                'new' => [
+                    'type' => $exportType,
+                    'records' => $recordsCount,
+                ],
             ],
-        ];
+        );
+    }
+
+    /**
+     * Логирование изменения настроек
+     */
+    public function logSettingsChange(string $settingName, mixed $oldValue, mixed $newValue): AuditLog
+    {
+        return $this->log(
+            'Settings',
+            $settingName,
+            'settings_change',
+            [
+                'old' => ['value' => $oldValue],
+                'new' => ['value' => $newValue],
+            ],
+        );
+    }
+
+    /**
+     * Логирование изменения прав доступа
+     */
+    public function logPermissionChange(User $targetUser, string $oldRole, string $newRole): AuditLog
+    {
+        return $this->log(
+            User::class,
+            $targetUser->getId(),
+            'permission_change',
+            [
+                'old' => ['role' => $oldRole],
+                'new' => ['role' => $newRole],
+            ],
+            sprintf('Изменение роли: %s → %s', $oldRole, $newRole),
+        );
+    }
+
+    /**
+     * Получить ID сущности
+     */
+    private function getEntityId(object $entity): int|string
+    {
+        if (method_exists($entity, 'getId')) {
+            $id = $entity->getId();
+            return $id !== null ? $id : 'new';
+        }
+
+        return 'unknown';
+    }
+
+    /**
+     * Массовое логирование (для пакетных операций)
+     *
+     * @param array<int, array> $operations
+     */
+    public function logBatch(array $operations): void
+    {
+        foreach ($operations as $op) {
+            $this->log(
+                $op['entityClass'],
+                $op['entityId'],
+                $op['action'],
+                $op['changes'] ?? [],
+                $op['reason'] ?? null,
+            );
+        }
     }
 }
