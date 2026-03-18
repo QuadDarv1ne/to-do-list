@@ -31,6 +31,7 @@
         "scheb/2fa-bundle": ">=8.3",
         "scheb/2fa-google-authenticator": ">=8.3",
         "sentry/sentry-symfony": "^5.8",
+        "stof/doctrine-extensions-bundle": "^1.15",
         "symfony/asset": "8.0.*",
         "symfony/asset-mapper": "8.0.*",
         "symfony/console": "8.0.*",

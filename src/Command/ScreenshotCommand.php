@@ -28,7 +28,7 @@ class ScreenshotCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addArgument('url', InputArgument::REQUIRED, 'URL страницы для скриншота')
+            ->addArgument('url', InputArgument::OPTIONAL, 'URL страницы для скриншота')
             ->addArgument('filename', InputArgument::OPTIONAL, 'Имя файла (необязательно)')
             ->addOption('width', null, InputOption::VALUE_REQUIRED, 'Ширина viewport', '1920')
             ->addOption('height', null, InputOption::VALUE_REQUIRED, 'Высота viewport', '1080')
