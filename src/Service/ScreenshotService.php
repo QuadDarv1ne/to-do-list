@@ -38,10 +38,10 @@ class ScreenshotService
         array $options = []
     ): array {
         // Нормализация URL
-        $url = $this->normalizeUrl($url);
+        $normalizedUrl = $this->normalizeUrl($url);
         
         // Генерация имени файла
-        $filename = $filename ?? $this->generateFilename($url);
+        $filename = $filename ?? $this->generateFilename($normalizedUrl);
         $filepath = $this->getScreenshotPath($filename);
         
         // Создаём директорию если не существует
@@ -52,12 +52,12 @@ class ScreenshotService
         }
         
         // Если есть внешний API - используем его
-        if ($this->screenshotApiUrl) {
-            return $this->takeScreenshotViaApi($url, $filepath, $options);
+        if ($this->screenshotApiUrl && $this->screenshotApiUrl !== 'null') {
+            return $this->takeScreenshotViaApi($normalizedUrl, $filepath, $options);
         }
         
         // Иначе генерируем HTML-превью
-        return $this->generateHtmlPreview($url, $filepath, $options);
+        return $this->generateHtmlPreview($normalizedUrl, $filepath, $options);
     }
 
     /**
@@ -184,13 +184,18 @@ class ScreenshotService
      */
     private function generateFilename(string $url): string
     {
+        // Если URL пустой или null - используем дефолтное имя
+        if (empty($url) || $url === 'null') {
+            return 'page-' . time() . '.html';
+        }
+        
         $parsed = parse_url($url);
         $path = $parsed['path'] ?? 'page';
         $host = $parsed['host'] ?? 'localhost';
         
         $slug = $this->slugger->slug(str_replace('/', '-', trim($path, '/')));
         
-        return $host . '-' . $slug . '-' . time() . '.png';
+        return $host . '-' . $slug . '-' . time() . '.html';
     }
 
     /**
