@@ -70,4 +70,10 @@ gha-creds-*.json
 .deploy/*.local.yaml
 vercel.local.json
 fly.local.toml
+# Файлы деплоя платформ хранятся в .deploy/platforms/
 ###< Деплой конфигурации ###
+
+###> Прочее ###
+.gigaide/
+$null
+###< Прочее ###
