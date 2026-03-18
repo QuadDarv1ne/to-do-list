@@ -11,31 +11,7 @@ framework:
     cache:
         # По умолчанию используем array (in-memory) для dev
         app: cache.adapter.array
-        
-        # Системный кэш
         system: cache.adapter.array
-        
-        # Пулы для различных типов кэширования
-        pools:
-            # Кэш для тяжёлых вычислений и аналитики
-            cache.analytics:
-                adapter: cache.adapter.array
-                default_lifetime: 300
-                
-            # Кэш для пользовательских данных
-            cache.user_data:
-                adapter: cache.adapter.array
-                default_lifetime: 600
-                
-            # Кэш для API ответов
-            cache.api:
-                adapter: cache.adapter.array
-                default_lifetime: 60
-                
-            # Кэш для сессий (если используется)
-            cache.sessions:
-                adapter: cache.adapter.array
-                default_lifetime: 3600
 
 # Production конфигурация с Redis
 when@prod:
@@ -45,27 +21,6 @@ when@prod:
             app: cache.adapter.redis
             system: cache.adapter.redis
             default_redis_provider: '%env(resolve:REDIS_URL)%'
-            
-            pools:
-                cache.analytics:
-                    adapter: cache.adapter.redis
-                    default_lifetime: 300
-                    provider: '%env(resolve:REDIS_URL)%'
-                    
-                cache.user_data:
-                    adapter: cache.adapter.redis
-                    default_lifetime: 600
-                    provider: '%env(resolve:REDIS_URL)%'
-                    
-                cache.api:
-                    adapter: cache.adapter.redis
-                    default_lifetime: 60
-                    provider: '%env(resolve:REDIS_URL)%'
-                    
-                cache.sessions:
-                    adapter: cache.adapter.redis
-                    default_lifetime: 3600
-                    provider: '%env(resolve:REDIS_URL)%'
 
 # Test конфигурация
 when@test:
