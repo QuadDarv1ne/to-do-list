@@ -1,0 +1,122 @@
+{# Mobile Bottom Navigation Component #}
+{# Использование: include('components/mobile-bottom-nav.html.twig') #}
+
+<nav class="mobile-bottom-nav show-mobile hide-mobile" aria-label="Основная навигация">
+    <a href="{{ path('dashboard') }}" 
+       class="mobile-bottom-nav-item {{ app.request.attributes.get('_route') == 'dashboard' ? 'active' : '' }}"
+       aria-label="Панель управления"
+       aria-current="{{ app.request.attributes.get('_route') == 'dashboard' ? 'page' : 'false' }}">
+        <i class="fas fa-home" aria-hidden="true"></i>
+        <span>Главная</span>
+    </a>
+
+    <a href="{{ path('task_index') }}" 
+       class="mobile-bottom-nav-item {{ 'task' in app.request.attributes.get('_route') ? 'active' : '' }}"
+       aria-label="Задачи"
+       aria-current="{{ 'task' in app.request.attributes.get('_route') ? 'page' : 'false' }}">
+        <i class="fas fa-tasks" aria-hidden="true"></i>
+        <span>Задачи</span>
+    </a>
+
+    <a href="{{ path('calendar') }}" 
+       class="mobile-bottom-nav-item {{ 'calendar' in app.request.attributes.get('_route') ? 'active' : '' }}"
+       aria-label="Календарь"
+       aria-current="{{ 'calendar' in app.request.attributes.get('_route') ? 'page' : 'false' }}">
+        <i class="fas fa-calendar" aria-hidden="true"></i>
+        <span>Календарь</span>
+    </a>
+
+    <a href="{{ path('kanban') }}" 
+       class="mobile-bottom-nav-item {{ 'kanban' in app.request.attributes.get('_route') ? 'active' : '' }}"
+       aria-label="Канбан доска"
+       aria-current="{{ 'kanban' in app.request.attributes.get('_route') ? 'page' : 'false' }}">
+        <i class="fas fa-columns" aria-hidden="true"></i>
+        <span>Канбан</span>
+    </a>
+
+    <a href="{{ path('profile') }}" 
+       class="mobile-bottom-nav-item {{ 'profile' in app.request.attributes.get('_route') or 'settings' in app.request.attributes.get('_route') ? 'active' : '' }}"
+       aria-label="Профиль"
+       aria-current="{{ 'profile' in app.request.attributes.get('_route') or 'settings' in app.request.attributes.get('_route') ? 'page' : 'false' }}">
+        <i class="fas fa-user" aria-hidden="true"></i>
+        <span>Профиль</span>
+    </a>
+</nav>
+
+{# Floating Action Button для мобильных #}
+{% if show_fab is defined and show_fab %}
+<button class="fab" 
+        onclick="{{ fab_action|default('window.location.href=\'' ~ path('task_create') ~ '\'') }}"
+        aria-label="{{ fab_label|default('Создать задачу') }}">
+    <i class="fas fa-plus" aria-hidden="true"></i>
+    {% if fab_label is defined %}
+    <span class="fab-label">{{ fab_label }}</span>
+    {% endif %}
+</button>
+{% endif %}
+
+{# Скрипт для обработки навигации #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Обработка long-press для быстрого доступа
+    const navItems = document.querySelectorAll('.mobile-bottom-nav-item');
+    let pressTimer;
+
+    navItems.forEach(item => {
+        item.addEventListener('touchstart', function(e) {
+            pressTimer = setTimeout(() => {
+                // Long press detected - можно показать контекстное меню
+                this.classList.add('long-press');
+            }, 500);
+        });
+
+        item.addEventListener('touchend', function(e) {
+            clearTimeout(pressTimer);
+            this.classList.remove('long-press');
+        });
+
+        item.addEventListener('touchmove', function(e) {
+            clearTimeout(pressTimer);
+        });
+    });
+
+    // Haptic feedback при навигации
+    if ('vibrate' in navigator) {
+        navItems.forEach(item => {
+            item.addEventListener('click', function() {
+                if (this.classList.contains('active')) {
+                    navigator.vibrate(10); // Лёгкая вибрация
+                }
+            });
+        });
+    }
+});
+</script>
+
+<style>
+/* Анимация для long-press */
+.mobile-bottom-nav-item.long-press {
+    animation: pulse 0.5s ease-in-out;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+/* Анимация перехода между страницами */
+.page-transition {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>

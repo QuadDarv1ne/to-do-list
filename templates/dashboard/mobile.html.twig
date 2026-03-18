@@ -1,0 +1,429 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Панель управления{% endblock %}
+
+{% block mobile_specific %}mobile-dashboard{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+/* Mobile Dashboard Specific Styles */
+.mobile-dashboard {
+    padding: 1rem;
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+}
+
+.mobile-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.mobile-stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: transform 0.2s;
+}
+
+.mobile-stat-card:active {
+    transform: scale(0.98);
+}
+
+.mobile-stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #6366f1;
+    margin-bottom: 0.25rem;
+}
+
+.mobile-stat-label {
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+.mobile-section {
+    background: white;
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.mobile-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.mobile-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.mobile-section-link {
+    font-size: 0.85rem;
+    color: #6366f1;
+    text-decoration: none;
+}
+
+.mobile-task-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.mobile-task-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.mobile-task-item:last-child {
+    border-bottom: none;
+}
+
+.mobile-task-checkbox {
+    width: 20px;
+    height: 20px;
+    margin-right: 0.75rem;
+    flex-shrink: 0;
+}
+
+.mobile-task-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.mobile-task-title {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #1e293b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mobile-task-meta {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin-top: 0.25rem;
+}
+
+.mobile-task-priority {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-left: 0.5rem;
+    flex-shrink: 0;
+}
+
+.mobile-task-priority.urgent { background: #ef4444; }
+.mobile-task-priority.high { background: #f59e0b; }
+.mobile-task-priority.medium { background: #3b82f6; }
+.mobile-task-priority.low { background: #10b981; }
+
+/* Quick Actions */
+.mobile-quick-actions {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.mobile-quick-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.75rem 0.5rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    text-decoration: none;
+    color: #64748b;
+    transition: transform 0.2s;
+}
+
+.mobile-quick-action:active {
+    transform: scale(0.95);
+}
+
+.mobile-quick-action i {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: #6366f1;
+}
+
+.mobile-quick-action span {
+    font-size: 0.7rem;
+    text-align: center;
+}
+
+/* Activity Timeline */
+.mobile-timeline {
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.mobile-timeline::before {
+    content: '';
+    position: absolute;
+    left: 0.5rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e2e8f0;
+}
+
+.mobile-timeline-item {
+    position: relative;
+    padding-bottom: 1rem;
+}
+
+.mobile-timeline-dot {
+    position: absolute;
+    left: -1.5rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #6366f1;
+    border: 2px solid white;
+    box-shadow: 0 0 0 2px #6366f1;
+}
+
+.mobile-timeline-content {
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+.mobile-timeline-time {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    margin-top: 0.25rem;
+}
+
+/* Pull to refresh indicator */
+.ptr-indicator {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    transform: translateY(-100%);
+    transition: transform 0.3s;
+    z-index: 9999;
+}
+
+.ptr-indicator.active {
+    transform: translateY(0);
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="mobile-dashboard">
+    {# Pull to refresh indicator #}
+    <div class="ptr-indicator" id="ptr-indicator">
+        <i class="fas fa-spinner fa-spin"></i>
+        <span style="margin-left: 0.5rem;">Обновление...</span>
+    </div>
+
+    {# Приветствие #}
+    <div style="margin-bottom: 1.5rem;">
+        <h1 style="font-size: 1.5rem; color: #1e293b; margin-bottom: 0.25rem;">
+            Добрый день, {{ app.user.firstName ?: app.user.username }}! 👋
+        </h1>
+        <p style="color: #64748b; font-size: 0.9rem;">
+            {{ "now"|date('l, d MMMM Y') }}
+        </p>
+    </div>
+
+    {# Быстрые действия #}
+    <div class="mobile-quick-actions">
+        <a href="{{ path('task_create') }}" class="mobile-quick-action">
+            <i class="fas fa-plus-circle"></i>
+            <span>Новая задача</span>
+        </a>
+        <a href="{{ path('task_index') }}" class="mobile-quick-action">
+            <i class="fas fa-list"></i>
+            <span>Все задачи</span>
+        </a>
+        <a href="{{ path('calendar') }}" class="mobile-quick-action">
+            <i class="fas fa-calendar"></i>
+            <span>Календарь</span>
+        </a>
+        <a href="{{ path('export_index') }}" class="mobile-quick-action">
+            <i class="fas fa-download"></i>
+            <span>Экспорт</span>
+        </a>
+    </div>
+
+    {# Статистика #}
+    <div class="mobile-stat-grid">
+        <div class="mobile-stat-card" onclick="location.href='{{ path('task_index', {'status': 'pending'}) }}'" style="cursor: pointer;">
+            <div class="mobile-stat-value">{{ stats.pending|default(0) }}</div>
+            <div class="mobile-stat-label">В ожидании</div>
+        </div>
+        <div class="mobile-stat-card" onclick="location.href='{{ path('task_index', {'status': 'in_progress'}) }}'" style="cursor: pointer;">
+            <div class="mobile-stat-value" style="color: #f59e0b;">{{ stats.in_progress|default(0) }}</div>
+            <div class="mobile-stat-label">В работе</div>
+        </div>
+        <div class="mobile-stat-card" onclick="location.href='{{ path('task_index', {'status': 'completed'}) }}'" style="cursor: pointer;">
+            <div class="mobile-stat-value" style="color: #10b981;">{{ stats.completed|default(0) }}</div>
+            <div class="mobile-stat-label">Завершено</div>
+        </div>
+        <div class="mobile-stat-card" onclick="location.href='{{ path('task_index', {'overdue': true}) }}'" style="cursor: pointer;">
+            <div class="mobile-stat-value" style="color: #ef4444;">{{ stats.overdue|default(0) }}</div>
+            <div class="mobile-stat-label">Просрочено</div>
+        </div>
+    </div>
+
+    {# Срочные задачи #}
+    <div class="mobile-section">
+        <div class="mobile-section-header">
+            <h2 class="mobile-section-title">🔥 Срочные задачи</h2>
+            <a href="{{ path('task_index', {'priority': 'urgent'}) }}" class="mobile-section-link">Все →</a>
+        </div>
+        <ul class="mobile-task-list">
+            {% for task in urgent_tasks|default([]) %}
+            <li class="mobile-task-item">
+                <input type="checkbox" class="mobile-task-checkbox" data-task-id="{{ task.id }}" {{ task.status == 'completed' ? 'checked' : '' }}>
+                <div class="mobile-task-content">
+                    <div class="mobile-task-title">{{ task.title }}</div>
+                    {% if task.dueDate %}
+                    <div class="mobile-task-meta">
+                        <i class="far fa-clock"></i>
+                        {{ task.dueDate|time_diff }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="mobile-task-priority {{ task.priority }}"></div>
+            </li>
+            {% else %}
+            <li style="text-align: center; padding: 2rem; color: #94a3b8;">
+                <i class="fas fa-check-circle" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                <p>Нет срочных задач!</p>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    {# Последние уведомления #}
+    <div class="mobile-section">
+        <div class="mobile-section-header">
+            <h2 class="mobile-section-title">🔔 Уведомления</h2>
+            <a href="{{ path('notifications') }}" class="mobile-section-link">Все →</a>
+        </div>
+        <div class="mobile-timeline">
+            {% for notification in notifications|default([]) %}
+            <div class="mobile-timeline-item">
+                <div class="mobile-timeline-dot"></div>
+                <div class="mobile-timeline-content">
+                    <strong>{{ notification.title }}</strong>
+                    <div>{{ notification.message }}</div>
+                    <div class="mobile-timeline-time">{{ notification.createdAt|time_diff }}</div>
+                </div>
+            </div>
+            {% else %}
+            <div class="mobile-timeline-item">
+                <div class="mobile-timeline-dot"></div>
+                <div class="mobile-timeline-content">
+                    Нет новых уведомлений
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{# Mobile bottom navigation #}
+{{ include('components/mobile-bottom-nav.html.twig', {show_fab: true, fab_label: 'Новая задача'}) }}
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+// Pull to refresh
+let startY = 0;
+let currentY = 0;
+let isPulling = false;
+const threshold = 100;
+
+document.addEventListener('touchstart', function(e) {
+    if (window.scrollY === 0) {
+        startY = e.touches[0].pageY;
+        isPulling = true;
+    }
+}, {passive: true});
+
+document.addEventListener('touchmove', function(e) {
+    if (!isPulling) return;
+    
+    currentY = e.touches[0].pageY;
+    const diff = currentY - startY;
+    
+    if (diff > 0 && diff < 200) {
+        e.preventDefault();
+        const indicator = document.getElementById('ptr-indicator');
+        indicator.style.transform = `translateY(${diff - 60}px)`;
+        
+        if (diff > threshold) {
+            indicator.classList.add('active');
+        }
+    }
+}, {passive: false});
+
+document.addEventListener('touchend', function(e) {
+    if (!isPulling) return;
+    isPulling = false;
+    
+    const indicator = document.getElementById('ptr-indicator');
+    
+    if (indicator.classList.contains('active')) {
+        // Refresh data
+        location.reload();
+    }
+    
+    indicator.style.transform = 'translateY(-100%)';
+    indicator.classList.remove('active');
+}, {passive: true});
+
+// Checkbox completion
+document.querySelectorAll('.mobile-task-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        const taskId = this.dataset.taskId;
+        const isChecked = this.checked;
+        
+        fetch(`/api/tasks/${taskId}/toggle`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                // Haptic feedback
+                if ('vibrate' in navigator) {
+                    navigator.vibrate(50);
+                }
+                
+                // Visual feedback
+                this.closest('.mobile-task-item').style.opacity = isChecked ? '0.5' : '1';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
