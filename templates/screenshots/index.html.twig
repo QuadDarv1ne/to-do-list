@@ -1,0 +1,443 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Скриншоты{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .screenshot-page {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 24px;
+    }
+    
+    .screenshot-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 32px;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+    
+    .screenshot-header h1 {
+        margin: 0;
+        color: #1a1a2e;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .screenshot-header h1 .icon {
+        font-size: 32px;
+    }
+    
+    .screenshot-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    
+    .screenshot-form {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 32px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    
+    .screenshot-form h3 {
+        margin-top: 0;
+        color: #333;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        margin-top: 16px;
+    }
+    
+    .form-row input[type="url"] {
+        padding: 12px 16px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border-color 0.2s;
+    }
+    
+    .form-row input[type="url"]:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+    
+    .btn-screenshot {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .btn-screenshot:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-screenshot:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    .screenshot-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 24px;
+    }
+    
+    .screenshot-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .screenshot-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    }
+    
+    .screenshot-card .preview {
+        height: 200px;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 48px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .screenshot-card .preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .screenshot-card .preview .placeholder {
+        color: #667eea;
+        text-align: center;
+    }
+    
+    .screenshot-card .info {
+        padding: 16px;
+    }
+    
+    .screenshot-card .filename {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+        word-break: break-all;
+    }
+    
+    .screenshot-card .meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 13px;
+        color: #888;
+    }
+    
+    .screenshot-card .actions {
+        padding: 16px;
+        border-top: 1px solid #eee;
+        display: flex;
+        gap: 8px;
+    }
+    
+    .screenshot-card .actions button,
+    .screenshot-card .actions a {
+        flex: 1;
+        padding: 8px 12px;
+        border-radius: 6px;
+        text-align: center;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 500;
+        transition: background 0.2s;
+        cursor: pointer;
+    }
+    
+    .screenshot-card .actions .btn-view {
+        background: #f0f0f0;
+        color: #333;
+    }
+    
+    .screenshot-card .actions .btn-view:hover {
+        background: #e0e0e0;
+    }
+    
+    .screenshot-card .actions .btn-delete {
+        background: #fee;
+        color: #c00;
+        border: none;
+    }
+    
+    .screenshot-card .actions .btn-delete:hover {
+        background: #fdd;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #888;
+    }
+    
+    .empty-state .icon {
+        font-size: 72px;
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+    
+    .empty-state h3 {
+        margin: 0 0 8px 0;
+        color: #666;
+    }
+    
+    .alert {
+        padding: 16px;
+        border-radius: 8px;
+        margin-bottom: 24px;
+    }
+    
+    .alert-info {
+        background: #e7f3ff;
+        border: 1px solid #b3d9ff;
+        color: #0066cc;
+    }
+    
+    .loading {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid #fff;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    .toast {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        padding: 16px 24px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        transform: translateY(100px);
+        opacity: 0;
+        transition: transform 0.3s, opacity 0.3s;
+        z-index: 1000;
+    }
+    
+    .toast.show {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    
+    .toast-success {
+        background: #28a745;
+    }
+    
+    .toast-error {
+        background: #dc3545;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="screenshot-page">
+    <div class="screenshot-header">
+        <h1>
+            <span class="icon">📸</span>
+            Скриншоты страниц
+        </h1>
+        <div class="screenshot-actions">
+            <button class="btn-screenshot" onclick="captureCurrentPage()">
+                <span>📷</span>
+                Текущая страница
+            </button>
+            <a href="{{ path('app_dashboard') }}" class="btn-screenshot" style="background: #6c757d;">
+                <span>←</span>
+                Назад
+            </a>
+        </div>
+    </div>
+
+    {% if screenshots|length == 0 %}
+    <div class="alert alert-info">
+        <strong>ℹ️ Для PNG-скриншотов</strong> настройте внешний API в <code>.env</code>:
+        <br><code>SCREENSHOT_API_URL=https://api.screenshotmachine.com</code>
+        <br><code>SCREENSHOT_API_KEY=your-api-key</code>
+    </div>
+    {% endif %}
+
+    <div class="screenshot-form">
+        <h3><span>🔗</span> Создать скриншот</h3>
+        <div class="form-row">
+            <input type="url" id="screenshotUrl" placeholder="https://example.com или /dashboard" value="/">
+            <button class="btn-screenshot" onclick="captureUrl()" id="captureBtn">
+                <span>📸</span>
+                Сделать скриншот
+            </button>
+        </div>
+    </div>
+
+    <h2 style="margin-bottom: 20px; color: #333;">Сохранённые скриншоты</h2>
+    
+    {% if screenshots|length > 0 %}
+    <div class="screenshot-grid">
+        {% for screenshot in screenshots %}
+        <div class="screenshot-card" data-filename="{{ screenshot.filename }}">
+            <div class="preview">
+                {% if screenshot.filename endswith '.png' %}
+                <img src="{{ screenshot.url }}" alt="{{ screenshot.filename }}" onerror="this.parentElement.innerHTML='<div class=placeholder>📄</div>'">
+                {% else %}
+                <div class="placeholder">📄</div>
+                {% endif %}
+            </div>
+            <div class="info">
+                <div class="filename">{{ screenshot.filename }}</div>
+                <div class="meta">
+                    <span>{{ (screenshot.size / 1024)|round(1) }} КБ</span>
+                    <span>{{ screenshot.created|date('d.m.Y H:i') }}</span>
+                </div>
+            </div>
+            <div class="actions">
+                <a href="{{ screenshot.url }}" target="_blank" class="btn-view">👁️ Открыть</a>
+                <button class="btn-delete" onclick="deleteScreenshot('{{ screenshot.filename }}')">🗑️ Удалить</button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="icon">📷</div>
+        <h3>Нет скриншотов</h3>
+        <p>Создайте первый скриншот, указав URL выше</p>
+    </div>
+    {% endif %}
+</div>
+
+<div class="toast" id="toast"></div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = 'toast toast-' + type + ' show';
+    setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+async function captureUrl() {
+    const url = document.getElementById('screenshotUrl').value;
+    const btn = document.getElementById('captureBtn');
+    
+    if (!url) {
+        showToast('Введите URL', 'error');
+        return;
+    }
+    
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading"></span> Создание...';
+    
+    try {
+        const response = await fetch('/screenshots/api/capture', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: url })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast('Скриншот создан: ' + result.file);
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showToast('Ошибка: ' + result.error, 'error');
+        }
+    } catch (e) {
+        showToast('Ошибка: ' + e.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>📸</span> Сделать скриншот';
+    }
+}
+
+async function captureCurrentPage() {
+    const btn = event.target.closest('button');
+    btn.disabled = true;
+    
+    try {
+        const response = await fetch('/screenshots/quick', {
+            method: 'POST'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast('Скриншот создан: ' + result.file);
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showToast('Ошибка: ' + result.error, 'error');
+        }
+    } catch (e) {
+        showToast('Ошибка: ' + e.message, 'error');
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+async function deleteScreenshot(filename) {
+    if (!confirm('Удалить этот скриншот?')) return;
+    
+    try {
+        const response = await fetch('/screenshots/api/delete/' + filename, {
+            method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast('Скриншот удалён');
+            document.querySelector(`[data-filename="${filename}"]`).remove();
+            
+            if (document.querySelectorAll('.screenshot-card').length === 0) {
+                setTimeout(() => location.reload(), 1000);
+            }
+        } else {
+            showToast('Ошибка: ' + result.error, 'error');
+        }
+    } catch (e) {
+        showToast('Ошибка: ' + e.message, 'error');
+    }
+}
+</script>
+{% endblock %}
