@@ -32,11 +32,10 @@
 
 ## ✅ Выполнено (последние изменения)
 
+- [x] Скриншоты 12 страниц проекта (18.03) — home, login, register, dashboard, tasks, calendar, kanban, analytics, clients, products, screenshots
 - [x] Система скриншотов страниц (18.03) — сервис, контроллер, команда, UI
+- [x] Установлен stof/doctrine-extensions-bundle (Gedmo)
 - [x] Конфиги исправлены — services.yaml, knpu_oauth2_client.yaml
-- [x] Документы ТУСУР добавлены в репозиторий
-- [x] Пустые папки удалены (`-p/`, `echo/`)
-- [x] Кэш очищен (var/cache, .phpunit.cache, var/log)
 
 ## ✅ Выполнено (ранее)
 
