@@ -6,6 +6,23 @@
 PATH=/usr/local/bin:/usr/bin:/bin
 PROJECT_DIR=/path/to/your/project
 
+# ============================================
+# АВТОМАТИЧЕСКАЯ ОЧИСТКА КЕША И МУСОРА
+# ============================================
+
+# Ежедневная очистка кэша в 3:00 AM
+0 3 * * * cd $PROJECT_DIR && php bin/console app:cache-cleanup --expired >> var/log/cron.log 2>&1
+
+# Ежедневная очистка мусора в 3:30 AM
+30 3 * * * cd $PROJECT_DIR && php bin/console app:garbage-cleanup --all --days=7 >> var/log/cron.log 2>&1
+
+# Еженедельная полная очистка в воскресенье в 4:00 AM
+0 4 * * 0 cd $PROJECT_DIR && php bin/console cache:clear --no-warmup >> var/log/cron.log 2>&1
+
+# ============================================
+# ПРОЧИЕ ЗАДАЧИ
+# ============================================
+
 # Daily backup at 2 AM
 0 2 * * * cd $PROJECT_DIR && php bin/console app:backup >> var/log/cron.log 2>&1
 

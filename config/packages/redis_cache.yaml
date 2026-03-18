@@ -1,16 +1,75 @@
 # Redis Cache Configuration
 # Использование: composer require predis/predis
+#
+# Настройка Redis:
+# 1. Установите Redis: https://redis.io/download
+# 2. Запустите: redis-server
+# 3. Проверьте: redis-cli ping (должен вернуть PONG)
+# 4. Обновите .env: REDIS_URL=redis://localhost:6379
 
 framework:
     cache:
+        # По умолчанию используем array (in-memory) для dev
         app: cache.adapter.array
         
-        # pools:
-        #     cache.task:
-        #         adapter: cache.adapter.redis
-        #         default_lifetime: 3600
+        # Системный кэш
+        system: cache.adapter.array
+        
+        # Пулы для различных типов кэширования
+        pools:
+            # Кэш для тяжёлых вычислений и аналитики
+            cache.analytics:
+                adapter: cache.adapter.array
+                default_lifetime: 300
+                
+            # Кэш для пользовательских данных
+            cache.user_data:
+                adapter: cache.adapter.array
+                default_lifetime: 600
+                
+            # Кэш для API ответов
+            cache.api:
+                adapter: cache.adapter.array
+                default_lifetime: 60
+                
+            # Кэш для сессий (если используется)
+            cache.sessions:
+                adapter: cache.adapter.array
+                default_lifetime: 3600
 
-when@dev:
+# Production конфигурация с Redis
+when@prod:
+    framework:
+        cache:
+            # Redis для production
+            app: cache.adapter.redis
+            system: cache.adapter.redis
+            default_redis_provider: '%env(resolve:REDIS_URL)%'
+            
+            pools:
+                cache.analytics:
+                    adapter: cache.adapter.redis
+                    default_lifetime: 300
+                    provider: '%env(resolve:REDIS_URL)%'
+                    
+                cache.user_data:
+                    adapter: cache.adapter.redis
+                    default_lifetime: 600
+                    provider: '%env(resolve:REDIS_URL)%'
+                    
+                cache.api:
+                    adapter: cache.adapter.redis
+                    default_lifetime: 60
+                    provider: '%env(resolve:REDIS_URL)%'
+                    
+                cache.sessions:
+                    adapter: cache.adapter.redis
+                    default_lifetime: 3600
+                    provider: '%env(resolve:REDIS_URL)%'
+
+# Test конфигурация
+when@test:
     framework:
         cache:
             app: cache.adapter.array
+            system: cache.adapter.array
