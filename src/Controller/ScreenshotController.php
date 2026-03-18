@@ -1,58 +1,184 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
+use App\Service\ScreenshotService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[Route('/screenshots')]
+#[IsGranted('ROLE_USER')]
 class ScreenshotController extends AbstractController
 {
-    #[Route('/screenshots/{filename}', name: 'app_screenshot', requirements: ['filename' => '.+\\.png$'])]
-    public function serveScreenshot(string $filename): Response
+    public function __construct(
+        private readonly ScreenshotService $screenshotService,
+    ) {
+    }
+
+    /**
+     * Страница управления скриншотами
+     */
+    #[Route('', name: 'app_screenshots', methods: ['GET'])]
+    public function index(): Response
     {
-        // Определяем размеры на основе имени файла
-        $width = 1280;
-        $height = 720;
+        $screenshots = $this->screenshotService->getScreenshotList();
+        
+        return $this->render('screenshots/index.html.twig', [
+            'screenshots' => $screenshots,
+        ]);
+    }
 
-        if (str_contains($filename, 'tasks')) {
-            $width = 750;
-            $height = 1334;
+    /**
+     * API: Создать скриншот
+     */
+    #[Route('/api/capture', name: 'app_screenshots_api_capture', methods: ['POST'])]
+    public function capture(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        
+        if (empty($data['url'])) {
+            return $this->json([
+                'success' => false,
+                'error' => 'Необходимо указать URL',
+            ], Response::HTTP_BAD_REQUEST);
         }
-
-        // Создаем изображение
-        $image = imagecreate($width, $height);
-
-        // Цвета
-        $bg = imagecolorallocate($image, 249, 250, 251); // #f9fafb
-        $blue = imagecolorallocate($image, 13, 110, 253); // #0d6efd
-        $gray = imagecolorallocate($image, 107, 114, 128); // #6b7280
-
-        // Заливаем фон
-        imagefill($image, 0, 0, $bg);
-
-        // Рисуем заголовок
-        $title = str_contains($filename, 'dashboard') ? 'Dashboard' : 'Tasks';
-        imagestring($image, 5, $width / 2 - 50, 50, $title, $blue);
-
-        // Рисуем несколько прямоугольников как элементы интерфейса
-        for ($i = 0; $i < 3; $i++) {
-            $y = 150 + $i * 100;
-            imagerectangle($image, 50, $y, $width - 50, $y + 60, $gray);
+        
+        $url = $data['url'];
+        $filename = $data['filename'] ?? null;
+        $options = $data['options'] ?? [];
+        
+        $result = $this->screenshotService->takeScreenshot($url, $filename, $options);
+        
+        if ($result['success']) {
+            return $this->json([
+                'success' => true,
+                'file' => $result['file'],
+                'url' => $result['url'] ?? null,
+                'note' => $result['note'] ?? null,
+            ]);
         }
+        
+        return $this->json([
+            'success' => false,
+            'error' => $result['error'] ?? 'Неизвестная ошибка',
+        ], Response::HTTP_INTERNAL_SERVER_ERROR);
+    }
 
-        // Выводим изображение
-        ob_start();
-        imagepng($image);
-        $imageData = ob_get_contents();
-        ob_end_clean();
+    /**
+     * API: Создать несколько скриншотов
+     */
+    #[Route('/api/capture-batch', name: 'app_screenshots_api_batch', methods: ['POST'])]
+    public function captureBatch(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        
+        if (empty($data['urls']) || !is_array($data['urls'])) {
+            return $this->json([
+                'success' => false,
+                'error' => 'Необходимо указать массив URL',
+            ], Response::HTTP_BAD_REQUEST);
+        }
+        
+        $options = $data['options'] ?? [];
+        
+        $results = $this->screenshotService->takeMultipleScreenshots($data['urls'], $options);
+        
+        return $this->json([
+            'success' => true,
+            'results' => $results,
+            'total' => count($results),
+        ]);
+    }
 
-        imagedestroy($image);
+    /**
+     * API: Список скриншотов
+     */
+    #[Route('/api/list', name: 'app_screenshots_api_list', methods: ['GET'])]
+    public function list(): JsonResponse
+    {
+        $screenshots = $this->screenshotService->getScreenshotList();
+        
+        return $this->json([
+            'success' => true,
+            'screenshots' => $screenshots,
+            'total' => count($screenshots),
+        ]);
+    }
 
-        $response = new Response($imageData);
-        $response->headers->set('Content-Type', 'image/png');
-        $response->headers->set('Cache-Control', 'public, max-age=31536000');
+    /**
+     * API: Удалить скриншот
+     */
+    #[Route('/api/delete/{filename}', name: 'app_screenshots_api_delete', methods: ['DELETE'])]
+    public function delete(string $filename): JsonResponse
+    {
+        // Защита от path traversal
+        $filename = basename($filename);
+        
+        if ($this->screenshotService->deleteScreenshot($filename)) {
+            return $this->json([
+                'success' => true,
+                'message' => 'Скриншот удалён',
+            ]);
+        }
+        
+        return $this->json([
+            'success' => false,
+            'error' => 'Скриншот не найден',
+        ], Response::HTTP_NOT_FOUND);
+    }
 
-        return $response;
+    /**
+     * API: Очистить старые скриншоты
+     */
+    #[Route('/api/cleanup', name: 'app_screenshots_api_cleanup', methods: ['POST'])]
+    public function cleanup(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $days = $data['days'] ?? 30;
+        
+        $deleted = $this->screenshotService->cleanupOldScreenshots((int) $days);
+        
+        return $this->json([
+            'success' => true,
+            'deleted' => $deleted,
+            'message' => "Удалено $deleted скриншотов старше $days дней",
+        ]);
+    }
+
+    /**
+     * Быстрый скриншот текущей страницы (через referer)
+     */
+    #[Route('/quick', name: 'app_screenshots_quick', methods: ['POST'])]
+    public function quick(Request $request): JsonResponse
+    {
+        $referer = $request->headers->get('referer');
+        
+        if (!$referer) {
+            return $this->json([
+                'success' => false,
+                'error' => 'Не удалось определить текущую страницу',
+            ], Response::HTTP_BAD_REQUEST);
+        }
+        
+        $result = $this->screenshotService->takeScreenshot($referer);
+        
+        if ($result['success']) {
+            return $this->json([
+                'success' => true,
+                'file' => $result['file'],
+                'note' => $result['note'] ?? null,
+            ]);
+        }
+        
+        return $this->json([
+            'success' => false,
+            'error' => $result['error'] ?? 'Ошибка создания скриншота',
+        ], Response::HTTP_INTERNAL_SERVER_ERROR);
     }
 }
