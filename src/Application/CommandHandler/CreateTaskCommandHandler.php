@@ -37,8 +37,8 @@ final readonly class CreateTaskCommandHandler
         $user = $this->userRepository->find($command->getUserId());
         $assignedUser = $this->userRepository->find($command->getAssignedUserId());
 
-        if (!$user || !$assignedUser) {
-            throw new \InvalidArgumentException(\sprintf('User not found for task creation: userId=%d, assignedUserId=%d', $command->getUserId(), $command->getAssignedUserId() ?? 0));
+        if (!$user) {
+            throw new \InvalidArgumentException(\sprintf('User not found for task creation: userId=%d', $command->getUserId()));
         }
 
         // Create task entity
@@ -48,7 +48,10 @@ final readonly class CreateTaskCommandHandler
         $task->setPriority($priority->value);
         $task->setStatus('pending');
         $task->setUser($user);
-        $task->setAssignedUser($assignedUser);
+        
+        if ($assignedUser) {
+            $task->setAssignedUser($assignedUser);
+        }
 
         if ($command->getCategoryId()) {
             $category = $this->categoryRepository->find($command->getCategoryId());

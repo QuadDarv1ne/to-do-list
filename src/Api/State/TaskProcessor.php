@@ -11,6 +11,9 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 
+/**
+ * @implements ProcessorInterface<TaskDto, TaskDto>
+ */
 class TaskProcessor implements ProcessorInterface
 {
     public function __construct(
@@ -44,7 +47,10 @@ class TaskProcessor implements ProcessorInterface
         $task = new Task();
         $this->mapDtoToEntity($data, $task);
 
-        $task->setUser($this->security->getUser());
+        $user = $this->security->getUser();
+        if ($user instanceof \App\Entity\User) {
+            $task->setUser($user);
+        }
 
         $this->entityManager->persist($task);
         $this->entityManager->flush();
@@ -88,10 +94,10 @@ class TaskProcessor implements ProcessorInterface
         if ($dto->dueDate !== null) {
             $task->setDueDate($dto->dueDate);
         }
-        if ($dto->progress !== null) {
+        if ($dto->progress > 0 && $dto->progress <= 100) {
             $task->setProgress($dto->progress);
         }
-        if ($dto->assignedUserId !== null) {
+        if ($dto->assignedUserId !== null && $dto->assignedUserId > 0) {
             $user = $this->userRepository->find($dto->assignedUserId);
             if ($user) {
                 $task->setAssignedUser($user);

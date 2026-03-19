@@ -2,8 +2,14 @@
 
 namespace App\Application\Command;
 
+/**
+ * @psalm-immutable
+ */
 final readonly class CreateTaskCommand
 {
+    /**
+     * @param int[] $tagIds
+     */
     public function __construct(
         private string $title,
         private ?string $description,
@@ -51,6 +57,9 @@ final readonly class CreateTaskCommand
         return $this->dueDate;
     }
 
+    /**
+     * @return int[]
+     */
     public function getTagIds(): array
     {
         return $this->tagIds;
