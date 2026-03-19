@@ -178,29 +178,30 @@
 
 <script>
 // Загрузка статистики
-document.addEventListener('DOMContentLoaded', function() {
-    fetch('{{ path('export_statistics') }}')
+document.addEventListener("DOMContentLoaded", function() {
+    fetch("{{ path("export_statistics") }}")
         .then(r => r.json())
         .then(data => {
             if (data.success && data.data) {
-                document.getElementById('stat-total').textContent = data.data.total_tasks;
-                document.getElementById('stat-completed').textContent = data.data.completed;
-                document.getElementById('stat-pending').textContent = data.data.pending;
-                document.getElementById('stat-rate').textContent = data.data.completion_rate + '%';
+                document.getElementById("stat-total").textContent = data.data.total_tasks;
+                document.getElementById("stat-completed").textContent = data.data.completed;
+                document.getElementById("stat-pending").textContent = data.data.pending;
+                document.getElementById("stat-rate").textContent = data.data.completion_rate + "%";
             }
         });
 
     // Обработчики кнопок экспорта
-    document.querySelectorAll('.btn-export').forEach(btn => {
-        btn.addEventListener('click', function() {
+    document.querySelectorAll(".btn-export").forEach(btn => {
+        btn.addEventListener("click", function() {
             const format = this.dataset.format;
-            const filters = new FormData(document.getElementById('export-filters'));
-            
+            const filtersForm = document.getElementById("export-filters");
+            const filters = filtersForm ? new FormData(filtersForm) : new FormData();
+
             let params = new URLSearchParams();
             for (let [key, value] of filters.entries()) {
                 if (value) params.append(key, value);
             }
-            
+
             const url = `/export/tasks/${format}?${params.toString()}`;
             window.location.href = url;
         });

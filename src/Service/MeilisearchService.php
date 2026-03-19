@@ -326,7 +326,7 @@ class MeilisearchService
                 if (is_array($value)) {
                     $meiliFilters[] = "$key IN " . json_encode($value);
                 } else {
-                    $meiliFilters[] = "$key = " . (is_string($value) ? "\"$value\"" : $value));
+                    $meiliFilters[] = "$key = " . (is_string($value) ? "\"$value\"" : $value);
                 }
             }
         }

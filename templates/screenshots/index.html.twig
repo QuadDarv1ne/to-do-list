@@ -314,7 +314,7 @@
         {% for screenshot in screenshots %}
         <div class="screenshot-card" data-filename="{{ screenshot.filename }}">
             <div class="preview">
-                {% if screenshot.filename endswith '.png' %}
+                {% if screenshot.filename is endswith('.png') %}
                 <img src="{{ screenshot.url }}" alt="{{ screenshot.filename }}" onerror="this.parentElement.innerHTML='<div class=placeholder>📄</div>'">
                 {% else %}
                 <div class="placeholder">📄</div>

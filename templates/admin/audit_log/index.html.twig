@@ -185,12 +185,15 @@ document.addEventListener('DOMContentLoaded', function() {
     let count = 0;
     
     // Простая эвристика - можно улучшить через API
-    fetch('{{ path('admin_audit_log_statistics') }}')
+    fetch("{{ path("admin_audit_log_statistics") }}")
         .then(r => r.json())
         .then(data => {
             if (data.data && data.data.daily_activity) {
                 const todayData = data.data.daily_activity.find(d => d.date === today);
-                document.getElementById('today-count').textContent = todayData ? todayData.count : 0;
+                const countElement = document.getElementById("today-count");
+                if (countElement) {
+                    countElement.textContent = todayData ? todayData.count : 0;
+                }
             }
         });
 });
