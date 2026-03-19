@@ -58,6 +58,11 @@ help: ## 📚 Показать справку по всем командам
 	@echo "${COLOR_YELLOW}🔧 Кэш и обслуживание:${COLOR_RESET}"
 	@echo "  make cache-clear     - Очистить кэш"
 	@echo "  make cache-warmup    - Прогреть кэш"
+	@echo "  make cache-cleanup   - Умная очистка кэша (истёкший)"
+	@echo "  make cache-cleanup-all - Полная очистка кэша"
+	@echo "  make garbage-cleanup - Очистка мусора (временные файлы, логи)"
+	@echo "  make garbage-cleanup-dry - Проверка что будет очищено"
+	@echo "  make cleanup-all     - Полная очистка кэша и мусора"
 	@echo "  make logs            - Просмотр логов"
 	@echo "  make clean           - Очистить временные файлы"
 	@echo ""
@@ -247,6 +252,28 @@ cache-warmup: ## 🔥 Прогреть кэш
 	@echo "${COLOR_BLUE}⏳ Прогрев кэша...${COLOR_RESET}"
 	php bin/console cache:warmup
 	@echo "${COLOR_GREEN}✅ Кэш прогрет${COLOR_RESET}"
+
+cache-cleanup: ## 🧹 Умная очистка кэша
+	@echo "${COLOR_BLUE}⏳ Умная очистка кэша...${COLOR_RESET}"
+	php bin/console app:cache-cleanup --expired --stats
+	@echo "${COLOR_GREEN}✅ Кэш очищен${COLOR_RESET}"
+
+cache-cleanup-all: ## 🧹 Полная очистка кэша
+	@echo "${COLOR_BLUE}⏳ Полная очистка кэша...${COLOR_RESET}"
+	php bin/console app:cache-cleanup --all
+	@echo "${COLOR_GREEN}✅ Кэш полностью очищен${COLOR_RESET}"
+
+garbage-cleanup: ## 🧹 Очистка мусора (временные файлы, логи, сессии)
+	@echo "${COLOR_BLUE}⏳ Очистка мусора...${COLOR_RESET}"
+	php bin/console app:garbage-cleanup --all --stats --days=7
+	@echo "${COLOR_GREEN}✅ Мусор очищен${COLOR_RESET}"
+
+garbage-cleanup-dry: ## 🧹 Проверка что будет очищено (dry-run)
+	@echo "${COLOR_BLUE}⏳ Проверка мусора...${COLOR_RESET}"
+	php bin/console app:garbage-cleanup --all --dry-run --stats --days=7
+
+cleanup-all: cache-cleanup garbage-cleanup ## 🧹 Полная очистка кэша и мусора
+	@echo "${COLOR_GREEN}✅ Полная очистка завершена${COLOR_RESET}"
 
 logs: ## 📋 Просмотр логов
 	tail -f var/log/dev.log

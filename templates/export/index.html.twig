@@ -1,194 +1,211 @@
-{# templates/export/index.html.twig #}
+{% extends 'base.html.twig %}
 
-{% extends 'base.html.twig' %}
+{% block title %}Экспорт данных{% endblock %}
 
-{% block title %}Экспорт данных | CRM{% endblock %}
+{% block stylesheets %}
+<style>
+    .export-container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+    .export-header { text-align: center; margin-bottom: 3rem; }
+    .export-header h1 { font-size: 2.5rem; color: #2c3e50; margin-bottom: 0.5rem; }
+    .export-header p { color: #7f8c8d; font-size: 1.1rem; }
+    .formats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; margin-bottom: 3rem; }
+    .format-card { 
+        background: white; 
+        border-radius: 12px; 
+        padding: 2rem; 
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+        border: 2px solid transparent;
+    }
+    .format-card:hover { 
+        transform: translateY(-5px); 
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        border-color: #4F81BD;
+    }
+    .format-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .format-name { font-size: 1.5rem; font-weight: 600; color: #2c3e50; margin-bottom: 0.5rem; }
+    .format-description { color: #7f8c8d; margin-bottom: 1.5rem; }
+    .format-features { list-style: none; padding: 0; margin-bottom: 1.5rem; }
+    .format-features li { padding: 0.5rem 0; color: #34495e; }
+    .format-features li:before { content: "✓ "; color: #27ae60; font-weight: bold; margin-right: 0.5rem; }
+    .btn-export { 
+        width: 100%; 
+        padding: 0.75rem; 
+        border: none; 
+        border-radius: 8px; 
+        background: #4F81BD; 
+        color: white; 
+        font-size: 1rem; 
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+    .btn-export:hover { background: #3a6b9a; }
+    .filters-section { 
+        background: white; 
+        border-radius: 12px; 
+        padding: 2rem; 
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .filters-section h2 { margin-bottom: 1.5rem; color: #2c3e50; }
+    .filters-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+    .filter-group { margin-bottom: 1rem; }
+    .filter-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: #34495e; }
+    .filter-group select, .filter-group input { 
+        width: 100%; 
+        padding: 0.75rem; 
+        border: 1px solid #ddd; 
+        border-radius: 6px; 
+        font-size: 1rem;
+    }
+    .stats-section { 
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+        border-radius: 12px; 
+        padding: 2rem; 
+        color: white;
+        margin-bottom: 2rem;
+    }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem; }
+    .stat-item { text-align: center; }
+    .stat-value { font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .stat-label { font-size: 0.9rem; opacity: 0.9; }
+    .alert { padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; }
+    .alert-info { background: #e3f2fd; border-left: 4px solid #2196F3; color: #1976D2; }
+</style>
+{% endblock %}
 
 {% block body %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <!-- Заголовок -->
-            <div class="text-center mb-5">
-                <h1 class="display-5 fw-bold mb-3">
-                    <i class="fas fa-download me-2"></i>
-                    Экспорт данных
-                </h1>
-                <p class="text-muted">
-                    Экспортируйте ваши задачи в удобном формате
-                </p>
+<div class="export-container">
+    <div class="export-header">
+        <h1>📤 Экспорт данных</h1>
+        <p>Выгрузите ваши данные в удобном формате для отчётности или резервного копирования</p>
+    </div>
+
+    {# Статистика #}
+    <div class="stats-section">
+        <h2 style="margin-bottom: 1.5rem;">📊 Ваша статистика</h2>
+        <div class="stats-grid" id="stats-grid">
+            <div class="stat-item">
+                <div class="stat-value" id="stat-total">-</div>
+                <div class="stat-label">Всего задач</div>
             </div>
-
-            <!-- Карточки форматов экспорта -->
-            <div class="row g-4 mb-5">
-                <!-- CSV -->
-                <div class="col-md-4">
-                    <div class="card h-100 shadow-sm hover-lift">
-                        <div class="card-body text-center">
-                            <div class="export-icon mb-3">
-                                <i class="fas fa-file-csv fa-3x text-success"></i>
-                            </div>
-                            <h5 class="card-title">CSV</h5>
-                            <p class="card-text text-muted small">
-                                Универсальный формат для импорта в Excel, Google Sheets
-                            </p>
-                            <a href="{{ path('app_export_tasks_csv') }}" class="btn btn-outline-success">
-                                <i class="fas fa-download me-2"></i>
-                                Скачать CSV
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Excel -->
-                <div class="col-md-4">
-                    <div class="card h-100 shadow-sm hover-lift">
-                        <div class="card-body text-center">
-                            <div class="export-icon mb-3">
-                                <i class="fas fa-file-excel fa-3x text-success"></i>
-                            </div>
-                            <h5 class="card-title">Excel</h5>
-                            <p class="card-text text-muted small">
-                                Формат XLSX для работы в Microsoft Excel
-                            </p>
-                            <a href="{{ path('app_export_tasks_excel') }}" class="btn btn-outline-success">
-                                <i class="fas fa-download me-2"></i>
-                                Скачать Excel
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- PDF -->
-                <div class="col-md-4">
-                    <div class="card h-100 shadow-sm hover-lift">
-                        <div class="card-body text-center">
-                            <div class="export-icon mb-3">
-                                <i class="fas fa-file-pdf fa-3x text-danger"></i>
-                            </div>
-                            <h5 class="card-title">PDF</h5>
-                            <p class="card-text text-muted small">
-                                Документ для печати и отправки
-                            </p>
-                            <a href="{{ path('app_export_tasks_pdf') }}" class="btn btn-outline-danger">
-                                <i class="fas fa-download me-2"></i>
-                                Скачать PDF
-                            </a>
-                        </div>
-                    </div>
-                </div>
+            <div class="stat-item">
+                <div class="stat-value" id="stat-completed">-</div>
+                <div class="stat-label">Завершено</div>
             </div>
-
-            <!-- Информация -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">
-                        <i class="fas fa-info-circle me-2"></i>
-                        Информация об экспорте
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <ul class="list-unstyled mb-0">
-                        <li class="mb-2">
-                            <i class="fas fa-check text-success me-2"></i>
-                            Экспортируются все ваши задачи (макс. 1000)
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-check text-success me-2"></i>
-                            Файлы сохраняются в кодировке UTF-8
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-check text-success me-2"></i>
-                            Старые экспорты автоматически удаляются через 7 дней
-                        </li>
-                    </ul>
-                </div>
+            <div class="stat-item">
+                <div class="stat-value" id="stat-pending">-</div>
+                <div class="stat-label">В ожидании</div>
             </div>
-
-            <!-- Список доступных экспортов -->
-            {% if exports is defined and exports|length > 0 %}
-            <div class="card shadow-sm">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="fas fa-folder-open me-2"></i>
-                        Доступные экспорты
-                    </h5>
-                    <form action="{{ path('app_export_cleanup') }}" method="POST" 
-                          onsubmit="return confirm('Удалить старые экспорты?')">
-                        <button type="submit" class="btn btn-sm btn-outline-danger">
-                            <i class="fas fa-trash me-1"></i>
-                            Очистить
-                        </button>
-                    </form>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Файл</th>
-                                    <th>Тип</th>
-                                    <th>Размер</th>
-                                    <th>Дата</th>
-                                    <th>Действия</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for export in exports %}
-                                <tr>
-                                    <td>
-                                        <i class="fas fa-file me-2"></i>
-                                        {{ export.filename }}
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-{{ export.type == 'csv' ? 'success' : (export.type == 'xlsx' ? 'success' : 'danger') }}">
-                                            {{ export.type|upper }}
-                                        </span>
-                                    </td>
-                                    <td>{{ (export.size / 1024)|number_format(2) }} KB</td>
-                                    <td>{{ export.created }}</td>
-                                    <td>
-                                        <a href="{{ path('app_export_download', {filename: export.filename}) }}" 
-                                           class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-download"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- Кнопка назад -->
-            <div class="text-center mt-4">
-                <a href="{{ path('app_task_index') }}" class="btn btn-link">
-                    <i class="fas fa-arrow-left me-2"></i>
-                    Вернуться к задачам
-                </a>
+            <div class="stat-item">
+                <div class="stat-value" id="stat-rate">-</div>
+                <div class="stat-label">Процент выполнения</div>
             </div>
         </div>
     </div>
+
+    {# Фильтры #}
+    <div class="filters-section">
+        <h2>🔍 Фильтры экспорта</h2>
+        <form id="export-filters">
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label for="filter-status">Статус</label>
+                    <select name="status" id="filter-status">
+                        <option value="">Все статусы</option>
+                        <option value="pending">В ожидании</option>
+                        <option value="in_progress">В работе</option>
+                        <option value="completed">Завершено</option>
+                        <option value="cancelled">Отменено</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filter-priority">Приоритет</label>
+                    <select name="priority" id="filter-priority">
+                        <option value="">Все приоритеты</option>
+                        <option value="low">Низкий</option>
+                        <option value="medium">Средний</option>
+                        <option value="high">Высокий</option>
+                        <option value="urgent">Срочно</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filter-search">Поиск</label>
+                    <input type="text" name="search" id="filter-search" placeholder="Поиск по названию...">
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="alert alert-info">
+        💡 <strong>Совет:</strong> Выберите фильтры перед экспортом, чтобы выгрузить только нужные данные.
+    </div>
+
+    {# Форматы экспорта #}
+    <div class="formats-grid">
+        {% for format in formats %}
+        <div class="format-card">
+            <div class="format-icon">{{ format.icon }}</div>
+            <div class="format-name">{{ format.name }}</div>
+            <div class="format-description">{{ format.description }}</div>
+            <ul class="format-features">
+                {% if format.id == 'csv' %}
+                    <li>Быстрое открытие в Excel</li>
+                    <li>Разделитель — точка с запятой</li>
+                    <li>Кодировка UTF-8</li>
+                {% elseif format.id == 'excel' %}
+                    <li>Полное форматирование</li>
+                    <li>Цветовая индикация статусов</li>
+                    <li>Авто-ширина колонок</li>
+                {% elseif format.id == 'json' %}
+                    <li>Структурированный формат</li>
+                    <li>Для интеграций и API</li>
+                    <li>Читаемый человеком</li>
+                {% elseif format.id == 'pdf' %}
+                    <li>Готово к печати</li>
+                    <li>Красивая статистика</li>
+                    <li>Профессиональный вид</li>
+                {% endif %}
+            </ul>
+            <button class="btn-export" data-format="{{ format.id }}">
+                Экспортировать в {{ format.name }}
+            </button>
+        </div>
+        {% endfor %}
+    </div>
 </div>
 
-<style>
-    .hover-lift {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    
-    .hover-lift:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
-    }
-    
-    .export-icon i {
-        transition: transform 0.3s ease;
-    }
-    
-    .card:hover .export-icon i {
-        transform: scale(1.2);
-    }
-</style>
+<script>
+// Загрузка статистики
+document.addEventListener("DOMContentLoaded", function() {
+    fetch("{{ path("export_statistics") }}")
+        .then(r => r.json())
+        .then(data => {
+            if (data.success && data.data) {
+                document.getElementById("stat-total").textContent = data.data.total_tasks;
+                document.getElementById("stat-completed").textContent = data.data.completed;
+                document.getElementById("stat-pending").textContent = data.data.pending;
+                document.getElementById("stat-rate").textContent = data.data.completion_rate + "%";
+            }
+        });
+
+    // Обработчики кнопок экспорта
+    document.querySelectorAll(".btn-export").forEach(btn => {
+        btn.addEventListener("click", function() {
+            const format = this.dataset.format;
+            const filtersForm = document.getElementById("export-filters");
+            const filters = filtersForm ? new FormData(filtersForm) : new FormData();
+
+            let params = new URLSearchParams();
+            for (let [key, value] of filters.entries()) {
+                if (value) params.append(key, value);
+            }
+
+            const url = `/export/tasks/${format}?${params.toString()}`;
+            window.location.href = url;
+        });
+    });
+});
+</script>
 {% endblock %}

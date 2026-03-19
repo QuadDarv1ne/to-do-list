@@ -1,0 +1,163 @@
+name: Auto Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  PHP_VERSION: '8.4'
+  NODE_VERSION: '20'
+
+jobs:
+  # =========================================
+  # Build Release Package
+  # =========================================
+  build-release:
+    name: Build Release Package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, xml, ctype, iconv, intl
+          tools: composer:v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction --optimize-autoloader --classmap-authoritative
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build assets
+        run: npm run build:prod
+
+      - name: Clear cache
+        run: php bin/console cache:clear --no-warmup
+
+      - name: Create release package
+        run: |
+          mkdir -p release-package
+          
+          # Copy production files
+          cp -r bin config migrations public src templates translations release-package/
+          cp -r vendor release-package/
+          cp composer.json composer.lock release-package/
+          cp .env.example release-package/.env.example
+          cp Dockerfile Dockerfile.prod docker-compose.yml release-package/
+          cp README.md LICENSE release-package/
+          
+          # Create archive
+          cd release-package
+          zip -r ../crm-release-${{ github.ref_name }}.zip .
+          cd ..
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: crm-release
+          path: crm-release-*.zip
+          retention-days: 30
+
+  # =========================================
+  # Create GitHub Release
+  # =========================================
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: build-release
+
+    steps:
+      - name: Download release artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: crm-release
+
+      - name: Get changelog
+        id: changelog
+        run: |
+          # Try to get recent changes from git log
+          changelog=$(git log $(git describe --tags --abbrev=1 HEAD^)..HEAD --pretty=format:"- %s" 2>/dev/null || echo "- Release ${{ github.ref_name }}")
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$changelog" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release ${{ github.ref_name }}
+          body: |
+            ## 🚀 Что нового
+
+            ${{ steps.changelog.outputs.changelog }}
+
+            ## 📦 Установка
+
+            ```bash
+            # Распаковать архив
+            unzip crm-release-${{ github.ref_name }}.zip
+            
+            # Установить зависимости
+            composer install --no-dev --optimize-autoloader
+            
+            # Настроить окружение
+            cp .env.example .env
+            # Отредактировать .env
+            
+            # Применить миграции
+            php bin/console doctrine:migrations:migrate
+            
+            # Собрать assets
+            npm ci && npm run build:prod
+            ```
+
+            ## 📊 Метрики релиза
+
+            - PHP: ${{ env.PHP_VERSION }}
+            - Symfony: 8.0
+            - Node.js: ${{ env.NODE_VERSION }}
+
+          files: crm-release-*.zip
+          draft: false
+          prerelease: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  # =========================================
+  # Deploy to Staging (Optional)
+  # =========================================
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: create-release
+    if: github.event_name == 'push'
+
+    environment:
+      name: staging
+      url: https://staging.your-app.com
+
+    steps:
+      - name: Deploy notification
+        run: |
+          echo "🚀 Deploying to staging environment..."
+          echo "Configure your staging deployment here"
+          echo ""
+          echo "Examples:"
+          echo "  - Deploy to staging server via SSH"
+          echo "  - Push to staging Docker registry"
+          echo "  - Deploy to staging subdomain"

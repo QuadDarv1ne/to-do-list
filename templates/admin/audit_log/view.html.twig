@@ -1,0 +1,133 @@
+{% extends 'base.html.twig %}
+
+{% block title %}Детали записи аудита #{{ log.id }}{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .audit-detail { padding: 2rem; max-width: 900px; margin: 0 auto; }
+    .detail-card { background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
+    .detail-header { padding: 1.5rem; border-bottom: 1px solid #e9ecef; }
+    .detail-body { padding: 1.5rem; }
+    .detail-row { display: flex; margin-bottom: 1rem; }
+    .detail-label { font-weight: 600; width: 200px; color: #6c757d; }
+    .detail-value { flex: 1; }
+    .changes-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    .changes-table th, .changes-table td { padding: 0.75rem; border: 1px solid #dee2e6; text-align: left; vertical-align: top; }
+    .changes-table th { background: #e9ecef; width: 50%; }
+    .old-value { background: #f8d7da; }
+    .new-value { background: #d4edda; }
+    .back-link { display: inline-block; margin-bottom: 1rem; text-decoration: none; color: #007bff; }
+    .back-link:hover { text-decoration: underline; }
+    pre { background: #f8f9fa; padding: 1rem; border-radius: 4px; overflow-x: auto; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="audit-detail">
+    <a href="{{ path('admin_audit_log') }}" class="back-link">← Назад к журналу</a>
+
+    <div class="detail-card">
+        <div class="detail-header">
+            <h2>📋 Запись аудита #{{ log.id }}</h2>
+        </div>
+        <div class="detail-body">
+            <div class="detail-row">
+                <span class="detail-label">Действие:</span>
+                <span class="detail-value">
+                    <span class="badge bg-{{ log.action == 'delete' ? 'danger' : (log.action == 'create' ? 'success' : 'warning') }}">
+                        {{ log.action }}
+                    </span>
+                </span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">Сущность:</span>
+                <span class="detail-value">{{ log.entityClass }} #{{ log.entityId }}</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">Дата/Время:</span>
+                <span class="detail-value">{{ log.createdAt|date('d.m.Y H:i:s') }}</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">Пользователь:</span>
+                <span class="detail-value">
+                    {% if log.user %}
+                        {{ log.userName }} ({{ log.userEmail }})
+                    {% else %}
+                        {{ log.userName|default("Система") }}
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">IP адрес:</span>
+                <span class="detail-value"><code>{{ log.ipAddress|default("-") }}</code></span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">User Agent:</span>
+                <span class="detail-value"><small>{{ log.userAgent|default("-") }}</small></span>
+            </div>
+
+            {% if log.reason %}
+            <div class="detail-row">
+                <span class="detail-label">Причина:</span>
+                <span class="detail-value">{{ log.reason }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if log.oldValues or log.newValues %}
+    <div class="detail-card">
+        <div class="detail-header">
+            <h3>🔄 Изменения</h3>
+        </div>
+        <div class="detail-body">
+            <table class="changes-table">
+                <thead>
+                    <tr>
+                        <th class="old-value">Старые значения</th>
+                        <th class="new-value">Новые значения</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set allFields = (log.oldValues|keys|merge(log.newValues|keys))|unique %}
+                    {% for field in allFields %}
+                    <tr>
+                        <td class="old-value">
+                            {% if field in log.oldValues|keys %}
+                                <pre>{{ log.oldValues[field]|json_encode(JSON_PRETTY_PRINT) }}</pre>
+                            {% else %}
+                                <em>Не изменилось</em>
+                            {% endif %}
+                        </td>
+                        <td class="new-value">
+                            {% if field in log.newValues|keys %}
+                                <pre>{{ log.newValues[field]|json_encode(JSON_PRETTY_PRINT) }}</pre>
+                            {% else %}
+                                <em>Не изменилось</em>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if log.changes %}
+    <div class="detail-card">
+        <div class="detail-header">
+            <h3>📊 Все изменения (JSON)</h3>
+        </div>
+        <div class="detail-body">
+            <pre>{{ log.changes|json_encode(JSON_PRETTY_PRINT) }}</pre>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -2,6 +2,8 @@ parameters:
     uploads_directory: '%kernel.project_dir%/public/uploads'
     app.mail_from_address: 'noreply@todolist.local'
     app.mail_from_name: 'Task Management System'
+    meilisearch_url: '%env(MEILISEARCH_URL)%'
+    meilisearch_key: '%env(MEILISEARCH_KEY)%'
 
 services:
     _defaults:
@@ -45,6 +47,12 @@ services:
             $projectRoot: '%kernel.project_dir%'
             $screenshotApiUrl: '%env(resolve:SCREENSHOT_API_URL)%'
             $screenshotApiKey: '%env(resolve:SCREENSHOT_API_KEY)%'
+
+    # Meilisearch Service
+    App\Service\MeilisearchService:
+        arguments:
+            $meilisearchUrl: '%env(MEILISEARCH_URL)%'
+            $meilisearchKey: '%env(MEILISEARCH_KEY)%'
 
     # Exception Handler для API
     App\EventListener\ApiExceptionListener:

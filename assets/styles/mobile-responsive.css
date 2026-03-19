@@ -1,0 +1,580 @@
+/**
+ * Mobile Responsive Styles for CRM
+ * Адаптивная вёрстка для мобильных устройств
+ */
+
+/* ============================================
+   Брейкпоинты
+   ============================================ */
+/*
+  Mobile First подход
+  --mobile-xs: 320px
+  --mobile-sm: 375px
+  --mobile-md: 425px
+  --tablet: 768px
+  --laptop: 1024px
+  --desktop: 1280px
+*/
+
+/* ============================================
+   Базовые мобильные стили (Mobile First)
+   ============================================ */
+
+/* Увеличенные тач-зоны для мобильных */
+@media (max-width: 767px) {
+    /* Кнопки и интерактивные элементы */
+    .btn, 
+    button,
+    a.btn {
+        min-height: 44px; /* Apple HIG recommendation */
+        min-width: 44px;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+    }
+
+    /* Поля ввода */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="search"],
+    input[type="tel"],
+    input[type="url"],
+    textarea,
+    select {
+        min-height: 44px;
+        font-size: 16px; /* Prevent zoom on iOS */
+        padding: 0.75rem;
+    }
+
+    /* Навигация */
+    .navbar {
+        padding: 0.5rem 1rem;
+    }
+
+    .navbar-brand {
+        font-size: 1.1rem;
+    }
+
+    /* Карточки */
+    .card {
+        border-radius: 12px;
+        margin: 0.5rem;
+    }
+
+    .card-body {
+        padding: 1rem;
+    }
+
+    /* Таблицы */
+    .table-responsive {
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    /* Модальные окна */
+    .modal-dialog {
+        margin: 0.5rem;
+        max-width: calc(100% - 1rem);
+    }
+
+    .modal-content {
+        border-radius: 16px;
+    }
+
+    .modal-header {
+        padding: 1rem;
+    }
+
+    .modal-body {
+        padding: 1rem;
+    }
+
+    .modal-footer {
+        padding: 1rem;
+    }
+
+    /* Toast уведомления */
+    .toast-container {
+        bottom: 1rem;
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100% - 2rem);
+    }
+
+    .toast {
+        border-radius: 12px;
+    }
+}
+
+/* ============================================
+   Очень маленькие экраны (320px - 375px)
+   ============================================ */
+@media (max-width: 374px) {
+    html {
+        font-size: 14px;
+    }
+
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .h1, h1 {
+        font-size: 1.5rem;
+    }
+
+    .h2, h2 {
+        font-size: 1.25rem;
+    }
+
+    .h3, h3 {
+        font-size: 1.1rem;
+    }
+
+    /* Уменьшенные отступы */
+    .gap-2 { gap: 0.5rem !important; }
+    .gap-3 { gap: 0.75rem !important; }
+    .p-3 { padding: 1rem !important; }
+    .p-4 { padding: 1.25rem !important; }
+    .m-3 { margin: 1rem !important; }
+    .m-4 { margin: 1.25rem !important; }
+}
+
+/* ============================================
+   Маленькие планшеты (768px - 1024px)
+   ============================================ */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .container {
+        max-width: 100%;
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+
+    .card-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+}
+
+/* ============================================
+   Mobile Navigation
+   ============================================ */
+@media (max-width: 767px) {
+    /* Нижняя навигационная панель (как в мобильных приложениях) */
+    .mobile-bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        display: flex;
+        justify-content: space-around;
+        padding: 0.5rem 0;
+        z-index: 1000;
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .mobile-bottom-nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-decoration: none;
+        color: #6c757d;
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        transition: color 0.2s;
+    }
+
+    .mobile-bottom-nav-item i {
+        font-size: 1.25rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .mobile-bottom-nav-item.active,
+    .mobile-bottom-nav-item:hover {
+        color: #6366f1;
+    }
+
+    /* Скрываем десктопное меню на мобильных */
+    .desktop-nav {
+        display: none !important;
+    }
+
+    /* Показываем мобильное меню */
+    .mobile-nav {
+        display: block !important;
+    }
+
+    /* Бургер меню */
+    .navbar-toggler {
+        border: none;
+        padding: 0.5rem;
+    }
+
+    .navbar-toggler:focus {
+        box-shadow: none;
+    }
+
+    /* Выпадающее меню */
+    .dropdown-menu {
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        border: none;
+        margin-top: 0.5rem;
+    }
+
+    .dropdown-item {
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+    }
+}
+
+/* ============================================
+   Mobile Dashboard
+   ============================================ */
+@media (max-width: 767px) {
+    .dashboard-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+
+    .stat-card {
+        padding: 1rem;
+        border-radius: 12px;
+    }
+
+    .stat-card .stat-value {
+        font-size: 1.5rem;
+    }
+
+    .stat-card .stat-label {
+        font-size: 0.75rem;
+    }
+
+    /* Графики */
+    .chart-container {
+        height: 250px !important;
+    }
+
+    /* Календарь */
+    .calendar-container {
+        overflow-x: auto;
+    }
+
+    .fc-toolbar {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .fc-toolbar-title {
+        font-size: 1rem !important;
+    }
+}
+
+/* ============================================
+   Mobile Forms
+   ============================================ */
+@media (max-width: 767px) {
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-label {
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-text {
+        font-size: 0.8rem;
+    }
+
+    /* Inline формы становятся вертикальными */
+    .form-inline {
+        flex-direction: column;
+    }
+
+    .form-inline .form-group {
+        width: 100%;
+    }
+
+    /* Checkbox и Radio */
+    .form-check {
+        padding-left: 1.75rem;
+    }
+
+    .form-check-input {
+        width: 1.25rem;
+        height: 1.25rem;
+        margin-top: 0;
+    }
+
+    .form-check-label {
+        font-size: 0.95rem;
+    }
+}
+
+/* ============================================
+   Mobile Task Cards
+   ============================================ */
+@media (max-width: 767px) {
+    .task-card {
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        border-radius: 12px;
+    }
+
+    .task-card-title {
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .task-card-meta {
+        font-size: 0.8rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .task-card-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+    }
+
+    .task-card-actions .btn {
+        flex: 1;
+        font-size: 0.85rem;
+        padding: 0.5rem;
+    }
+
+    /* Приоритеты */
+    .priority-badge {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    /* Статусы */
+    .status-badge {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+    }
+}
+
+/* ============================================
+   Mobile Lists
+   ============================================ */
+@media (max-width: 767px) {
+    .list-group-item {
+        padding: 1rem;
+        border-radius: 8px !important;
+        margin-bottom: 0.5rem;
+    }
+
+    .list-group-item-action {
+        transition: background-color 0.2s;
+    }
+
+    .list-group-item-action:active {
+        background-color: #f8f9fa;
+    }
+}
+
+/* ============================================
+   Safe Areas (iPhone X+)
+   ============================================ */
+@supports (padding: max(0px)) {
+    body {
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+    }
+
+    .mobile-bottom-nav {
+        padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+    }
+
+    .navbar {
+        padding-top: max(0.5rem, env(safe-area-inset-top));
+    }
+}
+
+/* ============================================
+   Landscape Mode
+   ============================================ */
+@media (max-height: 500px) and (orientation: landscape) {
+    .mobile-bottom-nav {
+        display: none;
+    }
+
+    .modal-dialog {
+        margin: 1rem auto;
+        max-width: 500px;
+    }
+
+    .toast-container {
+        bottom: auto;
+        top: 1rem;
+    }
+}
+
+/* ============================================
+   Dark Mode Support
+   ============================================ */
+@media (prefers-color-scheme: dark) {
+    .mobile-bottom-nav {
+        background: #1e293b;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+    }
+
+    .mobile-bottom-nav-item {
+        color: #94a3b8;
+    }
+
+    .mobile-bottom-nav-item.active,
+    .mobile-bottom-nav-item:hover {
+        color: #818cf8;
+    }
+
+    .dropdown-menu {
+        background: #1e293b;
+        border-color: #334155;
+    }
+
+    .dropdown-item {
+        color: #e2e8f0;
+    }
+
+    .dropdown-item:hover {
+        background: #334155;
+    }
+}
+
+/* ============================================
+   Reduced Motion
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* ============================================
+   Print Styles
+   ============================================ */
+@media print {
+    .mobile-bottom-nav,
+    .navbar,
+    .btn,
+    .no-print {
+        display: none !important;
+    }
+
+    body {
+        background: white;
+        font-size: 12pt;
+    }
+
+    .card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+}
+
+/* ============================================
+   Utility Classes for Mobile
+   ============================================ */
+
+/* Скрыть на мобильных */
+.hide-mobile {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .hide-mobile {
+        display: block;
+    }
+}
+
+/* Показать только на мобильных */
+.show-mobile {
+    display: block;
+}
+
+@media (min-width: 768px) {
+    .show-mobile {
+        display: none;
+    }
+}
+
+/* Большие тач-зоны */
+.touch-target-lg {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.75rem;
+}
+
+/* Увеличенные отступы для пальцев */
+.touch-spacing-sm { padding: 0.5rem; }
+.touch-spacing-md { padding: 0.75rem; }
+.touch-spacing-lg { padding: 1rem; }
+
+/* ============================================
+   Floating Action Button (FAB)
+   ============================================ */
+.fab {
+    position: fixed;
+    bottom: 5rem;
+    right: 1rem;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+    z-index: 999;
+    border: none;
+    font-size: 1.5rem;
+}
+
+@media (max-width: 767px) {
+    .fab {
+        bottom: calc(5rem + env(safe-area-inset-bottom));
+    }
+}
+
+.fab:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+}
+
+.fab:active {
+    transform: scale(0.95);
+}
+
+/* FAB с текстом */
+.fab-label {
+    position: absolute;
+    right: 64px;
+    background: #1e293b;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+.fab:hover .fab-label {
+    opacity: 1;
+}
