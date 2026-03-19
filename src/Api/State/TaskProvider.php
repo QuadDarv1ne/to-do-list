@@ -9,6 +9,9 @@ use App\Entity\Task;
 use App\Repository\TaskRepository;
 use Symfony\Bundle\SecurityBundle\Security;
 
+/**
+ * @implements ProviderInterface<TaskDto>
+ */
 class TaskProvider implements ProviderInterface
 {
     public function __construct(
@@ -39,6 +42,10 @@ class TaskProvider implements ProviderInterface
         return null;
     }
 
+    /**
+     * @param array<string, mixed> $context
+     * @return TaskDto[]
+     */
     private function getCollection(array $context): array
     {
         $user = $this->security->getUser();

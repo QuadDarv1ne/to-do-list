@@ -105,6 +105,7 @@ class TaskDto
     public ?int $categoryId = null;
 
     #[Groups(['task:read'])]
+    /** @var array<int, array{id: int, name: string}> */
     public array $tags = [];
 
     #[Groups(['task:read'])]

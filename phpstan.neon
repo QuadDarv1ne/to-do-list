@@ -10,3 +10,8 @@ parameters:
         # Attribute classes - ложные срабатывания для PHP 8 attributes
         - '#Attribute class Symfony\\Component\\Serializer\\Annotation\\Groups does not exist#'
         - '#Attribute class Symfony\\Component\\Routing\\Annotation\\Route does not exist#'
+        
+        # Properties only written in constructor (used by DI container)
+        - '#Property App\\Command\\CacheCleanupCommand::\$cache is never read, only written#'
+        - '#Property App\\Command\\CleanupDataCommand::\$pushNotificationRepo is never read, only written#'
+        - '#Property App\\Command\\CleanupDataCommand::\$auditLogService is never read, only written#'
