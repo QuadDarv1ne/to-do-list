@@ -30,9 +30,9 @@ final class Version20260222100000 extends AbstractMigration
         $this->addSql('CREATE INDEX IF NOT EXISTS idx_task_user_priority ON tasks (user_id, priority)');
         
         // Индексы для таблицы comments
-        $this->addSql('CREATE INDEX IF NOT EXISTS idx_comment_task ON comments (task_id)');
-        $this->addSql('CREATE INDEX IF NOT EXISTS idx_comment_author ON comments (author_id)');
-        $this->addSql('CREATE INDEX IF NOT EXISTS idx_comment_created_at ON comments (created_at)');
+        $this->addSql('CREATE INDEX IF NOT EXISTS idx_comment_task ON task_comments (task_id)');
+        $this->addSql('CREATE INDEX IF NOT EXISTS idx_comment_author ON task_comments (author_id)');
+        $this->addSql('CREATE INDEX IF NOT EXISTS idx_comment_created_at ON task_comments (created_at)');
         
         // Индексы для таблицы task_history
         $this->addSql('CREATE INDEX IF NOT EXISTS idx_task_history_task ON task_history (task_id)');
