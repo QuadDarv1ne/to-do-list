@@ -3,64 +3,56 @@ framework:
         # Unique name of your app: used to compute stable namespaces for cache keys.
         prefix_seed: app/todo_list
 
-        # Redis для кэширования
-        # Используйте Redis в production для лучшей производительности
-        # В development можно использовать filesystem для отладки
-        app: cache.adapter.redis
-        system: cache.adapter.redis
-        
-        # Redis provider
-        default_redis_provider: 'redis://localhost:6379'
-
+        # Пулы кэша с Redis
         pools:
-            # Redis cache pool для приложения
+            # Основной пул кэша приложения
             cache.redis:
                 adapter: cache.adapter.redis
-                provider: '%env(REDIS_URL)%'
+                provider: '%env(resolve:REDIS_URL)%'
                 default_lifetime: 3600 # 1 час
 
-            # Cache pool для аналитики
+            # Пул для аналитики (30 минут)
             cache.analytics:
                 adapter: cache.adapter.redis
-                provider: '%env(REDIS_URL)%'
-                default_lifetime: 1800 # 30 минут
+                provider: '%env(resolve:REDIS_URL)%'
+                default_lifetime: 1800
 
-            # Cache pool для пользовательских данных
+            # Пул для пользовательских данных (15 минут)
             cache.user_data:
                 adapter: cache.adapter.redis
-                provider: '%env(REDIS_URL)%'
-                default_lifetime: 900 # 15 минут
+                provider: '%env(resolve:REDIS_URL)%'
+                default_lifetime: 900
 
-            # Cache pool для статистики
+            # Пул для статистики (10 минут)
             cache.statistics:
                 adapter: cache.adapter.redis
-                provider: '%env(REDIS_URL)%'
-                default_lifetime: 600 # 10 минут
+                provider: '%env(resolve:REDIS_URL)%'
+                default_lifetime: 600
 
-            # Cache pool для сессий
+            # Пул для сессий (2 часа)
             cache.sessions:
                 adapter: cache.adapter.redis
-                provider: '%env(REDIS_URL)%'
-                default_lifetime: 7200 # 2 часа
+                provider: '%env(resolve:REDIS_URL)%'
+                default_lifetime: 7200
 
+# Production: Redis для app и system кэша
 when@prod:
     framework:
         cache:
-            # Redis в production
-            app: cache.redis
-            system: cache.redis
-            default_redis_provider: '%env(REDIS_URL)%'
+            app: cache.adapter.redis
+            system: cache.adapter.redis
+            default_redis_provider: '%env(resolve:REDIS_URL)%'
 
+# Development: файловый кэш для отладки
 when@dev:
     framework:
         cache:
-            # Filesystem в development для удобства отладки
             app: cache.adapter.filesystem
-            system: cache.adapter.system
+            system: cache.adapter.filesystem
 
+# Testing: in-memory кэш для скорости
 when@test:
     framework:
         cache:
-            # Array adapter для тестов (in-memory)
             app: cache.adapter.array
             system: cache.adapter.array
